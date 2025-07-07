@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\AccountType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -29,6 +30,7 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'account_type' => AccountType::UNDEFINED->value,
         ];
     }
 
@@ -39,6 +41,36 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /**
+     * Indicate that the model is an influencer.
+     */
+    public function influencer(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'account_type' => AccountType::INFLUENCER->value,
+        ]);
+    }
+
+    /**
+     * Indicate that the model is a business.
+     */
+    public function business(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'account_type' => AccountType::BUSINESS->value,
+        ]);
+    }
+
+    /**
+     * Indicate that the model is an admin.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'account_type' => AccountType::ADMIN->value,
         ]);
     }
 }

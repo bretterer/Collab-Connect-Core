@@ -1,0 +1,7 @@
+---
+alwaysApply: true
+---
+
+I am using the Laravel TALL stack (Tailwind, Apline.js, Laravel, Livewire)
+Laravel version 12
+I would like to keep everything Livewire first.  Generic controllers should be used as a last resort.
