@@ -26,7 +26,7 @@ Route::post('/waitlist', function (Illuminate\Http\Request $request) {
     $csvPath = storage_path('app/private/waitlist.csv');
 
     // Create directory if it doesn't exist
-    if (!file_exists(dirname($csvPath))) {
+    if (! file_exists(dirname($csvPath))) {
         mkdir(dirname($csvPath), 0755, true);
     }
 
@@ -37,7 +37,7 @@ Route::post('/waitlist', function (Illuminate\Http\Request $request) {
     $file = fopen($csvPath, 'a');
 
     // Add headers if file is new
-    if (!$fileExists) {
+    if (! $fileExists) {
         fputcsv($file, ['Timestamp', 'Name', 'Email', 'User Type']);
     }
 
@@ -47,6 +47,6 @@ Route::post('/waitlist', function (Illuminate\Http\Request $request) {
 
     return response()->json([
         'success' => true,
-        'message' => 'Thank you for joining our waitlist!'
+        'message' => 'Thank you for joining our waitlist!',
     ]);
 })->name('waitlist.store');

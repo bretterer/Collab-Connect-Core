@@ -32,7 +32,7 @@ class Login extends Component
 
     public function mount()
     {
-        $this->extraFields = new HoneypotData();
+        $this->extraFields = new HoneypotData;
     }
 
     public function login(): void

@@ -29,7 +29,7 @@ class Register extends Component
 
     public function mount()
     {
-        $this->extraFields = new HoneypotData();
+        $this->extraFields = new HoneypotData;
     }
 
     /**
@@ -51,6 +51,6 @@ class Register extends Component
 
         Auth::login($user);
 
-        $this->redirect(route('dashboard', absolute: false), navigate: true);
+        $this->redirect(route('onboarding.account-type', absolute: false), navigate: true);
     }
 }
