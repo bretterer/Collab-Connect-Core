@@ -99,4 +99,12 @@ class User extends Authenticatable
     {
         return $this->account_type === AccountType::UNDEFINED || ! $this->hasCompletedOnboarding();
     }
+
+    /**
+     * Check if the user is an admin
+     */
+    public function isAdmin(): bool
+    {
+        return $this->account_type === AccountType::ADMIN;
+    }
 }

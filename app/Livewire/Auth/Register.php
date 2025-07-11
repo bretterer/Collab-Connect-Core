@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Rule;
 use Livewire\Component;
+use RyanChandler\LaravelCloudflareTurnstile\Rules\Turnstile;
 use Spatie\Honeypot\Http\Livewire\Concerns\HoneypotData;
 use Spatie\Honeypot\Http\Livewire\Concerns\UsesSpamProtection;
 
@@ -24,6 +26,8 @@ class Register extends Component
     public string $password = '';
 
     public string $password_confirmation = '';
+
+    public string $cf_turnstile_response = '';
 
     public HoneypotData $extraFields;
 
@@ -43,9 +47,13 @@ class Register extends Component
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
+            'cf_turnstile_response' => ['required', app(Turnstile::class)],
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
+
+        // Remove cf_turnstile_response from validated data as it's not a user field
+        unset($validated['cf_turnstile_response']);
 
         event(new Registered(($user = User::create($validated))));
 

@@ -25,41 +25,18 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Create business user with complete profile
-        $businessUser = User::factory()->business()->create([
+        $businessUser = User::factory()->withBusinessProfile()->create([
             'name' => 'Sarah Johnson',
-            'email' => 'sarah@localcafe.com',
+            'email' => env('INIT_BUSINESS_EMAIL', 'business@example.com'),
             'password' => Hash::make('password'),
         ]);
 
-        // Create business profile for the business user
-        BusinessProfile::factory()->withTeam()->create([
-            'user_id' => $businessUser->id,
-            'business_name' => 'The Local Café',
-            'industry' => 'Coffee Shop',
-            'websites' => [
-                'https://www.thelocalcafe.com',
-                'https://instagram.com/thelocalcafe',
-            ],
-            'primary_zip_code' => '90210',
-            'contact_name' => $businessUser->name,
-            'contact_email' => $businessUser->email,
-            'subscription_plan' => 'team',
-        ]);
 
         // Create influencer user with complete profile
-        $influencerUser = User::factory()->influencer()->create([
+        $influencerUser = User::factory()->withInfluencerProfile()->create([
             'name' => 'Alex Rivera',
-            'email' => 'alex@foodiegram.com',
+            'email' => env('INIT_INFLUENCER_EMAIL', 'influencer@example.com'),
             'password' => Hash::make('password'),
-        ]);
-
-        // Create influencer profile
-        InfluencerProfile::factory()->foodInfluencer()->create([
-            'user_id' => $influencerUser->id,
-            'creator_name' => 'Alex Rivera (@FoodieGram)',
-            'primary_niche' => 'food',
-            'primary_zip_code' => '90210',
-            'subscription_plan' => '10k_to_50k',
         ]);
 
         // Create social media accounts for the influencer
@@ -82,7 +59,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Create additional test users
-        $this->createAdditionalTestUsers();
+        // $this->createAdditionalTestUsers();
     }
 
     /**

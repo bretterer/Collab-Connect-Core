@@ -57,6 +57,10 @@
                             viewable />
 
                 <div>
+                    <x-turnstile data-size="flexible" wire:model="cf_turnstile_response" />
+                </div>
+
+                <div>
                     <flux:button class="w-full"
                                  type="submit"
                                  variant="primary">{{ __('Register') }}</flux:button>

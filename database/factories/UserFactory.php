@@ -73,4 +73,50 @@ class UserFactory extends Factory
             'account_type' => AccountType::ADMIN->value,
         ]);
     }
+
+    /**
+     * Create a user with completed business onboarding.
+     */
+    public function withBusinessProfile(array $businessAttributes = []): static
+    {
+        return $this->business()->afterCreating(function ($user) use ($businessAttributes) {
+            $user->businessProfile()->create(
+                array_merge(
+                    \Database\Factories\BusinessProfileFactory::new()->make()->toArray(),
+                    $businessAttributes
+                )
+            );
+        });
+    }
+
+    /**
+     * Create a user with completed influencer onboarding.
+     */
+    public function withInfluencerProfile(array $influencerAttributes = []): static
+    {
+        return $this->influencer()->afterCreating(function ($user) use ($influencerAttributes) {
+            $user->influencerProfile()->create(
+                array_merge(
+                    \Database\Factories\InfluencerProfileFactory::new()->make()->toArray(),
+                    $influencerAttributes
+                )
+            );
+        });
+    }
+
+    /**
+     * Alias for withBusinessProfile() - creates a business user with completed onboarding.
+     */
+    public function businessComplete(array $businessAttributes = []): static
+    {
+        return $this->withBusinessProfile($businessAttributes);
+    }
+
+    /**
+     * Alias for withInfluencerProfile() - creates an influencer user with completed onboarding.
+     */
+    public function influencerComplete(array $influencerAttributes = []): static
+    {
+        return $this->withInfluencerProfile($influencerAttributes);
+    }
 }

@@ -15,12 +15,27 @@
 
     <div class="mt-10">
         <div>
+            @if (session('status'))
+                <div class="mb-4 rounded-md bg-green-50 p-4 dark:bg-green-900/20">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                                {{ session('status') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <form
                   class="space-y-6"
                   wire:submit.prevent="login"
                   method="POST">
-
-                <x-honeypot />
 
                 <flux:field>
                     <flux:label class="block text-sm/6 font-medium">Email address</flux:label>
@@ -45,7 +60,7 @@
 
 
                     <flux:link class="text-sm font-semibold"
-                               :href="route('login')"
+                               :href="route('password.request')"
                                wire:navigate>
                         {{ __('Forgot your password?') }}
                     </flux:link>
@@ -74,10 +89,28 @@
             <div class="mt-6 grid grid-cols-2 gap-4">
 
                 @if (app()->environment('local'))
+                <div
+                class="col-span-2 flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-700">
+               <x-login-link class="text-sm/6 font-semibold"
+                             :email="env('INIT_USER_EMAIL')"
+                             label="Login as Admin"
+                             redirect-url="{{ route('dashboard') }}"/>
+           </div>
+
+           <div
+                         class="col-span-2 flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-700">
+                        <x-login-link class="text-sm/6 font-semibold"
+                                      :email="env('INIT_BUSINESS_EMAIL')"
+                                      label="Login as Business"
+                                      redirect-url="{{ route('dashboard') }}"/>
+                    </div>
+
                     <div
                          class="col-span-2 flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-700">
                         <x-login-link class="text-sm/6 font-semibold"
-                                      :email="env('INIT_USER_EMAIL')" />
+                                      :email="env('INIT_INFLUENCER_EMAIL')"
+                                      label="Login as Influencer"
+                                      redirect-url="{{ route('dashboard') }}"/>
                     </div>
                 @endif
 

@@ -5,3 +5,4 @@ alwaysApply: true
 I am using the Laravel TALL stack (Tailwind, Apline.js, Laravel, Livewire)
 Laravel version 12
 I would like to keep everything Livewire first.  Generic controllers should be used as a last resort.
+The server is always running via Laravel Herd, so you can access it at https://collabconnect.test

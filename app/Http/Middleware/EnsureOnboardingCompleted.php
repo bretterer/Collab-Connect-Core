@@ -22,6 +22,11 @@ class EnsureOnboardingCompleted
             return $next($request);
         }
 
+        // If user is admin, let them through
+        if ($user->isAdmin()) {
+            return $next($request);
+        }
+
         // If user is trying to access onboarding routes, let them through
         if ($request->routeIs('onboarding.*')) {
             return $next($request);

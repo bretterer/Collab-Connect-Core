@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureOnboardingCompleted;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/marketing.php';
@@ -13,7 +14,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Main dashboard (protected by onboarding middleware)
-    Route::middleware('ensure.onboarding.completed')->group(function () {
+    Route::middleware(EnsureOnboardingCompleted::class)->group(function () {
         Route::get('/dashboard', function () {
             return view('dashboard');
         })->name('dashboard');

@@ -26,11 +26,11 @@ class PasswordResetTest extends TestCase
     {
         Notification::fake();
 
-        $user = User::factory()->create();
+        $user = User::factory()->withBusinessProfile()->create();
 
         Livewire::test(ForgotPassword::class)
             ->set('email', $user->email)
-            ->call('sendPasswordResetLink');
+            ->call('sendResetLink');
 
         Notification::assertSentTo($user, ResetPasswordNotification::class);
     }
@@ -39,11 +39,11 @@ class PasswordResetTest extends TestCase
     {
         Notification::fake();
 
-        $user = User::factory()->create();
+        $user = User::factory()->withBusinessProfile()->create();
 
         Livewire::test(ForgotPassword::class)
             ->set('email', $user->email)
-            ->call('sendPasswordResetLink');
+            ->call('sendResetLink');
 
         Notification::assertSentTo($user, ResetPasswordNotification::class, function ($notification) {
             $response = $this->get('/reset-password/'.$notification->token);
@@ -58,11 +58,11 @@ class PasswordResetTest extends TestCase
     {
         Notification::fake();
 
-        $user = User::factory()->create();
+        $user = User::factory()->withBusinessProfile()->create();
 
         Livewire::test(ForgotPassword::class)
             ->set('email', $user->email)
-            ->call('sendPasswordResetLink');
+            ->call('sendResetLink');
 
         Notification::assertSentTo($user, ResetPasswordNotification::class, function ($notification) use ($user) {
             $response = Livewire::test(ResetPassword::class, ['token' => $notification->token])

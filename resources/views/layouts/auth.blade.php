@@ -32,6 +32,8 @@
 
     @fluxAppearance()
 
+    @turnstileScripts()
+
 </head>
 
 <body class="h-full bg-white dark:bg-gray-900">
