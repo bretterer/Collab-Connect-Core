@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\CampaignType;
 use App\Enums\CollaborationGoal;
+use App\Enums\Niche;
 use App\Enums\SubscriptionPlan;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -21,18 +22,7 @@ class BusinessProfileFactory extends Factory
     {
         return [
             'business_name' => fake()->company(),
-            'industry' => fake()->randomElement([
-                'Restaurant & Food Service',
-                'Retail & Shopping',
-                'Health & Wellness',
-                'Beauty & Personal Care',
-                'Automotive',
-                'Real Estate',
-                'Technology',
-                'Education',
-                'Entertainment',
-                'Hospitality'
-            ]),
+            'industry' => fake()->randomElement(Niche::forBusinesses()),
             'websites' => [
                 fake()->url(),
                 fake()->optional(0.3)->url(),

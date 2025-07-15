@@ -6,14 +6,14 @@ use App\Enums\CollaborationGoal;
 use App\Enums\Niche;
 use App\Enums\SocialPlatform;
 use App\Enums\SubscriptionPlan;
+use App\Livewire\BaseComponent;
 use App\Livewire\Traits\HasWizardSteps;
-use App\Models\InfluencerProfile;
-use App\Models\SocialMediaAccount;
+use App\Services\ProfileService;
+use App\Services\ValidationService;
 use Livewire\Attributes\Layout;
-use Livewire\Component;
 
 #[Layout('layouts.auth')]
-class InfluencerOnboarding extends Component
+class InfluencerOnboarding extends BaseComponent
 {
     use HasWizardSteps;
 
@@ -45,22 +45,22 @@ class InfluencerOnboarding extends Component
 
     protected function getNicheOptions(): array
     {
-        return Niche::toOptions();
+        return $this->getEnumOptions(Niche::class);
     }
 
     protected function getPlatformOptions(): array
     {
-        return SocialPlatform::toOptions();
+        return $this->getEnumOptions(SocialPlatform::class);
     }
 
     protected function getCollaborationPreferenceOptions(): array
     {
-        return CollaborationGoal::toOptions(CollaborationGoal::forInfluencers());
+        return $this->getEnumOptions(CollaborationGoal::class, 'forInfluencers');
     }
 
     protected function getSubscriptionPlanOptions(): array
     {
-        return SubscriptionPlan::toOptions(SubscriptionPlan::forInfluencers());
+        return $this->getEnumOptions(SubscriptionPlan::class, 'forInfluencers');
     }
 
     public function mount()
@@ -71,20 +71,17 @@ class InfluencerOnboarding extends Component
 
     public function addSocialMediaAccount()
     {
-        $this->socialMediaAccounts[] = [
+        $this->addToArray('socialMediaAccounts', [
             'platform' => 'instagram',
             'username' => '',
             'follower_count' => 0,
             'is_primary' => false,
-        ];
+        ]);
     }
 
     public function removeSocialMediaAccount($index)
     {
-        if (count($this->socialMediaAccounts) > 1) {
-            unset($this->socialMediaAccounts[$index]);
-            $this->socialMediaAccounts = array_values($this->socialMediaAccounts);
-        }
+        $this->removeFromArray('socialMediaAccounts', $index, 1);
     }
 
     public function setPrimaryAccount($index)
@@ -96,25 +93,12 @@ class InfluencerOnboarding extends Component
 
     protected function validateCurrentStep(): void
     {
-        $rules = match ($this->currentStep) {
-            1 => [
-                'creatorName' => 'required|string|max:255',
-                'primaryNiche' => 'required|in:'.implode(',', array_keys($this->getNicheOptions())),
-                'primaryZipCode' => 'required|string|max:10',
-            ],
-            2 => [
-                'socialMediaAccounts.*.platform' => 'required|in:'.implode(',', array_keys($this->getPlatformOptions())),
-                'socialMediaAccounts.*.username' => 'required|string|max:255',
-                'socialMediaAccounts.*.follower_count' => 'required|integer|min:0',
-            ],
-            3 => [
-                'mediaKitUrl' => $this->hasMediaKit ? 'required|url' : 'nullable|url',
-            ],
-            4 => [
-                'collaborationPreferences' => 'required|array|min:1',
-                'subscriptionPlan' => 'required|in:'.implode(',', array_keys($this->getSubscriptionPlanOptions())),
-            ],
-        };
+        $rules = ValidationService::getStepRules('influencer', $this->currentStep);
+
+        // Handle conditional validation for media kit URL
+        if ($this->currentStep === 3 && $this->hasMediaKit) {
+            $rules['mediaKitUrl'] = 'required|url';
+        }
 
         $this->validate($rules);
     }
@@ -125,44 +109,25 @@ class InfluencerOnboarding extends Component
 
         $user = $this->getAuthenticatedUser();
 
-        // Create influencer profile
-        $influencerProfile = InfluencerProfile::create([
-            'user_id' => $user->id,
-            'creator_name' => $this->creatorName,
-            'primary_niche' => $this->primaryNiche,
-            'primary_zip_code' => $this->primaryZipCode,
-            'media_kit_url' => $this->mediaKitUrl,
-            'has_media_kit' => $this->hasMediaKit,
-            'collaboration_preferences' => $this->collaborationPreferences,
-            'preferred_brands' => $this->preferredBrands,
-            'subscription_plan' => $this->subscriptionPlan,
-            'onboarding_completed' => true,
+        // Create influencer profile using service
+        ProfileService::createInfluencerProfile($user, [
+            'creatorName' => $this->creatorName,
+            'primaryNiche' => $this->primaryNiche,
+            'primaryZipCode' => $this->primaryZipCode,
+            'mediaKitUrl' => $this->mediaKitUrl,
+            'hasMediaKit' => $this->hasMediaKit,
+            'collaborationPreferences' => $this->collaborationPreferences,
+            'preferredBrands' => $this->preferredBrands,
+            'subscriptionPlan' => $this->subscriptionPlan,
         ]);
 
-        // Create social media accounts
-        foreach ($this->socialMediaAccounts as $account) {
-            if (! empty($account['username'])) {
-                SocialMediaAccount::create([
-                    'user_id' => $user->id,
-                    'platform' => $account['platform'],
-                    'username' => $account['username'],
-                    'url' => $this->generateSocialMediaUrl($account['platform'], $account['username']),
-                    'follower_count' => $account['follower_count'],
-                    'is_primary' => $account['is_primary'] ?? false,
-                ]);
-            }
-        }
+        // Create social media accounts using service
+        ProfileService::createSocialMediaAccounts($user, $this->socialMediaAccounts);
 
-        session()->flash('message', 'Welcome to CollabConnect! Your influencer profile has been created successfully.');
-        $this->redirect(route('dashboard'), navigate: true);
+        $this->flashAndRedirect('Welcome to CollabConnect! Your influencer profile has been created successfully.', 'dashboard');
     }
 
-    private function generateSocialMediaUrl(string $platform, string $username): string
-    {
-        $platformEnum = SocialPlatform::from($platform);
 
-        return $platformEnum->generateUrl($username);
-    }
 
     public function render()
     {

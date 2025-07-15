@@ -28,6 +28,8 @@ class InfluencerProfile extends Model
     protected function casts(): array
     {
         return [
+            'primary_niche' => \App\Enums\Niche::class,
+            'subscription_plan' => \App\Enums\SubscriptionPlan::class,
             'collaboration_preferences' => 'array',
             'preferred_brands' => 'array',
             'has_media_kit' => 'boolean',

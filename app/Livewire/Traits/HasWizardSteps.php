@@ -64,11 +64,5 @@ trait HasWizardSteps
      */
     abstract public function completeOnboarding(): void;
 
-    /**
-     * Get the authenticated user safely
-     */
-    protected function getAuthenticatedUser()
-    {
-        return \Illuminate\Support\Facades\Auth::user();
-    }
+
 }

@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
+use App\Enums\Traits\HasFormOptions;
+
 enum SocialPlatform: string
 {
+    use HasFormOptions;
+
     case INSTAGRAM = 'instagram';
     case TIKTOK = 'tiktok';
     case YOUTUBE = 'youtube';
@@ -46,16 +50,7 @@ enum SocialPlatform: string
         return $this->baseUrl().$username;
     }
 
-    /**
-     * Get all values as associative array for form options
-     */
-    public static function toOptions(): array
-    {
-        return array_combine(
-            array_map(fn ($case) => $case->value, self::cases()),
-            array_map(fn ($case) => $case->label(), self::cases())
-        );
-    }
+
 
     /**
      * Get platforms most relevant for businesses

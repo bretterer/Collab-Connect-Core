@@ -21,6 +21,11 @@ return new class extends Migration
             $table->rememberToken();
             $table->integer('account_type')->default(AccountType::UNDEFINED->value);
             $table->timestamps();
+
+            // Indexes for search performance
+            $table->index(['account_type', 'created_at']); // For filtering by account type and sorting
+            $table->index(['name']); // For name-based searches
+            $table->index(['email']); // For email-based searches (in addition to unique constraint)
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

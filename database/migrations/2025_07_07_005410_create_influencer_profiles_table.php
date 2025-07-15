@@ -24,6 +24,13 @@ return new class extends Migration
             $table->string('subscription_plan')->nullable();
             $table->boolean('onboarding_completed')->default(false);
             $table->timestamps();
+
+            // Indexes for search performance
+            $table->index(['user_id']); // For user relationship queries
+            $table->index(['primary_zip_code']); // For location-based searches
+            $table->index(['primary_niche']); // For niche filtering
+            $table->index(['onboarding_completed']); // For filtering completed profiles
+            $table->index(['primary_zip_code', 'primary_niche']); // For combined location + niche searches
         });
     }
 

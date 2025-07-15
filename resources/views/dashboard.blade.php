@@ -51,6 +51,10 @@
                                    class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium">
                                     Applications
                                 </a>
+                                <a href="{{ route('search') }}"
+                                   class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium">
+                                    Find Businesses
+                                </a>
                                 <a href="#"
                                    class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium">
                                     Media Kit
@@ -60,9 +64,9 @@
                                    class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium">
                                     Campaigns
                                 </a>
-                                <a href="#"
+                                <a href="{{ route('search') }}"
                                    class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium">
-                                    Influencers
+                                    Find Influencers
                                 </a>
                                 <a href="#"
                                    class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium">
@@ -327,10 +331,11 @@
                     @if(auth()->user()->account_type->value === 1)
                         <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white block px-3 py-2 text-base font-medium">Campaigns</a>
                         <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white block px-3 py-2 text-base font-medium">Applications</a>
+                        <a href="{{ route('search') }}" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white block px-3 py-2 text-base font-medium">Find Businesses</a>
                         <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white block px-3 py-2 text-base font-medium">Media Kit</a>
                     @elseif(auth()->user()->account_type->value === 2)
                         <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white block px-3 py-2 text-base font-medium">Campaigns</a>
-                        <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white block px-3 py-2 text-base font-medium">Influencers</a>
+                        <a href="{{ route('search') }}" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white block px-3 py-2 text-base font-medium">Find Influencers</a>
                         <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white block px-3 py-2 text-base font-medium">Analytics</a>
                     @endif
                     <!-- Mobile Search -->
@@ -370,177 +375,755 @@
                     </div>
                 @endif
 
-                <!-- Welcome Section -->
-                <div class="mb-8">
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
-                        <div class="px-4 py-5 sm:p-6">
-                            <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                                Welcome to CollabConnect, {{ auth()->user()->name }}! 🎉
-                            </h1>
-                            <p class="text-gray-600 dark:text-gray-400">
-                                @if(auth()->user()->account_type->value === 1)
-                                    Your influencer profile is now active. You can start applying for campaigns and connecting with businesses.
-                                @elseif(auth()->user()->account_type->value === 2)
-                                    Your business profile is ready! You can now start searching for local influencers and creating campaigns.
-                                @else
-                                    Great! You're all set up and ready to start collaborating.
-                                @endif
-                            </p>
+                @if(auth()->user()->account_type === App\Enums\AccountType::BUSINESS)
+                    <!-- BUSINESS DASHBOARD -->
+                    <!-- Welcome Section -->
+                    <div class="mb-8">
+                        <div class="bg-gradient-to-r from-blue-600 to-purple-600 overflow-hidden shadow rounded-lg">
+                            <div class="px-4 py-5 sm:p-6 text-white">
+                                <h1 class="text-3xl font-bold mb-2">
+                                    Welcome back, {{ auth()->user()->name }}! 🚀
+                                </h1>
+                                <p class="text-blue-100 text-lg">
+                                    Your business profile is active. Ready to connect with local influencers and grow your brand?
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Quick Stats -->
-                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-8">
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
-                        <div class="p-5">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                        </svg>
+                    <!-- Business Stats Grid -->
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+                        <!-- Active Campaigns -->
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Active Campaigns</dt>
+                                            <dd class="text-lg font-medium text-gray-900 dark:text-white">3</dd>
+                                        </dl>
                                     </div>
                                 </div>
-                                <div class="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Profile</dt>
-                                        <dd class="text-lg font-medium text-gray-900 dark:text-white">Complete</dd>
-                                    </dl>
+                            </div>
+                        </div>
+
+                        <!-- Applications Received -->
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">New Applications</dt>
+                                            <dd class="text-lg font-medium text-gray-900 dark:text-white">12</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Connected Influencers -->
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Connected Influencers</dt>
+                                            <dd class="text-lg font-medium text-gray-900 dark:text-white">8</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Reach -->
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Reach</dt>
+                                            <dd class="text-lg font-medium text-gray-900 dark:text-white">45.2K</dd>
+                                        </dl>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
-                        <div class="p-5">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div class="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Account Type</dt>
-                                        <dd class="text-lg font-medium text-gray-900 dark:text-white">{{ auth()->user()->account_type->label() }}</dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
-                        <div class="p-5">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div class="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Status</dt>
-                                        <dd class="text-lg font-medium text-gray-900 dark:text-white">Active</dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Next Steps -->
-                <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
-                    <div class="px-4 py-5 sm:p-6">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">What's Next?</h3>
-                        <div class="space-y-3">
-                            @if(auth()->user()->account_type->value === 1)
-                                <!-- Influencer next steps -->
-                                <div class="flex items-start space-x-3">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-6 h-6 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-                                            <span class="text-xs font-medium text-blue-600 dark:text-blue-400">1</span>
-                                        </div>
-                                    </div>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                                        <span class="font-medium text-gray-900 dark:text-white">Browse available campaigns</span> - Find businesses looking for collaborators in your area
-                                    </p>
-                                </div>
-                                <div class="flex items-start space-x-3">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-6 h-6 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-                                            <span class="text-xs font-medium text-blue-600 dark:text-blue-400">2</span>
-                                        </div>
-                                    </div>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                                        <span class="font-medium text-gray-900 dark:text-white">Complete your media kit</span> - Showcase your best content and analytics
-                                    </p>
-                                </div>
-                                <div class="flex items-start space-x-3">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-6 h-6 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-                                            <span class="text-xs font-medium text-blue-600 dark:text-blue-400">3</span>
-                                        </div>
-                                    </div>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                                        <span class="font-medium text-gray-900 dark:text-white">Start applying</span> - Apply to campaigns that match your niche and interests
-                                    </p>
-                                </div>
-                            @elseif(auth()->user()->account_type->value === 2)
-                                <!-- Business next steps -->
-                                <div class="flex items-start space-x-3">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-6 h-6 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
-                                            <span class="text-xs font-medium text-green-600 dark:text-green-400">1</span>
-                                        </div>
-                                    </div>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                                        <span class="font-medium text-gray-900 dark:text-white">Search for influencers</span> - Find local creators that align with your brand
-                                    </p>
-                                </div>
-                                <div class="flex items-start space-x-3">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-6 h-6 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
-                                            <span class="text-xs font-medium text-green-600 dark:text-green-400">2</span>
-                                        </div>
-                                    </div>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                                        <span class="font-medium text-gray-900 dark:text-white">Create your first campaign</span> - Define your collaboration goals and requirements
-                                    </p>
-                                </div>
-                                <div class="flex items-start space-x-3">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-6 h-6 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
-                                            <span class="text-xs font-medium text-green-600 dark:text-green-400">3</span>
-                                        </div>
-                                    </div>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                                        <span class="font-medium text-gray-900 dark:text-white">Start collaborating</span> - Connect with influencers and launch your campaigns
-                                    </p>
-                                </div>
-                            @endif
-                        </div>
-
-                        <div class="mt-6">
-                            <flux:button variant="primary">
-                                @if(auth()->user()->account_type->value === 1)
-                                    Browse Campaigns
-                                @elseif(auth()->user()->account_type->value === 2)
-                                    Find Influencers
-                                @else
-                                    Get Started
-                                @endif
+                    <!-- Quick Actions -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Quick Actions</h3>
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            <flux:button variant="primary" class="flex items-center justify-center space-x-2 h-12">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                <span>Create Campaign</span>
+                            </flux:button>
+                            <a href="{{ route('search') }}">
+                                <flux:button variant="outline" class="flex items-center justify-center space-x-2 h-12 w-full">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                    <span>Find Influencers</span>
+                                </flux:button>
+                            </a>
+                            <flux:button variant="outline" class="flex items-center justify-center space-x-2 h-12">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <span>View Analytics</span>
+                            </flux:button>
+                            <flux:button variant="outline" class="flex items-center justify-center space-x-2 h-12">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                                <span>Messages</span>
                             </flux:button>
                         </div>
                     </div>
-                </div>
+
+                    <!-- Recent Activity & Pending Applications -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <!-- Recent Activity -->
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+                            <div class="px-4 py-5 sm:p-6">
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Recent Activity</h3>
+                                <div class="space-y-4">
+                                    <div class="flex items-start space-x-3">
+                                        <div class="flex-shrink-0">
+                                            <div class="w-8 h-8 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
+                                                <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm text-gray-900 dark:text-white">
+                                                <span class="font-medium">@sarah_lifestyle</span> completed your "Summer Collection" campaign
+                                            </p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">2 hours ago</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start space-x-3">
+                                        <div class="flex-shrink-0">
+                                            <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+                                                <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm text-gray-900 dark:text-white">
+                                                New application from <span class="font-medium">@mike_fitness</span> for "Protein Shake Review"
+                                            </p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">4 hours ago</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start space-x-3">
+                                        <div class="flex-shrink-0">
+                                            <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
+                                                <svg class="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm text-gray-900 dark:text-white">
+                                                <span class="font-medium">@jenny_food</span> sent you a message about collaboration terms
+                                            </p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">1 day ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <flux:button variant="subtle" size="sm">View All Activity</flux:button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pending Applications -->
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+                            <div class="px-4 py-5 sm:p-6">
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Pending Applications</h3>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 bg-gradient-to-br from-pink-400 to-red-400 rounded-full flex items-center justify-center text-white font-medium">
+                                                AL
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">@alex_local</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">12.5K followers • Local Food</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <flux:button variant="primary" size="sm">Accept</flux:button>
+                                            <flux:button variant="outline" size="sm">Decline</flux:button>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full flex items-center justify-center text-white font-medium">
+                                                MR
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">@maria_reviews</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">8.2K followers • Product Reviews</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <flux:button variant="primary" size="sm">Accept</flux:button>
+                                            <flux:button variant="outline" size="sm">Decline</flux:button>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-teal-400 rounded-full flex items-center justify-center text-white font-medium">
+                                                TF
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">@tom_fitness</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">25.1K followers • Fitness</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <flux:button variant="primary" size="sm">Accept</flux:button>
+                                            <flux:button variant="outline" size="sm">Decline</flux:button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <flux:button variant="subtle" size="sm">View All Applications</flux:button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Campaign Performance -->
+                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-8">
+                        <div class="px-4 py-5 sm:p-6">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Active Campaigns</h3>
+                            <div class="space-y-4">
+                                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h4 class="text-sm font-medium text-gray-900 dark:text-white">Summer Collection Launch</h4>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                                            Active
+                                        </span>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 text-sm">
+                                        <div>
+                                            <p class="text-gray-500 dark:text-gray-400">Influencers</p>
+                                            <p class="font-medium text-gray-900 dark:text-white">3 / 5</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-500 dark:text-gray-400">Total Reach</p>
+                                            <p class="font-medium text-gray-900 dark:text-white">28.5K</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-500 dark:text-gray-400">Engagement</p>
+                                            <p class="font-medium text-gray-900 dark:text-white">4.2%</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-500 dark:text-gray-400">Budget</p>
+                                            <p class="font-medium text-gray-900 dark:text-white">$750</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h4 class="text-sm font-medium text-gray-900 dark:text-white">Local Coffee Shop Promo</h4>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+                                            Recruiting
+                                        </span>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 text-sm">
+                                        <div>
+                                            <p class="text-gray-500 dark:text-gray-400">Influencers</p>
+                                            <p class="font-medium text-gray-900 dark:text-white">1 / 3</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-500 dark:text-gray-400">Applications</p>
+                                            <p class="font-medium text-gray-900 dark:text-white">8</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-500 dark:text-gray-400">Location</p>
+                                            <p class="font-medium text-gray-900 dark:text-white">Downtown</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-500 dark:text-gray-400">Budget</p>
+                                            <p class="font-medium text-gray-900 dark:text-white">$300</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                @elseif(auth()->user()->account_type === App\Enums\AccountType::INFLUENCER)
+                    <!-- INFLUENCER DASHBOARD -->
+                    <!-- Welcome Section -->
+                    <div class="mb-8">
+                        <div class="bg-gradient-to-r from-pink-500 to-purple-600 overflow-hidden shadow rounded-lg">
+                            <div class="px-4 py-5 sm:p-6 text-white">
+                                <h1 class="text-3xl font-bold mb-2">
+                                    Hey {{ auth()->user()->name }}! ✨
+                                </h1>
+                                <p class="text-pink-100 text-lg">
+                                    Your influencer profile is live. Time to discover amazing collaboration opportunities!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Influencer Stats Grid -->
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+                        <!-- Active Campaigns -->
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Active Campaigns</dt>
+                                            <dd class="text-lg font-medium text-gray-900 dark:text-white">2</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pending Applications -->
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Pending Applications</dt>
+                                            <dd class="text-lg font-medium text-gray-900 dark:text-white">5</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Earnings -->
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">This Month</dt>
+                                            <dd class="text-lg font-medium text-gray-900 dark:text-white">$1,250</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Profile Views -->
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Profile Views</dt>
+                                            <dd class="text-lg font-medium text-gray-900 dark:text-white">89</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Quick Actions</h3>
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            <a href="{{ route('search') }}">
+                                <flux:button variant="primary" class="flex items-center justify-center space-x-2 h-12 w-full">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                    <span>Find Businesses</span>
+                                </flux:button>
+                            </a>
+                            <flux:button variant="outline" class="flex items-center justify-center space-x-2 h-12">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                <span>Update Profile</span>
+                            </flux:button>
+                            <flux:button variant="outline" class="flex items-center justify-center space-x-2 h-12">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <span>Media Kit</span>
+                            </flux:button>
+                            <flux:button variant="outline" class="flex items-center justify-center space-x-2 h-12">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                                <span>Messages</span>
+                            </flux:button>
+                        </div>
+                    </div>
+
+                    <!-- Available Campaigns & My Applications -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <!-- Available Campaigns -->
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+                            <div class="px-4 py-5 sm:p-6">
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">New Campaigns for You</h3>
+                                <div class="space-y-4">
+                                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex-1">
+                                                <h4 class="text-sm font-medium text-gray-900 dark:text-white">Local Coffee Shop Review</h4>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Brew & Bean Co. • Food & Beverage</p>
+                                                <p class="text-xs text-gray-600 dark:text-gray-300 mt-2">Looking for local food influencers to review our new seasonal menu...</p>
+                                                <div class="flex items-center space-x-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                                    <span>📍 Downtown</span>
+                                                    <span>💰 $200</span>
+                                                    <span>📅 Due: Nov 15</span>
+                                                </div>
+                                            </div>
+                                            <flux:button variant="primary" size="sm" class="ml-4">Apply</flux:button>
+                                        </div>
+                                    </div>
+                                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex-1">
+                                                <h4 class="text-sm font-medium text-gray-900 dark:text-white">Fitness Apparel Showcase</h4>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">ActiveWear Plus • Fashion & Fitness</p>
+                                                <p class="text-xs text-gray-600 dark:text-gray-300 mt-2">Seeking fitness influencers to showcase our new workout collection...</p>
+                                                <div class="flex items-center space-x-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                                    <span>📍 Remote</span>
+                                                    <span>💰 $350 + Product</span>
+                                                    <span>📅 Due: Nov 20</span>
+                                                </div>
+                                            </div>
+                                            <flux:button variant="primary" size="sm" class="ml-4">Apply</flux:button>
+                                        </div>
+                                    </div>
+                                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex-1">
+                                                <h4 class="text-sm font-medium text-gray-900 dark:text-white">Home Decor Collaboration</h4>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cozy Home Studio • Home & Lifestyle</p>
+                                                <p class="text-xs text-gray-600 dark:text-gray-300 mt-2">Partner with us to create content featuring our handmade decor pieces...</p>
+                                                <div class="flex items-center space-x-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                                    <span>📍 Local Area</span>
+                                                    <span>💰 Product Trade</span>
+                                                    <span>📅 Due: Nov 25</span>
+                                                </div>
+                                            </div>
+                                            <flux:button variant="primary" size="sm" class="ml-4">Apply</flux:button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <flux:button variant="subtle" size="sm">View All Campaigns</flux:button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- My Applications -->
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+                            <div class="px-4 py-5 sm:p-6">
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">My Applications</h3>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">Summer Beauty Launch</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">Glow Cosmetics • Applied 2 days ago</p>
+                                        </div>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">
+                                            Under Review
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">Tech Gadget Review</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">TechForward • Applied 5 days ago</p>
+                                        </div>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                                            Accepted
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">Local Restaurant Feature</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">Bistro Downtown • Applied 1 week ago</p>
+                                        </div>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">
+                                            Declined
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">Sustainable Fashion</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">EcoStyle • Applied 1 week ago</p>
+                                        </div>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+                                            In Progress
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <flux:button variant="subtle" size="sm">View All Applications</flux:button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance & Profile Stats -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <!-- Performance Overview -->
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+                            <div class="px-4 py-5 sm:p-6">
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Performance This Month</h3>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">Campaigns Completed</span>
+                                        <span class="text-sm font-medium text-gray-900 dark:text-white">4</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">Average Engagement Rate</span>
+                                        <span class="text-sm font-medium text-gray-900 dark:text-white">5.8%</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">Total Reach</span>
+                                        <span class="text-sm font-medium text-gray-900 dark:text-white">18.2K</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">Client Satisfaction</span>
+                                        <div class="flex items-center space-x-1">
+                                            <span class="text-sm font-medium text-gray-900 dark:text-white">4.9</span>
+                                            <div class="flex space-x-1">
+                                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                                </svg>
+                                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                                </svg>
+                                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                                </svg>
+                                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                                </svg>
+                                                <svg class="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Profile Completion -->
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+                            <div class="px-4 py-5 sm:p-6">
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Profile Completion</h3>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">Basic Information</span>
+                                        <div class="flex items-center space-x-2">
+                                            <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            <span class="text-sm font-medium text-green-600">Complete</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">Social Media Accounts</span>
+                                        <div class="flex items-center space-x-2">
+                                            <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            <span class="text-sm font-medium text-green-600">Complete</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">Media Kit</span>
+                                        <div class="flex items-center space-x-2">
+                                            <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            <span class="text-sm font-medium text-yellow-600">In Progress</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">Portfolio</span>
+                                        <div class="flex items-center space-x-2">
+                                            <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            <span class="text-sm font-medium text-gray-500">Not Started</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                        <div class="bg-blue-600 h-2 rounded-full" style="width: 75%"></div>
+                                    </div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">75% Complete</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                @else
+                    <!-- DEFAULT DASHBOARD (for undefined or other account types) -->
+                    <div class="mb-8">
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="px-4 py-5 sm:p-6">
+                                <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                                    Welcome to CollabConnect, {{ auth()->user()->name }}! 🎉
+                                </h1>
+                                <p class="text-gray-600 dark:text-gray-400">
+                                    Great! You're all set up and ready to start collaborating.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Basic Stats -->
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Profile</dt>
+                                            <dd class="text-lg font-medium text-gray-900 dark:text-white">Complete</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Account Type</dt>
+                                            <dd class="text-lg font-medium text-gray-900 dark:text-white">{{ auth()->user()->account_type->label() }}</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Status</dt>
+                                            <dd class="text-lg font-medium text-gray-900 dark:text-white">Active</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Get Started -->
+                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Get Started</h3>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">
+                                Complete your profile setup to unlock all CollabConnect features.
+                            </p>
+                            <flux:button variant="primary">Complete Setup</flux:button>
+                        </div>
+                    </div>
+                @endif
             </div>
         </main>
-    </div>
 
     @fluxScripts()
 </body>

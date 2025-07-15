@@ -6,13 +6,14 @@ use App\Enums\CampaignType;
 use App\Enums\CollaborationGoal;
 use App\Enums\Niche;
 use App\Enums\SubscriptionPlan;
+use App\Livewire\BaseComponent;
 use App\Livewire\Traits\HasWizardSteps;
-use App\Models\BusinessProfile;
+use App\Services\ProfileService;
+use App\Services\ValidationService;
 use Livewire\Attributes\Layout;
-use Livewire\Component;
 
 #[Layout('layouts.auth')]
-class BusinessOnboarding extends Component
+class BusinessOnboarding extends BaseComponent
 {
     use HasWizardSteps;
 
@@ -52,22 +53,22 @@ class BusinessOnboarding extends Component
 
     protected function getSubscriptionPlanOptions(): array
     {
-        return SubscriptionPlan::toOptions(SubscriptionPlan::forBusinesses());
+        return $this->getEnumOptions(SubscriptionPlan::class, 'forBusinesses');
     }
 
     protected function getCollaborationGoalOptions(): array
     {
-        return CollaborationGoal::toOptions(CollaborationGoal::forBusinesses());
+        return $this->getEnumOptions(CollaborationGoal::class, 'forBusinesses');
     }
 
     protected function getCampaignTypeOptions(): array
     {
-        return CampaignType::toOptions();
+        return $this->getEnumOptions(CampaignType::class);
     }
 
     protected function getNicheOptions(): array
     {
-        return Niche::toOptions();
+        return $this->getEnumOptions(Niche::class);
     }
 
     public function mount()
@@ -79,28 +80,22 @@ class BusinessOnboarding extends Component
 
     public function addWebsite()
     {
-        $this->websites[] = '';
+        $this->addToArray('websites', '');
     }
 
     public function removeWebsite(int $index)
     {
-        if (count($this->websites) > 1) {
-            unset($this->websites[$index]);
-            $this->websites = array_values($this->websites);
-        }
+        $this->removeFromArray('websites', $index, 1);
     }
 
     public function addTeamMember()
     {
-        $this->teamMembers[] = ['name' => '', 'email' => ''];
+        $this->addToArray('teamMembers', ['name' => '', 'email' => '']);
     }
 
     public function removeTeamMember(int $index)
     {
-        if (count($this->teamMembers) > 1) {
-            unset($this->teamMembers[$index]);
-            $this->teamMembers = array_values($this->teamMembers);
-        }
+        $this->removeFromArray('teamMembers', $index, 1);
     }
 
     public function updated($propertyName)
@@ -113,31 +108,7 @@ class BusinessOnboarding extends Component
 
     protected function validateCurrentStep(): void
     {
-        $rules = match ($this->currentStep) {
-            1 => [
-                'businessName' => 'required|string|max:255',
-                'industry' => 'required|string|max:255',
-                'primaryZipCode' => 'required|string|max:10',
-                'locationCount' => 'required|integer|min:1',
-                'websites.*' => 'nullable|url',
-            ],
-            2 => [
-                'contactName' => 'required|string|max:255',
-                'contactEmail' => 'required|email|max:255',
-                'subscriptionPlan' => 'required|in:'.implode(',', array_keys($this->getSubscriptionPlanOptions())),
-            ],
-            3 => [
-                'collaborationGoals' => 'required|array|min:1',
-                'collaborationGoals.*' => 'in:'.implode(',', array_keys($this->getCollaborationGoalOptions())),
-                'campaignTypes' => 'required|array|min:1',
-                'campaignTypes.*' => 'in:'.implode(',', array_keys($this->getCampaignTypeOptions())),
-            ],
-            4 => [
-                'teamMembers.*.name' => 'required|string|max:255',
-                'teamMembers.*.email' => 'required|email|max:255',
-            ],
-        };
-
+        $rules = ValidationService::getStepRules('business', $this->currentStep);
         $this->validate($rules);
     }
 
@@ -147,30 +118,24 @@ class BusinessOnboarding extends Component
 
         $user = $this->getAuthenticatedUser();
 
-        // Filter out empty websites
-        $filteredWebsites = array_filter($this->websites, fn ($website) => ! empty($website));
-
-        // Create business profile
-        BusinessProfile::create([
-            'user_id' => $user->id,
-            'business_name' => $this->businessName,
+        // Create business profile using service
+        ProfileService::createBusinessProfile($user, [
+            'businessName' => $this->businessName,
             'industry' => $this->industry,
-            'websites' => $filteredWebsites,
-            'primary_zip_code' => $this->primaryZipCode,
-            'location_count' => $this->locationCount,
-            'is_franchise' => $this->isFranchise,
-            'is_national_brand' => $this->isNationalBrand,
-            'contact_name' => $this->contactName,
-            'contact_email' => $this->contactEmail,
-            'subscription_plan' => $this->subscriptionPlan,
-            'collaboration_goals' => $this->collaborationGoals,
-            'campaign_types' => $this->campaignTypes,
-            'team_members' => $this->teamMembers,
-            'onboarding_completed' => true,
+            'websites' => $this->websites,
+            'primaryZipCode' => $this->primaryZipCode,
+            'locationCount' => $this->locationCount,
+            'isFranchise' => $this->isFranchise,
+            'isNationalBrand' => $this->isNationalBrand,
+            'contactName' => $this->contactName,
+            'contactEmail' => $this->contactEmail,
+            'subscriptionPlan' => $this->subscriptionPlan,
+            'collaborationGoals' => $this->collaborationGoals,
+            'campaignTypes' => $this->campaignTypes,
+            'teamMembers' => $this->teamMembers,
         ]);
 
-        session()->flash('message', 'Welcome to CollabConnect! Your business profile has been created successfully.');
-        $this->redirect(route('dashboard'), navigate: true);
+        $this->flashAndRedirect('Welcome to CollabConnect! Your business profile has been created successfully.', 'dashboard');
     }
 
     public function render()

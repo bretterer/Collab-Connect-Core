@@ -29,6 +29,13 @@ return new class extends Migration
             $table->json('team_members')->nullable(); // Store team member info as JSON array
             $table->boolean('onboarding_completed')->default(false);
             $table->timestamps();
+
+            // Indexes for search performance
+            $table->index(['user_id']); // For user relationship queries
+            $table->index(['primary_zip_code']); // For location-based searches
+            $table->index(['industry']); // For industry filtering
+            $table->index(['onboarding_completed']); // For filtering completed profiles
+            $table->index(['primary_zip_code', 'industry']); // For combined location + industry searches
         });
     }
 

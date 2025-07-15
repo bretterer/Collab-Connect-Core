@@ -25,6 +25,7 @@ class SocialMediaAccount extends Model
     protected function casts(): array
     {
         return [
+            'platform' => \App\Enums\SocialPlatform::class,
             'is_primary' => 'boolean',
             'is_verified' => 'boolean',
         ];

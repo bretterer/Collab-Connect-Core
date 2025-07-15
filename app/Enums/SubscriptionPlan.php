@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
+use App\Enums\Traits\HasFormOptions;
+
 enum SubscriptionPlan: string
 {
+    use HasFormOptions;
+
     // Business Plans
     case BUSINESS_STARTER = 'starter';
     case BUSINESS_PROFESSIONAL = 'professional';
@@ -85,16 +89,5 @@ enum SubscriptionPlan: string
         ];
     }
 
-    /**
-     * Get all values as associative array for form options
-     */
-    public static function toOptions(?array $cases = null): array
-    {
-        $cases = $cases ?? self::cases();
 
-        return array_combine(
-            array_map(fn ($case) => $case->value, $cases),
-            array_map(fn ($case) => $case->label(), $cases)
-        );
-    }
 }

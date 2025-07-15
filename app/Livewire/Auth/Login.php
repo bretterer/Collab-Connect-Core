@@ -12,7 +12,6 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
-
 #[Layout('layouts.auth')]
 class Login extends Component
 {
@@ -25,9 +24,7 @@ class Login extends Component
     #[Validate('boolean')]
     public bool $remember = false;
 
-    public function mount()
-    {
-    }
+    public function mount() {}
 
     public function login(): void
     {

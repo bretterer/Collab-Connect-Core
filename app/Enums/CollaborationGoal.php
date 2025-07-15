@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
+use App\Enums\Traits\HasFormOptions;
+
 enum CollaborationGoal: string
 {
+    use HasFormOptions;
+
     case BRAND_AWARENESS = 'brand_awareness';
     case DRIVE_FOOT_TRAFFIC = 'drive_foot_traffic';
     case PROMOTE_EVENTS = 'promote_events';
@@ -71,16 +75,5 @@ enum CollaborationGoal: string
         ];
     }
 
-    /**
-     * Get all values as associative array for form options
-     */
-    public static function toOptions(?array $cases = null): array
-    {
-        $cases = $cases ?? self::cases();
 
-        return array_combine(
-            array_map(fn ($case) => $case->value, $cases),
-            array_map(fn ($case) => $case->label(), $cases)
-        );
-    }
 }

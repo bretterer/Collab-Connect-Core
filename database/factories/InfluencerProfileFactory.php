@@ -34,7 +34,7 @@ class InfluencerProfileFactory extends Factory
             'preferred_brands' => fake()->randomElements([
                 'Nike', 'Adidas', 'Starbucks', 'Apple', 'Samsung', 'Coca-Cola',
                 'Target', 'Walmart', 'Amazon', 'Netflix', 'Spotify', 'Uber',
-                'Local Restaurants', 'Local Boutiques', 'Local Gyms', 'Local Cafes'
+                'Local Restaurants', 'Local Boutiques', 'Local Gyms', 'Local Cafes',
             ], fake()->numberBetween(3, 6)),
             'subscription_plan' => fake()->randomElement(SubscriptionPlan::forInfluencers())->value,
             'onboarding_completed' => true,
@@ -120,6 +120,36 @@ class InfluencerProfileFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'subscription_plan' => SubscriptionPlan::INFLUENCER_UNDER_10K->value,
+        ]);
+    }
+
+    /**
+     * Create a micro-influencer (1K-10K followers).
+     */
+    public function microInfluencer(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'subscription_plan' => SubscriptionPlan::INFLUENCER_UNDER_10K->value,
+        ]);
+    }
+
+    /**
+     * Create a mid-tier influencer (10K-50K followers).
+     */
+    public function midTierInfluencer(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'subscription_plan' => SubscriptionPlan::INFLUENCER_10K_TO_50K->value,
+        ]);
+    }
+
+    /**
+     * Create a macro-influencer (50K+ followers).
+     */
+    public function macroInfluencer(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'subscription_plan' => SubscriptionPlan::INFLUENCER_OVER_50K->value,
         ]);
     }
 }

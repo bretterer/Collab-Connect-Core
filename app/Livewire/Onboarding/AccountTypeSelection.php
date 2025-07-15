@@ -3,11 +3,12 @@
 namespace App\Livewire\Onboarding;
 
 use App\Enums\AccountType;
+use App\Livewire\BaseComponent;
+use App\Services\ValidationService;
 use Livewire\Attributes\Layout;
-use Livewire\Component;
 
 #[Layout('layouts.auth')]
-class AccountTypeSelection extends Component
+class AccountTypeSelection extends BaseComponent
 {
     public string $selectedAccountType = '';
 
@@ -18,18 +19,17 @@ class AccountTypeSelection extends Component
 
     public function continue(): void
     {
-        $this->validate([
-            'selectedAccountType' => ['required', 'in:business,influencer'],
-        ]);
+        $this->validate(ValidationService::accountTypeRules());
 
-        $user = auth()->user();
+        $user = $this->getAuthenticatedUser();
+
 
         if ($this->selectedAccountType === 'business') {
             $user->update(['account_type' => AccountType::BUSINESS]);
-            $this->redirect(route('onboarding.business'), navigate: true);
+            $this->safeRedirect('onboarding.business');
         } else {
             $user->update(['account_type' => AccountType::INFLUENCER]);
-            $this->redirect(route('onboarding.influencer'), navigate: true);
+            $this->safeRedirect('onboarding.influencer');
         }
     }
 

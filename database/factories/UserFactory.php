@@ -75,48 +75,27 @@ class UserFactory extends Factory
     }
 
     /**
-     * Create a user with completed business onboarding.
+     * Create a user with a profile based on the current account type.
+     * This method should be chained after business() or influencer().
      */
-    public function withBusinessProfile(array $businessAttributes = []): static
+    public function withProfile(array $profileAttributes = []): static
     {
-        return $this->business()->afterCreating(function ($user) use ($businessAttributes) {
-            $user->businessProfile()->create(
-                array_merge(
-                    \Database\Factories\BusinessProfileFactory::new()->make()->toArray(),
-                    $businessAttributes
-                )
-            );
+        return $this->afterCreating(function ($user) use ($profileAttributes) {
+            if ($user->account_type === AccountType::BUSINESS) {
+                $user->businessProfile()->create(
+                    array_merge(
+                        \Database\Factories\BusinessProfileFactory::new()->make()->toArray(),
+                        $profileAttributes
+                    )
+                );
+            } elseif ($user->account_type === AccountType::INFLUENCER) {
+                $user->influencerProfile()->create(
+                    array_merge(
+                        \Database\Factories\InfluencerProfileFactory::new()->make()->toArray(),
+                        $profileAttributes
+                    )
+                );
+            }
         });
-    }
-
-    /**
-     * Create a user with completed influencer onboarding.
-     */
-    public function withInfluencerProfile(array $influencerAttributes = []): static
-    {
-        return $this->influencer()->afterCreating(function ($user) use ($influencerAttributes) {
-            $user->influencerProfile()->create(
-                array_merge(
-                    \Database\Factories\InfluencerProfileFactory::new()->make()->toArray(),
-                    $influencerAttributes
-                )
-            );
-        });
-    }
-
-    /**
-     * Alias for withBusinessProfile() - creates a business user with completed onboarding.
-     */
-    public function businessComplete(array $businessAttributes = []): static
-    {
-        return $this->withBusinessProfile($businessAttributes);
-    }
-
-    /**
-     * Alias for withInfluencerProfile() - creates an influencer user with completed onboarding.
-     */
-    public function influencerComplete(array $influencerAttributes = []): static
-    {
-        return $this->withInfluencerProfile($influencerAttributes);
     }
 }

@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
+use App\Enums\Traits\HasFormOptions;
+
 enum CampaignType: string
 {
+    use HasFormOptions;
+
     case SPONSORED_POSTS = 'sponsored_posts';
     case PRODUCT_REVIEWS = 'product_reviews';
     case EVENT_COVERAGE = 'event_coverage';
@@ -27,16 +31,7 @@ enum CampaignType: string
         };
     }
 
-    /**
-     * Get all values as associative array for form options
-     */
-    public static function toOptions(): array
-    {
-        return array_combine(
-            array_map(fn ($case) => $case->value, self::cases()),
-            array_map(fn ($case) => $case->label(), self::cases())
-        );
-    }
+
 
     /**
      * Get campaign types that work well for businesses

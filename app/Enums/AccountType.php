@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
+use App\Enums\Traits\HasFormOptions;
+
 enum AccountType: int
 {
+    use HasFormOptions;
+
     case UNDEFINED = 0;
     case INFLUENCER = 1;
     case BUSINESS = 2;

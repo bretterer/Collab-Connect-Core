@@ -9,7 +9,6 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
-
 #[Layout('layouts.auth')]
 class ForgotPassword extends Component
 {
@@ -18,9 +17,7 @@ class ForgotPassword extends Component
 
     public string $status = '';
 
-    public function mount()
-    {
-    }
+    public function mount() {}
 
     public function sendResetLink(): void
     {
@@ -62,6 +59,6 @@ class ForgotPassword extends Component
      */
     protected function throttleKey(): string
     {
-        return 'forgot-password:' . $this->email . '|' . request()->ip();
+        return 'forgot-password:'.$this->email.'|'.request()->ip();
     }
 }

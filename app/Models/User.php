@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\AccountType;
+use App\Services\ProfileService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -81,15 +82,7 @@ class User extends Authenticatable
      */
     public function hasCompletedOnboarding(): bool
     {
-        if ($this->account_type === AccountType::BUSINESS) {
-            return $this->businessProfile?->onboarding_completed ?? false;
-        }
-
-        if ($this->account_type === AccountType::INFLUENCER) {
-            return $this->influencerProfile?->onboarding_completed ?? false;
-        }
-
-        return false;
+        return ProfileService::hasCompletedOnboarding($this);
     }
 
     /**
@@ -106,5 +99,47 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->account_type === AccountType::ADMIN;
+    }
+
+    /**
+     * Check if the user is a business account
+     */
+    public function isBusinessAccount(): bool
+    {
+        return $this->account_type === AccountType::BUSINESS;
+    }
+
+    /**
+     * Check if the user is an influencer account
+     */
+    public function isInfluencerAccount(): bool
+    {
+        return $this->account_type === AccountType::INFLUENCER;
+    }
+
+    /**
+     * Get the user's postal code information
+     */
+    public function getPostalCodeInfo(): ?PostalCode
+    {
+        $zipCode = ProfileService::getUserPostalCodeInfo($this);
+
+        if (!$zipCode) {
+            return null;
+        }
+
+        return PostalCode::where('postal_code', $zipCode)
+            ->where('country_code', 'US')
+            ->first();
+    }
+
+    /**
+     * Get coordinates for the user's location
+     */
+    public function getCoordinates(): ?array
+    {
+        $postalCode = $this->getPostalCodeInfo();
+
+        return $postalCode?->coordinates;
     }
 }

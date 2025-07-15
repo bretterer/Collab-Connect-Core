@@ -33,6 +33,8 @@ class BusinessProfile extends Model
     protected function casts(): array
     {
         return [
+            'industry' => \App\Enums\Niche::class,
+            'subscription_plan' => \App\Enums\SubscriptionPlan::class,
             'websites' => 'array',
             'collaboration_goals' => 'array',
             'campaign_types' => 'array',
