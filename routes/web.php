@@ -15,13 +15,17 @@ Route::middleware(['auth'])->group(function () {
 
     // Main dashboard (protected by onboarding middleware)
     Route::middleware(EnsureOnboardingCompleted::class)->group(function () {
-        Route::get('/dashboard', function () {
-            return view('dashboard');
-        })->name('dashboard');
+        Route::get('/dashboard', App\Livewire\Dashboard::class)->name('dashboard');
 
-        Route::get('/search', function () {
-            return view('search');
-        })->name('search');
+        Route::get('/search', App\Livewire\Search::class)->name('search');
+
+        // Campaign routes
+        Route::prefix('campaigns')->name('campaigns.')->group(function () {
+            Route::get('/', App\Livewire\Campaigns\Index::class)->name('index');
+            Route::get('/create', App\Livewire\Campaigns\CreateCampaign::class)->name('create');
+            Route::get('/{campaignId}', App\Livewire\Campaigns\CreateCampaign::class)->name('edit');
+            Route::get('/{campaignId}/show', App\Livewire\Campaigns\ShowCampaign::class)->name('show');
+        });
     });
 });
 

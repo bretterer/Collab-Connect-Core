@@ -63,7 +63,7 @@
                                     Media Kit
                                 </a>
                             @elseif(auth()->user()->account_type === App\Enums\AccountType::BUSINESS)
-                                <a href="#"
+                                <a href="{{ route('campaigns.index') }}"
                                    class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium">
                                     Campaigns
                                 </a>
@@ -341,7 +341,7 @@
                 </div>
             @endif
 
-            @yield('content')
+            {{ $slot }}
         </main>
     </div>
 

@@ -78,6 +78,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's campaigns
+     */
+    public function campaigns(): HasMany
+    {
+        return $this->hasMany(Campaign::class);
+    }
+
+    /**
      * Check if the user has completed onboarding
      */
     public function hasCompletedOnboarding(): bool
