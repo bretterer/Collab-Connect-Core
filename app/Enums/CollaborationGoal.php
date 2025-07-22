@@ -48,16 +48,7 @@ enum CollaborationGoal: string
      */
     public static function forBusinesses(): array
     {
-        return [
-            self::BRAND_AWARENESS,
-            self::DRIVE_FOOT_TRAFFIC,
-            self::PROMOTE_EVENTS,
-            self::SEASONAL_CAMPAIGNS,
-            self::PRODUCT_LAUNCHES,
-            self::REPUTATION_MANAGEMENT,
-            self::CUSTOMER_ACQUISITION,
-            self::SOCIAL_MEDIA_GROWTH,
-        ];
+        return self::cases();
     }
 
     /**
@@ -65,14 +56,7 @@ enum CollaborationGoal: string
      */
     public static function forInfluencers(): array
     {
-        return [
-            self::MONETARY_COMPENSATION,
-            self::BARTER_TRADE,
-            self::FREE_PRODUCT,
-            self::DISCOUNT_CODES,
-            self::LONG_TERM_PARTNERSHIPS,
-            self::EVENT_INVITATIONS,
-        ];
+        return self::cases();
     }
 
 

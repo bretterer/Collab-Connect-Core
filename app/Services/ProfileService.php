@@ -26,7 +26,6 @@ class ProfileService
             'is_national_brand' => $data['isNationalBrand'] ?? false,
             'contact_name' => $data['contactName'],
             'contact_email' => $data['contactEmail'],
-            'subscription_plan' => $data['subscriptionPlan'],
             'collaboration_goals' => $data['collaborationGoals'] ?? [],
             'campaign_types' => $data['campaignTypes'] ?? [],
             'team_members' => $data['teamMembers'] ?? [],
@@ -44,11 +43,6 @@ class ProfileService
             'creator_name' => $data['creatorName'],
             'primary_niche' => $data['primaryNiche'],
             'primary_zip_code' => $data['primaryZipCode'],
-            'media_kit_url' => $data['mediaKitUrl'] ?? null,
-            'has_media_kit' => $data['hasMediaKit'] ?? false,
-            'collaboration_preferences' => $data['collaborationPreferences'] ?? [],
-            'preferred_brands' => $data['preferredBrands'] ?? [],
-            'subscription_plan' => $data['subscriptionPlan'],
             'onboarding_completed' => true,
         ]);
     }

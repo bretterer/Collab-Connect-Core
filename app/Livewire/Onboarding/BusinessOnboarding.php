@@ -5,7 +5,6 @@ namespace App\Livewire\Onboarding;
 use App\Enums\CampaignType;
 use App\Enums\CollaborationGoal;
 use App\Enums\Niche;
-use App\Enums\SubscriptionPlan;
 use App\Livewire\BaseComponent;
 use App\Livewire\Traits\HasWizardSteps;
 use App\Services\ProfileService;
@@ -37,8 +36,6 @@ class BusinessOnboarding extends BaseComponent
 
     public string $contactEmail = '';
 
-    public string $subscriptionPlan = '';
-
     public bool $requestCustomQuote = false;
 
     // Step 3: Collaboration Goals
@@ -46,29 +43,24 @@ class BusinessOnboarding extends BaseComponent
 
     public array $campaignTypes = [];
 
-    // Step 4: Team Setup
-    public array $teamMembers = [
-        ['name' => '', 'email' => ''],
-    ];
-
-    protected function getSubscriptionPlanOptions(): array
+    public function getTotalSteps(): int
     {
-        return $this->getEnumOptions(SubscriptionPlan::class, 'forBusinesses');
+        return 3;
     }
 
     protected function getCollaborationGoalOptions(): array
     {
-        return $this->getEnumOptions(CollaborationGoal::class, 'forBusinesses');
+        return CollaborationGoal::forBusinesses();
     }
 
     protected function getCampaignTypeOptions(): array
     {
-        return $this->getEnumOptions(CampaignType::class);
+        return CampaignType::forBusinesses();
     }
 
     protected function getNicheOptions(): array
     {
-        return $this->getEnumOptions(Niche::class);
+        return Niche::forBusinesses();
     }
 
     public function mount()
@@ -88,15 +80,7 @@ class BusinessOnboarding extends BaseComponent
         $this->removeFromArray('websites', $index, 1);
     }
 
-    public function addTeamMember()
-    {
-        $this->addToArray('teamMembers', ['name' => '', 'email' => '']);
-    }
 
-    public function removeTeamMember(int $index)
-    {
-        $this->removeFromArray('teamMembers', $index, 1);
-    }
 
     public function updated($propertyName)
     {
@@ -109,7 +93,8 @@ class BusinessOnboarding extends BaseComponent
     protected function validateCurrentStep(): void
     {
         $rules = ValidationService::getStepRules('business', $this->currentStep);
-        $this->validate($rules);
+        $messages = ValidationService::getStepMessages('business', $this->currentStep);
+        $this->validate($rules, $messages);
     }
 
     public function completeOnboarding(): void
@@ -129,10 +114,9 @@ class BusinessOnboarding extends BaseComponent
             'isNationalBrand' => $this->isNationalBrand,
             'contactName' => $this->contactName,
             'contactEmail' => $this->contactEmail,
-            'subscriptionPlan' => $this->subscriptionPlan,
             'collaborationGoals' => $this->collaborationGoals,
             'campaignTypes' => $this->campaignTypes,
-            'teamMembers' => $this->teamMembers,
+
         ]);
 
         $this->flashAndRedirect('Welcome to CollabConnect! Your business profile has been created successfully.', 'dashboard');
@@ -141,7 +125,6 @@ class BusinessOnboarding extends BaseComponent
     public function render()
     {
         return view('livewire.onboarding.business-onboarding', [
-            'subscriptionPlanOptions' => $this->getSubscriptionPlanOptions(),
             'collaborationGoalOptions' => $this->getCollaborationGoalOptions(),
             'campaignTypeOptions' => $this->getCampaignTypeOptions(),
             'nicheOptions' => $this->getNicheOptions(),

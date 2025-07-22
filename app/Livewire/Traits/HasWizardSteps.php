@@ -6,7 +6,11 @@ trait HasWizardSteps
 {
     public int $currentStep = 1;
 
-    public int $totalSteps = 4;
+
+    public function getTotalSteps(): int
+    {
+        return 4;
+    }
 
     /**
      * Advance to the next step after validation
@@ -15,7 +19,7 @@ trait HasWizardSteps
     {
         $this->validateCurrentStep();
 
-        if ($this->currentStep < $this->totalSteps) {
+        if ($this->currentStep < $this->getTotalSteps()) {
             $this->currentStep++;
         }
     }
@@ -35,7 +39,7 @@ trait HasWizardSteps
      */
     public function getStepProgress(): float
     {
-        return ($this->currentStep / $this->totalSteps) * 100;
+        return ($this->currentStep / $this->getTotalSteps()) * 100;
     }
 
     /**
@@ -51,7 +55,7 @@ trait HasWizardSteps
      */
     public function isLastStep(): bool
     {
-        return $this->currentStep === $this->totalSteps;
+        return $this->currentStep === $this->getTotalSteps();
     }
 
     /**

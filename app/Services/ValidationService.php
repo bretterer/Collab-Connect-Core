@@ -48,6 +48,15 @@ class ValidationService
         ];
     }
 
+    public static function businessStep1Messages(): array
+    {
+        return [
+            'businessName.required' => 'Business name is required',
+            'industry.required' => 'Industry is required',
+            'primaryZipCode.required' => 'Primary zip code is required',
+        ];
+    }
+
     /**
      * Get validation rules for business profile step 2
      */
@@ -55,8 +64,15 @@ class ValidationService
     {
         return [
             'contactName' => 'required|string|max:255',
-            'contactEmail' => 'required|email|max:255',
-            'subscriptionPlan' => 'required|' . SubscriptionPlan::validationRule(),
+            'contactEmail' => 'required|email|max:255'
+        ];
+    }
+
+    public static function businessStep2Messages(): array
+    {
+        return [
+            'contactName.required' => 'Contact name is required',
+            'contactEmail.required' => 'Contact email is required',
         ];
     }
 
@@ -73,6 +89,14 @@ class ValidationService
         ];
     }
 
+    public static function businessStep3Messages(): array
+    {
+        return [
+            'collaborationGoals.required' => 'Collaboration goals are required',
+            'campaignTypes.required' => 'Campaign types are required',
+        ];
+    }
+
     /**
      * Get validation rules for business profile step 4
      */
@@ -81,6 +105,13 @@ class ValidationService
         return [
             'teamMembers.*.name' => 'required|string|max:255',
             'teamMembers.*.email' => 'required|email|max:255',
+        ];
+    }
+
+    public static function businessStep4Messages(): array
+    {
+        return [
+            'teamMembers.required' => 'Team members are required',
         ];
     }
 
@@ -96,6 +127,15 @@ class ValidationService
         ];
     }
 
+    public static function influencerStep1Messages(): array
+    {
+        return [
+            'creatorName.required' => 'Creator name is required',
+            'primaryNiche.required' => 'Primary niche is required',
+            'primaryZipCode.required' => 'Primary zip code is required',
+        ];
+    }
+
     /**
      * Get validation rules for influencer profile step 2
      */
@@ -108,25 +148,12 @@ class ValidationService
         ];
     }
 
-    /**
-     * Get validation rules for influencer profile step 3
-     */
-    public static function influencerStep3Rules(): array
+    public static function influencerStep2Messages(): array
     {
         return [
-            'mediaKitUrl' => 'nullable|url',
-        ];
-    }
-
-    /**
-     * Get validation rules for influencer profile step 4
-     */
-    public static function influencerStep4Rules(): array
-    {
-        return [
-            'collaborationPreferences' => 'required|array|min:1',
-            'collaborationPreferences.*' => CollaborationGoal::validationRule(),
-            'subscriptionPlan' => 'required|' . SubscriptionPlan::validationRule(),
+            'socialMediaAccounts.*.platform.required' => 'Platform is required',
+            'socialMediaAccounts.*.username.required' => 'Username is required',
+            'socialMediaAccounts.*.follower_count.required' => 'Follower count is required',
         ];
     }
 
@@ -224,8 +251,25 @@ class ValidationService
             'influencer' => match ($step) {
                 1 => self::influencerStep1Rules(),
                 2 => self::influencerStep2Rules(),
-                3 => self::influencerStep3Rules(),
-                4 => self::influencerStep4Rules(),
+                default => [],
+            },
+            default => [],
+        };
+    }
+
+    public static function getStepMessages(string $type, int $step): array
+    {
+        return match ($type) {
+            'influencer' => match ($step) {
+                1 => self::influencerStep1Messages(),
+                2 => self::influencerStep2Messages(),
+                default => [],
+            },
+            'business' => match ($step) {
+                1 => self::businessStep1Messages(),
+                2 => self::businessStep2Messages(),
+                3 => self::businessStep3Messages(),
+                4 => self::businessStep4Messages(),
                 default => [],
             },
             default => [],

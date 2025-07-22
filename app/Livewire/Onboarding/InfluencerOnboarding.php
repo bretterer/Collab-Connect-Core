@@ -5,7 +5,6 @@ namespace App\Livewire\Onboarding;
 use App\Enums\CollaborationGoal;
 use App\Enums\Niche;
 use App\Enums\SocialPlatform;
-use App\Enums\SubscriptionPlan;
 use App\Livewire\BaseComponent;
 use App\Livewire\Traits\HasWizardSteps;
 use App\Services\ProfileService;
@@ -26,41 +25,22 @@ class InfluencerOnboarding extends BaseComponent
 
     // Step 2: Social Media Connections
     public array $socialMediaAccounts = [
-        ['platform' => 'instagram', 'username' => '', 'follower_count' => 0, 'is_primary' => false],
+        ['platform' => '', 'username' => '', 'follower_count' => null, 'is_primary' => false],
     ];
 
-    // Step 3: Media Kit & Portfolio
-    public string $mediaKitUrl = '';
-
-    public bool $hasMediaKit = false;
-
-    public bool $wantMediaKitBuilder = false;
-
-    // Step 4: Collaboration Preferences & Pricing
-    public array $collaborationPreferences = [];
-
-    public array $preferredBrands = [];
-
-    public string $subscriptionPlan = '';
+    public function getTotalSteps(): int
+    {
+        return 2;
+    }
 
     protected function getNicheOptions(): array
     {
-        return $this->getEnumOptions(Niche::class);
+        return Niche::forInfluencers();
     }
 
     protected function getPlatformOptions(): array
     {
-        return $this->getEnumOptions(SocialPlatform::class);
-    }
-
-    protected function getCollaborationPreferenceOptions(): array
-    {
-        return $this->getEnumOptions(CollaborationGoal::class, 'forInfluencers');
-    }
-
-    protected function getSubscriptionPlanOptions(): array
-    {
-        return $this->getEnumOptions(SubscriptionPlan::class, 'forInfluencers');
+        return SocialPlatform::forInfluencers();
     }
 
     public function mount()
@@ -72,9 +52,9 @@ class InfluencerOnboarding extends BaseComponent
     public function addSocialMediaAccount()
     {
         $this->addToArray('socialMediaAccounts', [
-            'platform' => 'instagram',
+            'platform' => '',
             'username' => '',
-            'follower_count' => 0,
+            'follower_count' => null,
             'is_primary' => false,
         ]);
     }
@@ -91,16 +71,16 @@ class InfluencerOnboarding extends BaseComponent
         }
     }
 
+    public function removePrimaryAccount($index)
+    {
+        $this->socialMediaAccounts[$index]['is_primary'] = false;
+    }
+
     protected function validateCurrentStep(): void
     {
         $rules = ValidationService::getStepRules('influencer', $this->currentStep);
-
-        // Handle conditional validation for media kit URL
-        if ($this->currentStep === 3 && $this->hasMediaKit) {
-            $rules['mediaKitUrl'] = 'required|url';
-        }
-
-        $this->validate($rules);
+        $messages = ValidationService::getStepMessages('influencer', $this->currentStep);
+        $this->validate($rules, $messages);
     }
 
     public function completeOnboarding(): void
@@ -114,11 +94,6 @@ class InfluencerOnboarding extends BaseComponent
             'creatorName' => $this->creatorName,
             'primaryNiche' => $this->primaryNiche,
             'primaryZipCode' => $this->primaryZipCode,
-            'mediaKitUrl' => $this->mediaKitUrl,
-            'hasMediaKit' => $this->hasMediaKit,
-            'collaborationPreferences' => $this->collaborationPreferences,
-            'preferredBrands' => $this->preferredBrands,
-            'subscriptionPlan' => $this->subscriptionPlan,
         ]);
 
         // Create social media accounts using service
@@ -134,8 +109,6 @@ class InfluencerOnboarding extends BaseComponent
         return view('livewire.onboarding.influencer-onboarding', [
             'nicheOptions' => $this->getNicheOptions(),
             'platformOptions' => $this->getPlatformOptions(),
-            'collaborationPreferenceOptions' => $this->getCollaborationPreferenceOptions(),
-            'subscriptionPlanOptions' => $this->getSubscriptionPlanOptions(),
         ]);
     }
 }
