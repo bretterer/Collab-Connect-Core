@@ -33,7 +33,7 @@
                         {{ $this->isEditing() ? 'Edit Campaign' : 'Create a New Campaign' }} 🚀
                     </h1>
                     <p class="text-blue-100 text-lg">
-                        Step {{ $currentStep }} of {{ $totalSteps }}: {{ $this->getWizardSteps()[$currentStep] }}
+                        Step {{ $currentStep }} of {{ $this->getTotalSteps() }}: {{ $this->getWizardSteps()[$currentStep] }}
                     </p>
                 </div>
             </div>
@@ -65,7 +65,7 @@
                         </div>
 
                         <!-- Connector Line -->
-                        @if($stepNumber < $totalSteps)
+                        @if($stepNumber < $this->getTotalSteps())
                             <div class="flex-1 h-0.5 mx-4 {{ $stepNumber < $currentStep ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-600' }}"></div>
                         @endif
                     </div>
@@ -75,13 +75,13 @@
             <!-- Progress Bar -->
             <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
                 <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out"
-                     style="width: {{ ($currentStep / $totalSteps) * 100 }}%"></div>
+                     style="width: {{ ($currentStep / $this->getTotalSteps()) * 100 }}%"></div>
             </div>
 
             <!-- Progress Text -->
             <div class="mt-2 text-center">
                 <span class="text-sm text-gray-600 dark:text-gray-400">
-                    Step {{ $currentStep }} of {{ $totalSteps }} completed
+                    Step {{ $currentStep }} of {{ $this->getTotalSteps() }} completed
                 </span>
             </div>
         </div>
@@ -447,7 +447,7 @@
                         </flux:button>
 
                         <!-- Continue/Next/Publish -->
-                        @if($currentStep < $totalSteps)
+                        @if($currentStep < $this->getTotalSteps())
                             <flux:button variant="primary" wire:click="nextStep" icon-right="arrow-right">
                                 Continue
                             </flux:button>

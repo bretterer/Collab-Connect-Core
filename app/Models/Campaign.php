@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Campaign extends Model
 {
+    /** @use HasFactory<CampaignFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -49,6 +50,7 @@ class Campaign extends Model
         'published_at' => 'datetime',
         'status' => CampaignStatus::class,
         'compensation_type' => CompensationType::class,
+        'campaign_type' => \App\Enums\CampaignType::class,
     ];
 
     public function user(): BelongsTo

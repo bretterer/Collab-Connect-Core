@@ -539,8 +539,13 @@
         <div class="mb-8">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Quick Actions</h3>
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <a href="{{ route('discover') }}">
+                    <flux:button variant="primary" icon="sparkles" class="flex items-center justify-center space-x-2 h-12 w-full">
+                        <span>Discover Campaigns</span>
+                    </flux:button>
+                </a>
                 <a href="{{ route('search') }}">
-                    <flux:button variant="primary" icon="magnifying-glass" class="flex items-center justify-center space-x-2 h-12 w-full">
+                    <flux:button variant="outline" icon="magnifying-glass" class="flex items-center justify-center space-x-2 h-12 w-full">
                         <span>Find Businesses</span>
                     </flux:button>
                 </a>
@@ -549,9 +554,6 @@
                 </flux:button>
                 <flux:button variant="outline" icon="document-text" class="flex items-center justify-center space-x-2 h-12">
                     <span>Media Kit</span>
-                </flux:button>
-                <flux:button variant="outline" icon="chat-bubble-left-right" class="flex items-center justify-center space-x-2 h-12">
-                    <span>Messages</span>
                 </flux:button>
             </div>
         </div>

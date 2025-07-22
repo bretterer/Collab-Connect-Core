@@ -4,6 +4,7 @@ namespace App\Livewire\Campaigns;
 
 use App\Enums\CampaignProductPlacement;
 use App\Enums\CampaignSocialRequirement;
+use App\Enums\CampaignStatus;
 use App\Enums\CompensationType;
 use App\Livewire\BaseComponent;
 use App\Livewire\Traits\HasWizardSteps;
@@ -49,6 +50,17 @@ class CreateCampaign extends BaseComponent
     public bool $hasUnsavedChanges = false;
     public string $lastSavedAt = '';
 
+    // View mode for non-owners
+    public bool $isViewMode = false;
+
+    // Track if current user is the campaign owner
+    public bool $isOwner = false;
+
+    public function getTotalSteps(): int
+    {
+        return 4;
+    }
+
     protected function getWizardSteps(): array
     {
         return [
@@ -67,12 +79,28 @@ class CreateCampaign extends BaseComponent
                 abort(404, 'Campaign not found.');
             }
 
-            // Ensure user can only edit their own campaigns
+            // If user doesn't own the campaign, show view mode
             if ($campaign->user_id !== $this->getAuthenticatedUser()->id) {
-                abort(403, 'You can only edit your own campaigns.');
+                $this->showViewMode($campaign);
+                return;
             }
+
+            if ($campaign->status === CampaignStatus::PUBLISHED) {
+                $this->showViewMode($campaign);
+                return;
+            }
+
             $this->campaignId = $campaign->id;
+            $this->isOwner = true;
         }
+        $this->loadCampaign();
+    }
+
+    private function showViewMode(Campaign $campaign)
+    {
+        $this->campaignId = $campaign->id;
+        $this->isViewMode = true;
+        $this->isOwner = false;
         $this->loadCampaign();
     }
 
@@ -116,14 +144,24 @@ class CreateCampaign extends BaseComponent
     public function loadCampaign()
     {
         if ($this->campaignId) {
-            $campaign = Campaign::where('id', $this->campaignId)
-                ->where('user_id', $this->getAuthenticatedUser()->id)
-                ->first();
+            $campaign = Campaign::where('id', $this->campaignId)->first();
 
             if ($campaign) {
+                // In view mode, we can load any published campaign
+                if ($this->isViewMode) {
+                    if ($campaign->status !== \App\Enums\CampaignStatus::PUBLISHED) {
+                        abort(404, 'Campaign not found.');
+                    }
+                } else {
+                    // In edit mode, user must own the campaign
+                    if ($campaign->user_id !== $this->getAuthenticatedUser()->id) {
+                        $this->showViewMode($campaign);
+                    }
+                }
+
                 $this->currentStep = $campaign->current_step;
                 $this->campaignGoal = $campaign->campaign_goal;
-                $this->campaignType = $campaign->campaign_type;
+                $this->campaignType = $campaign->campaign_type->value;
                 $this->targetZipCode = $campaign->target_zip_code;
                 $this->targetArea = $campaign->target_area;
                 $this->campaignDescription = $campaign->campaign_description;
@@ -136,11 +174,11 @@ class CreateCampaign extends BaseComponent
                 $this->influencerCount = $campaign->influencer_count;
                 $this->applicationDeadline = $campaign->application_deadline?->format('Y-m-d');
                 $this->campaignCompletionDate = $campaign->campaign_completion_date?->format('Y-m-d');
-                $this->additionalRequirements = $campaign->additional_requirements;
+                $this->additionalRequirements = $campaign->additional_requirements ?? '';
                 $this->publishAction = $campaign->publish_action;
                 $this->scheduledDate = $campaign->scheduled_date?->format('Y-m-d') ?? '';
             } else {
-                // Campaign not found or doesn't belong to user
+                // Campaign not found
                 abort(404, 'Campaign not found.');
             }
         }
@@ -317,6 +355,10 @@ class CreateCampaign extends BaseComponent
 
     public function render()
     {
+        if ($this->isViewMode) {
+            return view('livewire.campaigns.view-campaign');
+        }
+
         return view('livewire.campaigns.create-campaign');
     }
 }

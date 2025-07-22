@@ -64,6 +64,9 @@ class DatabaseSeeder extends Seeder
 
         // Create additional test users using AccountSeeder
         // $this->call(AccountSeeder::class);
+
+        // Create sample campaigns for testing
+        $this->call(CampaignSeeder::class);
     }
 
 
