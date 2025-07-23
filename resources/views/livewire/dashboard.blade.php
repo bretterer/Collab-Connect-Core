@@ -299,7 +299,7 @@
                                                     {{ Str::limit($campaign->campaign_goal, 50) }}
                                                 </h5>
                                                 <div class="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                    <span>${{ number_format($campaign->budget) }}</span>
+                                                    <span>{{ $campaign->compensation_display }}</span>
                                                     <span>{{ $campaign->influencer_count }} influencers</span>
                                                     <span>{{ $campaign->updated_at->diffForHumans() }}</span>
                                                 </div>
@@ -340,7 +340,7 @@
                                                     {{ Str::limit($campaign->campaign_goal, 50) }}
                                                 </h5>
                                                 <div class="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                    <span>${{ number_format($campaign->budget) }}</span>
+                                                    <span>{{ $campaign->compensation_display }}</span>
                                                     <span>{{ $campaign->influencer_count }} influencers</span>
                                                     <span>Active</span>
                                                 </div>
@@ -387,7 +387,7 @@
                                                     {{ Str::limit($campaign->campaign_goal, 50) }}
                                                 </h5>
                                                 <div class="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                    <span>${{ number_format($campaign->budget) }}</span>
+                                                    <span>{{ $campaign->compensation_display }}</span>
                                                     <span>{{ $campaign->influencer_count }} influencers</span>
                                                     <span>Pending</span>
                                                 </div>

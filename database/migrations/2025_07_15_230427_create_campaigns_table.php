@@ -28,7 +28,6 @@ return new class extends Migration
             $table->json('placement_requirements')->nullable();
 
             // Step 3: Campaign Settings
-            $table->integer('budget');
             $table->integer('influencer_count');
             $table->date('application_deadline');
             $table->date('campaign_completion_date');

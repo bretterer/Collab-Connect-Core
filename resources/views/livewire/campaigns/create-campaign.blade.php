@@ -112,21 +112,21 @@
                                 <div>
                                     <flux:label>Campaign Type</flux:label>
                                     <div class="mt-3 space-y-2">
-                                        @foreach($this->getCampaignTypeOptions() as $value => $label)
-                                            <label class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 {{ $campaignType === $value ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700' }}">
+                                        @foreach($this->getCampaignTypeOptions() as $type)
+                                            <label class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 {{ $campaignType === $type['value'] ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700' }}">
                                                 <input
                                                     type="radio"
                                                     wire:model="campaignType"
-                                                    value="{{ $value }}"
+                                                    value="{{ $type['value'] }}"
                                                     class="text-blue-600" />
                                                 <div class="flex-1">
-                                                    <span class="text-gray-900 dark:text-white font-medium">{{ $label }}</span>
+                                                    <span class="text-gray-900 dark:text-white font-medium">{{ $type['label'] }}</span>
                                                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                                                        @if($value === 'user_generated_content')
+                                                        @if($type['value'] == 'user_generated')
                                                             Influencers create original content featuring your brand
-                                                        @elseif($value === 'social_post')
+                                                        @elseif($type['value'] == 'social_post')
                                                             Dedicated social media posts about your business
-                                                        @elseif($value === 'product_placement')
+                                                        @elseif($type['value'] == 'product_placement')
                                                             Natural integration of your products into their content
                                                         @else
                                                             Custom collaboration with flexible requirements

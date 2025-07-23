@@ -4,6 +4,11 @@ namespace App\Services;
 
 use App\Enums\CampaignStatus;
 use App\Enums\CompensationType;
+use App\Events\CampaignArchived;
+use App\Events\CampaignEdited;
+use App\Events\CampaignPublished;
+use App\Events\CampaignScheduled;
+use App\Events\CampaignUnpublished;
 use App\Models\Campaign;
 use App\Models\User;
 
@@ -55,6 +60,9 @@ class CampaignService
             'published_at' => now(),
         ]);
 
+        // Fire the CampaignPublished event
+        event(new CampaignPublished($campaign, $campaign->user));
+
         return $campaign;
     }
 
@@ -68,6 +76,9 @@ class CampaignService
             'scheduled_date' => $scheduledDate,
         ]);
 
+        // Fire the CampaignScheduled event
+        event(new CampaignScheduled($campaign, $campaign->user, $scheduledDate));
+
         return $campaign;
     }
 
@@ -79,6 +90,9 @@ class CampaignService
         $campaign->update([
             'status' => CampaignStatus::ARCHIVED,
         ]);
+
+        // Fire the CampaignArchived event
+        event(new CampaignArchived($campaign, $campaign->user));
 
         return $campaign;
     }
@@ -92,6 +106,30 @@ class CampaignService
             'status' => CampaignStatus::DRAFT,
             'scheduled_date' => null,
         ]);
+
+        // Fire the CampaignUnpublished event
+        event(new CampaignUnpublished($campaign, $campaign->user));
+
+        return $campaign;
+    }
+
+    /**
+     * Update a campaign and fire edit event
+     */
+    public static function updateCampaign(int $campaignId, array $data): Campaign
+    {
+        $campaign = Campaign::findOrFail($campaignId);
+
+        // Store original values to track changes
+        $originalData = $campaign->toArray();
+
+        $campaign->update($data);
+
+        // Determine what changed
+        $changes = array_diff_assoc($campaign->fresh()->toArray(), $originalData);
+
+        // Fire the CampaignEdited event
+        event(new CampaignEdited($campaign, $campaign->user, $changes));
 
         return $campaign;
     }

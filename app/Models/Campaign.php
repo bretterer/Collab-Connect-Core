@@ -116,15 +116,5 @@ class Campaign extends Model
         return $this->compensation_type === CompensationType::MONETARY;
     }
 
-    public function getBudgetAttribute(): int
-    {
-        // Backward compatibility - return compensation_amount as budget
-        return $this->compensation_amount;
-    }
-
-    public function setBudgetAttribute($value): void
-    {
-        // Backward compatibility - set compensation_amount when budget is set
-        $this->compensation_amount = $value;
-    }
+    // Budget methods removed - use compensation_amount and compensation_type instead
 }

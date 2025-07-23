@@ -336,7 +336,7 @@ class InfluencerCampaigns extends BaseComponent
         return match ($this->sortBy) {
             'match_score' => $campaigns->sortByDesc('match_score'),
             'newest' => $campaigns->sortByDesc('published_at'),
-            'budget' => $campaigns->sortByDesc('compensation_amount'),
+            'compensation' => $campaigns->sortByDesc('compensation_amount'),
             'deadline' => $campaigns->sortBy('application_deadline'),
             default => $campaigns->sortByDesc('match_score'),
         };

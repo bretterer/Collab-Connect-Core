@@ -3,6 +3,9 @@
 namespace App\Services;
 
 use App\Enums\SocialPlatform;
+use App\Events\BusinessJoined;
+use App\Events\InfluencerJoined;
+use App\Events\ProfileUpdated;
 use App\Models\BusinessProfile;
 use App\Models\InfluencerProfile;
 use App\Models\SocialMediaAccount;
@@ -15,7 +18,7 @@ class ProfileService
      */
     public static function createBusinessProfile(User $user, array $data): BusinessProfile
     {
-        return $user->businessProfile()->create([
+        $businessProfile = $user->businessProfile()->create([
             'user_id' => $user->id,
             'business_name' => $data['businessName'],
             'industry' => $data['industry'],
@@ -31,6 +34,11 @@ class ProfileService
             'team_members' => $data['teamMembers'] ?? [],
             'onboarding_completed' => true,
         ]);
+
+        // Fire the BusinessJoined event
+        event(new BusinessJoined($user, $businessProfile));
+
+        return $businessProfile;
     }
 
     /**
@@ -38,13 +46,18 @@ class ProfileService
      */
     public static function createInfluencerProfile(User $user, array $data): InfluencerProfile
     {
-        return $user->influencerProfile()->create([
+        $influencerProfile = $user->influencerProfile()->create([
             'user_id' => $user->id,
             'creator_name' => $data['creatorName'],
             'primary_niche' => $data['primaryNiche'],
             'primary_zip_code' => $data['primaryZipCode'],
             'onboarding_completed' => true,
         ]);
+
+        // Fire the InfluencerJoined event
+        event(new InfluencerJoined($user, $influencerProfile));
+
+        return $influencerProfile;
     }
 
     /**
@@ -85,6 +98,9 @@ class ProfileService
      */
     public static function updateBusinessProfile(BusinessProfile $profile, array $data): BusinessProfile
     {
+        // Store original values to track changes
+        $originalData = $profile->toArray();
+
         $profile->update([
             'business_name' => $data['businessName'] ?? $profile->business_name,
             'industry' => $data['industry'] ?? $profile->industry,
@@ -101,6 +117,14 @@ class ProfileService
             'team_members' => $data['teamMembers'] ?? $profile->team_members,
         ]);
 
+        // Determine what changed
+        $changes = array_diff_assoc($profile->fresh()->toArray(), $originalData);
+
+        // Fire the ProfileUpdated event if there were changes
+        if (!empty($changes)) {
+            event(new ProfileUpdated($profile->user, 'business', $changes));
+        }
+
         return $profile;
     }
 
@@ -109,6 +133,9 @@ class ProfileService
      */
     public static function updateInfluencerProfile(InfluencerProfile $profile, array $data): InfluencerProfile
     {
+        // Store original values to track changes
+        $originalData = $profile->toArray();
+
         $profile->update([
             'creator_name' => $data['creatorName'] ?? $profile->creator_name,
             'primary_niche' => $data['primaryNiche'] ?? $profile->primary_niche,
@@ -119,6 +146,14 @@ class ProfileService
             'preferred_brands' => $data['preferredBrands'] ?? $profile->preferred_brands,
             'subscription_plan' => $data['subscriptionPlan'] ?? $profile->subscription_plan,
         ]);
+
+        // Determine what changed
+        $changes = array_diff_assoc($profile->fresh()->toArray(), $originalData);
+
+        // Fire the ProfileUpdated event if there were changes
+        if (!empty($changes)) {
+            event(new ProfileUpdated($profile->user, 'influencer', $changes));
+        }
 
         return $profile;
     }

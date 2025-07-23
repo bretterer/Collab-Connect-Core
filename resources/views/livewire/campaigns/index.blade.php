@@ -71,7 +71,7 @@
                                             {{ Str::limit($campaign->campaign_description, 120) }}
                                         </p>
                                         <div class="mt-3 flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
-                                            <span>Budget: ${{ number_format($campaign->budget) }}</span>
+                                            <span>Compensation: {{ $campaign->compensation_display }}</span>
                                             <span>Influencers: {{ $campaign->influencer_count }}</span>
                                             <span>Step {{ $campaign->current_step }} of 4</span>
                                             <span>Updated {{ $campaign->updated_at->diffForHumans() }}</span>
@@ -126,7 +126,7 @@
                                             {{ Str::limit($campaign->campaign_description, 120) }}
                                         </p>
                                         <div class="mt-3 flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
-                                            <span>Budget: ${{ number_format($campaign->budget) }}</span>
+                                            <span>Compensation: {{ $campaign->compensation_display }}</span>
                                             <span>Influencers: {{ $campaign->influencer_count }}</span>
                                             <span>Published {{ $campaign->published_at->diffForHumans() }}</span>
                                         </div>
@@ -175,7 +175,7 @@
                                             {{ Str::limit($campaign->campaign_description, 120) }}
                                         </p>
                                         <div class="mt-3 flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
-                                            <span>Budget: ${{ number_format($campaign->budget) }}</span>
+                                            <span>Compensation: {{ $campaign->compensation_display }}</span>
                                             <span>Influencers: {{ $campaign->influencer_count }}</span>
                                             <span>Scheduled for {{ $campaign->scheduled_date->format('M j, Y') }}</span>
                                         </div>
@@ -224,7 +224,7 @@
                                             {{ Str::limit($campaign->campaign_description, 120) }}
                                         </p>
                                         <div class="mt-3 flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
-                                            <span>Budget: ${{ number_format($campaign->budget) }}</span>
+                                            <span>Compensation: {{ $campaign->compensation_display }}</span>
                                             <span>Influencers: {{ $campaign->influencer_count }}</span>
                                             <span>Archived {{ $campaign->updated_at->diffForHumans() }}</span>
                                         </div>

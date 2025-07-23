@@ -200,8 +200,6 @@ class EditCampaign extends BaseComponent
             'influencerCount' => 'required|integer|min:1',
         ]);
 
-        $campaignService = app(CampaignService::class);
-
         $campaignData = [
             'campaign_goal' => $this->campaignGoal,
             'campaign_type' => $this->campaignType,
@@ -222,7 +220,7 @@ class EditCampaign extends BaseComponent
             'scheduled_date' => $this->scheduledDate,
         ];
 
-        $campaign = $campaignService->updateCampaign($this->campaignId, $campaignData);
+        $campaign = CampaignService::updateCampaign($this->campaignId, $campaignData);
 
         $this->hasUnsavedChanges = false;
         $this->lastSavedAt = now()->format('M j, Y g:i A');
@@ -234,8 +232,6 @@ class EditCampaign extends BaseComponent
 
     public function saveDraft()
     {
-        $campaignService = app(CampaignService::class);
-
         $campaignData = [
             'campaign_goal' => $this->campaignGoal,
             'campaign_type' => $this->campaignType,
@@ -256,7 +252,7 @@ class EditCampaign extends BaseComponent
             'scheduled_date' => $this->scheduledDate,
         ];
 
-        $campaign = $campaignService->updateCampaign($this->campaignId, $campaignData);
+        $campaign = CampaignService::updateCampaign($this->campaignId, $campaignData);
 
         $this->hasUnsavedChanges = false;
         $this->lastSavedAt = now()->format('M j, Y g:i A');
@@ -270,8 +266,8 @@ class EditCampaign extends BaseComponent
 
     public function unscheduleCampaign()
     {
-        $campaignService = app(CampaignService::class);
-        $campaignService->unscheduleCampaign($this->campaignId);
+        $campaign = Campaign::find($this->campaignId);
+        CampaignService::unscheduleCampaign($campaign);
 
         session()->flash('message', 'Campaign unscheduled successfully!');
 

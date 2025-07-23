@@ -71,7 +71,7 @@
                             </div>
                             <div class="text-center">
                                 <div class="text-2xl font-bold">${{ number_format($campaign->compensation_amount) }}</div>
-                                <div class="text-sm opacity-75">Budget</div>
+                                <div class="text-sm opacity-75">Compensation</div>
                             </div>
                             <div class="text-center">
                                 <div class="text-2xl font-bold">{{ $campaign->target_zip_code ?? 'Any' }}</div>

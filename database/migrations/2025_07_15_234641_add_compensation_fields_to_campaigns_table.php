@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::table('campaigns', function (Blueprint $table) {
             // Add compensation type field
-            $table->string('compensation_type')->default('monetary')->after('budget');
+            $table->string('compensation_type')->default('monetary')->after('additional_requirements');
 
-            // Rename budget to compensation_amount for broader use
-            $table->renameColumn('budget', 'compensation_amount');
+            // Add compensation amount field (replaces budget)
+            $table->integer('compensation_amount')->default(0)->after('compensation_type');
 
             // Add compensation description for non-monetary compensation
-            $table->text('compensation_description')->nullable()->after('compensation_type');
+            $table->text('compensation_description')->nullable()->after('compensation_amount');
 
             // Add compensation details for specific types
             $table->json('compensation_details')->nullable()->after('compensation_description');
@@ -32,8 +32,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('campaigns', function (Blueprint $table) {
-            $table->dropColumn(['compensation_type', 'compensation_description', 'compensation_details']);
-            $table->renameColumn('compensation_amount', 'budget');
+            $table->dropColumn(['compensation_type', 'compensation_amount', 'compensation_description', 'compensation_details']);
         });
     }
 };

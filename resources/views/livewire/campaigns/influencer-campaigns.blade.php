@@ -46,7 +46,7 @@
                         >
                             <option value="match_score">Best Match</option>
                             <option value="newest">Newest First</option>
-                            <option value="budget">Highest Budget</option>
+                                                            <option value="compensation">Highest Compensation</option>
                             <option value="deadline">Application Deadline</option>
                         </select>
                     </div>
