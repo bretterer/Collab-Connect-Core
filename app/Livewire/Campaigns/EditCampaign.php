@@ -4,7 +4,6 @@ namespace App\Livewire\Campaigns;
 
 use App\Enums\CampaignProductPlacement;
 use App\Enums\CampaignSocialRequirement;
-use App\Enums\CampaignStatus;
 use App\Enums\CompensationType;
 use App\Livewire\BaseComponent;
 use App\Livewire\Traits\HasWizardSteps;
@@ -14,7 +13,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 
 #[Layout('layouts.app')]
-class CreateCampaign extends BaseComponent
+class EditCampaign extends BaseComponent
 {
     use HasWizardSteps;
 
@@ -65,22 +64,12 @@ class CreateCampaign extends BaseComponent
         ];
     }
 
-    public function mount($campaignId = null)
+    public function mount(Campaign $campaign)
     {
-        // Use the policy to authorize creation
-        $this->authorize('create', Campaign::class);
+        // Use the policy to authorize editing
+        $this->authorize('update', $campaign);
 
-        if ($campaignId) {
-            $campaign = Campaign::find($campaignId);
-            if (!$campaign) {
-                abort(404, 'Campaign not found.');
-            }
-
-            // Use the policy to authorize editing
-            $this->authorize('update', $campaign);
-
-            $this->campaignId = $campaign->id;
-        }
+        $this->campaignId = $campaign->id;
         $this->loadCampaign();
     }
 
@@ -92,33 +81,9 @@ class CreateCampaign extends BaseComponent
 
     public function autoSave()
     {
-        // Save current step data to database
-        $campaignData = [
-            'campaign_id' => $this->campaignId,
-            'current_step' => $this->currentStep,
-            'campaign_goal' => $this->campaignGoal,
-            'campaign_type' => $this->campaignType,
-            'target_zip_code' => $this->targetZipCode,
-            'target_area' => $this->targetArea,
-            'campaign_description' => $this->campaignDescription,
-            'social_requirements' => $this->socialRequirements,
-            'placement_requirements' => $this->placementRequirements,
-            'compensation_type' => $this->compensationType,
-            'compensation_amount' => $this->compensationAmount,
-            'compensation_description' => $this->compensationDescription,
-            'compensation_details' => $this->compensationDetails,
-            'influencer_count' => $this->influencerCount,
-            'application_deadline' => $this->applicationDeadline,
-            'campaign_completion_date' => $this->campaignCompletionDate,
-            'additional_requirements' => $this->additionalRequirements,
-            'publish_action' => $this->publishAction,
-            'scheduled_date' => $this->scheduledDate,
-        ];
-
-        $campaign = CampaignService::saveDraft($this->getAuthenticatedUser(), $campaignData);
-        $this->campaignId = $campaign->id;
-        $this->lastSavedAt = now()->format('H:i:s');
-        $this->hasUnsavedChanges = false;
+        if ($this->campaignId) {
+            $this->saveDraft();
+        }
     }
 
     public function loadCampaign()
@@ -131,9 +96,6 @@ class CreateCampaign extends BaseComponent
         if (!$campaign) {
             return;
         }
-
-        // Use the policy to authorize editing
-        $this->authorize('update', $campaign);
 
         $this->campaignGoal = $campaign->campaign_goal;
         $this->campaignType = $campaign->campaign_type->value;
@@ -156,50 +118,41 @@ class CreateCampaign extends BaseComponent
 
     public function nextStep()
     {
-        $this->autoSave();
         $this->validateCurrentStep();
-        if ($this->currentStep < $this->totalSteps) {
-            $this->currentStep++;
-        }
+        $this->setCurrentStep($this->getCurrentStep() + 1);
     }
 
     public function previousStep()
     {
-        $this->autoSave();
-        if ($this->currentStep > 1) {
-            $this->currentStep--;
-        }
+        $this->setCurrentStep($this->getCurrentStep() - 1);
     }
 
     protected function validateCurrentStep(): void
     {
-        // Only validate the current step's fields
-        switch ($this->currentStep) {
+        switch ($this->getCurrentStep()) {
             case 1:
                 $this->validate([
-                    'campaignGoal' => 'required|min:10',
-                    'campaignType' => 'required|in:user_generated_content,social_post,product_placement,freeform',
-                    'targetZipCode' => 'required|regex:/^\d{5}$/',
+                    'campaignGoal' => 'required|string|max:255',
+                    'campaignType' => 'required|string',
+                    'targetZipCode' => 'nullable|string|max:10',
+                    'targetArea' => 'nullable|string|max:255',
                 ]);
                 break;
             case 2:
                 $this->validate([
-                    'campaignDescription' => 'required|min:50',
-                    'socialRequirements' => 'array|min:1',
+                    'campaignDescription' => 'required|string|max:1000',
+                    'socialRequirements' => 'array',
                     'placementRequirements' => 'array',
                 ]);
                 break;
             case 3:
                 $this->validate([
-                    'compensationType' => 'required|in:monetary,barter,free_product,discount,gift_card,experience,other',
-                    'compensationDescription' => 'required|string|min:10',
-                    'influencerCount' => 'required|integer|min:1|max:50',
-                    'applicationDeadline' => 'required|date|after:today',
-                    'campaignCompletionDate' => 'required|date|after:applicationDeadline',
+                    'compensationType' => 'required|string',
+                    'compensationAmount' => 'required_if:compensationType,monetary|integer|min:0',
+                    'influencerCount' => 'required|integer|min:1',
+                    'applicationDeadline' => 'nullable|date|after:today',
+                    'campaignCompletionDate' => 'nullable|date|after:applicationDeadline',
                 ]);
-                break;
-            case 4:
-                // Step 4 is review only, no validation needed
                 break;
         }
     }
@@ -231,82 +184,110 @@ class CreateCampaign extends BaseComponent
 
     public function goToStep(int $step)
     {
-        // Only allow going to completed steps or the next step
-        if ($step <= $this->currentStep + 1 && $step >= 1 && $step <= $this->totalSteps) {
-            $this->currentStep = $step;
-            $this->autoSave();
+        if ($step >= 1 && $step <= $this->getTotalSteps()) {
+            $this->setCurrentStep($step);
         }
     }
 
     public function publishCampaign()
     {
-        $rules = [
-            'publishAction' => 'required|in:publish,schedule',
+        $this->validate([
+            'campaignGoal' => 'required|string|max:255',
+            'campaignType' => 'required|string',
+            'campaignDescription' => 'required|string|max:1000',
+            'compensationType' => 'required|string',
+            'compensationAmount' => 'required_if:compensationType,monetary|integer|min:0',
+            'influencerCount' => 'required|integer|min:1',
+        ]);
+
+        $campaignService = app(CampaignService::class);
+
+        $campaignData = [
+            'campaign_goal' => $this->campaignGoal,
+            'campaign_type' => $this->campaignType,
+            'target_zip_code' => $this->targetZipCode,
+            'target_area' => $this->targetArea,
+            'campaign_description' => $this->campaignDescription,
+            'social_requirements' => $this->socialRequirements,
+            'placement_requirements' => $this->placementRequirements,
+            'compensation_type' => $this->compensationType,
+            'compensation_amount' => $this->compensationAmount,
+            'compensation_description' => $this->compensationDescription,
+            'compensation_details' => $this->compensationDetails,
+            'influencer_count' => $this->influencerCount,
+            'application_deadline' => $this->applicationDeadline,
+            'campaign_completion_date' => $this->campaignCompletionDate,
+            'additional_requirements' => $this->additionalRequirements,
+            'publish_action' => $this->publishAction,
+            'scheduled_date' => $this->scheduledDate,
         ];
 
-        // Only validate scheduledDate if we're scheduling
-        if ($this->publishAction === 'schedule') {
-            $rules['scheduledDate'] = 'required|date|after:today';
-        }
+        $campaign = $campaignService->updateCampaign($this->campaignId, $campaignData);
 
-        $this->validate($rules);
+        $this->hasUnsavedChanges = false;
+        $this->lastSavedAt = now()->format('M j, Y g:i A');
 
-        // Save final campaign data
-        $this->autoSave();
+        session()->flash('message', 'Campaign updated successfully!');
 
-        // Get the campaign
-        $campaign = Campaign::find($this->campaignId);
-
-        if ($this->publishAction === 'publish') {
-            CampaignService::publishCampaign($campaign);
-            session()->flash('message', 'Campaign published successfully!');
-        } else {
-            CampaignService::scheduleCampaign($campaign, $this->scheduledDate);
-            session()->flash('message', 'Campaign scheduled successfully!');
-        }
-
-        return redirect()->route('dashboard');
+        return redirect()->route('campaigns.show', $campaign->id);
     }
 
     public function saveDraft()
     {
-        $this->autoSave();
-        session()->flash('message', 'Draft saved successfully!');
+        $campaignService = app(CampaignService::class);
+
+        $campaignData = [
+            'campaign_goal' => $this->campaignGoal,
+            'campaign_type' => $this->campaignType,
+            'target_zip_code' => $this->targetZipCode,
+            'target_area' => $this->targetArea,
+            'campaign_description' => $this->campaignDescription,
+            'social_requirements' => $this->socialRequirements,
+            'placement_requirements' => $this->placementRequirements,
+            'compensation_type' => $this->compensationType,
+            'compensation_amount' => $this->compensationAmount,
+            'compensation_description' => $this->compensationDescription,
+            'compensation_details' => $this->compensationDetails,
+            'influencer_count' => $this->influencerCount,
+            'application_deadline' => $this->applicationDeadline,
+            'campaign_completion_date' => $this->campaignCompletionDate,
+            'additional_requirements' => $this->additionalRequirements,
+            'publish_action' => 'draft',
+            'scheduled_date' => $this->scheduledDate,
+        ];
+
+        $campaign = $campaignService->updateCampaign($this->campaignId, $campaignData);
+
+        $this->hasUnsavedChanges = false;
+        $this->lastSavedAt = now()->format('M j, Y g:i A');
     }
 
     public function saveAndExit()
     {
-        $this->autoSave();
-        session()->flash('message', 'Campaign draft saved successfully!');
+        $this->saveDraft();
         return redirect()->route('campaigns.index');
     }
 
     public function unscheduleCampaign()
     {
-        if (!$this->campaignId) {
-            return;
-        }
+        $campaignService = app(CampaignService::class);
+        $campaignService->unscheduleCampaign($this->campaignId);
 
-        $campaign = Campaign::find($this->campaignId);
+        session()->flash('message', 'Campaign unscheduled successfully!');
 
-        if ($campaign && $campaign->isScheduled()) {
-            CampaignService::unscheduleCampaign($campaign);
-            session()->flash('message', 'Campaign unscheduled and converted to draft!');
-            return redirect()->route('campaigns.index');
-        }
+        return redirect()->route('campaigns.show', $this->campaignId);
     }
 
     public function completeOnboarding(): void
     {
-        // This method is required by the HasWizardSteps trait
-        // For campaign creation, we use publishCampaign() instead
+        // This method is required by the trait but not used in this context
     }
 
     #[On('beforeunload')]
     public function handleBeforeUnload()
     {
         if ($this->hasUnsavedChanges) {
-            $this->autoSave();
+            $this->dispatch('show-unsaved-changes-warning');
         }
     }
 

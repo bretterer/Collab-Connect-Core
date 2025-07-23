@@ -23,7 +23,8 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('campaigns')->name('campaigns.')->group(function () {
             Route::get('/', App\Livewire\Campaigns\Index::class)->name('index');
             Route::get('/create', App\Livewire\Campaigns\CreateCampaign::class)->name('create');
-            Route::get('/{campaignId}', App\Livewire\Campaigns\CreateCampaign::class)->name('edit');
+            Route::get('/{campaign}', App\Livewire\Campaigns\ShowCampaign::class)->name('show');
+            Route::get('/{campaign}/edit', App\Livewire\Campaigns\EditCampaign::class)->name('edit');
         });
 
         // Influencer campaign discovery

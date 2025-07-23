@@ -231,7 +231,7 @@
 
                         <!-- Action Buttons -->
                         <div class="flex space-x-2">
-                            <a href="{{ route('campaigns.edit', $campaign) }}" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors duration-200 text-center">
+                            <a href="{{ route('campaigns.show', $campaign) }}" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors duration-200 text-center">
                                 View Details
                             </a>
                             <button class="bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors duration-200">

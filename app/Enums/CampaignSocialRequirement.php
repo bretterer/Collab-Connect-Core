@@ -2,8 +2,11 @@
 
 namespace App\Enums;
 
+use App\Enums\Traits\HasFormOptions;
+
 enum CampaignSocialRequirement: int
 {
+    use HasFormOptions;
     case FACEBOOK = 1;
     case INSTAGRAM = 2;
     case TWITTER = 3;
@@ -25,5 +28,10 @@ enum CampaignSocialRequirement: int
             self::PINTEREST => 'Pinterest',
             self::SNAPCHAT => 'Snapchat',
         };
+    }
+
+    public function label(): string
+    {
+        return $this->name();
     }
 }

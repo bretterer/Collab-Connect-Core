@@ -2,8 +2,11 @@
 
 namespace App\Enums;
 
+use App\Enums\Traits\HasFormOptions;
+
 enum CampaignProductPlacement: int
 {
+    use HasFormOptions;
 
     case PRODUCT_MENTION = 1;
     case PRODUCT_SHOWCASE = 2;
@@ -22,6 +25,11 @@ enum CampaignProductPlacement: int
             self::HASHTAG_REQUIRED => 'Specific Hashtags',
             self::DISCOUNT_CODE => 'Discount Code Sharing',
         };
+    }
+
+    public function label(): string
+    {
+        return $this->name();
     }
 
 
