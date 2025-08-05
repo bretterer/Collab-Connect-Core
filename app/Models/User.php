@@ -86,6 +86,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's campaign applications (as an influencer)
+     */
+    public function campaignApplications(): HasMany
+    {
+        return $this->hasMany(CampaignApplication::class);
+    }
+
+    /**
+     * Get the user's notifications
+     */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    /**
      * Check if the user has completed onboarding
      */
     public function hasCompletedOnboarding(): bool

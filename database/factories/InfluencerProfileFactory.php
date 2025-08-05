@@ -37,6 +37,7 @@ class InfluencerProfileFactory extends Factory
                 'Local Restaurants', 'Local Boutiques', 'Local Gyms', 'Local Cafes',
             ], fake()->numberBetween(3, 6)),
             'subscription_plan' => fake()->randomElement(SubscriptionPlan::forInfluencers())->value,
+            'follower_count' => fake()->numberBetween(100, 100000),
             'onboarding_completed' => true,
         ];
     }
@@ -100,6 +101,7 @@ class InfluencerProfileFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'subscription_plan' => SubscriptionPlan::INFLUENCER_OVER_50K->value,
+            'follower_count' => fake()->numberBetween(50000, 500000),
         ]);
     }
 
@@ -110,6 +112,7 @@ class InfluencerProfileFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'subscription_plan' => SubscriptionPlan::INFLUENCER_10K_TO_50K->value,
+            'follower_count' => fake()->numberBetween(10000, 50000),
         ]);
     }
 
@@ -120,6 +123,7 @@ class InfluencerProfileFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'subscription_plan' => SubscriptionPlan::INFLUENCER_UNDER_10K->value,
+            'follower_count' => fake()->numberBetween(100, 10000),
         ]);
     }
 
@@ -130,6 +134,7 @@ class InfluencerProfileFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'subscription_plan' => SubscriptionPlan::INFLUENCER_UNDER_10K->value,
+            'follower_count' => fake()->numberBetween(1000, 10000),
         ]);
     }
 
@@ -140,6 +145,7 @@ class InfluencerProfileFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'subscription_plan' => SubscriptionPlan::INFLUENCER_10K_TO_50K->value,
+            'follower_count' => fake()->numberBetween(10000, 50000),
         ]);
     }
 
@@ -150,6 +156,7 @@ class InfluencerProfileFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'subscription_plan' => SubscriptionPlan::INFLUENCER_OVER_50K->value,
+            'follower_count' => fake()->numberBetween(50000, 1000000),
         ]);
     }
 }

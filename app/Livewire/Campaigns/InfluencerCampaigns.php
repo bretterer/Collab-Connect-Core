@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Campaigns;
 
+use App\Enums\AccountType;
 use App\Enums\CampaignStatus;
 use App\Enums\Niche;
 use App\Livewire\BaseComponent;
@@ -34,6 +35,10 @@ class InfluencerCampaigns extends BaseComponent
 
     public function mount()
     {
+        // redirect business users to their campaigns
+        if (Auth::user()->account_type === AccountType::BUSINESS) {
+            return redirect()->route('campaigns.index');
+        }
         // Don't pre-select any niches - let users choose what they want
         $this->selectedNiches = [];
     }
@@ -50,6 +55,7 @@ class InfluencerCampaigns extends BaseComponent
         $query = Campaign::query()
             ->where('status', CampaignStatus::PUBLISHED)
             ->where('user_id', '!=', $user->id) // Exclude own campaigns
+            ->where('application_deadline', '>', now())
             ->with(['user.businessProfile']);
 
         // Apply search filter

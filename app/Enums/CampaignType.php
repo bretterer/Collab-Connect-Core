@@ -27,7 +27,7 @@ enum CampaignType: string
             self::BRAND_PARTNERSHIPS => 'Long-term brand partnerships',
             self::SEASONAL_CONTENT => 'Seasonal and holiday content',
             self::BEHIND_SCENES => 'Behind-the-scenes content',
-            self::USER_GENERATED => 'User-generated content campaigns',
+            self::USER_GENERATED => 'User-generated content',
         };
     }
 

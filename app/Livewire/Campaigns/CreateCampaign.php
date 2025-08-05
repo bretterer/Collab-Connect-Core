@@ -43,6 +43,33 @@ class CreateCampaign extends BaseComponent
     public string $publishAction = 'publish'; // 'publish' or 'schedule'
     public ?string $scheduledDate = '';
 
+    // Brand Information
+    public ?string $brandOverview = '';
+    public ?string $currentAdvertisingCampaign = '';
+    public ?string $brandStory = '';
+
+    // Campaign Briefing
+    public ?string $campaignObjective = '';
+    public ?string $keyInsights = '';
+    public ?string $fanMotivator = '';
+    public ?string $creativeConnection = '';
+    public ?string $specificProducts = '';
+    public ?string $postingRestrictions = '';
+    public ?string $additionalConsiderations = '';
+
+    // Deliverables & Success Metrics
+    public array $targetPlatforms = [];
+    public array $deliverables = [];
+    public array $successMetrics = [];
+    public ?string $timingDetails = '';
+
+    // Enhanced Campaign Structure
+    public ?string $targetAudience = '';
+    public ?string $contentGuidelines = '';
+    public ?string $brandGuidelines = '';
+    public ?string $mainContact = '';
+    public ?string $projectName = '';
+
     // Campaign ID for editing existing campaign
     public ?int $campaignId = null;
 
@@ -52,16 +79,18 @@ class CreateCampaign extends BaseComponent
 
     public function getTotalSteps(): int
     {
-        return 4;
+        return 6;
     }
 
     protected function getWizardSteps(): array
     {
         return [
             1 => 'Campaign Goal',
-            2 => 'Campaign Details',
-            3 => 'Campaign Settings',
-            4 => 'Review & Publish'
+            2 => 'Brand Information',
+            3 => 'Campaign Briefing',
+            4 => 'Deliverables & Metrics',
+            5 => 'Campaign Settings',
+            6 => 'Review & Publish'
         ];
     }
 
@@ -81,7 +110,15 @@ class CreateCampaign extends BaseComponent
 
             $this->campaignId = $campaign->id;
         }
+
+        // Load campaign data
         $this->loadCampaign();
+
+        // Handle URL step parameter
+        $step = request()->query('step');
+        if ($step && is_numeric($step) && $step >= 1 && $step <= $this->getTotalSteps()) {
+            $this->currentStep = (int) $step;
+        }
     }
 
     public function updated($propertyName)
@@ -113,6 +150,29 @@ class CreateCampaign extends BaseComponent
             'additional_requirements' => $this->additionalRequirements,
             'publish_action' => $this->publishAction,
             'scheduled_date' => $this->scheduledDate,
+            // Brand Information
+            'brand_overview' => $this->brandOverview,
+            'current_advertising_campaign' => $this->currentAdvertisingCampaign,
+            'brand_story' => $this->brandStory,
+            // Campaign Briefing
+            'campaign_objective' => $this->campaignObjective,
+            'key_insights' => $this->keyInsights,
+            'fan_motivator' => $this->fanMotivator,
+            'creative_connection' => $this->creativeConnection,
+            'specific_products' => $this->specificProducts,
+            'posting_restrictions' => $this->postingRestrictions,
+            'additional_considerations' => $this->additionalConsiderations,
+            // Deliverables & Success Metrics
+            'target_platforms' => !empty($this->targetPlatforms) ? $this->targetPlatforms : [],
+            'deliverables' => !empty($this->deliverables) ? $this->deliverables : [],
+            'success_metrics' => !empty($this->successMetrics) ? $this->successMetrics : [],
+            'timing_details' => $this->timingDetails,
+            // Enhanced Campaign Structure
+            'target_audience' => $this->targetAudience,
+            'content_guidelines' => $this->contentGuidelines,
+            'brand_guidelines' => $this->brandGuidelines,
+            'main_contact' => $this->mainContact,
+            'project_name' => $this->projectName,
         ];
 
         $campaign = CampaignService::saveDraft($this->getAuthenticatedUser(), $campaignData);
@@ -142,7 +202,7 @@ class CreateCampaign extends BaseComponent
         $this->campaignDescription = $campaign->campaign_description;
         $this->socialRequirements = $campaign->social_requirements ?? [];
         $this->placementRequirements = $campaign->placement_requirements ?? [];
-        $this->compensationType = $campaign->compensation_type->value;
+        $this->compensationType = $campaign->compensation_type?->value ?? 'monetary';
         $this->compensationAmount = $campaign->compensation_amount ?? 0;
         $this->compensationDescription = $campaign->compensation_description ?? '';
         $this->compensationDetails = $campaign->compensation_details ?? [];
@@ -152,14 +212,42 @@ class CreateCampaign extends BaseComponent
         $this->additionalRequirements = $campaign->additional_requirements ?? '';
         $this->publishAction = $campaign->status->value;
         $this->scheduledDate = $campaign->scheduled_date ? $campaign->scheduled_date->format('Y-m-d') : '';
+
+        // Brand Information
+        $this->brandOverview = $campaign->brand_overview ?? '';
+        $this->currentAdvertisingCampaign = $campaign->current_advertising_campaign ?? '';
+        $this->brandStory = $campaign->brand_story ?? '';
+
+        // Campaign Briefing
+        $this->campaignObjective = $campaign->campaign_objective ?? '';
+        $this->keyInsights = $campaign->key_insights ?? '';
+        $this->fanMotivator = $campaign->fan_motivator ?? '';
+        $this->creativeConnection = $campaign->creative_connection ?? '';
+        $this->specificProducts = $campaign->specific_products ?? '';
+        $this->postingRestrictions = $campaign->posting_restrictions ?? '';
+        $this->additionalConsiderations = $campaign->additional_considerations ?? '';
+
+        // Deliverables & Success Metrics
+        $this->targetPlatforms = $campaign->target_platforms ?? [];
+        $this->deliverables = $campaign->deliverables ?? [];
+        $this->successMetrics = $campaign->success_metrics ?? [];
+        $this->timingDetails = $campaign->timing_details ?? '';
+
+        // Enhanced Campaign Structure
+        $this->targetAudience = $campaign->target_audience ?? '';
+        $this->contentGuidelines = $campaign->content_guidelines ?? '';
+        $this->brandGuidelines = $campaign->brand_guidelines ?? '';
+        $this->mainContact = $campaign->main_contact ?? '';
+        $this->projectName = $campaign->project_name ?? '';
     }
 
     public function nextStep()
     {
         $this->autoSave();
         $this->validateCurrentStep();
-        if ($this->currentStep < $this->totalSteps) {
+        if ($this->currentStep < $this->getTotalSteps()) {
             $this->currentStep++;
+            $this->updateUrl();
         }
     }
 
@@ -168,7 +256,19 @@ class CreateCampaign extends BaseComponent
         $this->autoSave();
         if ($this->currentStep > 1) {
             $this->currentStep--;
+            $this->updateUrl();
         }
+    }
+
+
+
+    protected function updateUrl()
+    {
+        $url = request()->url();
+        $query = request()->query();
+        $query['step'] = $this->currentStep;
+
+        $this->dispatch('url-updated', url: $url . '?' . http_build_query($query));
     }
 
     protected function validateCurrentStep(): void
@@ -178,18 +278,31 @@ class CreateCampaign extends BaseComponent
             case 1:
                 $this->validate([
                     'campaignGoal' => 'required|min:10',
-                    'campaignType' => 'required|in:user_generated_content,social_post,product_placement,freeform',
+                    'campaignType' => 'required|in:sponsored_posts,product_reviews,event_coverage,giveaways,brand_partnerships,seasonal_content,behind_scenes,user_generated',
                     'targetZipCode' => 'required|regex:/^\d{5}$/',
                 ]);
                 break;
             case 2:
                 $this->validate([
-                    'campaignDescription' => 'required|min:50',
-                    'socialRequirements' => 'array|min:1',
-                    'placementRequirements' => 'array',
+                    'brandOverview' => 'required|min:20',
                 ]);
                 break;
             case 3:
+                $this->validate([
+                    'campaignObjective' => 'required|min:20',
+                    'keyInsights' => 'required|min:20',
+                    'fanMotivator' => 'required|min:20',
+                    'creativeConnection' => 'required|min:20',
+                ]);
+                break;
+            case 4:
+                $this->validate([
+                    'targetPlatforms' => 'array',
+                    'deliverables' => 'array',
+                    'successMetrics' => 'array',
+                ]);
+                break;
+            case 5:
                 $this->validate([
                     'compensationType' => 'required|in:monetary,barter,free_product,discount,gift_card,experience,other',
                     'compensationDescription' => 'required|string|min:10',
@@ -198,8 +311,8 @@ class CreateCampaign extends BaseComponent
                     'campaignCompletionDate' => 'required|date|after:applicationDeadline',
                 ]);
                 break;
-            case 4:
-                // Step 4 is review only, no validation needed
+            case 6:
+                // Step 6 is review only, no validation needed
                 break;
         }
     }
@@ -224,6 +337,21 @@ class CreateCampaign extends BaseComponent
         return \App\Enums\CompensationType::toOptions();
     }
 
+    public function getTargetPlatformOptions(): array
+    {
+        return \App\Enums\TargetPlatform::toOptions();
+    }
+
+    public function getDeliverableTypeOptions(): array
+    {
+        return \App\Enums\DeliverableType::toOptions();
+    }
+
+    public function getSuccessMetricOptions(): array
+    {
+        return \App\Enums\SuccessMetric::toOptions();
+    }
+
     public function isEditing(): bool
     {
         return $this->campaignId !== null;
@@ -232,9 +360,10 @@ class CreateCampaign extends BaseComponent
     public function goToStep(int $step)
     {
         // Only allow going to completed steps or the next step
-        if ($step <= $this->currentStep + 1 && $step >= 1 && $step <= $this->totalSteps) {
+        if ($step <= $this->currentStep + 1 && $step >= 1 && $step <= $this->getTotalSteps()) {
             $this->currentStep = $step;
             $this->autoSave();
+            $this->updateUrl();
         }
     }
 

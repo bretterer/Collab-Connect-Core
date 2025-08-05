@@ -48,8 +48,8 @@ class PostalCodeFactory extends Factory
             'admin_code2' => $this->faker->numerify('###'),
             'admin_name3' => null,
             'admin_code3' => null,
-            'latitude' => $this->faker->latitude(25, 49), // US latitude range
-            'longitude' => $this->faker->longitude(-125, -66), // US longitude range
+            'latitude' => (float) $this->faker->latitude(25, 49), // US latitude range
+            'longitude' => (float) $this->faker->longitude(-125, -66), // US longitude range
             'accuracy' => $this->faker->randomElement([1, 4, 6]),
         ];
     }
@@ -70,8 +70,8 @@ class PostalCodeFactory extends Factory
             'admin_code1' => $this->faker->randomElement([
                 'ON', 'QC', 'BC', 'AB', 'MB', 'SK', 'NS', 'NB', 'NL', 'PE', 'NT', 'NU', 'YT'
             ]),
-            'latitude' => $this->faker->latitude(42, 70), // Canada latitude range
-            'longitude' => $this->faker->longitude(-141, -52), // Canada longitude range
+            'latitude' => (float) $this->faker->latitude(42, 70), // Canada latitude range
+            'longitude' => (float) $this->faker->longitude(-141, -52), // Canada longitude range
         ]);
     }
 
@@ -83,8 +83,8 @@ class PostalCodeFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'admin_name1' => 'New York',
             'admin_code1' => 'NY',
-            'latitude' => $this->faker->latitude(40.4, 45.0), // NY latitude range
-            'longitude' => $this->faker->longitude(-79.8, -71.8), // NY longitude range
+            'latitude' => (float) $this->faker->latitude(40.4, 45.0), // NY latitude range
+            'longitude' => (float) $this->faker->longitude(-79.8, -71.8), // NY longitude range
         ]);
     }
 
@@ -96,8 +96,8 @@ class PostalCodeFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'admin_name1' => 'California',
             'admin_code1' => 'CA',
-            'latitude' => $this->faker->latitude(32.5, 42.0), // CA latitude range
-            'longitude' => $this->faker->longitude(-124.4, -114.1), // CA longitude range
+            'latitude' => (float) $this->faker->latitude(32.5, 42.0), // CA latitude range
+            'longitude' => (float) $this->faker->longitude(-124.4, -114.1), // CA longitude range
         ]);
     }
 

@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
+use App\Enums\Traits\HasFormOptions;
+
 enum CompensationType: string
 {
+    use HasFormOptions;
+
     case MONETARY = 'monetary';
     case BARTER = 'barter';
     case FREE_PRODUCT = 'free_product';

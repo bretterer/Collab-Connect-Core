@@ -49,20 +49,6 @@ abstract class BaseComponent extends Component
     }
 
     /**
-     * Get validation rules for common fields
-     */
-    protected function getCommonValidationRules(): array
-    {
-        return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'zip_code' => 'required|string|max:10',
-            'url' => 'nullable|url',
-            'phone' => 'nullable|string|max:20',
-        ];
-    }
-
-    /**
      * Remove empty values from array
      */
     protected function filterEmptyValues(array $array): array

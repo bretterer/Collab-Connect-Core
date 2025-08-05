@@ -3,6 +3,7 @@
 namespace App\Livewire\Campaigns;
 
 use App\Models\Campaign;
+use App\Services\CampaignService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -15,7 +16,8 @@ class ShowCampaign extends Component
 
     public function mount(Campaign $campaign)
     {
-        $this->campaign = $campaign;
+        // Load the campaign with all relationships
+        $this->campaign = $campaign->load(['brief', 'brand', 'requirements', 'compensation', 'user.businessProfile']);
 
         // Check if current user is the owner
         $this->isOwner = $this->campaign->user_id === Auth::user()->id;
@@ -43,22 +45,42 @@ class ShowCampaign extends Component
     public function unpublishCampaign()
     {
         $this->authorize('unpublish', $this->campaign);
-        // TODO: Implement unpublish logic
+        CampaignService::unpublish($this->campaign);
+        $this->campaign->refresh();
         session()->flash('message', 'Campaign unpublished successfully!');
     }
 
     public function archiveCampaign()
     {
         $this->authorize('archive', $this->campaign);
-        // TODO: Implement archive logic
+        CampaignService::archive($this->campaign);
+        $this->campaign->refresh();
         session()->flash('message', 'Campaign archived successfully!');
     }
 
     public function applyToCampaign()
     {
         $this->authorize('apply', $this->campaign);
-        // TODO: Implement apply logic
-        session()->flash('message', 'Application submitted successfully!');
+        // This will be handled by the ApplyToCampaign component
+        return redirect()->route('campaigns.show', $this->campaign);
+    }
+
+    public function getApplicationsCount()
+    {
+        if (!$this->isOwner) {
+            return 0;
+        }
+
+        return $this->campaign->applications()->count();
+    }
+
+    public function getPendingApplicationsCount()
+    {
+        if (!$this->isOwner) {
+            return 0;
+        }
+
+        return $this->campaign->applications()->where('status', 'pending')->count();
     }
 
     public function backToDiscover()

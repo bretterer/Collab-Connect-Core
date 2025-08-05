@@ -229,15 +229,12 @@ class CampaignSeeder extends Seeder
                 // Random target zip code (using business zip or random)
                 $targetZip = $businessUser->businessProfile->primary_zip_code ?? '12345';
 
-                Campaign::factory()->create([
+                Campaign::factory()->withFullDetails()->create([
                     'user_id' => $businessUser->id,
                     'status' => CampaignStatus::PUBLISHED,
                     'campaign_goal' => $template['goal'],
                     'campaign_type' => $template['type'],
                     'campaign_description' => $template['description'],
-                    'compensation_type' => $compensationType,
-                    'compensation_amount' => $compensationAmount,
-                    'compensation_description' => $this->getCompensationDescription($compensationType, $compensationAmount),
                     'influencer_count' => rand($template['influencers_range'][0], $template['influencers_range'][1]),
                     'target_zip_code' => $targetZip,
                     'application_deadline' => $applicationDeadline,

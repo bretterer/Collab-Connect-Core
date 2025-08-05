@@ -35,8 +35,8 @@ class PostalCode extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'latitude' => 'decimal:8',
-        'longitude' => 'decimal:8',
+        'latitude' => 'float',
+        'longitude' => 'float',
         'accuracy' => 'integer',
     ];
 

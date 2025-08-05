@@ -18,7 +18,7 @@ return new class extends Migration
 
             // Step 1: Campaign Goal & Type
             $table->text('campaign_goal');
-            $table->string('campaign_type');
+            $table->string('campaign_type')->nullable();
             $table->string('target_zip_code');
             $table->string('target_area')->nullable();
 

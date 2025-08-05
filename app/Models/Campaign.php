@@ -3,10 +3,11 @@
 namespace App\Models;
 
 use App\Enums\CampaignStatus;
-use App\Enums\CompensationType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Campaign extends Model
 {
@@ -21,27 +22,42 @@ class Campaign extends Model
         'target_zip_code',
         'target_area',
         'campaign_description',
-        'social_requirements',
-        'placement_requirements',
-        'compensation_type',
-        'compensation_amount',
-        'compensation_description',
-        'compensation_details',
         'influencer_count',
         'application_deadline',
         'campaign_completion_date',
-        'additional_requirements',
         'publish_action',
         'scheduled_date',
         'current_step',
         'published_at',
+        'compensation_type',
+        'compensation_amount',
+        'compensation_description',
+        'compensation_details',
+        'brand_overview',
+        'current_advertising_campaign',
+        'brand_story',
+        'campaign_objective',
+        'key_insights',
+        'fan_motivator',
+        'creative_connection',
+        'specific_products',
+        'posting_restrictions',
+        'additional_considerations',
+        'target_platforms',
+        'deliverables',
+        'success_metrics',
+        'timing_details',
+        'target_audience',
+        'content_guidelines',
+        'brand_guidelines',
+        'main_contact',
+        'project_name',
+        'social_requirements',
+        'placement_requirements',
+        'additional_requirements',
     ];
 
     protected $casts = [
-        'social_requirements' => 'array',
-        'placement_requirements' => 'array',
-        'compensation_amount' => 'integer',
-        'compensation_details' => 'array',
         'influencer_count' => 'integer',
         'application_deadline' => 'date',
         'campaign_completion_date' => 'date',
@@ -49,13 +65,44 @@ class Campaign extends Model
         'current_step' => 'integer',
         'published_at' => 'datetime',
         'status' => CampaignStatus::class,
-        'compensation_type' => CompensationType::class,
         'campaign_type' => \App\Enums\CampaignType::class,
+        'compensation_type' => \App\Enums\CompensationType::class,
+        'compensation_details' => 'array',
+        'social_requirements' => 'array',
+        'placement_requirements' => 'array',
+        'target_platforms' => 'array',
+        'deliverables' => 'array',
+        'success_metrics' => 'array',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function applications(): HasMany
+    {
+        return $this->hasMany(CampaignApplication::class);
+    }
+
+    public function brief(): HasOne
+    {
+        return $this->hasOne(CampaignBrief::class);
+    }
+
+    public function brand(): HasOne
+    {
+        return $this->hasOne(CampaignBrand::class);
+    }
+
+    public function requirements(): HasOne
+    {
+        return $this->hasOne(CampaignRequirements::class);
+    }
+
+    public function compensation(): HasOne
+    {
+        return $this->hasOne(CampaignCompensation::class);
     }
 
     public function isDraft(): bool
@@ -98,23 +145,19 @@ class Campaign extends Model
         return $query->where('status', CampaignStatus::ARCHIVED);
     }
 
+    /**
+     * Get compensation display through relationship
+     */
     public function getCompensationDisplayAttribute(): string
     {
-        if ($this->compensation_type === CompensationType::MONETARY) {
-            return '$' . number_format($this->compensation_amount);
-        }
-
-        if ($this->compensation_description) {
-            return $this->compensation_description;
-        }
-
-        return $this->compensation_type->label();
+        return $this->compensation?->compensation_display ?? 'Not set';
     }
 
+    /**
+     * Check if campaign has monetary compensation through relationship
+     */
     public function isMonetaryCompensation(): bool
     {
-        return $this->compensation_type === CompensationType::MONETARY;
+        return $this->compensation?->isMonetaryCompensation() ?? false;
     }
-
-    // Budget methods removed - use compensation_amount and compensation_type instead
 }

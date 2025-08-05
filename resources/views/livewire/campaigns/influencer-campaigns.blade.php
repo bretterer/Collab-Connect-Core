@@ -230,13 +230,11 @@
                         </div>
 
                         <!-- Action Buttons -->
-                        <div class="flex space-x-2">
-                            <a href="{{ route('campaigns.show', $campaign) }}" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors duration-200 text-center">
+                        <div class="space-y-2">
+                            <a href="{{ route('campaigns.show', $campaign) }}" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors duration-200 text-center block">
                                 View Details
                             </a>
-                            <button class="bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors duration-200">
-                                Apply Now
-                            </button>
+                            @livewire('campaigns.apply-to-campaign', ['campaign' => $campaign, 'buttonText' => 'Apply Now'], key($campaign->id))
                         </div>
                     </div>
 

@@ -115,6 +115,51 @@ class SocialMediaAccountFactory extends Factory
     }
 
     /**
+     * Create a Twitter/X account.
+     */
+    public function twitter(): static
+    {
+        $username = fake()->userName();
+
+        return $this->state(fn (array $attributes) => [
+            'platform' => 'x',
+            'username' => $username,
+            'url' => 'https://x.com/'.$username,
+            'follower_count' => fake()->numberBetween(100, 50000),
+        ]);
+    }
+
+    /**
+     * Create a Facebook account.
+     */
+    public function facebook(): static
+    {
+        $username = fake()->userName();
+
+        return $this->state(fn (array $attributes) => [
+            'platform' => 'facebook',
+            'username' => $username,
+            'url' => 'https://facebook.com/'.$username,
+            'follower_count' => fake()->numberBetween(100, 30000),
+        ]);
+    }
+
+    /**
+     * Create a LinkedIn account.
+     */
+    public function linkedin(): static
+    {
+        $username = fake()->userName();
+
+        return $this->state(fn (array $attributes) => [
+            'platform' => 'linkedin',
+            'username' => $username,
+            'url' => 'https://linkedin.com/in/'.$username,
+            'follower_count' => fake()->numberBetween(50, 15000),
+        ]);
+    }
+
+    /**
      * Create an account with high follower count.
      */
     public function popular(): static

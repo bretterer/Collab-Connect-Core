@@ -7,6 +7,7 @@ use App\Enums\CampaignType;
 use App\Enums\CompensationType;
 use App\Models\Campaign;
 use App\Models\User;
+use App\Services\CampaignService;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -36,23 +37,9 @@ class CampaignFactory extends Factory
             'target_zip_code' => $this->faker->numerify('#####'),
             'target_area' => $this->faker->city(),
             'campaign_description' => $this->faker->paragraph(),
-            'social_requirements' => [
-                'platforms' => ['instagram', 'tiktok'],
-                'post_count' => $this->faker->numberBetween(1, 5),
-            ],
-            'placement_requirements' => [
-                'feed_posts' => true,
-                'stories' => false,
-                'reels' => true,
-            ],
-            'compensation_type' => CompensationType::MONETARY,
-            'compensation_amount' => $this->faker->numberBetween(100, 2000),
-            'compensation_description' => null,
-            'compensation_details' => null,
             'influencer_count' => $this->faker->numberBetween(1, 10),
             'application_deadline' => $this->faker->dateTimeBetween('now', '+30 days'),
             'campaign_completion_date' => $this->faker->dateTimeBetween('+30 days', '+90 days'),
-            'additional_requirements' => $this->faker->optional()->paragraph(),
             'publish_action' => 'publish',
             'scheduled_date' => null,
             'current_step' => 4,
@@ -90,5 +77,89 @@ class CampaignFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => CampaignStatus::ARCHIVED,
         ]);
+    }
+
+    /**
+     * Create a complete campaign with all relationships
+     */
+    public function withFullDetails(): static
+    {
+        return $this->afterCreating(function (Campaign $campaign) {
+            // Create campaign brief
+            $campaign->brief()->create([
+                'project_name' => $this->faker->words(3, true),
+                'main_contact' => $this->faker->name(),
+                'campaign_objective' => $this->faker->sentence(),
+                'key_insights' => $this->faker->paragraph(),
+                'fan_motivator' => $this->faker->sentence(),
+                'creative_connection' => $this->faker->paragraph(),
+                'target_audience' => $this->faker->sentence(),
+                'timing_details' => $this->faker->sentence(),
+                'additional_requirements' => $this->faker->optional()->paragraph(),
+            ]);
+
+            // Create campaign brand
+            $campaign->brand()->create([
+                'brand_overview' => $this->faker->paragraph(),
+                'brand_essence' => $this->faker->sentence(),
+                'brand_pillars' => ['quality', 'innovation', 'community'],
+                'current_advertising_campaign' => $this->faker->sentence(),
+                'brand_story' => $this->faker->paragraph(),
+                'brand_guidelines' => $this->faker->paragraph(),
+            ]);
+
+            // Create campaign requirements
+            $campaign->requirements()->create([
+                'social_requirements' => [
+                    'platforms' => ['instagram', 'tiktok'],
+                    'post_count' => $this->faker->numberBetween(1, 5),
+                ],
+                'placement_requirements' => [
+                    'feed_posts' => true,
+                    'stories' => false,
+                    'reels' => true,
+                ],
+                'target_platforms' => ['instagram', 'tiktok'],
+                'deliverables' => ['instagram_reel', 'instagram_story'],
+                'success_metrics' => ['impressions', 'engagement_rate'],
+                'content_guidelines' => $this->faker->paragraph(),
+                'posting_restrictions' => $this->faker->optional()->sentence(),
+                'specific_products' => $this->faker->optional()->sentence(),
+                'additional_considerations' => $this->faker->optional()->paragraph(),
+            ]);
+
+            // Create campaign compensation
+            $compensationType = $this->faker->randomElement([
+                CompensationType::MONETARY,
+                CompensationType::BARTER,
+                CompensationType::FREE_PRODUCT,
+                CompensationType::GIFT_CARD
+            ]);
+            
+            $compensationAmount = $this->faker->numberBetween(100, 2000);
+            
+            $campaign->compensation()->create([
+                'compensation_type' => $compensationType,
+                'compensation_amount' => $compensationAmount,
+                'compensation_description' => $this->getCompensationDescription($compensationType, $compensationAmount),
+                'compensation_details' => [
+                    'base_rate' => $compensationAmount,
+                    'bonus_available' => $this->faker->boolean(),
+                ],
+            ]);
+        });
+    }
+
+    private function getCompensationDescription(CompensationType $type, int $amount): string
+    {
+        return match($type) {
+            CompensationType::MONETARY => '$' . number_format($amount) . ' payment',
+            CompensationType::BARTER => 'Product exchange worth $' . number_format($amount),
+            CompensationType::FREE_PRODUCT => 'Free products worth $' . number_format($amount),
+            CompensationType::DISCOUNT => $amount . '% discount on all products',
+            CompensationType::GIFT_CARD => '$' . number_format($amount) . ' gift card',
+            CompensationType::EXPERIENCE => 'Experience package worth $' . number_format($amount),
+            CompensationType::OTHER => 'Custom compensation arrangement',
+        };
     }
 }

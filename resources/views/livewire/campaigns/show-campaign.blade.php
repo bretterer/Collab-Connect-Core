@@ -45,7 +45,7 @@
                 <!-- Campaign Status Badge -->
                 <div class="absolute top-4 right-4">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-90 text-gray-800 shadow-md">
-                        {{ ucwords(str_replace('_', ' ', $campaign->status->value)) }}
+                        {{ $campaign->status->label() }}
                     </span>
                 </div>
             </div>
@@ -66,11 +66,11 @@
                                 <div class="text-sm opacity-75">Influencers</div>
                             </div>
                             <div class="text-center">
-                                <div class="text-2xl font-bold">{{ ucwords(str_replace('_', ' ', $campaign->campaign_type->value)) }}</div>
+                                <div class="text-2xl font-bold">{{ $campaign->campaign_type->label() }}</div>
                                 <div class="text-sm opacity-75">Type</div>
                             </div>
                             <div class="text-center">
-                                <div class="text-2xl font-bold">${{ number_format($campaign->compensation_amount) }}</div>
+                                <div class="text-2xl font-bold">{{ $campaign->compensation?->compensation_display ?? 'Not set' }}</div>
                                 <div class="text-sm opacity-75">Compensation</div>
                             </div>
                             <div class="text-center">
@@ -83,10 +83,20 @@
                     <!-- Action Buttons -->
                     <div class="ml-8">
                         @if($isOwner)
+                            <div class="flex items-center space-x-4">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ $this->getApplicationsCount() }}</div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">Total Applications</div>
+                                </div>
+                                @if($this->getPendingApplicationsCount() > 0)
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ $this->getPendingApplicationsCount() }}</div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">Pending Review</div>
+                                    </div>
+                                @endif
+                            </div>
                         @else
-                            <button wire:click="applyToCampaign" class="bg-green-500 hover:bg-green-600 text-white font-medium py-4 px-8 rounded-lg transition-colors duration-200 text-lg">
-                                Apply Now
-                            </button>
+                            @livewire('campaigns.apply-to-campaign', ['campaign' => $campaign])
                         @endif
                     </div>
                 </div>
@@ -105,16 +115,12 @@
                         <div class="space-y-4">
                             <div>
                                 <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Campaign Type</h3>
-                                <p class="text-lg font-medium text-gray-900 dark:text-white">{{ ucwords(str_replace('_', ' ', $campaign->campaign_type->value)) }}</p>
+                                <p class="text-lg font-medium text-gray-900 dark:text-white">{{ $campaign->campaign_type->label() }}</p>
                             </div>
                             <div>
                                 <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Compensation</h3>
                                 <p class="text-lg font-medium text-gray-900 dark:text-white">
-                                    @if($campaign->compensation_type->value === 'monetary')
-                                        ${{ number_format($campaign->compensation_amount) }}
-                                    @else
-                                        {{ ucwords(str_replace('_', ' ', $campaign->compensation_type->value)) }}
-                                    @endif
+                                    {{ $campaign->compensation?->compensation_display ?? 'Not set' }}
                                 </p>
                             </div>
                             <div>
@@ -136,7 +142,7 @@
                             <div>
                                 <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Status</h3>
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                    {{ ucwords(str_replace('_', ' ', $campaign->status->value)) }}
+                                    {{ $campaign->status->label() }}
                                 </span>
                             </div>
                         </div>
@@ -144,22 +150,22 @@
                 </div>
 
                 <!-- Requirements Card -->
-                @if($campaign->additional_requirements)
+                @if($campaign->brief?->additional_requirements)
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Requirements</h2>
                         <div class="prose dark:prose-invert max-w-none">
-                            {!! nl2br(e($campaign->additional_requirements)) !!}
+                            {!! nl2br(e($campaign->brief->additional_requirements)) !!}
                         </div>
                     </div>
                 @endif
 
                 <!-- Social Requirements Card -->
-                @if(!empty($campaign->social_requirements))
+                @if(!empty($campaign->requirements?->social_requirements))
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Social Media Requirements</h2>
                         <div class="flex flex-wrap gap-3">
-                            @if(is_array($campaign->social_requirements))
-                                @foreach($campaign->social_requirements as $requirement)
+                            @if(is_array($campaign->requirements->social_requirements))
+                                @foreach($campaign->requirements->social_requirements as $requirement)
                                     @if(is_string($requirement))
                                         <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                                             {{ ucwords(str_replace('_', ' ', $requirement)) }}
@@ -174,6 +180,62 @@
                                 <span class="text-gray-500 dark:text-gray-400">No specific requirements</span>
                             @endif
                         </div>
+                    </div>
+                @endif
+
+                <!-- Applications Section (for campaign owners) -->
+                @if($isOwner)
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Applications</h2>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-500 dark:text-gray-400">
+                                    {{ $this->getApplicationsCount() }} total
+                                </span>
+                                @if($this->getPendingApplicationsCount() > 0)
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+                                        {{ $this->getPendingApplicationsCount() }} pending
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+
+                        @if($this->getApplicationsCount() > 0)
+                            <div class="space-y-4">
+                                @foreach($campaign->applications()->with(['user.influencerProfile'])->latest('submitted_at')->take(3)->get() as $application)
+                                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                                                    {{ $application->user->initials() }}
+                                                </div>
+                                                <div>
+                                                    <h4 class="font-medium text-gray-900 dark:text-white">{{ $application->user->name }}</h4>
+                                                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ $application->submitted_at->diffForHumans() }}</p>
+                                                </div>
+                                            </div>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $application->status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' : ($application->status === 'accepted' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300') }}">
+                                                {{ ucfirst($application->status) }}
+                                            </span>
+                                        </div>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{{ Str::limit($application->message, 100) }}</p>
+                                        <div class="mt-3">
+                                            <a href="{{ route('campaigns.applications', $campaign) }}" class="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400">
+                                                View all applications →
+                                            </a>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="text-center py-8">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No applications yet</h3>
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Applications will appear here once influencers start applying.</p>
+                            </div>
+                        @endif
                     </div>
                 @endif
             </div>
@@ -220,9 +282,7 @@
                                 Back to Dashboard
                             </a>
                         @else
-                            <button wire:click="applyToCampaign" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                                Apply to Campaign
-                            </button>
+                            @livewire('campaigns.apply-to-campaign', ['campaign' => $campaign, 'buttonText' => 'Apply To Campaign'])
                             <a href="{{ route('discover') }}" class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-4 rounded-lg transition-colors duration-200 text-center block">
                                 Back to Discover
                             </a>

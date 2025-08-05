@@ -22,6 +22,7 @@ return new class extends Migration
             $table->json('collaboration_preferences')->nullable(); // Store preferences as JSON array
             $table->json('preferred_brands')->nullable(); // Store preferred brands/industries as JSON array
             $table->string('subscription_plan')->nullable();
+            $table->integer('follower_count')->default(0); // Total follower count across all platforms
             $table->boolean('onboarding_completed')->default(false);
             $table->timestamps();
 
@@ -29,6 +30,7 @@ return new class extends Migration
             $table->index(['user_id']); // For user relationship queries
             $table->index(['primary_zip_code']); // For location-based searches
             $table->index(['primary_niche']); // For niche filtering
+            $table->index(['follower_count']); // For follower count sorting/filtering
             $table->index(['onboarding_completed']); // For filtering completed profiles
             $table->index(['primary_zip_code', 'primary_niche']); // For combined location + niche searches
         });

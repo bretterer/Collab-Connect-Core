@@ -7,6 +7,7 @@ use App\Enums\CampaignStatus;
 use App\Models\Campaign;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 
 class CampaignPolicy
 {
@@ -25,6 +26,10 @@ class CampaignPolicy
      */
     public function view(User $user, Campaign $campaign): bool
     {
+        if ($campaign->status !== CampaignStatus::PUBLISHED && $campaign->user_id !== $user->id) {
+            abort(404);
+        }
+
         // Allow viewing if:
         // 1. Campaign is published (anyone can view)
         // 2. User is the owner (can view unpublished campaigns)

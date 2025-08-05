@@ -67,6 +67,9 @@ class DatabaseSeeder extends Seeder
 
         // Create sample campaigns for testing
         $this->call(CampaignSeeder::class);
+
+        // Create BIGGBY campaign template
+        $this->call(BiggbysCampaignTemplateSeeder::class);
     }
 
 

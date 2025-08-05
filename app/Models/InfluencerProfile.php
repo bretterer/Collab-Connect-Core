@@ -22,6 +22,7 @@ class InfluencerProfile extends Model
         'collaboration_preferences',
         'preferred_brands',
         'subscription_plan',
+        'follower_count',
         'onboarding_completed',
     ];
 
