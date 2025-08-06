@@ -316,6 +316,7 @@ class CampaignDiscoveryTest extends TestCase
     public function test_influencer_cannot_apply_to_own_business_campaigns()
     {
         // Create an influencer who is also a business user (edge case)
+        /** @var User $hybridUser */
         $hybridUser = User::factory()->business()->withProfile()->create();
 
         $campaign = Campaign::factory()->published()->create([

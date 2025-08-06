@@ -45,7 +45,7 @@ class ShowCampaign extends Component
     public function unpublishCampaign()
     {
         $this->authorize('unpublish', $this->campaign);
-        CampaignService::unpublish($this->campaign);
+        CampaignService::unpublishCampaign($this->campaign);
         $this->campaign->refresh();
         session()->flash('message', 'Campaign unpublished successfully!');
     }
@@ -53,7 +53,7 @@ class ShowCampaign extends Component
     public function archiveCampaign()
     {
         $this->authorize('archive', $this->campaign);
-        CampaignService::archive($this->campaign);
+        CampaignService::archiveCampaign($this->campaign);
         $this->campaign->refresh();
         session()->flash('message', 'Campaign archived successfully!');
     }

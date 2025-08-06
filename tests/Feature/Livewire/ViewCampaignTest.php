@@ -44,6 +44,7 @@ class ViewCampaignTest extends TestCase
         ]);
 
         // Create influencer user
+        /** @var User $influencerUser */
         $influencerUser = User::factory()->create([
             'account_type' => AccountType::INFLUENCER,
         ]);
@@ -68,6 +69,7 @@ class ViewCampaignTest extends TestCase
 
     public function test_campaign_not_found_for_invalid_id()
     {
+        /** @var User $influencerUser */
         $influencerUser = User::factory()->create([
             'account_type' => AccountType::INFLUENCER,
         ]);
@@ -92,6 +94,7 @@ class ViewCampaignTest extends TestCase
         ]);
 
         // Create influencer user
+        /** @var User $influencerUser */
         $influencerUser = User::factory()->withProfile()->create([
             'account_type' => AccountType::INFLUENCER,
         ]);

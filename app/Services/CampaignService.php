@@ -173,6 +173,19 @@ class CampaignService
         return $campaign;
     }
 
+    public static function unpublishCampaign(Campaign $campaign): Campaign
+    {
+        $campaign->update([
+            'status' => CampaignStatus::DRAFT,
+            'published_at' => null,
+        ]);
+
+        // Fire the CampaignUnpublished event
+        event(new CampaignUnpublished($campaign, $campaign->user));
+
+        return $campaign;
+    }
+
     /**
      * Unschedule a campaign and convert it back to draft
      */
