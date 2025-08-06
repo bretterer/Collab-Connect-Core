@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Campaigns;
 
+use App\Enums\AccountType;
 use App\Models\Campaign;
 use App\Services\CampaignService;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -13,11 +15,27 @@ class ShowCampaign extends Component
 {
     public Campaign $campaign;
     public bool $isOwner = false;
+    public Collection $applications;
 
     public function mount(Campaign $campaign)
     {
         // Load the campaign with all relationships
-        $this->campaign = $campaign->load(['brief', 'brand', 'requirements', 'compensation', 'user.businessProfile']);
+        $this->campaign = $campaign->load([
+            'brief', 
+            'brand', 
+            'requirements', 
+            'compensation', 
+            'user.businessProfile',
+            'applications.user.influencerProfile'
+        ]);
+
+        $this->applications = $this->campaign->applications;
+
+        if( Auth::user()->account_type === AccountType::INFLUENCER ) {
+            $this->applications = $this->applications->filter(function ($application) {
+                return $application->user_id == Auth::user()->id;
+            });
+        }
 
         // Check if current user is the owner
         $this->isOwner = $this->campaign->user_id === Auth::user()->id;
@@ -40,6 +58,14 @@ class ShowCampaign extends Component
     {
         $this->authorize('update', $this->campaign);
         return redirect()->route('campaigns.edit', $this->campaign);
+    }
+
+    public function publishCampaign()
+    {
+        $this->authorize('publish', $this->campaign);
+        CampaignService::publishCampaign($this->campaign);
+        $this->campaign->refresh();
+        session()->flash('message', 'Campaign published successfully!');
     }
 
     public function unpublishCampaign()
