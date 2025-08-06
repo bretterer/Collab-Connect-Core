@@ -34,6 +34,7 @@ class EditCampaign extends BaseComponent
     public ?string $compensationDescription = '';
     public ?array $compensationDetails = [];
     public int $influencerCount = 1;
+    public int $exclusivityPeriod = 0; // New field for exclusivity period
     public string $applicationDeadline = '';
     public string $campaignCompletionDate = '';
     public string $additionalRequirements = '';
@@ -300,6 +301,10 @@ class EditCampaign extends BaseComponent
             'compensationType' => 'required|string',
             'compensationAmount' => 'required_if:compensationType,monetary|integer|min:0',
             'influencerCount' => 'required|integer|min:1',
+            'exclusivityPeriod' => 'nullable|integer|min:0', // New field for exclusivity period
+            'applicationDeadline' => 'required|date|after:today',
+            'campaignCompletionDate' => 'required|date|after:applicationDeadline',
+
         ]);
 
         $campaignData = [
@@ -315,6 +320,7 @@ class EditCampaign extends BaseComponent
             'compensation_description' => $this->compensationDescription,
             'compensation_details' => $this->compensationDetails,
             'influencer_count' => $this->influencerCount,
+            'exclusivity_period' => $this->exclusivityPeriod,
             'application_deadline' => $this->applicationDeadline,
             'campaign_completion_date' => $this->campaignCompletionDate,
             'additional_requirements' => $this->additionalRequirements,
@@ -350,7 +356,13 @@ class EditCampaign extends BaseComponent
         $this->hasUnsavedChanges = false;
         $this->lastSavedAt = now()->format('M j, Y g:i A');
 
-        session()->flash('message', 'Campaign updated successfully!');
+        if ($this->publishAction === 'publish') {
+            CampaignService::publishCampaign($campaign);
+            session()->flash('message', 'Campaign published successfully!');
+        } else {
+            CampaignService::scheduleCampaign($campaign, $this->scheduledDate);
+            session()->flash('message', 'Campaign scheduled successfully!');
+        }
 
         return redirect()->route('campaigns.show', $campaign->id);
     }
@@ -370,6 +382,7 @@ class EditCampaign extends BaseComponent
             'compensation_description' => $this->compensationDescription,
             'compensation_details' => $this->compensationDetails,
             'influencer_count' => $this->influencerCount,
+            'exclusivity_period' => $this->exclusivityPeriod,
             'application_deadline' => $this->applicationDeadline,
             'campaign_completion_date' => $this->campaignCompletionDate,
             'additional_requirements' => $this->additionalRequirements,

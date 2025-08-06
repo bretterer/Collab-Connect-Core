@@ -35,6 +35,7 @@ class CreateCampaign extends BaseComponent
     public ?string $compensationDescription = '';
     public ?array $compensationDetails = [];
     public int $influencerCount = 1;
+    public int $exclusivityPeriod = 0; // New field for exclusivity period
     public string $applicationDeadline = '';
     public string $campaignCompletionDate = '';
     public string $additionalRequirements = '';
@@ -145,6 +146,7 @@ class CreateCampaign extends BaseComponent
             'compensation_description' => $this->compensationDescription,
             'compensation_details' => $this->compensationDetails,
             'influencer_count' => $this->influencerCount,
+            'exclusivity_period' => $this->exclusivityPeriod,
             'application_deadline' => $this->applicationDeadline,
             'campaign_completion_date' => $this->campaignCompletionDate,
             'additional_requirements' => $this->additionalRequirements,
@@ -207,6 +209,7 @@ class CreateCampaign extends BaseComponent
         $this->compensationDescription = $campaign->compensation_description ?? '';
         $this->compensationDetails = $campaign->compensation_details ?? [];
         $this->influencerCount = $campaign->influencer_count;
+        $this->exclusivityPeriod = $campaign->exclusivity_period ?? 0; // New field for exclusivity period
         $this->applicationDeadline = $campaign->application_deadline ? $campaign->application_deadline->format('Y-m-d') : '';
         $this->campaignCompletionDate = $campaign->campaign_completion_date ? $campaign->campaign_completion_date->format('Y-m-d') : '';
         $this->additionalRequirements = $campaign->additional_requirements ?? '';
@@ -307,6 +310,7 @@ class CreateCampaign extends BaseComponent
                     'compensationType' => 'required|in:monetary,barter,free_product,discount,gift_card,experience,other',
                     'compensationDescription' => 'required|string|min:10',
                     'influencerCount' => 'required|integer|min:1|max:50',
+                    'exclusivityPeriod' => 'nullable|integer|min:0', // New field for exclusivity period
                     'applicationDeadline' => 'required|date|after:today',
                     'campaignCompletionDate' => 'required|date|after:applicationDeadline',
                 ]);

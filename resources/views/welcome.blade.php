@@ -156,6 +156,27 @@
                                     <option value="influencer">Influencer/Creator</option>
                                 </select>
                             </div>
+                            <!-- Influencer Options -->
+                            <div>
+                                <input
+                                    type="text"
+                                    name="follower_count"
+                                    placeholder="Number of Followers"
+                                    required
+                                    class="w-full px-4 py-3 bg-white/70 dark:bg-gray-700/70 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all duration-200 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100"
+                                >
+                            </div>
+
+                            <!-- Business Options -->
+                             <div>
+                                <input
+                                    type="text"
+                                    name="business_name"
+                                    placeholder="Business Name"
+                                    required
+                                    class="w-full px-4 py-3 bg-white/70 dark:bg-gray-700/70 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all duration-200 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100"
+                                >
+                            </div>
                             <button
                                 type="submit"
                                 class="w-full bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 dark:from-blue-500 dark:to-sky-500 dark:hover:from-blue-600 dark:hover:to-sky-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
