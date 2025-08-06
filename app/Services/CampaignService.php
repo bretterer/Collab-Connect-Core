@@ -225,7 +225,7 @@ class CampaignService
         $campaign->update($updateData);
 
         // Determine what changed
-        $changes = array_diff_assoc($campaign->fresh()->toArray(), $originalData);
+        $changes = self::arrayRecursiveDiff($campaign->fresh()->toArray(), $originalData);
 
         // Fire the CampaignEdited event
         event(new CampaignEdited($campaign, $campaign->user, $changes));
@@ -263,5 +263,26 @@ class CampaignService
     public static function getUserArchived(User $user)
     {
         return $user->campaigns()->archived()->orderBy('updated_at', 'desc')->get();
+    }
+
+    private static function arrayRecursiveDiff($array1, $array2) {
+        $difference = [];
+        foreach ($array1 as $key => $value) {
+            if (is_array($value)) {
+                if (!isset($array2[$key]) || !is_array($array2[$key])) {
+                    $difference[$key] = $value;
+                } else {
+                    $recursiveDiff = self::arrayRecursiveDiff($value, $array2[$key]);
+                    if ($recursiveDiff) {
+                        $difference[$key] = $recursiveDiff;
+                    }
+                }
+            } else {
+                if (!isset($array2[$key]) || $array2[$key] !== $value) {
+                    $difference[$key] = $value;
+                }
+            }
+        }
+        return $difference;
     }
 }

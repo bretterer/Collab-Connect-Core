@@ -297,7 +297,6 @@ class EditCampaign extends BaseComponent
         $this->validate([
             'campaignGoal' => 'required|string|max:255',
             'campaignType' => 'required|string',
-            'campaignDescription' => 'required|string|max:1000',
             'compensationType' => 'required|string',
             'compensationAmount' => 'required_if:compensationType,monetary|integer|min:0',
             'influencerCount' => 'required|integer|min:1',
