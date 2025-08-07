@@ -17,6 +17,31 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/influencer', App\Livewire\Onboarding\InfluencerOnboarding::class)->name('influencer');
     });
 
+    // Admin routes (protected by admin middleware)
+    Route::prefix('admin')->name('admin.')->middleware(App\Http\Middleware\EnsureAdminAccess::class)->group(function () {
+        Route::get('/dashboard', App\Livewire\Admin\Dashboard::class)->name('dashboard');
+
+        // User management
+        Route::prefix('users')->name('users.')->group(function () {
+            Route::get('/', App\Livewire\Admin\Users\UserIndex::class)->name('index');
+            Route::get('/{user}', App\Livewire\Admin\Users\UserShow::class)->name('show');
+            Route::get('/{user}/edit', App\Livewire\Admin\Users\UserEdit::class)->name('edit');
+        });
+
+        // Campaign management
+        Route::prefix('campaigns')->name('campaigns.')->group(function () {
+            Route::get('/', App\Livewire\Admin\Campaigns\CampaignIndex::class)->name('index');
+            Route::get('/{campaign}', App\Livewire\Admin\Campaigns\CampaignShow::class)->name('show');
+            Route::get('/{campaign}/edit', App\Livewire\Admin\Campaigns\CampaignEdit::class)->name('edit');
+        });
+
+        // System settings
+        Route::get('/settings', App\Livewire\Admin\Settings::class)->name('settings');
+
+        // Analytics & Reports
+        Route::get('/analytics', App\Livewire\Admin\Analytics::class)->name('analytics');
+    });
+
     // Main dashboard (protected by onboarding middleware)
     Route::middleware(EnsureOnboardingCompleted::class)->group(function () {
         Route::get('/dashboard', App\Livewire\Dashboard::class)->name('dashboard');

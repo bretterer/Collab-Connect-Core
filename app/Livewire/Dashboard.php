@@ -15,6 +15,14 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class Dashboard extends Component
 {
+    public function mount()
+    {
+        // Redirect admin users to their dedicated dashboard
+        if (Auth::user()->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+    }
+
     public function render()
     {
         return view('livewire.dashboard');

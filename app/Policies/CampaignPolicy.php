@@ -25,6 +25,11 @@ class CampaignPolicy
      */
     public function view(User $user, Campaign $campaign): bool
     {
+        // Admin users can view any campaign
+        if ($user->isAdmin()) {
+            return true;
+        }
+
         if ($campaign->status !== CampaignStatus::PUBLISHED && $campaign->user_id !== $user->id) {
             abort(404);
         }
@@ -32,6 +37,7 @@ class CampaignPolicy
         // Allow viewing if:
         // 1. Campaign is published (anyone can view)
         // 2. User is the owner (can view unpublished campaigns)
+        // 3. User is an admin (can view all campaigns)
         return $campaign->status === CampaignStatus::PUBLISHED ||
                $campaign->user_id === $user->id;
     }
@@ -50,6 +56,11 @@ class CampaignPolicy
      */
     public function update(User $user, Campaign $campaign): bool
     {
+        // Admin users can update any campaign
+        if ($user->isAdmin()) {
+            return true;
+        }
+
         // Only the campaign owner can update
         return $campaign->user_id === $user->id;
     }

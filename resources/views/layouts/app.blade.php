@@ -78,6 +78,23 @@
                                    href="{{ route('search') }}">
                                     Find Influencers
                                 </a>
+                            @elseif(auth()->user()->account_type === App\Enums\AccountType::ADMIN)
+                                <a class="{{ request()->routeIs('admin.users.*') ? 'text-gray-900 dark:text-white border-b-2 border-red-500' : '' }} px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                                   href="{{ route('admin.users.index') }}">
+                                    Users
+                                </a>
+                                <a class="{{ request()->routeIs('admin.campaigns.*') ? 'text-gray-900 dark:text-white border-b-2 border-red-500' : '' }} px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                                   href="{{ route('admin.campaigns.index') }}">
+                                    Campaigns
+                                </a>
+                                <a class="{{ request()->routeIs('admin.analytics') ? 'text-gray-900 dark:text-white border-b-2 border-red-500' : '' }} px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                                   href="{{ route('admin.analytics') }}">
+                                    Analytics
+                                </a>
+                                <a class="{{ request()->routeIs('admin.settings') ? 'text-gray-900 dark:text-white border-b-2 border-red-500' : '' }} px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                                   href="{{ route('admin.settings') }}">
+                                    Settings
+                                </a>
                             @endif
                         </div>
                     </div>
@@ -389,6 +406,15 @@
                            href="{{ route('search') }}">Find Influencers</a>
                         <a class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                            href="#">Analytics</a>
+                    @elseif(auth()->user()->account_type->value === 99)
+                        <a class="{{ request()->routeIs('admin.users.*') ? 'text-gray-900 dark:text-white border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20' : '' }} block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                           href="{{ route('admin.users.index') }}">Users</a>
+                        <a class="{{ request()->routeIs('admin.campaigns.*') ? 'text-gray-900 dark:text-white border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20' : '' }} block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                           href="{{ route('admin.campaigns.index') }}">Campaigns</a>
+                        <a class="{{ request()->routeIs('admin.analytics') ? 'text-gray-900 dark:text-white border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20' : '' }} block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                           href="{{ route('admin.analytics') }}">Analytics</a>
+                        <a class="{{ request()->routeIs('admin.settings') ? 'text-gray-900 dark:text-white border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20' : '' }} block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                           href="{{ route('admin.settings') }}">Settings</a>
                     @endif
                 </div>
             </div>
