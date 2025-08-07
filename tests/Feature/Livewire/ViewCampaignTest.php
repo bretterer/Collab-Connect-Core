@@ -12,7 +12,6 @@ use App\Models\Campaign;
 use App\Models\InfluencerProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Livewire\Livewire;
 use Tests\TestCase;
 
 class ViewCampaignTest extends TestCase

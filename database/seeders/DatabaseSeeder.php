@@ -71,6 +71,4 @@ class DatabaseSeeder extends Seeder
         // Create BIGGBY campaign template
         $this->call(BiggbysCampaignTemplateSeeder::class);
     }
-
-
 }

@@ -8,7 +8,6 @@ enum CampaignApplicationStatus: string
     case ACCEPTED = 'accepted';
     case REJECTED = 'rejected';
 
-
     public function label(): string
     {
         return match ($this) {
@@ -17,5 +16,4 @@ enum CampaignApplicationStatus: string
             self::REJECTED => 'Rejected',
         };
     }
-
 }

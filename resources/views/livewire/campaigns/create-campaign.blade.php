@@ -1,7 +1,7 @@
 <div>
     <!-- Auto-save indicator -->
     @if($hasUnsavedChanges)
-        <div class="fixed top-4 right-4 z-50">
+        <div class="fixed bottom-4 right-4 z-50">
             <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg px-4 py-2 shadow-lg">
                 <div class="flex items-center space-x-2">
                     <svg class="w-4 h-4 text-yellow-600 dark:text-yellow-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -12,13 +12,22 @@
             </div>
         </div>
     @elseif($lastSavedAt)
-        <div class="fixed top-4 right-4 z-50">
+        <div class="fixed bottom-4 right-4 z-50"
+             x-data="{ show: true }"
+             x-init="setTimeout(() => show = false, 2500)"
+             x-show="show"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform translate-y-2 scale-95"
+             x-transition:enter-end="opacity-100 transform translate-y-0 scale-100"
+             x-transition:leave="transition ease-in duration-300"
+             x-transition:leave-start="opacity-100 transform translate-y-0 scale-100"
+             x-transition:leave-end="opacity-0 transform translate-y-2 scale-95">
             <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg px-4 py-2 shadow-lg">
                 <div class="flex items-center space-x-2">
                     <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    <span class="text-sm text-green-800 dark:text-green-200">Saved at {{ $lastSavedAt }}</span>
+                    <span class="text-sm text-green-800 dark:text-green-200">Saved</span>
                 </div>
             </div>
         </div>
@@ -435,6 +444,15 @@
                                         min="1"
                                         max="50" />
                                     @error('influencerCount') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+
+                                    <flux:input
+                                        type="number"
+                                        wire:model="exclusivityPeriod"
+                                        label="Requested Exclusivity Period (in days)"
+                                        placeholder="5"
+                                        min="0"
+                                         />
+                                    @error('exclusivityPeriod') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                 </div>
                             </div>
 

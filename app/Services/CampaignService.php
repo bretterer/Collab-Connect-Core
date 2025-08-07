@@ -10,10 +10,6 @@ use App\Events\CampaignPublished;
 use App\Events\CampaignScheduled;
 use App\Events\CampaignUnpublished;
 use App\Models\Campaign;
-use App\Models\CampaignBrand;
-use App\Models\CampaignBrief;
-use App\Models\CampaignCompensation;
-use App\Models\CampaignRequirements;
 use App\Models\User;
 
 class CampaignService
@@ -32,7 +28,7 @@ class CampaignService
             [
                 'status' => CampaignStatus::DRAFT,
                 'campaign_goal' => $data['campaign_goal'] ?? '',
-                'campaign_type' => !empty($data['campaign_type']) ? $data['campaign_type'] : null,
+                'campaign_type' => ! empty($data['campaign_type']) ? $data['campaign_type'] : null,
                 'target_zip_code' => $data['target_zip_code'] ?? '',
                 'target_area' => $data['target_area'] ?? '',
                 'campaign_description' => $data['campaign_description'] ?? '',
@@ -218,14 +214,14 @@ class CampaignService
 
         foreach ($arrayFields as $field) {
             if (isset($updateData[$field])) {
-                $updateData[$field] = !empty($updateData[$field]) ? $updateData[$field] : [];
+                $updateData[$field] = ! empty($updateData[$field]) ? $updateData[$field] : [];
             }
         }
 
         $campaign->update($updateData);
 
         // Determine what changed
-        $changes = array_diff_assoc($campaign->fresh()->toArray(), $originalData);
+        $changes = self::arrayRecursiveDiff($campaign->fresh()->toArray(), $originalData);
 
         // Fire the CampaignEdited event
         event(new CampaignEdited($campaign, $campaign->user, $changes));
@@ -263,5 +259,28 @@ class CampaignService
     public static function getUserArchived(User $user)
     {
         return $user->campaigns()->archived()->orderBy('updated_at', 'desc')->get();
+    }
+
+    private static function arrayRecursiveDiff($array1, $array2)
+    {
+        $difference = [];
+        foreach ($array1 as $key => $value) {
+            if (is_array($value)) {
+                if (! isset($array2[$key]) || ! is_array($array2[$key])) {
+                    $difference[$key] = $value;
+                } else {
+                    $recursiveDiff = self::arrayRecursiveDiff($value, $array2[$key]);
+                    if ($recursiveDiff) {
+                        $difference[$key] = $recursiveDiff;
+                    }
+                }
+            } else {
+                if (! isset($array2[$key]) || $array2[$key] !== $value) {
+                    $difference[$key] = $value;
+                }
+            }
+        }
+
+        return $difference;
     }
 }

@@ -31,8 +31,6 @@ enum CampaignType: string
         };
     }
 
-
-
     /**
      * Get campaign types that work well for businesses
      */

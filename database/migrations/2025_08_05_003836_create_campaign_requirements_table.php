@@ -24,7 +24,7 @@ return new class extends Migration
             $table->text('specific_products')->nullable();
             $table->text('additional_considerations')->nullable();
             $table->timestamps();
-            
+
             $table->index('campaign_id');
         });
     }

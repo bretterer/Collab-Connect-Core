@@ -22,7 +22,7 @@ class BiggbysCampaignTemplateSeeder extends Seeder
         // Find or create a business user
         $businessUser = User::where('email', 'business@example.com')->first();
 
-        if (!$businessUser) {
+        if (! $businessUser) {
             $businessUser = User::factory()->business()->create([
                 'email' => 'business@example.com',
                 'name' => 'BIGGBY Coffee',
@@ -63,7 +63,7 @@ class BiggbysCampaignTemplateSeeder extends Seeder
                 'authentic_relationships',
                 'local_ownership',
                 'excellent_service',
-                'fun_and_friendly'
+                'fun_and_friendly',
             ],
             'current_advertising_campaign' => 'BIGGBY®\'s current campaign that we just launched is called "Moments," and it\'s about driving community and connection by highlighting moments that BIGGBY® makes better.',
             'brand_story' => 'BIGGBY® COFFEE was founded with a handshake, a few thousand dollars, and a firm belief that we could energize the world. When Bob Fish and Mike McFall partnered all those years ago in a small East Lansing coffee shop, they did so with the notion that a store could serve more than just a cup of coffee, and that a business could provide a sense of belonging and connection. We strive to make everyone\'s lives a little bit better – our customers, our employees, and our partners – and we pour our heart and soul into everything we do.',
@@ -72,16 +72,16 @@ class BiggbysCampaignTemplateSeeder extends Seeder
             // Requirements
             'target_platforms' => [
                 TargetPlatform::INSTAGRAM->value,
-                TargetPlatform::TIKTOK->value
+                TargetPlatform::TIKTOK->value,
             ],
             'deliverables' => [
                 DeliverableType::INSTAGRAM_REEL->value,
                 DeliverableType::INSTAGRAM_STORY->value,
-                DeliverableType::TIKTOK_VIDEO->value
+                DeliverableType::TIKTOK_VIDEO->value,
             ],
             'success_metrics' => [
                 SuccessMetric::IMPRESSIONS->value,
-                SuccessMetric::ENGAGEMENT_RATE->value
+                SuccessMetric::ENGAGEMENT_RATE->value,
             ],
             'content_guidelines' => 'Content should be authentic, positive, and showcase real moments with BIGGBY®. Focus on community, connection, and the feeling of being uplifted.',
             'posting_restrictions' => 'Nothing political, polarizing or divisive, no offensive language',
@@ -95,16 +95,16 @@ class BiggbysCampaignTemplateSeeder extends Seeder
             'compensation_details' => [
                 'base_rate' => 500,
                 'bonus_for_high_engagement' => true,
-                'product_compensation' => 'Free drinks and merchandise'
+                'product_compensation' => 'Free drinks and merchandise',
             ],
         ];
 
         $campaign = CampaignService::saveDraft($businessUser, $campaignData);
-        
+
         // Publish the campaign
         $campaign->update([
             'status' => CampaignStatus::PUBLISHED,
-            'published_at' => now()
+            'published_at' => now(),
         ]);
 
         $this->command->info('BIGGBY Campaign Template created successfully!');

@@ -23,7 +23,6 @@ class AccountTypeSelection extends BaseComponent
 
         $user = $this->getAuthenticatedUser();
 
-
         if ($this->selectedAccountType === 'business') {
             $user->update(['account_type' => AccountType::BUSINESS]);
             $this->safeRedirect('onboarding.business');

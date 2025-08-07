@@ -1,9 +1,13 @@
 <?php
 
 use App\Http\Middleware\EnsureOnboardingCompleted;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/marketing.php';
+
+// Broadcasting routes
+Broadcast::routes(['middleware' => ['web', 'auth']]);
 
 Route::middleware(['auth'])->group(function () {
     // Onboarding routes (accessible before onboarding is completed)
@@ -36,6 +40,18 @@ Route::middleware(['auth'])->group(function () {
 
         // Influencer campaign discovery
         Route::get('/discover', App\Livewire\Campaigns\InfluencerCampaigns::class)->name('discover');
+
+        // Chat routes
+        Route::prefix('chat')->name('chat.')->group(function () {
+            Route::get('/', App\Livewire\Chat::class)->name('index');
+            Route::get('/{chatId}', App\Livewire\Chat::class)->name('show');
+        });
+
+        // Profile routes
+        Route::get('/profile', App\Livewire\Profile\EditProfile::class)->name('profile');
+
+        // Contact route
+        Route::get('/contact', App\Livewire\Contact::class)->name('contact');
     });
 });
 

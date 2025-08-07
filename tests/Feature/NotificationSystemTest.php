@@ -2,8 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Enums\CampaignApplicationStatus;
-use App\Enums\CampaignStatus;
 use App\Events\CampaignApplicationSubmitted;
 use App\Listeners\CreateCampaignApplicationNotification;
 use App\Models\Campaign;
@@ -21,16 +19,18 @@ class NotificationSystemTest extends TestCase
     use RefreshDatabase;
 
     protected User $businessUser;
+
     protected User $influencerUser;
+
     protected Campaign $campaign;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->businessUser = User::factory()->business()->withProfile()->create();
         $this->influencerUser = User::factory()->influencer()->withProfile()->create();
-        
+
         $this->campaign = Campaign::factory()->published()->create([
             'user_id' => $this->businessUser->id,
             'campaign_goal' => 'Test campaign for notifications',
@@ -116,7 +116,7 @@ class NotificationSystemTest extends TestCase
         );
 
         // Handle the event with the listener
-        $listener = new CreateCampaignApplicationNotification();
+        $listener = new CreateCampaignApplicationNotification;
         $listener->handle($event);
 
         // Verify notification was created
@@ -165,8 +165,8 @@ class NotificationSystemTest extends TestCase
 
         // Verify all notifications are marked as read
         $notifications = $this->businessUser->notifications;
-        $this->assertTrue($notifications->every(fn($n) => $n->is_read));
-        $this->assertTrue($notifications->every(fn($n) => $n->read_at !== null));
+        $this->assertTrue($notifications->every(fn ($n) => $n->is_read));
+        $this->assertTrue($notifications->every(fn ($n) => $n->read_at !== null));
     }
 
     public function test_unread_notification_count()
@@ -223,7 +223,7 @@ class NotificationSystemTest extends TestCase
         $component = Livewire::test('notifications-dropdown');
 
         $component->assertSee('Title 1')
-                 ->assertSee('Title 2');
+            ->assertSee('Title 2');
     }
 
     public function test_notification_dropdown_mark_as_read()
@@ -357,7 +357,7 @@ class NotificationSystemTest extends TestCase
             ->get();
 
         $this->assertCount(2, $appNotifications);
-        $this->assertTrue($appNotifications->every(fn($n) => $n->type === 'campaign_application'));
+        $this->assertTrue($appNotifications->every(fn ($n) => $n->type === 'campaign_application'));
 
         $pubNotifications = $this->businessUser->notifications()
             ->where('type', 'campaign_published')

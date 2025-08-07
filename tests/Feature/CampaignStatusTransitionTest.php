@@ -24,7 +24,7 @@ class CampaignStatusTransitionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->businessUser = User::factory()->business()->withProfile()->create();
     }
 
@@ -175,22 +175,22 @@ class CampaignStatusTransitionTest extends TestCase
         // Test draft scope
         $drafts = Campaign::drafts()->get();
         $this->assertCount(2, $drafts);
-        $this->assertTrue($drafts->every(fn($campaign) => $campaign->isDraft()));
+        $this->assertTrue($drafts->every(fn ($campaign) => $campaign->isDraft()));
 
         // Test published scope
         $published = Campaign::published()->get();
         $this->assertCount(1, $published);
-        $this->assertTrue($published->every(fn($campaign) => $campaign->isPublished()));
+        $this->assertTrue($published->every(fn ($campaign) => $campaign->isPublished()));
 
         // Test scheduled scope
         $scheduled = Campaign::scheduled()->get();
         $this->assertCount(1, $scheduled);
-        $this->assertTrue($scheduled->every(fn($campaign) => $campaign->isScheduled()));
+        $this->assertTrue($scheduled->every(fn ($campaign) => $campaign->isScheduled()));
 
         // Test archived scope
         $archived = Campaign::archived()->get();
         $this->assertCount(1, $archived);
-        $this->assertTrue($archived->every(fn($campaign) => $campaign->isArchived()));
+        $this->assertTrue($archived->every(fn ($campaign) => $campaign->isArchived()));
     }
 
     public function test_campaign_service_user_filtering_methods()
@@ -211,19 +211,19 @@ class CampaignStatusTransitionTest extends TestCase
         // Test user-specific filtering
         $userDrafts = CampaignService::getUserDrafts($this->businessUser);
         $this->assertCount(2, $userDrafts);
-        $this->assertTrue($userDrafts->every(fn($c) => $c->user_id === $this->businessUser->id && $c->isDraft()));
+        $this->assertTrue($userDrafts->every(fn ($c) => $c->user_id === $this->businessUser->id && $c->isDraft()));
 
         $userPublished = CampaignService::getUserPublished($this->businessUser);
         $this->assertCount(1, $userPublished);
-        $this->assertTrue($userPublished->every(fn($c) => $c->user_id === $this->businessUser->id && $c->isPublished()));
+        $this->assertTrue($userPublished->every(fn ($c) => $c->user_id === $this->businessUser->id && $c->isPublished()));
 
         $userScheduled = CampaignService::getUserScheduled($this->businessUser);
         $this->assertCount(1, $userScheduled);
-        $this->assertTrue($userScheduled->every(fn($c) => $c->user_id === $this->businessUser->id && $c->isScheduled()));
+        $this->assertTrue($userScheduled->every(fn ($c) => $c->user_id === $this->businessUser->id && $c->isScheduled()));
 
         $userArchived = CampaignService::getUserArchived($this->businessUser);
         $this->assertCount(1, $userArchived);
-        $this->assertTrue($userArchived->every(fn($c) => $c->user_id === $this->businessUser->id && $c->isArchived()));
+        $this->assertTrue($userArchived->every(fn ($c) => $c->user_id === $this->businessUser->id && $c->isArchived()));
     }
 
     public function test_campaign_status_transitions_preserve_other_data()

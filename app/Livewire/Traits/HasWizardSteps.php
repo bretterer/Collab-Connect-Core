@@ -6,7 +6,6 @@ trait HasWizardSteps
 {
     public int $currentStep = 1;
 
-
     public function getTotalSteps(): int
     {
         return 4;
@@ -67,6 +66,4 @@ trait HasWizardSteps
      * Complete the wizard process - must be implemented by the using class
      */
     abstract public function completeOnboarding(): void;
-
-
 }

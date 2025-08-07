@@ -26,10 +26,7 @@
         <!-- Campaign Banner -->
         <div class="mb-8">
             <div class="relative h-64 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 rounded-lg overflow-hidden">
-                <!-- Background Pattern -->
                 <div class="absolute inset-0 bg-black bg-opacity-10"></div>
-
-                <!-- Banner Content -->
                 <div class="relative h-full flex items-center justify-center">
                     <div class="text-center text-white">
                         <div class="mb-4">
@@ -37,12 +34,10 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
                         </div>
-                        <h2 class="text-2xl font-bold mb-2">Campaign Opportunity</h2>
+                        <h2 class="text-2xl font-bold mb-2">{{ $campaign->project_name ?: 'Campaign Opportunity' }}</h2>
                         <p class="text-lg opacity-90">{{ $campaign->campaign_type->label() }}</p>
                     </div>
                 </div>
-
-                <!-- Campaign Status Badge -->
                 <div class="absolute top-4 right-4">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-90 text-gray-800 shadow-md">
                         {{ $campaign->status->label() }}
@@ -57,7 +52,9 @@
                 <div class="flex items-start justify-between">
                     <div class="flex-1">
                         <h1 class="text-4xl font-bold mb-4">{{ $campaign->campaign_goal }}</h1>
-                        <p class="text-xl opacity-90 mb-6">{{ $campaign->campaign_description }}</p>
+                        @if($campaign->campaign_objective)
+                            <p class="text-xl opacity-90 mb-6">{{ $campaign->campaign_objective }}</p>
+                        @endif
 
                         <!-- Quick Stats -->
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -107,6 +104,156 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Main Content -->
             <div class="lg:col-span-2 space-y-6">
+                <!-- Brand Information Section -->
+                @if($campaign->brand_overview || $campaign->brand_essence || $campaign->brand_pillars)
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">About the Brand</h2>
+
+                        @if($campaign->brand_overview)
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Brand Overview</h3>
+                                <p class="text-gray-700 dark:text-gray-300">{{ $campaign->brand_overview }}</p>
+                            </div>
+                        @endif
+
+                        @if($campaign->brand_essence)
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Brand Essence</h3>
+                                <p class="text-gray-700 dark:text-gray-300 font-medium">{{ $campaign->brand_essence }}</p>
+                            </div>
+                        @endif
+
+                        @if($campaign->brand_pillars && is_array($campaign->brand_pillars))
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Brand Pillars</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($campaign->brand_pillars as $pillar)
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                            {{ ucwords(str_replace('_', ' ', $pillar)) }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($campaign->brand_story)
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Brand Story</h3>
+                                <p class="text-gray-700 dark:text-gray-300">{{ $campaign->brand_story }}</p>
+                            </div>
+                        @endif
+
+                        @if($campaign->current_advertising_campaign)
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Current Advertising Campaign</h3>
+                                <p class="text-gray-700 dark:text-gray-300">{{ $campaign->current_advertising_campaign }}</p>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
+                <!-- Campaign Briefing Section -->
+                @if($campaign->key_insights || $campaign->fan_motivator || $campaign->creative_connection)
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Campaign Briefing</h2>
+
+                        @if($campaign->key_insights)
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Key Insights</h3>
+                                <p class="text-gray-700 dark:text-gray-300">{{ $campaign->key_insights }}</p>
+                            </div>
+                        @endif
+
+                        @if($campaign->fan_motivator)
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Fan Motivator</h3>
+                                <p class="text-gray-700 dark:text-gray-300">{{ $campaign->fan_motivator }}</p>
+                            </div>
+                        @endif
+
+                        @if($campaign->creative_connection)
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Creative Connection</h3>
+                                <p class="text-gray-700 dark:text-gray-300">{{ $campaign->creative_connection }}</p>
+                            </div>
+                        @endif
+
+                        @if($campaign->specific_products)
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Specific Products to Include</h3>
+                                <p class="text-gray-700 dark:text-gray-300">{{ $campaign->specific_products }}</p>
+                            </div>
+                        @endif
+
+                        @if($campaign->posting_restrictions)
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Posting Restrictions</h3>
+                                <p class="text-gray-700 dark:text-gray-300">{{ $campaign->posting_restrictions }}</p>
+                            </div>
+                        @endif
+
+                        @if($campaign->additional_considerations)
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Additional Considerations</h3>
+                                <p class="text-gray-700 dark:text-gray-300">{{ $campaign->additional_considerations }}</p>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
+                <!-- Deliverables & Success Metrics Section -->
+                @if($campaign->target_platforms || $campaign->deliverables || $campaign->success_metrics)
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Deliverables & Success Metrics</h2>
+
+                        @if($campaign->target_platforms && is_array($campaign->target_platforms))
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Target Platforms</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($campaign->target_platforms as $platform)
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                            {{ ucwords($platform) }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($campaign->deliverables && is_array($campaign->deliverables))
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Deliverables</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($campaign->deliverables as $deliverable)
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                            {{ ucwords(str_replace('_', ' ', $deliverable)) }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($campaign->success_metrics && is_array($campaign->success_metrics))
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Success Metrics</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($campaign->success_metrics as $metric)
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                                            {{ ucwords(str_replace('_', ' ', $metric)) }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($campaign->timing_details)
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Timing Details</h3>
+                                <p class="text-gray-700 dark:text-gray-300">{{ $campaign->timing_details }}</p>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
                 <!-- Campaign Overview Card -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Campaign Overview</h2>
@@ -115,28 +262,20 @@
                         <div class="space-y-4">
                             <div>
                                 <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Campaign Type</h3>
-                                <p class="text-lg font-medium text-gray-900 dark:text-white">{{ $campaign->campaign_type->label() }}</p>
+                                <p class="text-lg font-medium text-gray-900 dark:text-white">{{ ucwords(str_replace('_', ' ', $campaign->campaign_type->value)) }}</p>
                             </div>
                             <div>
                                 <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Compensation</h3>
-                                <p class="text-lg font-medium text-gray-900 dark:text-white">
-                                    {{ $campaign->compensation?->compensation_display ?? 'Not set' }}
-                                </p>
-                                @if($campaign->compensation?->compensation_description)
-                                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">{{ $campaign->compensation->compensation_description }}</p>
-                                @endif
+                                <p class="text-lg font-medium text-gray-900 dark:text-white">{{ $campaign->getCompensationDisplayAttribute() }}</p>
                             </div>
                             <div>
                                 <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Target Location</h3>
-                                <p class="text-lg font-medium text-gray-900 dark:text-white">{{ $campaign->target_zip_code ?? 'Anywhere' }}</p>
-                                @if($campaign->target_area)
-                                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">{{ $campaign->target_area }}</p>
-                                @endif
+                                <p class="text-lg font-medium text-gray-900 dark:text-white">{{ $campaign->target_zip_code ?? 'Anywhere' }}{{ $campaign->target_area ? ' - ' . $campaign->target_area : '' }}</p>
                             </div>
-                            @if($campaign->brief?->project_name)
+                            @if($campaign->main_contact)
                                 <div>
-                                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Project Name</h3>
-                                    <p class="text-lg font-medium text-gray-900 dark:text-white">{{ $campaign->brief->project_name }}</p>
+                                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Main Contact</h3>
+                                    <p class="text-lg font-medium text-gray-900 dark:text-white">{{ $campaign->main_contact }}</p>
                                 </div>
                             @endif
                         </div>
@@ -154,169 +293,42 @@
                             <div>
                                 <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Status</h3>
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                    {{ $campaign->status->label() }}
+                                    {{ ucwords(str_replace('_', ' ', $campaign->status->value)) }}
                                 </span>
                             </div>
-                            @if($campaign->brief?->main_contact)
-                                <div>
-                                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Main Contact</h3>
-                                    <p class="text-lg font-medium text-gray-900 dark:text-white">{{ $campaign->brief->main_contact }}</p>
-                                </div>
-                            @endif
                         </div>
                     </div>
                 </div>
 
-                <!-- Brand Information Card -->
-                @if($campaign->brand)
-                    @php
-                        $brandFields = [
-                            'brand_overview' => 'Brand Overview',
-                            'brand_story' => 'Brand Story',
-                            'brand_essence' => 'Brand Essence',
-                            'current_advertising_campaign' => 'Current Advertising Campaign',
-                            'brand_guidelines' => 'Brand Guidelines'
-                        ];
-                        $hasBrandContent = collect($brandFields)->keys()->some(fn($field) => $campaign->brand->{$field}) || 
-                                         ($campaign->brand->brand_pillars && is_array($campaign->brand->brand_pillars) && count($campaign->brand->brand_pillars) > 0);
-                    @endphp
-
-                    @if($hasBrandContent)
-                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Brand Information</h2>
-                            
-                            @foreach($brandFields as $field => $label)
-                                @if($campaign->brand->{$field})
-                                    <div class="mb-6">
-                                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-3">{{ $label }}</h3>
-                                        <div class="prose dark:prose-invert max-w-none">
-                                            {!! nl2br(e($campaign->brand->{$field})) !!}
-                                        </div>
-                                    </div>
-                                @endif
-                            @endforeach
-
-                            @if($campaign->brand->brand_pillars && is_array($campaign->brand->brand_pillars) && count($campaign->brand->brand_pillars) > 0)
-                                <div class="mb-6">
-                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-3">Brand Pillars</h3>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                        @foreach($campaign->brand->brand_pillars as $pillar)
-                                            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                                                <span class="text-sm font-medium text-blue-900 dark:text-blue-300">{{ $pillar }}</span>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
+                <!-- Additional Requirements Section -->
+                @if($campaign->additional_requirements)
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Additional Requirements</h2>
+                        <div class="prose dark:prose-invert max-w-none">
+                            {!! nl2br(e($campaign->additional_requirements)) !!}
                         </div>
-                    @endif
+                    </div>
                 @endif
 
-                <!-- Campaign Brief Card -->
-                @if($campaign->brief)
-                    @php
-                        $briefFields = [
-                            'campaign_objective' => 'Campaign Objective',
-                            'key_insights' => 'Key Insights',
-                            'fan_motivator' => 'Fan Motivator',
-                            'creative_connection' => 'Creative Connection',
-                            'target_audience' => 'Target Audience',
-                            'timing_details' => 'Timing Details'
-                        ];
-                        $hasBriefContent = collect($briefFields)->keys()->some(fn($field) => $campaign->brief->{$field});
-                    @endphp
+                <!-- Content Guidelines Section -->
+                @if($campaign->content_guidelines || $campaign->brand_guidelines)
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Content Guidelines</h2>
 
-                    @if($hasBriefContent)
-                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Campaign Brief</h2>
-                            
-                            @foreach($briefFields as $field => $label)
-                                @if($campaign->brief->{$field})
-                                    <div class="mb-6">
-                                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-3">{{ $label }}</h3>
-                                        <div class="prose dark:prose-invert max-w-none">
-                                            {!! nl2br(e($campaign->brief->{$field})) !!}
-                                        </div>
-                                    </div>
-                                @endif
-                            @endforeach
-                        </div>
-                    @endif
-                @endif
+                        @if($campaign->content_guidelines)
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Content Guidelines</h3>
+                                <p class="text-gray-700 dark:text-gray-300">{{ $campaign->content_guidelines }}</p>
+                            </div>
+                        @endif
 
-                <!-- Requirements & Guidelines Card -->
-                @if($campaign->requirements)
-                    @php
-                        // Array-based fields with badges
-                        $arrayFields = [
-                            'target_platforms' => ['label' => 'Target Platforms', 'color' => 'purple'],
-                            'deliverables' => ['label' => 'Deliverables', 'color' => 'green'],
-                            'success_metrics' => ['label' => 'Success Metrics', 'color' => 'yellow'],
-                            'social_requirements' => ['label' => 'Social Media Requirements', 'color' => 'blue'],
-                            'placement_requirements' => ['label' => 'Placement Requirements', 'color' => 'indigo']
-                        ];
-                        
-                        // Text-based fields
-                        $textFields = [
-                            'content_guidelines' => 'Content Guidelines',
-                            'specific_products' => 'Specific Products',
-                            'posting_restrictions' => 'Posting Restrictions',
-                            'additional_considerations' => 'Additional Considerations'
-                        ];
-                        
-                        // Check if there's any requirements content
-                        $hasArrayContent = collect($arrayFields)->keys()->some(fn($field) => 
-                            $campaign->requirements->{$field} && 
-                            is_array($campaign->requirements->{$field}) && 
-                            count($campaign->requirements->{$field}) > 0
-                        );
-                        
-                        $hasTextContent = collect($textFields)->keys()->some(fn($field) => $campaign->requirements->{$field});
-                        $hasBriefRequirements = $campaign->brief?->additional_requirements;
-                        
-                        $hasRequirementsContent = $hasArrayContent || $hasTextContent || $hasBriefRequirements;
-                    @endphp
-
-                    @if($hasRequirementsContent)
-                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Requirements & Guidelines</h2>
-                            
-                            @foreach($arrayFields as $field => $config)
-                                @if($campaign->requirements->{$field} && is_array($campaign->requirements->{$field}) && count($campaign->requirements->{$field}) > 0)
-                                    <div class="mb-6">
-                                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-3">{{ $config['label'] }}</h3>
-                                        <div class="flex flex-wrap gap-2">
-                                            @foreach($campaign->requirements->{$field} as $item)
-                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-{{ $config['color'] }}-100 text-{{ $config['color'] }}-800 dark:bg-{{ $config['color'] }}-900 dark:text-{{ $config['color'] }}-200">
-                                                    {{ is_string($item) ? ucwords(str_replace('_', ' ', $item)) : (is_array($item) ? implode(', ', $item) : $item) }}
-                                                </span>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
-                            @endforeach
-
-                            @foreach($textFields as $field => $label)
-                                @if($campaign->requirements->{$field})
-                                    <div class="mb-6">
-                                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-3">{{ $label }}</h3>
-                                        <div class="prose dark:prose-invert max-w-none">
-                                            {!! nl2br(e($campaign->requirements->{$field})) !!}
-                                        </div>
-                                    </div>
-                                @endif
-                            @endforeach
-
-                            @if($campaign->brief?->additional_requirements)
-                                <div>
-                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-3">Additional Requirements</h3>
-                                    <div class="prose dark:prose-invert max-w-none">
-                                        {!! nl2br(e($campaign->brief->additional_requirements)) !!}
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                    @endif
+                        @if($campaign->brand_guidelines)
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Brand Guidelines</h3>
+                                <p class="text-gray-700 dark:text-gray-300">{{ $campaign->brand_guidelines }}</p>
+                            </div>
+                        @endif
+                    </div>
                 @endif
 
                 <!-- Applications Section (for campaign owners) -->
@@ -350,6 +362,7 @@
                                                     <p class="text-sm text-gray-500 dark:text-gray-400">{{ $application->submitted_at->diffForHumans() }}</p>
                                                 </div>
                                             </div>
+<<<<<<< HEAD
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $application->status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' : ($application->status === 'accepted' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300') }}">
                                                 {{ $application->status->label() }}
                                             </span>
@@ -369,6 +382,29 @@
                                         View all applications →
                                     </a>
                                 </div>
+=======
+                                            <div class="flex items-center space-x-2">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $application->status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' : ($application->status === 'accepted' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300') }}">
+                                                    {{ $application->status->label() }}
+                                                </span>
+                                                <!-- Chat Button -->
+                                                <button wire:click="openChatWithUser({{ $application->user->id }})" class="text-blue-600 hover:text-blue-500 dark:text-blue-400">
+                                                    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{{ Str::limit($application->message, 100) }}</p>
+
+                                    </div>
+                                @endforeach
+                                <div class="mt-3">
+                                            <a href="{{ route('campaigns.applications', $campaign) }}" class="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400">
+                                                View all applications →
+                                            </a>
+                                        </div>
+>>>>>>> reverb_chat
                             </div>
                         @else
                             <div class="text-center py-8">
@@ -448,7 +484,9 @@
                                 Back to Dashboard
                             </a>
                         @else
-                            @livewire('campaigns.apply-to-campaign', ['campaign' => $campaign, 'buttonText' => 'Apply To Campaign'])
+                            <button wire:click="applyToCampaign" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                Apply to Campaign
+                            </button>
                             <a href="{{ route('discover') }}" class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-4 rounded-lg transition-colors duration-200 text-center block">
                                 Back to Discover
                             </a>

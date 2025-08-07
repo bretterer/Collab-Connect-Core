@@ -72,7 +72,7 @@ class NotificationFactory extends Factory
                 'campaign_id' => $this->faker->numberBetween(1, 100),
                 'applicant_id' => $this->faker->numberBetween(1, 50),
             ],
-            'action_url' => '/campaigns/' . $this->faker->numberBetween(1, 100) . '/applications',
+            'action_url' => '/campaigns/'.$this->faker->numberBetween(1, 100).'/applications',
         ]);
     }
 }

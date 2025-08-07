@@ -55,8 +55,6 @@ enum Niche: string
         };
     }
 
-
-
     /**
      * Get niches most relevant for business industries
      */

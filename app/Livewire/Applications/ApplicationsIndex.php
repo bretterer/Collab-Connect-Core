@@ -2,10 +2,10 @@
 
 namespace App\Livewire\Applications;
 
-use App\Livewire\BaseComponent;
-use App\Models\CampaignApplication;
-use App\Models\Campaign;
 use App\Enums\CampaignApplicationStatus;
+use App\Livewire\BaseComponent;
+use App\Models\Campaign;
+use App\Models\CampaignApplication;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\WithPagination;
@@ -16,8 +16,11 @@ class ApplicationsIndex extends BaseComponent
     use WithPagination;
 
     public string $statusFilter = 'all';
+
     public string $campaignFilter = 'all';
+
     public string $sortBy = 'newest';
+
     public int $perPage = 15;
 
     protected $queryString = [
@@ -38,13 +41,13 @@ class ApplicationsIndex extends BaseComponent
     public function getApplicationsProperty()
     {
         $query = CampaignApplication::query()
-            ->whereHas('campaign', function($q) {
+            ->whereHas('campaign', function ($q) {
                 $q->where('user_id', Auth::user()->id);
             })
             ->with([
                 'user.influencerProfile',
                 'user.socialMediaAccounts',
-                'campaign'
+                'campaign',
             ]);
 
         // Apply status filter
@@ -67,11 +70,11 @@ class ApplicationsIndex extends BaseComponent
                 break;
             case 'followers_high':
                 $query->leftJoin('influencer_profiles', 'campaign_applications.user_id', '=', 'influencer_profiles.user_id')
-                      ->orderByDesc('influencer_profiles.follower_count');
+                    ->orderByDesc('influencer_profiles.follower_count');
                 break;
             case 'followers_low':
                 $query->leftJoin('influencer_profiles', 'campaign_applications.user_id', '=', 'influencer_profiles.user_id')
-                      ->orderBy('influencer_profiles.follower_count');
+                    ->orderBy('influencer_profiles.follower_count');
                 break;
         }
 
@@ -89,7 +92,7 @@ class ApplicationsIndex extends BaseComponent
 
     public function getStatsProperty()
     {
-        $baseQuery = CampaignApplication::whereHas('campaign', function($q) {
+        $baseQuery = CampaignApplication::whereHas('campaign', function ($q) {
             $q->where('user_id', Auth::user()->id);
         });
 
@@ -104,9 +107,10 @@ class ApplicationsIndex extends BaseComponent
     public function acceptApplication($applicationId)
     {
         $application = CampaignApplication::find($applicationId);
-        
-        if (!$application || !$application->campaign || $application->campaign->user_id !== Auth::user()->id) {
+
+        if (! $application || ! $application->campaign || $application->campaign->user_id !== Auth::user()->id) {
             $this->flashError('Application not found or you do not have permission to accept it.');
+
             return;
         }
 
@@ -121,9 +125,10 @@ class ApplicationsIndex extends BaseComponent
     public function declineApplication($applicationId)
     {
         $application = CampaignApplication::find($applicationId);
-        
-        if (!$application || !$application->campaign || $application->campaign->user_id !== Auth::user()->id) {
+
+        if (! $application || ! $application->campaign || $application->campaign->user_id !== Auth::user()->id) {
             $this->flashError('Application not found or you do not have permission to decline it.');
+
             return;
         }
 

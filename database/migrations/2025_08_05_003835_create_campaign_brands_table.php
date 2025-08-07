@@ -21,7 +21,7 @@ return new class extends Migration
             $table->text('brand_story')->nullable();
             $table->text('brand_guidelines')->nullable();
             $table->timestamps();
-            
+
             $table->index('campaign_id');
         });
     }

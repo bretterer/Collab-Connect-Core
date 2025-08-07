@@ -32,7 +32,7 @@ class SearchService
         $results = $query->paginate($perPage);
 
         // Handle proximity search calculations
-        if (!empty($criteria['location'])) {
+        if (! empty($criteria['location'])) {
             $results = self::handleProximitySearch($results, $criteria);
         }
 
@@ -68,8 +68,8 @@ class SearchService
         }
 
         return $query->where(function ($q) use ($search) {
-            $q->where('name', 'like', '%' . $search . '%')
-              ->orWhere('email', 'like', '%' . $search . '%');
+            $q->where('name', 'like', '%'.$search.'%')
+                ->orWhere('email', 'like', '%'.$search.'%');
         });
     }
 
@@ -86,7 +86,7 @@ class SearchService
 
         $nearbyZipCodes = self::getNearbyZipCodes($location, $criteria['searchRadius'] ?? 50);
 
-        if (!empty($nearbyZipCodes)) {
+        if (! empty($nearbyZipCodes)) {
             // Use proximity search
             $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencerProfile' : 'businessProfile';
 
@@ -98,7 +98,7 @@ class SearchService
             $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencerProfile' : 'businessProfile';
 
             return $query->whereHas($relationshipMethod, function ($q) use ($location) {
-                $q->where('primary_zip_code', 'like', '%' . $location . '%');
+                $q->where('primary_zip_code', 'like', '%'.$location.'%');
             });
         }
     }
@@ -108,7 +108,7 @@ class SearchService
      */
     private static function getNearbyZipCodes(string $location, int $radius): array
     {
-        if (!preg_match('/^\d{5}$/', $location)) {
+        if (! preg_match('/^\d{5}$/', $location)) {
             return [];
         }
 
@@ -116,7 +116,7 @@ class SearchService
             ->where('country_code', 'US')
             ->first();
 
-        if (!$postalCode) {
+        if (! $postalCode) {
             return [];
         }
 
@@ -166,7 +166,7 @@ class SearchService
         $minFollowers = $criteria['minFollowers'] ?? null;
         $maxFollowers = $criteria['maxFollowers'] ?? null;
 
-        if (!$minFollowers && !$maxFollowers) {
+        if (! $minFollowers && ! $maxFollowers) {
             return $query;
         }
 
@@ -191,8 +191,8 @@ class SearchService
             'oldest' => $query->orderBy('created_at', 'asc'),
             'followers' => $targetAccountType === AccountType::INFLUENCER
                 ? $query->leftJoin('social_media_accounts', 'users.id', '=', 'social_media_accounts.user_id')
-                        ->orderBy('social_media_accounts.follower_count', 'desc')
-                        ->select('users.*')
+                    ->orderBy('social_media_accounts.follower_count', 'desc')
+                    ->select('users.*')
                 : $query->orderBy('id'),
             'distance' => $query->orderBy('id'), // Will be handled after pagination
             default => $query->orderBy('name'),
@@ -219,7 +219,7 @@ class SearchService
         $location = $criteria['location'] ?? '';
         $sortBy = $criteria['sortBy'] ?? 'name';
 
-        if (!preg_match('/^\d{5}$/', $location)) {
+        if (! preg_match('/^\d{5}$/', $location)) {
             return $results;
         }
 
@@ -227,7 +227,7 @@ class SearchService
             ->where('country_code', 'US')
             ->first();
 
-        if (!$searchPostalCode) {
+        if (! $searchPostalCode) {
             return $results;
         }
 
@@ -235,6 +235,7 @@ class SearchService
         $results->getCollection()->transform(function ($user) use ($searchPostalCode) {
             $userPostalCode = $user->getPostalCodeInfo();
             $user->distance = $userPostalCode ? $searchPostalCode->distanceTo($userPostalCode) : null;
+
             return $user;
         });
 
@@ -261,14 +262,14 @@ class SearchService
         $searchPostalCode = null;
         $isProximitySearch = false;
 
-        if (!empty($location) && preg_match('/^\d{5}$/', $location)) {
+        if (! empty($location) && preg_match('/^\d{5}$/', $location)) {
             $searchPostalCode = PostalCode::where('postal_code', $location)
                 ->where('country_code', 'US')
                 ->first();
 
             if ($searchPostalCode) {
                 $nearbyZipCodes = self::getNearbyZipCodes($location, $criteria['searchRadius'] ?? 50);
-                $isProximitySearch = !empty($nearbyZipCodes);
+                $isProximitySearch = ! empty($nearbyZipCodes);
             }
         }
 

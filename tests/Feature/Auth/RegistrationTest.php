@@ -5,9 +5,10 @@ namespace Tests\Feature\Auth;
 use App\Livewire\Auth\Register;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use RyanChandler\LaravelCloudflareTurnstile\Rules\Turnstile;
 use Tests\TestCase;
-use PHPUnit\Framework\Attributes\Test;
+
 class RegistrationTest extends TestCase
 {
     use RefreshDatabase;

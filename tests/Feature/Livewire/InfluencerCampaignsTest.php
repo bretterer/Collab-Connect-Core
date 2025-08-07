@@ -107,7 +107,7 @@ class InfluencerCampaignsTest extends TestCase
             ->assertSee('Food campaign');
     }
 
-        public function test_campaigns_can_be_filtered_by_search()
+    public function test_campaigns_can_be_filtered_by_search()
     {
         $influencer = User::factory()->create([
             'account_type' => AccountType::INFLUENCER,

@@ -7,7 +7,6 @@ use App\Enums\CampaignStatus;
 use App\Models\Campaign;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
-use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 
 class CampaignPolicy
 {

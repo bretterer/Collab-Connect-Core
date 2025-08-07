@@ -2,10 +2,6 @@
 
 namespace App\Livewire\Campaigns;
 
-use App\Enums\CampaignProductPlacement;
-use App\Enums\CampaignSocialRequirement;
-use App\Enums\CampaignStatus;
-use App\Enums\CompensationType;
 use App\Livewire\BaseComponent;
 use App\Livewire\Traits\HasWizardSteps;
 use App\Models\Campaign;
@@ -20,54 +16,84 @@ class CreateCampaign extends BaseComponent
 
     // Step 1: Campaign Goal & Type
     public string $campaignGoal = '';
+
     public string $campaignType = '';
+
     public string $targetZipCode = '';
+
     public string $targetArea = '';
 
     // Step 2: Campaign Details
     public string $campaignDescription = '';
+
     public array $socialRequirements = [];
+
     public array $placementRequirements = [];
 
     // Step 3: Campaign Settings
     public string $compensationType = 'monetary';
+
     public int $compensationAmount = 0;
+
     public ?string $compensationDescription = '';
+
     public ?array $compensationDetails = [];
+
     public int $influencerCount = 1;
+
+    public int $exclusivityPeriod = 0; // New field for exclusivity period
+
     public string $applicationDeadline = '';
+
     public string $campaignCompletionDate = '';
+
     public string $additionalRequirements = '';
 
     // Step 4: Review & Publish
     public string $publishAction = 'publish'; // 'publish' or 'schedule'
+
     public ?string $scheduledDate = '';
 
     // Brand Information
     public ?string $brandOverview = '';
+
     public ?string $currentAdvertisingCampaign = '';
+
     public ?string $brandStory = '';
 
     // Campaign Briefing
     public ?string $campaignObjective = '';
+
     public ?string $keyInsights = '';
+
     public ?string $fanMotivator = '';
+
     public ?string $creativeConnection = '';
+
     public ?string $specificProducts = '';
+
     public ?string $postingRestrictions = '';
+
     public ?string $additionalConsiderations = '';
 
     // Deliverables & Success Metrics
     public array $targetPlatforms = [];
+
     public array $deliverables = [];
+
     public array $successMetrics = [];
+
     public ?string $timingDetails = '';
 
     // Enhanced Campaign Structure
     public ?string $targetAudience = '';
+
     public ?string $contentGuidelines = '';
+
     public ?string $brandGuidelines = '';
+
     public ?string $mainContact = '';
+
     public ?string $projectName = '';
 
     // Campaign ID for editing existing campaign
@@ -75,6 +101,7 @@ class CreateCampaign extends BaseComponent
 
     // Auto-save state
     public bool $hasUnsavedChanges = false;
+
     public string $lastSavedAt = '';
 
     public function getTotalSteps(): int
@@ -90,7 +117,7 @@ class CreateCampaign extends BaseComponent
             3 => 'Campaign Briefing',
             4 => 'Deliverables & Metrics',
             5 => 'Campaign Settings',
-            6 => 'Review & Publish'
+            6 => 'Review & Publish',
         ];
     }
 
@@ -101,7 +128,7 @@ class CreateCampaign extends BaseComponent
 
         if ($campaignId) {
             $campaign = Campaign::find($campaignId);
-            if (!$campaign) {
+            if (! $campaign) {
                 abort(404, 'Campaign not found.');
             }
 
@@ -145,6 +172,7 @@ class CreateCampaign extends BaseComponent
             'compensation_description' => $this->compensationDescription,
             'compensation_details' => $this->compensationDetails,
             'influencer_count' => $this->influencerCount,
+            'exclusivity_period' => $this->exclusivityPeriod,
             'application_deadline' => $this->applicationDeadline,
             'campaign_completion_date' => $this->campaignCompletionDate,
             'additional_requirements' => $this->additionalRequirements,
@@ -163,9 +191,9 @@ class CreateCampaign extends BaseComponent
             'posting_restrictions' => $this->postingRestrictions,
             'additional_considerations' => $this->additionalConsiderations,
             // Deliverables & Success Metrics
-            'target_platforms' => !empty($this->targetPlatforms) ? $this->targetPlatforms : [],
-            'deliverables' => !empty($this->deliverables) ? $this->deliverables : [],
-            'success_metrics' => !empty($this->successMetrics) ? $this->successMetrics : [],
+            'target_platforms' => ! empty($this->targetPlatforms) ? $this->targetPlatforms : [],
+            'deliverables' => ! empty($this->deliverables) ? $this->deliverables : [],
+            'success_metrics' => ! empty($this->successMetrics) ? $this->successMetrics : [],
             'timing_details' => $this->timingDetails,
             // Enhanced Campaign Structure
             'target_audience' => $this->targetAudience,
@@ -183,12 +211,12 @@ class CreateCampaign extends BaseComponent
 
     public function loadCampaign()
     {
-        if (!$this->campaignId) {
+        if (! $this->campaignId) {
             return;
         }
 
         $campaign = Campaign::find($this->campaignId);
-        if (!$campaign) {
+        if (! $campaign) {
             return;
         }
 
@@ -207,6 +235,7 @@ class CreateCampaign extends BaseComponent
         $this->compensationDescription = $campaign->compensation_description ?? '';
         $this->compensationDetails = $campaign->compensation_details ?? [];
         $this->influencerCount = $campaign->influencer_count;
+        $this->exclusivityPeriod = $campaign->exclusivity_period ?? 0; // New field for exclusivity period
         $this->applicationDeadline = $campaign->application_deadline ? $campaign->application_deadline->format('Y-m-d') : '';
         $this->campaignCompletionDate = $campaign->campaign_completion_date ? $campaign->campaign_completion_date->format('Y-m-d') : '';
         $this->additionalRequirements = $campaign->additional_requirements ?? '';
@@ -260,15 +289,13 @@ class CreateCampaign extends BaseComponent
         }
     }
 
-
-
     protected function updateUrl()
     {
         $url = request()->url();
         $query = request()->query();
         $query['step'] = $this->currentStep;
 
-        $this->dispatch('url-updated', url: $url . '?' . http_build_query($query));
+        $this->dispatch('url-updated', url: $url.'?'.http_build_query($query));
     }
 
     protected function validateCurrentStep(): void
@@ -307,6 +334,7 @@ class CreateCampaign extends BaseComponent
                     'compensationType' => 'required|in:monetary,barter,free_product,discount,gift_card,experience,other',
                     'compensationDescription' => 'required|string|min:10',
                     'influencerCount' => 'required|integer|min:1|max:50',
+                    'exclusivityPeriod' => 'nullable|integer|min:0', // New field for exclusivity period
                     'applicationDeadline' => 'required|date|after:today',
                     'campaignCompletionDate' => 'required|date|after:applicationDeadline',
                 ]);
@@ -407,12 +435,13 @@ class CreateCampaign extends BaseComponent
     {
         $this->autoSave();
         session()->flash('message', 'Campaign draft saved successfully!');
+
         return redirect()->route('campaigns.index');
     }
 
     public function unscheduleCampaign()
     {
-        if (!$this->campaignId) {
+        if (! $this->campaignId) {
             return;
         }
 
@@ -421,6 +450,7 @@ class CreateCampaign extends BaseComponent
         if ($campaign && $campaign->isScheduled()) {
             CampaignService::unscheduleCampaign($campaign);
             session()->flash('message', 'Campaign unscheduled and converted to draft!');
+
             return redirect()->route('campaigns.index');
         }
     }

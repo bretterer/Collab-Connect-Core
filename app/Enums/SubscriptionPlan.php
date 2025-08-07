@@ -88,6 +88,4 @@ enum SubscriptionPlan: string
             self::INFLUENCER_A_LA_CARTE,
         ];
     }
-
-
 }

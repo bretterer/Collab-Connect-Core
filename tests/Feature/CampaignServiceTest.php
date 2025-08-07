@@ -27,7 +27,7 @@ class CampaignServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->businessUser = User::factory()->business()->withProfile()->create();
     }
 
@@ -268,7 +268,7 @@ class CampaignServiceTest extends TestCase
         $drafts = CampaignService::getUserDrafts($this->businessUser);
 
         $this->assertCount(2, $drafts);
-        $this->assertTrue($drafts->every(fn($campaign) => $campaign->status === CampaignStatus::DRAFT));
+        $this->assertTrue($drafts->every(fn ($campaign) => $campaign->status === CampaignStatus::DRAFT));
     }
 
     public function test_get_user_published_returns_correct_campaigns()
@@ -287,7 +287,7 @@ class CampaignServiceTest extends TestCase
         $published = CampaignService::getUserPublished($this->businessUser);
 
         $this->assertCount(2, $published);
-        $this->assertTrue($published->every(fn($campaign) => $campaign->status === CampaignStatus::PUBLISHED));
+        $this->assertTrue($published->every(fn ($campaign) => $campaign->status === CampaignStatus::PUBLISHED));
     }
 
     public function test_get_user_scheduled_returns_correct_campaigns()
@@ -306,7 +306,7 @@ class CampaignServiceTest extends TestCase
         $scheduled = CampaignService::getUserScheduled($this->businessUser);
 
         $this->assertCount(2, $scheduled);
-        $this->assertTrue($scheduled->every(fn($campaign) => $campaign->status === CampaignStatus::SCHEDULED));
+        $this->assertTrue($scheduled->every(fn ($campaign) => $campaign->status === CampaignStatus::SCHEDULED));
     }
 
     public function test_get_user_archived_returns_correct_campaigns()
@@ -325,7 +325,7 @@ class CampaignServiceTest extends TestCase
         $archived = CampaignService::getUserArchived($this->businessUser);
 
         $this->assertCount(2, $archived);
-        $this->assertTrue($archived->every(fn($campaign) => $campaign->status === CampaignStatus::ARCHIVED));
+        $this->assertTrue($archived->every(fn ($campaign) => $campaign->status === CampaignStatus::ARCHIVED));
     }
 
     public function test_campaign_status_helper_methods()

@@ -6,7 +6,6 @@ use App\Enums\CampaignType;
 use App\Enums\CollaborationGoal;
 use App\Enums\Niche;
 use App\Enums\SocialPlatform;
-use App\Enums\SubscriptionPlan;
 
 class ValidationService
 {
@@ -41,7 +40,7 @@ class ValidationService
     {
         return [
             'businessName' => 'required|string|max:255',
-            'industry' => 'required|' . Niche::validationRule(),
+            'industry' => 'required|'.Niche::validationRule(),
             'primaryZipCode' => 'required|string|max:10',
             'locationCount' => 'required|integer|min:1',
             'websites.*' => 'nullable|url',
@@ -64,7 +63,7 @@ class ValidationService
     {
         return [
             'contactName' => 'required|string|max:255',
-            'contactEmail' => 'required|email|max:255'
+            'contactEmail' => 'required|email|max:255',
         ];
     }
 
@@ -122,7 +121,7 @@ class ValidationService
     {
         return [
             'creatorName' => 'required|string|max:255',
-            'primaryNiche' => 'required|' . Niche::validationRule(),
+            'primaryNiche' => 'required|'.Niche::validationRule(),
             'primaryZipCode' => 'required|string|max:10',
         ];
     }
@@ -142,7 +141,7 @@ class ValidationService
     public static function influencerStep2Rules(): array
     {
         return [
-            'socialMediaAccounts.*.platform' => 'required|' . SocialPlatform::validationRule(),
+            'socialMediaAccounts.*.platform' => 'required|'.SocialPlatform::validationRule(),
             'socialMediaAccounts.*.username' => 'required|string|max:255',
             'socialMediaAccounts.*.follower_count' => 'required|integer|min:0',
         ];
@@ -163,7 +162,7 @@ class ValidationService
     public static function socialMediaAccountRules(): array
     {
         return [
-            'platform' => 'required|' . SocialPlatform::validationRule(),
+            'platform' => 'required|'.SocialPlatform::validationRule(),
             'username' => 'required|string|max:255',
             'follower_count' => 'required|integer|min:0',
             'url' => 'nullable|url',

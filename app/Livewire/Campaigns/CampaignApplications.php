@@ -15,7 +15,9 @@ class CampaignApplications extends BaseComponent
     use WithPagination;
 
     public Campaign $campaign;
+
     public string $statusFilter = 'all';
+
     public int $perPage = 10;
 
     public function mount(Campaign $campaign)

@@ -3,14 +3,7 @@
 namespace Tests\Feature\Livewire;
 
 use App\Enums\AccountType;
-use App\Enums\CampaignType;
-use App\Enums\CollaborationGoal;
-use App\Enums\Niche;
-use App\Enums\SocialPlatform;
-use App\Enums\SubscriptionPlan;
 use App\Livewire\Onboarding\AccountTypeSelection;
-use App\Livewire\Onboarding\BusinessOnboarding;
-use App\Livewire\Onboarding\InfluencerOnboarding;
 use App\Models\PostalCode;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -23,6 +16,7 @@ class OnboardingComponentsTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected PostalCode $postalCode;
 
     protected function setUp(): void
@@ -90,5 +84,4 @@ class OnboardingComponentsTest extends TestCase
 
         $component->assertHasErrors(['selectedAccountType']);
     }
-
 }
