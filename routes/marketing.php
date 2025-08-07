@@ -8,11 +8,25 @@ Route::get('/', function () {
 
 Route::post('/waitlist', function (Illuminate\Http\Request $request) {
     // Validate the form data
-    $validated = $request->validate([
+    $rules = [
         'name' => 'required|string|max:255',
         'email' => 'required|email|max:255',
         'user_type' => 'required|in:business,influencer',
-    ]);
+    ];
+
+    // Add conditional validation based on user type
+    if ($request->input('user_type') === 'business') {
+        $rules['business_name'] = 'required|string|max:255';
+        $rules['follower_count'] = 'nullable'; // Not needed for businesses
+    } elseif ($request->input('user_type') === 'influencer') {
+        $rules['follower_count'] = 'required|string|in:1K-5K,5K-15K,15K-50K,50K-100K,100K+';
+        $rules['business_name'] = 'nullable'; // Not needed for influencers
+    } else {
+        $rules['business_name'] = 'nullable|string|max:255';
+        $rules['follower_count'] = 'nullable|string|in:1K-5K,5K-15K,15K-50K,50K-100K,100K+';
+    }
+
+    $validated = $request->validate($rules);
 
     // Prepare CSV data
     $csvData = [
@@ -20,6 +34,8 @@ Route::post('/waitlist', function (Illuminate\Http\Request $request) {
         $validated['name'],
         $validated['email'],
         $validated['user_type'],
+        $validated['business_name'] ?? '',
+        $validated['follower_count'] ?? '',
     ];
 
     // Define CSV file path
@@ -38,7 +54,7 @@ Route::post('/waitlist', function (Illuminate\Http\Request $request) {
 
     // Add headers if file is new
     if (! $fileExists) {
-        fputcsv($file, ['Timestamp', 'Name', 'Email', 'User Type']);
+        fputcsv($file, ['Timestamp', 'Name', 'Email', 'User Type', 'Business Name', 'Follower Count']);
     }
 
     // Add the data
