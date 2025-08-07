@@ -148,7 +148,7 @@ class User extends Authenticatable
     {
         $zipCode = ProfileService::getUserPostalCodeInfo($this);
 
-        if (!$zipCode) {
+        if (! $zipCode) {
             return null;
         }
 
@@ -165,5 +165,56 @@ class User extends Authenticatable
         $postalCode = $this->getPostalCodeInfo();
 
         return $postalCode?->coordinates;
+    }
+
+    /**
+     * Get chats where this user is the business user
+     */
+    public function businessChats(): HasMany
+    {
+        return $this->hasMany(Chat::class, 'business_user_id');
+    }
+
+    /**
+     * Get chats where this user is the influencer user
+     */
+    public function influencerChats(): HasMany
+    {
+        return $this->hasMany(Chat::class, 'influencer_user_id');
+    }
+
+    /**
+     * Get all chats for this user (both as business and influencer)
+     */
+    public function chats()
+    {
+        return Chat::where('business_user_id', $this->id)
+            ->orWhere('influencer_user_id', $this->id);
+    }
+
+    /**
+     * Get all messages sent by this user
+     */
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class);
+    }
+
+    /**
+     * Get the total count of unread messages across all chats for this user.
+     */
+    public function getUnreadMessageCount(): int
+    {
+        return Message::whereIn('chat_id', $this->chats()->pluck('id'))
+            ->unreadFor($this)
+            ->count();
+    }
+
+    /**
+     * Check if the user has any unread messages.
+     */
+    public function hasUnreadMessages(): bool
+    {
+        return $this->getUnreadMessageCount() > 0;
     }
 }

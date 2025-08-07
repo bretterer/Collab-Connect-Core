@@ -3,6 +3,8 @@
 namespace App\Livewire\Campaigns;
 
 use App\Models\Campaign;
+use App\Models\Chat;
+use App\Models\User;
 use App\Services\CampaignService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -12,6 +14,7 @@ use Livewire\Component;
 class ShowCampaign extends Component
 {
     public Campaign $campaign;
+
     public bool $isOwner = false;
 
     public function mount(Campaign $campaign)
@@ -39,6 +42,7 @@ class ShowCampaign extends Component
     public function editCampaign()
     {
         $this->authorize('update', $this->campaign);
+
         return redirect()->route('campaigns.edit', $this->campaign);
     }
 
@@ -61,13 +65,14 @@ class ShowCampaign extends Component
     public function applyToCampaign()
     {
         $this->authorize('apply', $this->campaign);
+
         // This will be handled by the ApplyToCampaign component
         return redirect()->route('campaigns.show', $this->campaign);
     }
 
     public function getApplicationsCount()
     {
-        if (!$this->isOwner) {
+        if (! $this->isOwner) {
             return 0;
         }
 
@@ -76,7 +81,7 @@ class ShowCampaign extends Component
 
     public function getPendingApplicationsCount()
     {
-        if (!$this->isOwner) {
+        if (! $this->isOwner) {
             return 0;
         }
 
@@ -91,5 +96,26 @@ class ShowCampaign extends Component
     public function backToDashboard()
     {
         return redirect()->route('dashboard');
+    }
+
+    public function openChatWithUser($userId)
+    {
+        $currentUser = Auth::user();
+        $otherUser = User::findOrFail($userId);
+
+        // Determine which user is business and which is influencer
+        if ($currentUser->account_type === 'BUSINESS') {
+            $businessUser = $currentUser;
+            $influencerUser = $otherUser;
+        } else {
+            $businessUser = $otherUser;
+            $influencerUser = $currentUser;
+        }
+
+        // Find or create chat between users
+        $chat = Chat::findOrCreateBetweenUsers($businessUser, $influencerUser);
+
+        // Redirect to chat with specific chat selected
+        return redirect()->route('chat.show', ['chatId' => $chat->id]);
     }
 }

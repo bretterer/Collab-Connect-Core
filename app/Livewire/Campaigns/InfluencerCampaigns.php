@@ -9,7 +9,6 @@ use App\Livewire\BaseComponent;
 use App\Models\Campaign;
 use App\Models\PostalCode;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
 use Livewire\WithPagination;
 
@@ -19,10 +18,15 @@ class InfluencerCampaigns extends BaseComponent
     use WithPagination;
 
     public string $search = '';
+
     public array $selectedNiches = [];
+
     public array $selectedCampaignTypes = [];
+
     public string $sortBy = 'match_score';
+
     public int $searchRadius = 50;
+
     public int $perPage = 12;
 
     protected $queryString = [
@@ -48,7 +52,7 @@ class InfluencerCampaigns extends BaseComponent
         $user = Auth::user();
         $influencerProfile = $user->influencerProfile;
 
-        if (!$influencerProfile) {
+        if (! $influencerProfile) {
             return collect();
         }
 
@@ -59,22 +63,22 @@ class InfluencerCampaigns extends BaseComponent
             ->with(['user.businessProfile']);
 
         // Apply search filter
-        if (!empty($this->search)) {
+        if (! empty($this->search)) {
             $query->where(function ($q) {
-                $q->where('campaign_goal', 'like', '%' . $this->search . '%')
-                  ->orWhere('campaign_description', 'like', '%' . $this->search . '%');
+                $q->where('campaign_goal', 'like', '%'.$this->search.'%')
+                    ->orWhere('campaign_description', 'like', '%'.$this->search.'%');
             });
         }
 
         // Apply niche filter
-        if (!empty($this->selectedNiches)) {
+        if (! empty($this->selectedNiches)) {
             $query->whereHas('user.businessProfile', function ($q) {
                 $q->whereIn('industry', $this->selectedNiches);
             });
         }
 
         // Apply campaign type filter
-        if (!empty($this->selectedCampaignTypes)) {
+        if (! empty($this->selectedCampaignTypes)) {
             $query->whereIn('campaign_type', $this->selectedCampaignTypes);
         }
 
@@ -83,13 +87,14 @@ class InfluencerCampaigns extends BaseComponent
         // Calculate match scores and sort
         $campaigns = $campaigns->map(function ($campaign) use ($influencerProfile) {
             $campaign->match_score = $this->calculateMatchScore($campaign, $influencerProfile);
+
             return $campaign;
         });
 
         // Sort by match score or other criteria
         $campaigns = $this->sortCampaigns($campaigns);
 
-                // Return the collection for Livewire pagination
+        // Return the collection for Livewire pagination
         return $campaigns;
     }
 
@@ -122,7 +127,7 @@ class InfluencerCampaigns extends BaseComponent
         $campaignZipCode = $campaign->target_zip_code;
         $influencerZipCode = $influencerProfile->primary_zip_code;
 
-        if (!$campaignZipCode || !$influencerZipCode) {
+        if (! $campaignZipCode || ! $influencerZipCode) {
             return 50.0; // Neutral score if location data is missing
         }
 
@@ -144,14 +149,14 @@ class InfluencerCampaigns extends BaseComponent
             }
         }
 
-                // More varied scoring for distant locations based on campaign data
+        // More varied scoring for distant locations based on campaign data
         $baseScore = 25.0;
 
         // Add variation based on campaign characteristics and business industry
         $businessProfile = $campaign->user->businessProfile;
         $variation = 0;
 
-                if ($businessProfile) {
+        if ($businessProfile) {
             // Different industries might have different appeal for remote work
             $industryVariations = [
                 'fashion' => 5,
@@ -183,13 +188,13 @@ class InfluencerCampaigns extends BaseComponent
     {
         $influencerNiche = $influencerProfile->primary_niche;
 
-        if (!$influencerNiche) {
+        if (! $influencerNiche) {
             return 50.0;
         }
 
         // Get business industry from campaign
         $businessProfile = $campaign->user->businessProfile;
-        if (!$businessProfile) {
+        if (! $businessProfile) {
             return 50.0;
         }
 
@@ -214,11 +219,11 @@ class InfluencerCampaigns extends BaseComponent
             return 80.0;
         }
 
-                // More varied scoring for unrelated niches
+        // More varied scoring for unrelated niches
         $baseScore = 35.0;
 
         // Add variation based on campaign content analysis
-        $campaignText = strtolower($campaign->campaign_goal . ' ' . $campaign->campaign_description);
+        $campaignText = strtolower($campaign->campaign_goal.' '.$campaign->campaign_description);
         $variation = 0;
 
         // Check for keywords that might indicate some relevance
@@ -229,7 +234,7 @@ class InfluencerCampaigns extends BaseComponent
             }
         }
 
-                // Add variation based on business industry appeal
+        // Add variation based on business industry appeal
         $businessProfile = $campaign->user->businessProfile;
         if ($businessProfile) {
             $industryAppeal = [
@@ -447,29 +452,29 @@ class InfluencerCampaigns extends BaseComponent
                 'location' => [
                     'raw' => round($locationScore, 1),
                     'weighted' => round($locationWeighted, 1),
-                    'weight' => '35%'
+                    'weight' => '35%',
                 ],
                 'niche' => [
                     'raw' => round($nicheScore, 1),
                     'weighted' => round($nicheWeighted, 1),
-                    'weight' => '35%'
+                    'weight' => '35%',
                 ],
                 'campaign_type' => [
                     'raw' => round($campaignTypeScore, 1),
                     'weighted' => round($campaignTypeWeighted, 1),
-                    'weight' => '20%'
+                    'weight' => '20%',
                 ],
                 'compensation' => [
                     'raw' => round($compensationScore, 1),
                     'weighted' => round($compensationWeighted, 1),
-                    'weight' => '10%'
+                    'weight' => '10%',
                 ],
-                'total' => round($campaign->match_score, 1)
-            ]
+                'total' => round($campaign->match_score, 1),
+            ],
         ];
     }
 
-            public function render()
+    public function render()
     {
         $campaigns = $this->getOpenCampaigns();
 

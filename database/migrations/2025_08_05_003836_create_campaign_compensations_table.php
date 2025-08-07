@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('compensation_description')->nullable();
             $table->json('compensation_details')->nullable();
             $table->timestamps();
-            
+
             $table->index('campaign_id');
         });
     }

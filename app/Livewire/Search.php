@@ -2,11 +2,9 @@
 
 namespace App\Livewire;
 
-use App\Livewire\BaseComponent;
 use App\Services\SearchService;
-use Illuminate\Support\Facades\Auth;
-use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
+use Livewire\WithPagination;
 
 #[Layout('layouts.app')]
 class Search extends BaseComponent

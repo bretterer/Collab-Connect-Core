@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Onboarding;
 
-use App\Enums\CollaborationGoal;
 use App\Enums\Niche;
 use App\Enums\SocialPlatform;
 use App\Livewire\BaseComponent;
@@ -101,8 +100,6 @@ class InfluencerOnboarding extends BaseComponent
 
         $this->flashAndRedirect('Welcome to CollabConnect! Your influencer profile has been created successfully.', 'dashboard');
     }
-
-
 
     public function render()
     {

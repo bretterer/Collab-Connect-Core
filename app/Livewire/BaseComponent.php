@@ -53,7 +53,7 @@ abstract class BaseComponent extends Component
      */
     protected function filterEmptyValues(array $array): array
     {
-        return array_filter($array, fn($value) => !empty($value));
+        return array_filter($array, fn ($value) => ! empty($value));
     }
 
     /**
@@ -105,6 +105,7 @@ abstract class BaseComponent extends Component
     protected function validateEnumValues(array $values, string $enumClass): bool
     {
         $validValues = array_column($enumClass::cases(), 'value');
+
         return empty(array_diff($values, $validValues));
     }
 
@@ -114,6 +115,7 @@ abstract class BaseComponent extends Component
     protected function getUserAccountType(): ?\App\Enums\AccountType
     {
         $user = $this->getAuthenticatedUser();
+
         return $user?->account_type;
     }
 

@@ -58,6 +58,4 @@ enum CollaborationGoal: string
     {
         return self::cases();
     }
-
-
 }

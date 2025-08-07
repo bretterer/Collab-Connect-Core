@@ -7,7 +7,6 @@ use App\Enums\CampaignStatus;
 use App\Enums\CampaignType;
 use App\Enums\CompensationType;
 use App\Enums\Niche;
-use App\Enums\SocialPlatform;
 use App\Models\Campaign;
 use App\Models\PostalCode;
 use App\Models\User;
@@ -21,8 +20,11 @@ class CampaignDiscoveryTest extends TestCase
     use RefreshDatabase;
 
     protected User $businessUser;
+
     protected User $influencerUser;
+
     protected Campaign $campaign;
+
     protected PostalCode $postalCode;
 
     protected function setUp(): void
@@ -123,7 +125,7 @@ class CampaignDiscoveryTest extends TestCase
 
         // Should see both campaigns
         $component->assertSee('Paid collaboration')
-                 ->assertSee('Product collaboration');
+            ->assertSee('Product collaboration');
     }
 
     public function test_campaign_filtering_by_type()
@@ -145,7 +147,7 @@ class CampaignDiscoveryTest extends TestCase
         $component = Livewire::test('campaigns.influencer-campaigns');
 
         $component->assertSee('User generated content campaign')
-                 ->assertSee('Product review campaign');
+            ->assertSee('Product review campaign');
     }
 
     public function test_campaign_match_scoring_basic()
@@ -216,9 +218,9 @@ class CampaignDiscoveryTest extends TestCase
         $component = Livewire::test('campaigns.influencer-campaigns');
 
         $component->assertSee('Published campaign')
-                 ->assertDontSee('Scheduled campaign')
-                 ->assertDontSee('Draft campaign')
-                 ->assertDontSee('Archived campaign');
+            ->assertDontSee('Scheduled campaign')
+            ->assertDontSee('Draft campaign')
+            ->assertDontSee('Archived campaign');
     }
 
     public function test_search_service_integration_with_campaigns()
@@ -310,7 +312,7 @@ class CampaignDiscoveryTest extends TestCase
         $component = Livewire::test('campaigns.influencer-campaigns');
 
         $component->assertSee('Detailed campaign with all info')
-                 ->assertSee('49503');
+            ->assertSee('49503');
     }
 
     public function test_influencer_cannot_apply_to_own_business_campaigns()
@@ -350,7 +352,7 @@ class CampaignDiscoveryTest extends TestCase
 
         // Both campaigns should be visible, but expired one should show deadline passed
         $component->assertDontSee('Expired campaign')
-                 ->assertSee('Active campaign');
+            ->assertSee('Active campaign');
     }
 
     public function test_campaign_compensation_display()

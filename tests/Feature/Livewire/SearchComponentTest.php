@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Livewire;
 
-use App\Enums\AccountType;
 use App\Enums\CollaborationGoal;
 use App\Enums\Niche;
 use App\Enums\SocialPlatform;
@@ -22,18 +21,22 @@ class SearchComponentTest extends TestCase
     use RefreshDatabase;
 
     protected PostalCode $postalCode1;
+
     protected PostalCode $postalCode2;
+
     protected PostalCode $postalCode3;
+
     protected User $businessUser;
+
     protected User $influencerUser1;
+
     protected User $influencerUser2;
+
     protected User $influencerUser3;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-
 
         // Create postal codes
         $this->postalCode1 = PostalCode::factory()->create([
@@ -143,7 +146,6 @@ class SearchComponentTest extends TestCase
     public function search_component_renders_correctly()
     {
         $component = Livewire::actingAs($this->businessUser)->test(Search::class);
-
 
         $component->assertSuccessful();
         $component->assertSee('Search');
@@ -263,7 +265,6 @@ class SearchComponentTest extends TestCase
         $this->assertNotContains('Tech Influencer', $userNames);
     }
 
-
     #[Test]
     public function search_component_can_clear_filters()
     {
@@ -285,7 +286,6 @@ class SearchComponentTest extends TestCase
         $component->assertSet('location', '');
         $component->assertSet('searchRadius', 50);
     }
-
 
     #[Test]
     public function search_component_handles_empty_results_business()
@@ -313,7 +313,6 @@ class SearchComponentTest extends TestCase
         $component->assertSee('No businesses found');
     }
 
-
     #[Test]
     public function search_component_handles_invalid_postal_code()
     {
@@ -339,6 +338,4 @@ class SearchComponentTest extends TestCase
         $component->assertSet('search', 'Fashion');
         $component->assertSet('location', 'New York');
     }
-
-
 }

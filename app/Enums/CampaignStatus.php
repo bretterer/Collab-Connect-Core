@@ -11,7 +11,7 @@ enum CampaignStatus: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::DRAFT => 'Draft',
             self::PUBLISHED => 'Published',
             self::SCHEDULED => 'Scheduled',
@@ -21,7 +21,7 @@ enum CampaignStatus: string
 
     public function color(): string
     {
-        return match($this) {
+        return match ($this) {
             self::DRAFT => 'gray',
             self::PUBLISHED => 'green',
             self::SCHEDULED => 'blue',

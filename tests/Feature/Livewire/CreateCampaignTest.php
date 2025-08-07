@@ -2,10 +2,8 @@
 
 namespace Tests\Feature\Livewire;
 
-use App\Enums\AccountType;
 use App\Enums\CampaignStatus;
 use App\Enums\CampaignType;
-use App\Enums\CompensationType;
 use App\Models\Campaign;
 use App\Models\User;
 use Carbon\Carbon;
@@ -240,7 +238,7 @@ class CreateCampaignTest extends TestCase
             'user_id' => $this->businessUser->id,
             'campaign_goal' => 'Promote our new coffee blend to local coffee enthusiasts',
             'status' => CampaignStatus::SCHEDULED->value,
-            'scheduled_date' => $scheduledDate . ' 00:00:00',
+            'scheduled_date' => $scheduledDate.' 00:00:00',
         ]);
     }
 

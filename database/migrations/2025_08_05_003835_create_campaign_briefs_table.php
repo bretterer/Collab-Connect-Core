@@ -24,7 +24,7 @@ return new class extends Migration
             $table->text('timing_details')->nullable();
             $table->text('additional_requirements')->nullable();
             $table->timestamps();
-            
+
             $table->index('campaign_id');
         });
     }

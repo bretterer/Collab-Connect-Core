@@ -2,9 +2,6 @@
 
 namespace App\Livewire\Campaigns;
 
-use App\Enums\CampaignProductPlacement;
-use App\Enums\CampaignSocialRequirement;
-use App\Enums\CompensationType;
 use App\Livewire\BaseComponent;
 use App\Livewire\Traits\HasWizardSteps;
 use App\Models\Campaign;
@@ -19,55 +16,84 @@ class EditCampaign extends BaseComponent
 
     // Step 1: Campaign Goal & Type
     public string $campaignGoal = '';
+
     public string $campaignType = '';
+
     public string $targetZipCode = '';
+
     public string $targetArea = '';
 
     // Step 2: Campaign Details
     public string $campaignDescription = '';
+
     public array $socialRequirements = [];
+
     public array $placementRequirements = [];
 
     // Step 3: Campaign Settings
     public string $compensationType = 'monetary';
+
     public int $compensationAmount = 0;
+
     public ?string $compensationDescription = '';
+
     public ?array $compensationDetails = [];
+
     public int $influencerCount = 1;
+
     public int $exclusivityPeriod = 0; // New field for exclusivity period
+
     public string $applicationDeadline = '';
+
     public string $campaignCompletionDate = '';
+
     public string $additionalRequirements = '';
 
     // Step 4: Review & Publish
     public string $publishAction = 'publish'; // 'publish' or 'schedule'
+
     public ?string $scheduledDate = '';
 
     // Brand Information
     public ?string $brandOverview = '';
+
     public ?string $currentAdvertisingCampaign = '';
+
     public ?string $brandStory = '';
 
     // Campaign Briefing
     public ?string $campaignObjective = '';
+
     public ?string $keyInsights = '';
+
     public ?string $fanMotivator = '';
+
     public ?string $creativeConnection = '';
+
     public ?string $specificProducts = '';
+
     public ?string $postingRestrictions = '';
+
     public ?string $additionalConsiderations = '';
 
     // Deliverables & Success Metrics
     public array $targetPlatforms = [];
+
     public array $deliverables = [];
+
     public array $successMetrics = [];
+
     public ?string $timingDetails = '';
 
     // Enhanced Campaign Structure
     public ?string $targetAudience = '';
+
     public ?string $contentGuidelines = '';
+
     public ?string $brandGuidelines = '';
+
     public ?string $mainContact = '';
+
     public ?string $projectName = '';
 
     // Campaign ID for editing existing campaign
@@ -75,6 +101,7 @@ class EditCampaign extends BaseComponent
 
     // Auto-save state
     public bool $hasUnsavedChanges = false;
+
     public string $lastSavedAt = '';
 
     public function getTotalSteps(): int
@@ -90,10 +117,9 @@ class EditCampaign extends BaseComponent
             3 => 'Campaign Briefing',
             4 => 'Deliverables & Metrics',
             5 => 'Campaign Settings',
-            6 => 'Review & Publish'
+            6 => 'Review & Publish',
         ];
     }
-
 
     public function mount(Campaign $campaign)
     {
@@ -125,12 +151,12 @@ class EditCampaign extends BaseComponent
 
     public function loadCampaign()
     {
-        if (!$this->campaignId) {
+        if (! $this->campaignId) {
             return;
         }
 
         $campaign = Campaign::find($this->campaignId);
-        if (!$campaign) {
+        if (! $campaign) {
             return;
         }
 
@@ -277,7 +303,7 @@ class EditCampaign extends BaseComponent
         $query = request()->query();
         $query['step'] = $this->currentStep;
 
-        $this->dispatch('url-updated', url: $url . '?' . http_build_query($query));
+        $this->dispatch('url-updated', url: $url.'?'.http_build_query($query));
     }
 
     public function nextStep()
@@ -339,9 +365,9 @@ class EditCampaign extends BaseComponent
             'posting_restrictions' => $this->postingRestrictions,
             'additional_considerations' => $this->additionalConsiderations,
             // Deliverables & Success Metrics
-            'target_platforms' => !empty($this->targetPlatforms) ? $this->targetPlatforms : [],
-            'deliverables' => !empty($this->deliverables) ? $this->deliverables : [],
-            'success_metrics' => !empty($this->successMetrics) ? $this->successMetrics : [],
+            'target_platforms' => ! empty($this->targetPlatforms) ? $this->targetPlatforms : [],
+            'deliverables' => ! empty($this->deliverables) ? $this->deliverables : [],
+            'success_metrics' => ! empty($this->successMetrics) ? $this->successMetrics : [],
             'timing_details' => $this->timingDetails,
             // Enhanced Campaign Structure
             'target_audience' => $this->targetAudience,
@@ -401,9 +427,9 @@ class EditCampaign extends BaseComponent
             'posting_restrictions' => $this->postingRestrictions,
             'additional_considerations' => $this->additionalConsiderations,
             // Deliverables & Success Metrics
-            'target_platforms' => !empty($this->targetPlatforms) ? $this->targetPlatforms : [],
-            'deliverables' => !empty($this->deliverables) ? $this->deliverables : [],
-            'success_metrics' => !empty($this->successMetrics) ? $this->successMetrics : [],
+            'target_platforms' => ! empty($this->targetPlatforms) ? $this->targetPlatforms : [],
+            'deliverables' => ! empty($this->deliverables) ? $this->deliverables : [],
+            'success_metrics' => ! empty($this->successMetrics) ? $this->successMetrics : [],
             'timing_details' => $this->timingDetails,
             // Enhanced Campaign Structure
             'target_audience' => $this->targetAudience,
@@ -422,6 +448,7 @@ class EditCampaign extends BaseComponent
     public function saveAndExit()
     {
         $this->saveDraft();
+
         return redirect()->route('campaigns.index');
     }
 

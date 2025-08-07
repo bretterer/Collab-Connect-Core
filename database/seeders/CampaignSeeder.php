@@ -6,8 +6,6 @@ use App\Enums\AccountType;
 use App\Enums\CampaignStatus;
 use App\Enums\CampaignType;
 use App\Enums\CompensationType;
-use App\Enums\Niche;
-use App\Models\BusinessProfile;
 use App\Models\Campaign;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -27,6 +25,7 @@ class CampaignSeeder extends Seeder
 
         if ($businessUsers->isEmpty()) {
             $this->command->info('No business users found. Creating sample campaigns with new businesses.');
+
             return;
         }
 
@@ -244,12 +243,12 @@ class CampaignSeeder extends Seeder
             }
         }
 
-        $this->command->info('Created ' . Campaign::where('status', CampaignStatus::PUBLISHED)->count() . ' published campaigns.');
+        $this->command->info('Created '.Campaign::where('status', CampaignStatus::PUBLISHED)->count().' published campaigns.');
     }
 
     private function getCompensationAmount(CompensationType $type, array $range): int
     {
-        return match($type) {
+        return match ($type) {
             CompensationType::MONETARY => rand($range[0], $range[1]),
             CompensationType::BARTER => rand(200, 800),
             CompensationType::FREE_PRODUCT => rand(100, 500),
@@ -262,13 +261,13 @@ class CampaignSeeder extends Seeder
 
     private function getCompensationDescription(CompensationType $type, int $amount): string
     {
-        return match($type) {
-            CompensationType::MONETARY => '$' . number_format($amount) . ' payment',
-            CompensationType::BARTER => 'Product exchange worth $' . number_format($amount),
-            CompensationType::FREE_PRODUCT => 'Free products worth $' . number_format($amount),
-            CompensationType::DISCOUNT => $amount . '% discount on all products',
-            CompensationType::GIFT_CARD => '$' . number_format($amount) . ' gift card',
-            CompensationType::EXPERIENCE => 'Experience package worth $' . number_format($amount),
+        return match ($type) {
+            CompensationType::MONETARY => '$'.number_format($amount).' payment',
+            CompensationType::BARTER => 'Product exchange worth $'.number_format($amount),
+            CompensationType::FREE_PRODUCT => 'Free products worth $'.number_format($amount),
+            CompensationType::DISCOUNT => $amount.'% discount on all products',
+            CompensationType::GIFT_CARD => '$'.number_format($amount).' gift card',
+            CompensationType::EXPERIENCE => 'Experience package worth $'.number_format($amount),
             CompensationType::OTHER => 'Custom compensation arrangement',
         };
     }

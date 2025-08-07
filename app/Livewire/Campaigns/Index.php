@@ -14,7 +14,7 @@ class Index extends BaseComponent
     public function mount()
     {
         // Ensure user is authenticated and is a business account
-        if (!$this->getAuthenticatedUser() || !$this->getAuthenticatedUser()->isBusinessAccount()) {
+        if (! $this->getAuthenticatedUser() || ! $this->getAuthenticatedUser()->isBusinessAccount()) {
             return redirect()->route('dashboard');
         }
     }

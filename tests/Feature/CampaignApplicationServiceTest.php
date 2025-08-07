@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\CampaignApplicationStatus;
 use App\Enums\CampaignStatus;
-use App\Events\CampaignApplicationSubmitted;
 use App\Models\Campaign;
 use App\Models\CampaignApplication;
 use App\Models\User;
@@ -17,16 +16,18 @@ class CampaignApplicationServiceTest extends TestCase
     use RefreshDatabase;
 
     protected User $businessUser;
+
     protected User $influencerUser;
+
     protected Campaign $campaign;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->businessUser = User::factory()->business()->withProfile()->create();
         $this->influencerUser = User::factory()->influencer()->withProfile()->create();
-        
+
         $this->campaign = Campaign::factory()->published()->create([
             'user_id' => $this->businessUser->id,
         ]);

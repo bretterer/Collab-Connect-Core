@@ -35,7 +35,7 @@ class CampaignCompensation extends Model
     public function getCompensationDisplayAttribute(): string
     {
         if ($this->compensation_type === CompensationType::MONETARY) {
-            return '$' . number_format($this->compensation_amount);
+            return '$'.number_format($this->compensation_amount);
         }
 
         if ($this->compensation_description) {

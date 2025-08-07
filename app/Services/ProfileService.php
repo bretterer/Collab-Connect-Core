@@ -22,7 +22,7 @@ class ProfileService
             'user_id' => $user->id,
             'business_name' => $data['businessName'],
             'industry' => $data['industry'],
-            'websites' => array_filter($data['websites'] ?? [], fn($website) => !empty($website)),
+            'websites' => array_filter($data['websites'] ?? [], fn ($website) => ! empty($website)),
             'primary_zip_code' => $data['primaryZipCode'],
             'location_count' => $data['locationCount'],
             'is_franchise' => $data['isFranchise'] ?? false,
@@ -68,7 +68,7 @@ class ProfileService
         $createdAccounts = [];
 
         foreach ($accounts as $account) {
-            if (!empty($account['username'])) {
+            if (! empty($account['username'])) {
                 $createdAccounts[] = $user->socialMediaAccounts()->create([
                     'user_id' => $user->id,
                     'platform' => $account['platform'],
@@ -90,6 +90,7 @@ class ProfileService
     public static function generateSocialMediaUrl(string $platform, string $username): string
     {
         $platformEnum = SocialPlatform::from($platform);
+
         return $platformEnum->generateUrl($username);
     }
 
@@ -104,7 +105,7 @@ class ProfileService
         $profile->update([
             'business_name' => $data['businessName'] ?? $profile->business_name,
             'industry' => $data['industry'] ?? $profile->industry,
-            'websites' => isset($data['websites']) ? array_filter($data['websites'], fn($website) => !empty($website)) : $profile->websites,
+            'websites' => isset($data['websites']) ? array_filter($data['websites'], fn ($website) => ! empty($website)) : $profile->websites,
             'primary_zip_code' => $data['primaryZipCode'] ?? $profile->primary_zip_code,
             'location_count' => $data['locationCount'] ?? $profile->location_count,
             'is_franchise' => $data['isFranchise'] ?? $profile->is_franchise,
@@ -121,7 +122,7 @@ class ProfileService
         $changes = array_diff_assoc($profile->fresh()->toArray(), $originalData);
 
         // Fire the ProfileUpdated event if there were changes
-        if (!empty($changes)) {
+        if (! empty($changes)) {
             event(new ProfileUpdated($profile->user, 'business', $changes));
         }
 
@@ -151,7 +152,7 @@ class ProfileService
         $changes = array_diff_assoc($profile->fresh()->toArray(), $originalData);
 
         // Fire the ProfileUpdated event if there were changes
-        if (!empty($changes)) {
+        if (! empty($changes)) {
             event(new ProfileUpdated($profile->user, 'influencer', $changes));
         }
 

@@ -50,8 +50,6 @@ enum SocialPlatform: string
         return $this->baseUrl().$username;
     }
 
-
-
     /**
      * Get platforms most relevant for businesses
      */

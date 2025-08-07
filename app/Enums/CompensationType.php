@@ -18,7 +18,7 @@ enum CompensationType: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::MONETARY => 'Monetary Payment',
             self::BARTER => 'Barter/Trade',
             self::FREE_PRODUCT => 'Free Product',
@@ -31,7 +31,7 @@ enum CompensationType: string
 
     public function description(): string
     {
-        return match($this) {
+        return match ($this) {
             self::MONETARY => 'Direct cash payment',
             self::BARTER => 'Exchange of goods or services',
             self::FREE_PRODUCT => 'Free product or service',

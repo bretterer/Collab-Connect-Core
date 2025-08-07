@@ -80,8 +80,6 @@ class BusinessOnboarding extends BaseComponent
         $this->removeFromArray('websites', $index, 1);
     }
 
-
-
     public function updated($propertyName)
     {
         // Reset national brand flag if location count is less than 30

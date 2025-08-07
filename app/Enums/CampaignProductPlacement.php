@@ -31,6 +31,4 @@ enum CampaignProductPlacement: int
     {
         return $this->name();
     }
-
-
 }

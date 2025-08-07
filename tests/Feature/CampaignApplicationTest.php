@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Enums\AccountType;
 use App\Enums\CampaignApplicationStatus;
 use App\Enums\CampaignStatus;
 use App\Models\Campaign;
@@ -17,7 +16,9 @@ class CampaignApplicationTest extends TestCase
     use RefreshDatabase;
 
     protected User $businessUser;
+
     protected User $influencerUser;
+
     protected Campaign $campaign;
 
     protected function setUp(): void
@@ -71,7 +72,7 @@ class CampaignApplicationTest extends TestCase
 
         // Try to submit another application - should be prevented
         $component->set('message', 'Trying to apply again')
-                  ->call('submitApplication');
+            ->call('submitApplication');
 
         // Verify the application prevention worked (either by error or by existing application check)
         $this->assertTrue($component->get('existingApplication') !== null);

@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Applications;
 
+use App\Enums\CampaignApplicationStatus;
 use App\Livewire\BaseComponent;
 use App\Models\CampaignApplication;
-use App\Enums\CampaignApplicationStatus;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 
@@ -26,7 +26,7 @@ class ViewApplication extends BaseComponent
             'campaign.user.businessProfile',
             'campaign.compensation',
             'campaign.requirements',
-            'campaign.brief'
+            'campaign.brief',
         ]);
     }
 
@@ -34,6 +34,7 @@ class ViewApplication extends BaseComponent
     {
         if ($this->application->status !== CampaignApplicationStatus::PENDING) {
             $this->flashError('This application has already been processed.');
+
             return;
         }
 
@@ -49,6 +50,7 @@ class ViewApplication extends BaseComponent
     {
         if ($this->application->status !== CampaignApplicationStatus::PENDING) {
             $this->flashError('This application has already been processed.');
+
             return;
         }
 

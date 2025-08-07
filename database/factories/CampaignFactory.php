@@ -7,7 +7,6 @@ use App\Enums\CampaignType;
 use App\Enums\CompensationType;
 use App\Models\Campaign;
 use App\Models\User;
-use App\Services\CampaignService;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -133,11 +132,11 @@ class CampaignFactory extends Factory
                 CompensationType::MONETARY,
                 CompensationType::BARTER,
                 CompensationType::FREE_PRODUCT,
-                CompensationType::GIFT_CARD
+                CompensationType::GIFT_CARD,
             ]);
-            
+
             $compensationAmount = $this->faker->numberBetween(100, 2000);
-            
+
             $campaign->compensation()->create([
                 'compensation_type' => $compensationType,
                 'compensation_amount' => $compensationAmount,
@@ -152,13 +151,13 @@ class CampaignFactory extends Factory
 
     private function getCompensationDescription(CompensationType $type, int $amount): string
     {
-        return match($type) {
-            CompensationType::MONETARY => '$' . number_format($amount) . ' payment',
-            CompensationType::BARTER => 'Product exchange worth $' . number_format($amount),
-            CompensationType::FREE_PRODUCT => 'Free products worth $' . number_format($amount),
-            CompensationType::DISCOUNT => $amount . '% discount on all products',
-            CompensationType::GIFT_CARD => '$' . number_format($amount) . ' gift card',
-            CompensationType::EXPERIENCE => 'Experience package worth $' . number_format($amount),
+        return match ($type) {
+            CompensationType::MONETARY => '$'.number_format($amount).' payment',
+            CompensationType::BARTER => 'Product exchange worth $'.number_format($amount),
+            CompensationType::FREE_PRODUCT => 'Free products worth $'.number_format($amount),
+            CompensationType::DISCOUNT => $amount.'% discount on all products',
+            CompensationType::GIFT_CARD => '$'.number_format($amount).' gift card',
+            CompensationType::EXPERIENCE => 'Experience package worth $'.number_format($amount),
             CompensationType::OTHER => 'Custom compensation arrangement',
         };
     }

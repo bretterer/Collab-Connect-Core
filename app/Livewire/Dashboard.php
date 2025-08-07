@@ -2,16 +2,15 @@
 
 namespace App\Livewire;
 
+use App\Enums\AccountType;
+use App\Enums\CampaignApplicationStatus;
+use App\Enums\CampaignStatus;
 use App\Models\Campaign;
 use App\Models\PostalCode;
-use App\Models\User;
-use App\Enums\AccountType;
-use App\Enums\CampaignStatus;
-use App\Enums\CampaignApplicationStatus;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
-use Livewire\Component;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Component;
 
 #[Layout('layouts.app')]
 class Dashboard extends Component
@@ -72,7 +71,7 @@ class Dashboard extends Component
         $user = Auth::user();
         $influencerProfile = $user->influencerProfile;
 
-        if (!$influencerProfile) {
+        if (! $influencerProfile) {
             return collect();
         }
 
@@ -84,7 +83,7 @@ class Dashboard extends Component
                 'user.businessProfile',
                 'compensation',
                 'requirements',
-                'brief'
+                'brief',
             ])
             ->get();
 
@@ -117,7 +116,7 @@ class Dashboard extends Component
         $nicheScore = $this->calculateNicheMatch($campaign, $influencerProfile);
         $matchScore += $nicheScore * 0.3;
         if ($nicheScore > 70) {
-            $matchReasons[] = $influencerProfile->primary_niche->label() . ' niche';
+            $matchReasons[] = $influencerProfile->primary_niche->label().' niche';
         }
 
         // Campaign type matching (20% weight)
@@ -139,8 +138,8 @@ class Dashboard extends Component
             'match_score' => round($matchScore),
             'match_reasons' => $matchReasons,
             'distance' => $distance,
-            'distance_display' => $distance ? round($distance) . ' miles away' : 'Distance unknown',
-            'posted_ago' => $campaign->published_at ? $campaign->published_at->diffForHumans() : 'Recently posted'
+            'distance_display' => $distance ? round($distance).' miles away' : 'Distance unknown',
+            'posted_ago' => $campaign->published_at ? $campaign->published_at->diffForHumans() : 'Recently posted',
         ];
     }
 
@@ -149,7 +148,7 @@ class Dashboard extends Component
      */
     private function calculateLocationMatch(Campaign $campaign, $influencerProfile): int
     {
-        if (!$campaign->target_zip_code || !$influencerProfile->primary_zip_code) {
+        if (! $campaign->target_zip_code || ! $influencerProfile->primary_zip_code) {
             return 20; // Default low score if no location data
         }
 
@@ -160,11 +159,22 @@ class Dashboard extends Component
         }
 
         // Perfect match within 5 miles, declining score with distance
-        if ($distance <= 5) return 100;
-        if ($distance <= 10) return 90;
-        if ($distance <= 25) return 80;
-        if ($distance <= 50) return 70;
-        if ($distance <= 100) return 50;
+        if ($distance <= 5) {
+            return 100;
+        }
+        if ($distance <= 10) {
+            return 90;
+        }
+        if ($distance <= 25) {
+            return 80;
+        }
+        if ($distance <= 50) {
+            return 70;
+        }
+        if ($distance <= 100) {
+            return 50;
+        }
+
         return 20;
     }
 
@@ -173,7 +183,7 @@ class Dashboard extends Component
      */
     private function calculateNicheMatch(Campaign $campaign, $influencerProfile): int
     {
-        if (!$influencerProfile->primary_niche) {
+        if (! $influencerProfile->primary_niche) {
             return 30;
         }
 
@@ -182,7 +192,7 @@ class Dashboard extends Component
         $influencerNiche = $influencerProfile->primary_niche;
         $businessProfile = $campaign->user->businessProfile;
 
-        if (!$businessProfile || !$businessProfile->industry) {
+        if (! $businessProfile || ! $businessProfile->industry) {
             return 50; // Neutral score if no business industry data
         }
 
@@ -198,7 +208,7 @@ class Dashboard extends Component
         ];
 
         $matchingIndustries = $nicheMatchMap[$influencerNiche->value] ?? [];
-        
+
         if (in_array($businessProfile->industry?->value, $matchingIndustries)) {
             return 95;
         }
@@ -231,7 +241,7 @@ class Dashboard extends Component
      */
     private function getDistanceBetweenCampaignAndInfluencer(Campaign $campaign, $influencerProfile): ?float
     {
-        if (!$campaign->target_zip_code || !$influencerProfile->primary_zip_code) {
+        if (! $campaign->target_zip_code || ! $influencerProfile->primary_zip_code) {
             return null;
         }
 
@@ -243,7 +253,7 @@ class Dashboard extends Component
             ->where('country_code', 'US')
             ->first();
 
-        if (!$campaignPostal || !$influencerPostal) {
+        if (! $campaignPostal || ! $influencerPostal) {
             return null;
         }
 
@@ -279,7 +289,7 @@ class Dashboard extends Component
             ->where('user_id', Auth::user()->id)
             ->where('status', CampaignApplicationStatus::ACCEPTED)
             ->with(['campaign.user.businessProfile', 'campaign.compensation'])
-            ->whereHas('campaign', function($query) {
+            ->whereHas('campaign', function ($query) {
                 $query->where('status', \App\Enums\CampaignStatus::PUBLISHED);
             })
             ->orderBy('accepted_at', 'desc')
@@ -297,13 +307,13 @@ class Dashboard extends Component
 
         return \App\Models\CampaignApplication::query()
             ->where('status', CampaignApplicationStatus::PENDING)
-            ->whereHas('campaign', function($query) {
+            ->whereHas('campaign', function ($query) {
                 $query->where('user_id', Auth::user()->id);
             })
             ->with([
-                'user.influencerProfile', 
+                'user.influencerProfile',
                 'campaign',
-                'user.socialMediaAccounts'
+                'user.socialMediaAccounts',
             ])
             ->orderBy('submitted_at', 'desc')
             ->get();
@@ -319,7 +329,7 @@ class Dashboard extends Component
         }
 
         return \App\Models\CampaignApplication::query()
-            ->whereHas('campaign', function($query) {
+            ->whereHas('campaign', function ($query) {
                 $query->where('user_id', Auth::user()->id);
             })
             ->count();
@@ -331,9 +341,10 @@ class Dashboard extends Component
     public function acceptApplication($applicationId)
     {
         $application = \App\Models\CampaignApplication::find($applicationId);
-        
-        if (!$application || !$application->campaign || $application->campaign->user_id !== Auth::user()->id) {
+
+        if (! $application || ! $application->campaign || $application->campaign->user_id !== Auth::user()->id) {
             $this->flashError('Application not found or you do not have permission to accept it.');
+
             return;
         }
 
@@ -351,9 +362,10 @@ class Dashboard extends Component
     public function declineApplication($applicationId)
     {
         $application = \App\Models\CampaignApplication::find($applicationId);
-        
-        if (!$application || !$application->campaign || $application->campaign->user_id !== Auth::user()->id) {
+
+        if (! $application || ! $application->campaign || $application->campaign->user_id !== Auth::user()->id) {
             $this->flashError('Application not found or you do not have permission to decline it.');
+
             return;
         }
 

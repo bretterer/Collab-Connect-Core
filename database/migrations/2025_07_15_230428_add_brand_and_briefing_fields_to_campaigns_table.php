@@ -70,7 +70,7 @@ return new class extends Migration
                 'content_guidelines',
                 'brand_guidelines',
                 'main_contact',
-                'project_name'
+                'project_name',
             ]);
         });
     }
