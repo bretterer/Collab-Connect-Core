@@ -58,6 +58,9 @@ Route::post('/contact', function (Illuminate\Http\Request $request) {
 
         $responseDays = config('collabconnect.support_response_days');
         $responseText = $responseDays == 1 ? '1 business day' : "{$responseDays} business days";
+
+        // Clear any old input data and redirect with success message
+        $request->session()->forget('_old_input');
         return back()->with('success', "Thank you for contacting us! We've sent you a confirmation email and will get back to you within {$responseText}.");
     } catch (\Exception $e) {
         \Illuminate\Support\Facades\Log::error('Contact form email failed', [
@@ -153,7 +156,7 @@ Route::post('/waitlist', function (Illuminate\Http\Request $request) {
             'email' => $validated['email'],
             'user_type' => $validated['user_type']
         ]);
-        
+
         // Still return success since CSV was saved, but mention email issue
         return back()->with('success', 'Thank you for joining our beta waitlist! We\'ve received your signup and will be in touch soon.');
         }
@@ -166,7 +169,7 @@ Route::post('/waitlist', function (Illuminate\Http\Request $request) {
             'error' => $e->getMessage(),
             'request' => $request->all()
         ]);
-        
+
         return back()->with('error', 'Sorry, there was an issue processing your signup. Please try again later.');
     }
 })->name('waitlist.store');
