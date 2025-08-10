@@ -9,10 +9,8 @@
                     src="{{ Vite::asset('resources/images/CollabConnectDark.png') }}"
                     alt="CollabConnect Logo" />
         </div>
-        <div x-show="!sidebarExpanded && window.innerWidth >= 1024" class="h-8 w-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mx-auto">
-            <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
-            </svg>
+        <div x-show="!sidebarExpanded && window.innerWidth >= 1024" class="flex items-center justify-center mx-auto">
+            <img class="h-auto w-10" src="{{ Vite::asset('resources/images/CollabConnectMark.png') }}" alt="CollabConnect Icon" />
         </div>
     </div>
 

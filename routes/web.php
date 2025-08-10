@@ -75,6 +75,12 @@ Route::middleware(['auth'])->group(function () {
         // Profile routes
         Route::get('/profile', App\Livewire\Profile\EditProfile::class)->name('profile');
 
+        // Analytics route (business users only)
+        Route::get('/analytics', App\Livewire\Analytics::class)->name('analytics');
+
+        // Media Kit route (influencer users only)
+        Route::get('/media-kit', App\Livewire\MediaKit::class)->name('media-kit');
+
         // Help route (formerly contact)
         Route::get('/help', App\Livewire\Contact::class)->name('help');
     });

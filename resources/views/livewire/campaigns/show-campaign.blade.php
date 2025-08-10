@@ -85,7 +85,7 @@
                                     <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ $this->getApplicationsCount() }}</div>
                                     <div class="text-sm text-gray-500 dark:text-gray-400">Total Applications</div>
                                 </div>
-                                @if($this->getPendingApplicationsCount() > 0)
+                                @if($this->getPendingApplicationsCount() > 0 && $campaign->user_id === auth()->id())
                                     <div class="text-center">
                                         <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ $this->getPendingApplicationsCount() }}</div>
                                         <div class="text-sm text-gray-500 dark:text-gray-400">Pending Review</div>
@@ -305,7 +305,21 @@
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Additional Requirements</h2>
                         <div class="prose dark:prose-invert max-w-none">
-                            {!! nl2br(e($campaign->additional_requirements)) !!}
+                            @if(is_array($campaign->additional_requirements))
+                                <div class="space-y-3">
+                                    @foreach($campaign->additional_requirements as $key => $value)
+                                        <div class="flex items-start space-x-3">
+                                            <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                                            <div>
+                                                <span class="font-medium text-gray-900 dark:text-white">{{ ucwords(str_replace('_', ' ', $key)) }}:</span>
+                                                <span class="text-gray-600 dark:text-gray-400 ml-2">{{ ucwords(str_replace('_', ' ', $value)) }}</span>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                {!! nl2br(e($campaign->additional_requirements)) !!}
+                            @endif
                         </div>
                     </div>
                 @endif
@@ -393,22 +407,6 @@
                                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Applications will appear here once influencers start applying.</p>
                             </div>
                         @endif
-                    </div>
-                @endif
-
-
-                @if($applications->isNotEmpty())
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Chat with Campaign Owner</h2>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                            You can discuss details or ask questions about the campaign directly with the owner.
-                        </p>
-                        <a href="#" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200">
-                            Open Chat
-                            <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                        </a>
                     </div>
                 @endif
 

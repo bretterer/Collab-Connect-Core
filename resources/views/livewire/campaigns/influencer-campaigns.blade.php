@@ -15,11 +15,74 @@
         </div>
 
         <!-- Filters -->
-        <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6" x-data="{ filtersOpen: false }">
             <div class="p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Filters</h3>
-                <!-- Quick Actions Row -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Filters</h3>
+                        <!-- Active Filter Badges (when collapsed) -->
+                        <div x-show="!filtersOpen" class="flex items-center space-x-2">
+                            @if($search)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+                                    Search: {{ Str::limit($search, 15) }}
+                                </span>
+                            @endif
+                            @if(count($selectedNiches) > 0)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                                    {{ count($selectedNiches) }} Industry{{ count($selectedNiches) > 1 ? 'ies' : 'y' }}
+                                </span>
+                            @endif
+                            @if(count($selectedCampaignTypes) > 0)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400">
+                                    {{ count($selectedCampaignTypes) }} Type{{ count($selectedCampaignTypes) > 1 ? 's' : '' }}
+                                </span>
+                            @endif
+                            @if($sortBy !== 'match_score')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400">
+                                    Sort: {{ ucfirst(str_replace('_', ' ', $sortBy)) }}
+                                </span>
+                            @endif
+                            @if($perPage !== '6')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400">
+                                    {{ $perPage }} per page
+                                </span>
+                            @endif
+                            
+                            <!-- Clear Filters Button (when collapsed and filters exist) -->
+                            @if($search || count($selectedNiches) > 0 || count($selectedCampaignTypes) > 0 || $sortBy !== 'match_score')
+                                <button
+                                    wire:click="clearFilters"
+                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors duration-200"
+                                    title="Clear all filters"
+                                >
+                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Clear
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                    <button 
+                        @click="filtersOpen = !filtersOpen"
+                        class="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
+                    >
+                        <span x-text="filtersOpen ? 'Hide Filters' : 'Show Filters'"></span>
+                        <svg 
+                            class="w-4 h-4 transition-transform duration-200" 
+                            :class="{ 'rotate-180': filtersOpen }"
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div x-show="filtersOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-95">
+                    <!-- Quick Actions Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                     <!-- Search -->
                     <div>
                         <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -145,6 +208,7 @@
                             </div>
                         @endif
                     </div>
+                </div>
                 </div>
             </div>
         </div>

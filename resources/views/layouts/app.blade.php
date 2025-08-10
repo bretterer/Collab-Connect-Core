@@ -188,6 +188,35 @@
                             @csrf
                             <button type="submit" class="block w-full text-left px-3 py-1 text-sm leading-6 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">Sign out</button>
                         </form>
+
+                        @if (app()->environment('local'))
+                        <div class="border-t border-gray-100 dark:border-gray-700"></div>
+                        <!-- Local Development Helpers -->
+                        <div
+                            class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700">
+                            <x-login-link class="text-sm/6 font-semibold"
+                                :email="env('INIT_USER_EMAIL')"
+                                label="Login as Admin"
+                                redirect-url="{{ route('dashboard') }}" />
+                        </div>
+
+                        <div
+                            class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700">
+                            <x-login-link class="text-sm/6 font-semibold"
+                                :email="env('INIT_BUSINESS_EMAIL')"
+                                label="Login as Business"
+                                redirect-url="{{ route('dashboard') }}" />
+                        </div>
+
+                        <div
+                            class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700">
+                            <x-login-link class="text-sm/6 font-semibold"
+                                :email="env('INIT_INFLUENCER_EMAIL')"
+                                label="Login as Influencer"
+                                redirect-url="{{ route('dashboard') }}" />
+                        </div>
+                        @endif
+
                     </div>
                 </div>
             </div>

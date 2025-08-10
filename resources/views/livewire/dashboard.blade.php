@@ -47,8 +47,8 @@
                     </div>
                 </a>
 
-                <div class="group">
-                    <div class="flex flex-col items-center p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-amber-300 dark:hover:border-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-all duration-200 group-hover:scale-105 cursor-pointer">
+                <a href="{{ route('analytics') }}" class="group">
+                    <div class="flex flex-col items-center p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-amber-300 dark:hover:border-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-all duration-200 group-hover:scale-105">
                         <div class="h-12 w-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200">
                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
@@ -57,7 +57,7 @@
                         <p class="text-sm font-medium text-gray-900 dark:text-white">Analytics</p>
                         <p class="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">View insights</p>
                     </div>
-                </div>
+                </a>
             </div>
         </div>
 
@@ -266,6 +266,7 @@
                     @endif
                 </div>
 
+                @if(false === true)
                 <!-- Recent Activity -->
                 <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6">
                     <div class="flex items-center justify-between mb-6">
@@ -315,6 +316,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
             </div>
         </div>
 
@@ -366,8 +368,8 @@
                     </div>
                 </div>
 
-                <div class="group">
-                    <div class="flex flex-col items-center p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/10 transition-all duration-200 group-hover:scale-105 cursor-pointer">
+                <a href="{{ route('media-kit') }}" class="group">
+                    <div class="flex flex-col items-center p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/10 transition-all duration-200 group-hover:scale-105">
                         <div class="h-12 w-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200">
                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -376,7 +378,7 @@
                         <p class="text-sm font-medium text-gray-900 dark:text-white">Media Kit</p>
                         <p class="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">Download kit</p>
                     </div>
-                </div>
+                </a>
             </div>
         </div>
 

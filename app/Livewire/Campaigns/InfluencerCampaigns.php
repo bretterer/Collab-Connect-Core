@@ -43,8 +43,7 @@ class InfluencerCampaigns extends BaseComponent
         if (Auth::user()->account_type === AccountType::BUSINESS) {
             return redirect()->route('campaigns.index');
         }
-        // Don't pre-select any niches - let users choose what they want
-        $this->selectedNiches = [];
+        // URL parameters will be automatically loaded due to $queryString property
     }
 
     public function getOpenCampaigns()
@@ -498,7 +497,7 @@ class InfluencerCampaigns extends BaseComponent
             'campaigns' => $paginator,
             'nicheOptions' => $this->getNicheOptions(),
             'campaignTypeOptions' => $this->getCampaignTypeOptions(),
-            'showDebug' => app()->environment('local'),
+            'showDebug' => config('app.debug', false),
         ]);
     }
 }
