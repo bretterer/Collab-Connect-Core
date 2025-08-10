@@ -1,10 +1,10 @@
 <div>
     <div>
         <img class="block h-10 w-auto dark:hidden"
-             src="{{ Vite::asset('resources/images/CollabConnectLogo.png') }}"
+             src="{{ Vite::asset('resources/images/CollabConnect.png') }}"
              alt="CollabConnect Logo" />
         <img class="hidden h-10 w-auto dark:block"
-             src="{{ Vite::asset('resources/images/CollabConnectLogoDark.png') }}"
+             src="{{ Vite::asset('resources/images/CollabConnectDark.png') }}"
              alt="CollabConnect Logo" />
         <h2 class="mt-8 text-2xl/9 font-bold tracking-tight text-gray-900 dark:text-white">Register for an account</h2>
         <p class="mt-2 text-sm/6 text-gray-500 dark:text-gray-400">

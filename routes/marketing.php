@@ -6,6 +6,72 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+Route::get('/contact', function () {
+    return view('contact');
+})->name('contact');
+
+Route::get('/privacy', function () {
+    return view('privacy');
+})->name('privacy');
+
+Route::get('/terms', function () {
+    return view('terms');
+})->name('terms');
+
+Route::get('/careers', function () {
+    return view('careers');
+})->name('careers');
+
+Route::get('/about', function () {
+    return view('about');
+})->name('about');
+
+Route::post('/contact', function (Illuminate\Http\Request $request) {
+    $validated = $request->validate([
+        'first_name' => 'required|string|max:255',
+        'last_name' => 'required|string|max:255',
+        'email' => 'required|email|max:255',
+        'subject' => 'required|string|in:general,business,influencer,technical,beta,media,other',
+        'message' => 'required|string|max:2000',
+        'newsletter' => 'nullable|boolean',
+    ]);
+
+    // Prepare CSV data for contact form submissions
+    $csvData = [
+        now()->toDateTimeString(),
+        $validated['first_name'] . ' ' . $validated['last_name'],
+        $validated['email'],
+        $validated['subject'],
+        $validated['message'],
+        $validated['newsletter'] ? 'Yes' : 'No',
+    ];
+
+    // Define CSV file path
+    $csvPath = storage_path('app/private/contact.csv');
+
+    // Create directory if it doesn't exist
+    if (!file_exists(dirname($csvPath))) {
+        mkdir(dirname($csvPath), 0755, true);
+    }
+
+    // Check if file exists to determine if we need headers
+    $fileExists = file_exists($csvPath);
+
+    // Open file for appending
+    $file = fopen($csvPath, 'a');
+
+    // Add headers if file is new
+    if (!$fileExists) {
+        fputcsv($file, ['Timestamp', 'Name', 'Email', 'Subject', 'Message', 'Newsletter']);
+    }
+
+    // Add the data
+    fputcsv($file, $csvData);
+    fclose($file);
+
+    return back()->with('success', 'Thank you for contacting us! We\'ll get back to you within 24 hours.');
+})->name('contact.store');
+
 Route::post('/waitlist', function (Illuminate\Http\Request $request) {
     // Validate the form data
     $rules = [

@@ -75,8 +75,8 @@ Route::middleware(['auth'])->group(function () {
         // Profile routes
         Route::get('/profile', App\Livewire\Profile\EditProfile::class)->name('profile');
 
-        // Contact route
-        Route::get('/contact', App\Livewire\Contact::class)->name('contact');
+        // Help route (formerly contact)
+        Route::get('/help', App\Livewire\Contact::class)->name('help');
     });
 });
 

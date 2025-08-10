@@ -3,10 +3,10 @@
     <div class="flex items-center justify-between">
         <div class="text-center">
             <img class="block h-8 w-auto mx-auto dark:hidden"
-                 src="{{ Vite::asset('resources/images/CollabConnectLogo.png') }}"
+                 src="{{ Vite::asset('resources/images/CollabConnect.png') }}"
                  alt="CollabConnect Logo" />
             <img class="hidden h-8 w-auto mx-auto dark:block"
-                 src="{{ Vite::asset('resources/images/CollabConnectLogoDark.png') }}"
+                 src="{{ Vite::asset('resources/images/CollabConnectDark.png') }}"
                  alt="CollabConnect Logo" />
         </div>
         <div class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">

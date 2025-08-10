@@ -9,19 +9,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>@yield('title', config('app.name'))</title>
 
-    <link href="/apple-touch-icon.png"
-          rel="apple-touch-icon"
-          sizes="180x180">
-    <link type="image/png"
-          href="/favicon-32x32.png"
-          rel="icon"
-          sizes="32x32">
-    <link type="image/png"
-          href="/favicon-16x16.png"
-          rel="icon"
-          sizes="16x16">
-    <link href="/site.webmanifest"
-          rel="manifest">
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
 
     <link href="https://fonts.bunny.net"
           rel="preconnect">
@@ -46,10 +38,10 @@
                         <div class="flex flex-shrink-0 items-center">
                             <a href="{{ route('dashboard') }}">
                                 <img class="block h-8 w-auto dark:hidden"
-                                     src="{{ Vite::asset('resources/images/CollabConnectLogo.png') }}"
+                                     src="{{ Vite::asset('resources/images/CollabConnect.png') }}"
                                      alt="CollabConnect Logo" />
                                 <img class="hidden h-8 w-auto dark:block"
-                                     src="{{ Vite::asset('resources/images/CollabConnectLogoDark.png') }}"
+                                     src="{{ Vite::asset('resources/images/CollabConnectDark.png') }}"
                                      alt="CollabConnect Logo" />
                             </a>
                         </div>
@@ -289,7 +281,7 @@
                                         </div>
                                     </a>
                                     <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
-                                       href="{{ route('contact') }}">
+                                       href="{{ route('help') }}">
                                         <div class="flex items-center">
                                             <svg class="mr-3 h-4 w-4"
                                                  fill="none"
