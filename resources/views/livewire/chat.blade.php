@@ -48,7 +48,7 @@
                     @forelse($chats as $chat)
                         @php
                             $otherUser = $chat->getOtherParticipant($currentUser);
-                            $latestMessage = $chat->latestMessage->first();
+                            $latestMessage = $chat->latestMessage;
                         @endphp
 
                         <div wire:click="selectChat({{ $chat->id }})"

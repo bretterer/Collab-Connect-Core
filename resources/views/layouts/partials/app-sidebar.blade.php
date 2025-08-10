@@ -1,0 +1,167 @@
+<div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-gray-900 px-6 pb-4 ring-1 ring-gray-900/10 dark:ring-gray-800">
+    <!-- Logo -->
+    <div class="flex h-16 shrink-0 items-center">
+        <div x-show="sidebarExpanded || window.innerWidth < 1024" x-transition class="flex items-center space-x-3">
+            <img class="block h-8 w-auto dark:hidden"
+                    src="{{ Vite::asset('resources/images/CollabConnect.png') }}"
+                    alt="CollabConnect Logo" />
+            <img class="hidden h-8 w-auto dark:block"
+                    src="{{ Vite::asset('resources/images/CollabConnectDark.png') }}"
+                    alt="CollabConnect Logo" />
+        </div>
+        <div x-show="!sidebarExpanded && window.innerWidth >= 1024" class="h-8 w-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mx-auto">
+            <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex flex-1 flex-col">
+        <ul role="list" class="flex flex-1 flex-col gap-y-7">
+            <li>
+                <!-- Main Navigation -->
+                <ul role="list" class="-mx-2 space-y-1">
+                    <!-- Dashboard -->
+                    <li>
+                        <a href="{{ route('dashboard') }}"
+                           class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('dashboard') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                            <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('dashboard') ? 'text-blue-700 dark:text-blue-400' : 'text-gray-400 group-hover:text-blue-700 dark:group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                            </svg>
+                            <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Dashboard</span>
+                        </a>
+                    </li>
+
+                    @if(auth()->user()->account_type === App\Enums\AccountType::BUSINESS)
+                        <!-- Business Navigation -->
+                        <!-- Campaigns -->
+                        <li>
+                            <a href="{{ route('campaigns.index') }}"
+                               class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('campaigns.*') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                                <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('campaigns.*') ? 'text-blue-700 dark:text-blue-400' : 'text-gray-400 group-hover:text-blue-700 dark:group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                </svg>
+                                <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Campaigns</span>
+                            </a>
+                        </li>
+
+                        <!-- Applications -->
+                        <li>
+                            <a href="{{ route('applications.index') }}"
+                               class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('applications.*') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                                <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('applications.*') ? 'text-blue-700 dark:text-blue-400' : 'text-gray-400 group-hover:text-blue-700 dark:group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Applications</span>
+                            </a>
+                        </li>
+
+                        <!-- Find Influencers -->
+                        <li>
+                            <a href="{{ route('search') }}"
+                               class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('search') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                                <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('search') ? 'text-blue-700 dark:text-blue-400' : 'text-gray-400 group-hover:text-blue-700 dark:group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                                </svg>
+                                <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Find Influencers</span>
+                            </a>
+                        </li>
+
+                    @elseif(auth()->user()->account_type === App\Enums\AccountType::INFLUENCER)
+                        <!-- Influencer Navigation -->
+                        <!-- Discover -->
+                        <li>
+                            <a href="{{ route('discover') }}"
+                               class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('discover') ? 'bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-400' : 'text-gray-700 dark:text-gray-300 hover:text-pink-700 dark:hover:text-pink-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                                <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('discover') ? 'text-pink-700 dark:text-pink-400' : 'text-gray-400 group-hover:text-pink-700 dark:group-hover:text-pink-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                                </svg>
+                                <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Discover</span>
+                            </a>
+                        </li>
+
+                        <!-- My Applications -->
+                        <li>
+                            <a href="{{ route('applications.index') }}"
+                               class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('applications.*') ? 'bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-400' : 'text-gray-700 dark:text-gray-300 hover:text-pink-700 dark:hover:text-pink-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                                <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('applications.*') ? 'text-pink-700 dark:text-pink-400' : 'text-gray-400 group-hover:text-pink-700 dark:group-hover:text-pink-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Applications</span>
+                            </a>
+                        </li>
+
+                        <!-- Find Businesses -->
+                        <li>
+                            <a href="{{ route('search') }}"
+                               class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('search') ? 'bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-400' : 'text-gray-700 dark:text-gray-300 hover:text-pink-700 dark:hover:text-pink-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                                <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('search') ? 'text-pink-700 dark:text-pink-400' : 'text-gray-400 group-hover:text-pink-700 dark:group-hover:text-pink-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                                </svg>
+                                <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Find Businesses</span>
+                            </a>
+                        </li>
+                    @endif
+
+                    <!-- Messages -->
+                    <li>
+                        <a href="{{ route('chat.index') }}"
+                           class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('chat.*') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                            <div class="relative">
+                                <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('chat.*') ? 'text-blue-700 dark:text-blue-400' : 'text-gray-400 group-hover:text-blue-700 dark:group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+                                </svg>
+                                <span class="absolute -top-1 -right-1 block h-2 w-2 rounded-full bg-red-400"></span>
+                            </div>
+                            <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Messages</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <!-- Secondary Navigation -->
+            <li>
+                <div class="text-xs font-semibold leading-6 text-gray-400" x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>
+                    Account
+                </div>
+                <ul role="list" class="-mx-2 mt-2 space-y-1">
+                    <!-- Profile -->
+                    <li>
+                        <a href="{{ route('profile') }}"
+                           class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('profile') ? 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                            <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('profile') ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Profile</span>
+                        </a>
+                    </li>
+
+                    <!-- Help -->
+                    <li>
+                        <a href="{{ route('help') }}"
+                           class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('help') ? 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                            <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('help') ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                            </svg>
+                            <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Help & Support</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <!-- Bottom section with account info -->
+            <li class="mt-auto">
+                <div class="flex items-center gap-x-4 px-2 py-3 text-sm font-semibold leading-6 text-gray-900 dark:text-white">
+                    <div class="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                        {{ substr(auth()->user()->name, 0, 1) }}
+                    </div>
+                    <div x-show="sidebarExpanded || window.innerWidth < 1024" x-transition class="flex flex-col">
+                        <span class="text-sm">{{ auth()->user()->name }}</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">{{ auth()->user()->account_type->label() }}</span>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </nav>
+</div>

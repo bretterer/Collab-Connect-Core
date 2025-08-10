@@ -4,11 +4,9 @@ window.axios = axios;
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 /**
- * Alpine.js for reactive frontend components
+ * Alpine.js is loaded via Flux (@fluxScripts)
+ * No need to import it separately to avoid multiple instances
  */
-import Alpine from 'alpinejs';
-window.Alpine = Alpine;
-Alpine.start();
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening

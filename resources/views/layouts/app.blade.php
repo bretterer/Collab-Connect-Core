@@ -1,447 +1,207 @@
 <!DOCTYPE html>
-<html class="h-full"
-      lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    x-data="{
+        darkMode: localStorage.getItem('darkMode') === 'true' || (localStorage.getItem('darkMode') === null && window.matchMedia('(prefers-color-scheme: dark)').matches)
+      }"
+    x-init="$watch('darkMode', value => localStorage.setItem('darkMode', value))"
+    x-bind:class="{ 'dark': darkMode }">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0" />
-    <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>@yield('title', config('app.name'))</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="shortcut icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/site.webmanifest" />
+    <title>{{ config('app.name', 'Laravel') }}</title>
 
-    <link href="https://fonts.bunny.net"
-          rel="preconnect">
-    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600"
-          rel="stylesheet" />
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
 
+    <!-- Dark mode flash prevention -->
+    <script>
+        (function() {
+            const isDark = localStorage.getItem('darkMode') === 'true' ||
+                (localStorage.getItem('darkMode') === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+
+    <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @fluxAppearance()
+    @fluxAppearance
     @livewireStyles
 </head>
 
-<body class="h-full bg-gray-50 dark:bg-gray-900">
-    <div class="flex h-full flex-col">
-        <!-- Top Navigation Bar -->
-        <nav class="border-b border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
-             x-data="{ mobileMenuOpen: false }">
-            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div class="flex h-16 items-center justify-between">
-                    <!-- Left Section: Logo + Navigation -->
-                    <div class="flex items-center space-x-8">
-                        <!-- Logo -->
-                        <div class="flex flex-shrink-0 items-center">
-                            <a href="{{ route('dashboard') }}">
-                                <img class="block h-8 w-auto dark:hidden"
-                                     src="{{ Vite::asset('resources/images/CollabConnect.png') }}"
-                                     alt="CollabConnect Logo" />
-                                <img class="hidden h-8 w-auto dark:block"
-                                     src="{{ Vite::asset('resources/images/CollabConnectDark.png') }}"
-                                     alt="CollabConnect Logo" />
-                            </a>
-                        </div>
+<body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 transition-colors duration-300"
+    x-cloak
+    x-data="{ sidebarOpen: false, sidebarExpanded: localStorage.getItem('sidebarExpanded') !== 'false' }"
+    x-init="$watch('sidebarExpanded', value => localStorage.setItem('sidebarExpanded', value))">
 
-                        <!-- Navigation Links -->
-                        <div class="hidden items-center space-x-6 md:flex">
-                            <a class="{{ request()->routeIs('dashboard') ? 'text-gray-900 dark:text-white border-b-2 border-blue-500' : '' }} px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                               href="{{ route('dashboard') }}">
+    <!-- Off-canvas menu for mobile -->
+    <div x-show="sidebarOpen"
+        x-transition:enter="transition-opacity ease-linear duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition-opacity ease-linear duration-300"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 z-50 lg:hidden"
+        style="display: none;">
+        <div class="fixed inset-0 bg-gray-900/80" x-on:click="sidebarOpen = false"></div>
+
+        <!-- Mobile sidebar -->
+        <div x-show="sidebarOpen"
+            x-transition:enter="transition ease-in-out duration-300 transform"
+            x-transition:enter-start="-translate-x-full"
+            x-transition:enter-end="translate-x-0"
+            x-transition:leave="transition ease-in-out duration-300 transform"
+            x-transition:leave-start="translate-x-0"
+            x-transition:leave-end="-translate-x-full"
+            class="relative flex w-full max-w-xs flex-1 flex-col bg-white dark:bg-gray-900">
+
+            <div class="absolute top-0 right-0 -mr-12 pt-2">
+                <button x-on:click="sidebarOpen = false" class="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            @include('layouts.partials.app-sidebar')
+        </div>
+    </div>
+
+    <!-- Desktop sidebar -->
+    <div class="hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:flex-col"
+        x-bind:class="sidebarExpanded ? 'lg:w-72' : 'lg:w-20'">
+        @include('layouts.partials.app-sidebar')
+    </div>
+
+    <!-- Main content -->
+    <div class="lg:pl-20" x-bind:class="{ 'lg:pl-72': sidebarExpanded, 'lg:pl-20': !sidebarExpanded }">
+        <!-- Top bar -->
+        <div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm px-4 shadow-sm sm:px-6 lg:px-8">
+            <!-- Mobile menu button -->
+            <button x-on:click="sidebarOpen = true" class="-m-2.5 p-2.5 text-gray-700 dark:text-gray-300 lg:hidden">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+            </button>
+
+            <!-- Desktop sidebar toggle -->
+            <button x-on:click="sidebarExpanded = !sidebarExpanded" class="hidden lg:flex -m-2.5 p-2.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+            </button>
+
+            <!-- Breadcrumb -->
+            <nav class="flex flex-1" aria-label="Breadcrumb">
+                <ol class="flex items-center space-x-4">
+                    <li>
+                        <div class="flex items-center">
+                            <a href="{{ route('dashboard') }}" class="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
                                 Dashboard
                             </a>
-                            @if (auth()->user()->account_type === App\Enums\AccountType::INFLUENCER)
-                                <a class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                                   href="{{ route('discover') }}">
-                                    Discover Campaigns
-                                </a>
-                                <a class="{{ request()->routeIs('search') ? 'text-gray-900 dark:text-white border-b-2 border-blue-500' : '' }} px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                                   href="{{ route('search') }}">
-                                    Find Businesses
-                                </a>
-                            @elseif(auth()->user()->account_type === App\Enums\AccountType::BUSINESS)
-                                <a class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                                   href="{{ route('campaigns.index') }}">
-                                    Campaigns
-                                </a>
-                                <a class="{{ request()->routeIs('search') ? 'text-gray-900 dark:text-white border-b-2 border-blue-500' : '' }} px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                                   href="{{ route('search') }}">
-                                    Find Influencers
-                                </a>
-                            @elseif(auth()->user()->account_type === App\Enums\AccountType::ADMIN)
-                                <a class="{{ request()->routeIs('admin.users.*') ? 'text-gray-900 dark:text-white border-b-2 border-red-500' : '' }} px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                                   href="{{ route('admin.users.index') }}">
-                                    Users
-                                </a>
-                                <a class="{{ request()->routeIs('admin.campaigns.*') ? 'text-gray-900 dark:text-white border-b-2 border-red-500' : '' }} px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                                   href="{{ route('admin.campaigns.index') }}">
-                                    Campaigns
-                                </a>
-                                <a class="{{ request()->routeIs('admin.analytics') ? 'text-gray-900 dark:text-white border-b-2 border-red-500' : '' }} px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                                   href="{{ route('admin.analytics') }}">
-                                    Analytics
-                                </a>
-                                <a class="{{ request()->routeIs('admin.settings') ? 'text-gray-900 dark:text-white border-b-2 border-red-500' : '' }} px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                                   href="{{ route('admin.settings') }}">
-                                    Settings
-                                </a>
-                            @endif
                         </div>
+                    </li>
+                </ol>
+            </nav>
+
+            <!-- Right side -->
+            <div class="flex items-center gap-x-4 lg:gap-x-6">
+                <!-- Search -->
+                <div class="hidden sm:flex">
+                    <div class="relative">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                            </svg>
+                        </div>
+                        <input type="text"
+                            class="block w-full rounded-lg border-0 py-2 pl-9 pr-3 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 bg-gray-100 dark:bg-gray-800 focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-blue-600 sm:text-sm sm:leading-6 transition-colors"
+                            placeholder="Search campaigns, influencers...">
                     </div>
+                </div>
 
-                    <!-- Right Section: Theme + Notifications + Profile -->
-                    <div class="flex items-center space-x-4">
-                        <!-- Theme Switcher -->
-                        <div class="relative"
-                             x-data="{
-                                 open: false,
-                                 theme: localStorage.getItem('theme') || 'system',
-                                 init() {
-                                     this.applyTheme();
-                                     this.$watch('theme', () => {
-                                         localStorage.setItem('theme', this.theme);
-                                         this.applyTheme();
-                                     });
-                                 },
-                                 applyTheme() {
-                                     if (this.theme === 'dark' || (this.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                                         document.documentElement.classList.add('dark');
-                                     } else {
-                                         document.documentElement.classList.remove('dark');
-                                     }
-                                 },
-                                 get currentIcon() {
-                                     if (this.theme === 'light') return 'sun';
-                                     if (this.theme === 'dark') return 'moon';
-                                     return 'computer';
-                                 }
-                             }">
-                            <button class="relative rounded-full p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:hover:text-gray-300"
-                                    @click="open = !open">
-                                <span class="sr-only">Change theme</span>
-                                <!-- Sun icon -->
-                                <svg class="h-6 w-6"
-                                     x-show="currentIcon === 'sun'"
-                                     fill="none"
-                                     stroke="currentColor"
-                                     viewBox="0 0 24 24">
-                                    <path stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                          stroke-width="2"
-                                          d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
-                                    </path>
-                                </svg>
-                                <!-- Moon icon -->
-                                <svg class="h-6 w-6"
-                                     x-show="currentIcon === 'moon'"
-                                     fill="none"
-                                     stroke="currentColor"
-                                     viewBox="0 0 24 24">
-                                    <path stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                          stroke-width="2"
-                                          d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                                </svg>
-                                <!-- Computer icon -->
-                                <svg class="h-6 w-6"
-                                     x-show="currentIcon === 'computer'"
-                                     fill="none"
-                                     stroke="currentColor"
-                                     viewBox="0 0 24 24">
-                                    <path stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                          stroke-width="2"
-                                          d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
-                                    </path>
-                                </svg>
-                            </button>
+                <!-- Notifications -->
+                <button class="relative -m-2.5 p-2.5 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                    </svg>
+                    <span class="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-400"></span>
+                </button>
 
-                            <!-- Theme Dropdown -->
-                            <div class="absolute right-0 z-50 mt-2 w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800"
-                                 x-show="open"
-                                 x-transition:enter="transition ease-out duration-100"
-                                 x-transition:enter-start="transform opacity-0 scale-95"
-                                 x-transition:enter-end="transform opacity-100 scale-100"
-                                 x-transition:leave="transition ease-in duration-75"
-                                 x-transition:leave-start="transform opacity-100 scale-100"
-                                 x-transition:leave-end="transform opacity-0 scale-95"
-                                 @click.away="open = false">
-                                <div class="py-1">
-                                    <button class="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
-                                            @click="theme = 'light'; open = false"
-                                            :class="{ 'bg-gray-50 dark:bg-gray-700': theme === 'light' }">
-                                        <svg class="mr-3 h-4 w-4"
-                                             fill="none"
-                                             stroke="currentColor"
-                                             viewBox="0 0 24 24">
-                                            <path stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                                  stroke-width="2"
-                                                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
-                                            </path>
-                                        </svg>
-                                        Light
-                                        <svg class="ml-auto h-4 w-4 text-blue-600"
-                                             x-show="theme === 'light'"
-                                             fill="currentColor"
-                                             viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd"
-                                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                  clip-rule="evenodd"></path>
-                                        </svg>
-                                    </button>
-                                    <button class="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
-                                            @click="theme = 'dark'; open = false"
-                                            :class="{ 'bg-gray-50 dark:bg-gray-700': theme === 'dark' }">
-                                        <svg class="mr-3 h-4 w-4"
-                                             fill="none"
-                                             stroke="currentColor"
-                                             viewBox="0 0 24 24">
-                                            <path stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                                  stroke-width="2"
-                                                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                                        </svg>
-                                        Dark
-                                        <svg class="ml-auto h-4 w-4 text-blue-600"
-                                             x-show="theme === 'dark'"
-                                             fill="currentColor"
-                                             viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd"
-                                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                  clip-rule="evenodd"></path>
-                                        </svg>
-                                    </button>
-                                    <button class="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
-                                            @click="theme = 'system'; open = false"
-                                            :class="{ 'bg-gray-50 dark:bg-gray-700': theme === 'system' }">
-                                        <svg class="mr-3 h-4 w-4"
-                                             fill="none"
-                                             stroke="currentColor"
-                                             viewBox="0 0 24 24">
-                                            <path stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                                  stroke-width="2"
-                                                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
-                                            </path>
-                                        </svg>
-                                        System
-                                        <svg class="ml-auto h-4 w-4 text-blue-600"
-                                             x-show="theme === 'system'"
-                                             fill="currentColor"
-                                             viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd"
-                                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                  clip-rule="evenodd"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
+                <!-- Dark mode toggle -->
+                <button x-on:click="darkMode = !darkMode"
+                    class="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors">
+                    <svg x-show="!darkMode"
+                        x-transition:enter="transition ease-in duration-200"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-out duration-200"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                    </svg>
+                    <svg x-show="darkMode"
+                        x-transition:enter="transition ease-in duration-200"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-out duration-200"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="display: none;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                    </svg>
+                </button>
+
+                <!-- Profile dropdown -->
+                <div x-data="{ open: false }" class="relative">
+                    <button x-on:click="open = !open" class="flex items-center gap-x-2 -m-1.5 p-1.5">
+                        <div class="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                            {{ substr(auth()->user()->name, 0, 1) }}
                         </div>
-
-                        <!-- Notifications -->
-                        @livewire('notifications-dropdown')
-
-                        <!-- Profile Dropdown -->
-                        <div class="relative"
-                             x-data="{ open: false }">
-                            <button class="flex items-center space-x-3 rounded-lg p-2 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:hover:bg-gray-700"
-                                    @click="open = !open">
-                                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-medium text-white">
-                                    {{ auth()->user()->initials() }}
-                                </div>
-                            </button>
-
-                            <!-- Profile Dropdown Menu -->
-                            <div class="absolute right-0 z-50 mt-2 w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800"
-                                 x-show="open"
-                                 x-transition:enter="transition ease-out duration-100"
-                                 x-transition:enter-start="transform opacity-0 scale-95"
-                                 x-transition:enter-end="transform opacity-100 scale-100"
-                                 x-transition:leave="transition ease-in duration-75"
-                                 x-transition:leave-start="transform opacity-100 scale-100"
-                                 x-transition:leave-end="transform opacity-0 scale-95"
-                                 @click.away="open = false">
-                                <div class="py-1">
-                                    <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
-                                       href="{{ route('profile') }}">
-                                        <div class="flex items-center">
-                                            <svg class="mr-3 h-4 w-4"
-                                                 fill="none"
-                                                 stroke="currentColor"
-                                                 viewBox="0 0 24 24">
-                                                <path stroke-linecap="round"
-                                                      stroke-linejoin="round"
-                                                      stroke-width="2"
-                                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                            </svg>
-                                            Profile
-                                        </div>
-                                    </a>
-                                    <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
-                                       href="{{ route('help') }}">
-                                        <div class="flex items-center">
-                                            <svg class="mr-3 h-4 w-4"
-                                                 fill="none"
-                                                 stroke="currentColor"
-                                                 viewBox="0 0 24 24">
-                                                <path stroke-linecap="round"
-                                                      stroke-linejoin="round"
-                                                      stroke-width="2"
-                                                      d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                                                </path>
-                                            </svg>
-                                            Help & Support
-                                        </div>
-                                    </a>
-                                    <div class="border-t border-gray-100 dark:border-gray-700"></div>
-                                    <form method="POST"
-                                          action="{{ route('logout') }}">
-                                        @csrf
-                                        <button class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
-                                                type="submit">
-                                            <div class="flex items-center">
-                                                <svg class="mr-3 h-4 w-4"
-                                                     fill="none"
-                                                     stroke="currentColor"
-                                                     viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round"
-                                                          stroke-linejoin="round"
-                                                          stroke-width="2"
-                                                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
-                                                    </path>
-                                                </svg>
-                                                Sign out
-                                            </div>
-                                        </button>
-                                    </form>
-
-                                    @if (app()->environment('local'))
-                                    <div class="border-t border-gray-100 dark:border-gray-700"></div>
-                                        <!-- Local Development Helpers -->
-                                        <div
-                                             class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700">
-                                            <x-login-link class="text-sm/6 font-semibold"
-                                                          :email="env('INIT_USER_EMAIL')"
-                                                          label="Login as Admin"
-                                                          redirect-url="{{ route('dashboard') }}" />
-                                        </div>
-
-                                        <div
-                                             class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700">
-                                            <x-login-link class="text-sm/6 font-semibold"
-                                                          :email="env('INIT_BUSINESS_EMAIL')"
-                                                          label="Login as Business"
-                                                          redirect-url="{{ route('dashboard') }}" />
-                                        </div>
-
-                                        <div
-                                             class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700">
-                                            <x-login-link class="text-sm/6 font-semibold"
-                                                          :email="env('INIT_INFLUENCER_EMAIL')"
-                                                          label="Login as Influencer"
-                                                          redirect-url="{{ route('dashboard') }}" />
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
+                        <div class="hidden lg:flex lg:items-center">
+                            <span class="text-sm font-semibold leading-6 text-gray-900 dark:text-white">{{ auth()->user()->name }}</span>
+                            <svg class="ml-2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
                         </div>
+                    </button>
 
-                        <!-- Mobile menu button -->
-                        <div class="md:hidden">
-                            <button class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 dark:hover:bg-gray-700"
-                                    type="button"
-                                    @click="mobileMenuOpen = !mobileMenuOpen">
-                                <span class="sr-only">Open main menu</span>
-                                <svg class="h-6 w-6"
-                                     fill="none"
-                                     stroke="currentColor"
-                                     viewBox="0 0 24 24">
-                                    <path stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                          stroke-width="2"
-                                          d="M4 6h16M4 12h16M4 18h16"></path>
-                                </svg>
-                            </button>
-                        </div>
+                    <div x-show="open"
+                        x-on:click.away="open = false"
+                        x-transition:enter="transition ease-out duration-100"
+                        x-transition:enter-start="transform opacity-0 scale-95"
+                        x-transition:enter-end="transform opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-75"
+                        x-transition:leave-start="transform opacity-100 scale-100"
+                        x-transition:leave-end="transform opacity-0 scale-95"
+                        class="absolute right-0 z-10 mt-2.5 w-48 origin-top-right rounded-md bg-white dark:bg-gray-800 py-2 shadow-lg ring-1 ring-gray-900/5 dark:ring-gray-700 focus:outline-none"
+                        style="display: none;">
+                        <a href="{{ route('profile') }}" class="block px-3 py-1 text-sm leading-6 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">Your profile</a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="block w-full text-left px-3 py-1 text-sm leading-6 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">Sign out</button>
+                        </form>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Mobile Navigation Menu -->
-            <div class="md:hidden"
-                 x-show="mobileMenuOpen"
-                 x-transition:enter="transition ease-out duration-100"
-                 x-transition:enter-start="transform opacity-0 scale-95"
-                 x-transition:enter-end="transform opacity-100 scale-100"
-                 x-transition:leave="transition ease-in duration-75"
-                 x-transition:leave-start="transform opacity-100 scale-100"
-                 x-transition:leave-end="transform opacity-0 scale-95">
-                <div class="space-y-1 border-t border-gray-200 bg-white px-2 pb-3 pt-2 sm:px-3 dark:border-gray-700 dark:bg-gray-800">
-                    <a class="{{ request()->routeIs('dashboard') ? 'text-gray-900 dark:text-white border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20' : '' }} block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                       href="{{ route('dashboard') }}">Dashboard</a>
-                    @if (auth()->user()->account_type->value === 1)
-                        <a class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                           href="{{ route('discover') }}">Discover Campaigns</a>
-                        <a class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                           href="#">Applications</a>
-                        <a class="{{ request()->routeIs('search') ? 'text-gray-900 dark:text-white border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20' : '' }} block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                           href="{{ route('search') }}">Find Businesses</a>
-                        <a class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                           href="#">Media Kit</a>
-                    @elseif(auth()->user()->account_type->value === 2)
-                        <a class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                           href="#">Campaigns</a>
-                        <a class="{{ request()->routeIs('search') ? 'text-gray-900 dark:text-white border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20' : '' }} block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                           href="{{ route('search') }}">Find Influencers</a>
-                        <a class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                           href="#">Analytics</a>
-                    @elseif(auth()->user()->account_type->value === 99)
-                        <a class="{{ request()->routeIs('admin.users.*') ? 'text-gray-900 dark:text-white border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20' : '' }} block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                           href="{{ route('admin.users.index') }}">Users</a>
-                        <a class="{{ request()->routeIs('admin.campaigns.*') ? 'text-gray-900 dark:text-white border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20' : '' }} block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                           href="{{ route('admin.campaigns.index') }}">Campaigns</a>
-                        <a class="{{ request()->routeIs('admin.analytics') ? 'text-gray-900 dark:text-white border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20' : '' }} block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                           href="{{ route('admin.analytics') }}">Analytics</a>
-                        <a class="{{ request()->routeIs('admin.settings') ? 'text-gray-900 dark:text-white border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20' : '' }} block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                           href="{{ route('admin.settings') }}">Settings</a>
-                    @endif
-                </div>
+        <!-- Main content area -->
+        <main class="py-6">
+            <div class="px-4 sm:px-6 lg:px-8">
+                {{ $slot }}
             </div>
-        </nav>
-
-        <!-- Main Content Area -->
-        <main class="flex-1 overflow-auto">
-            @if (session('message'))
-                <div class="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
-                    <div class="mb-6 rounded-md bg-green-50 p-4 dark:bg-green-900/20">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-green-400"
-                                     viewBox="0 0 20 20"
-                                     fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                          clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm font-medium text-green-800 dark:text-green-200">
-                                    {{ session('message') }}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            {{ $slot }}
         </main>
     </div>
 
-    @fluxScripts()
+    @fluxScripts
     @livewireScripts
 </body>
 

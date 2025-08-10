@@ -328,6 +328,29 @@ class Dashboard extends Component
     }
 
     /**
+     * Get accepted applications for business users
+     */
+    public function getAcceptedApplications(): Collection
+    {
+        if (Auth::user()->account_type !== AccountType::BUSINESS) {
+            return collect();
+        }
+
+        return \App\Models\CampaignApplication::query()
+            ->where('status', CampaignApplicationStatus::ACCEPTED)
+            ->whereHas('campaign', function ($query) {
+                $query->where('user_id', Auth::user()->id);
+            })
+            ->with([
+                'user.influencerProfile',
+                'campaign',
+                'user.socialMediaAccounts',
+            ])
+            ->orderBy('accepted_at', 'desc')
+            ->get();
+    }
+
+    /**
      * Get total application count for business stats
      */
     public function getTotalApplicationsCount(): int

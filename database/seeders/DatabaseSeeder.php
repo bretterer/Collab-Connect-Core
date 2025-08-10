@@ -63,12 +63,18 @@ class DatabaseSeeder extends Seeder
         // $this->command->info('Postal codes imported successfully.');
 
         // Create additional test users using AccountSeeder
-        // $this->call(AccountSeeder::class);
+        $this->call(AccountSeeder::class);
 
         // Create sample campaigns for testing
         $this->call(CampaignSeeder::class);
 
-        // Create BIGGBY campaign template
-        $this->call(BiggbysCampaignTemplateSeeder::class);
+        // Create campaign template
+        $this->call(CampaignTemplateSeeder::class);
+
+        // add some applications for testing
+        $this->call(ApplicationSeeder::class);
+
+        // Create sample messages for testing
+        $this->call(MessageSeeder::class);
     }
 }
