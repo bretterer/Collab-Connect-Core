@@ -225,7 +225,7 @@
     </head>
     <body class="font-inter bg-white dark:bg-gray-900 min-h-screen">
         <!-- Modern Professional Header -->
-        <header class="bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
+        <header class="bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50" x-data="{ mobileMenuOpen: false }">
             <div class="container-custom">
                 <nav class="flex items-center justify-between py-4">
                     <!-- Logo -->
@@ -249,18 +249,67 @@
                         @endif
                     </div>
 
-                    <!-- CTA Buttons -->
-                    <div class="flex items-center space-x-4">
+                    <!-- CTA Buttons - Hidden on mobile -->
+                    <div class="hidden md:flex items-center space-x-4">
                         @yield('nav-cta', '<a href="/" class="btn-primary">Join the Beta Crew</a>')
-
-                        <!-- Mobile menu button -->
-                        <button class="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                            </svg>
-                        </button>
                     </div>
+
+                    <!-- Mobile menu button -->
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" aria-label="Toggle mobile menu">
+                        <svg x-show="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                        <svg x-show="mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
                 </nav>
+            </div>
+
+            <!-- Mobile Navigation Menu -->
+            <div x-show="mobileMenuOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 transform -translate-y-2" x-transition:enter-end="opacity-100 transform translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 transform translate-y-0" x-transition:leave-end="opacity-0 transform -translate-y-2" class="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800" @click.away="mobileMenuOpen = false">
+                <div class="container-custom">
+                    <div class="py-4 space-y-3">
+                        <a href="/" @click="mobileMenuOpen = false" class="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors {{ request()->is('/') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : '' }}">
+                            Home
+                        </a>
+                        @hasSection('mobile-header-nav')
+                            @yield('mobile-header-nav')
+                        @elseif($__env->hasSection('header-nav'))
+                            <div class="space-y-3">
+                                @yield('header-nav')
+                            </div>
+                        @else
+                            <a href="/about" @click="mobileMenuOpen = false" class="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors {{ request()->is('about') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : '' }}">
+                                About
+                            </a>
+                            <a href="/contact" @click="mobileMenuOpen = false" class="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors {{ request()->is('contact') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : '' }}">
+                                Contact
+                            </a>
+                            <a href="/privacy" @click="mobileMenuOpen = false" class="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors {{ request()->is('privacy') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : '' }}">
+                                Privacy
+                            </a>
+                            <a href="/terms" @click="mobileMenuOpen = false" class="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors {{ request()->is('terms') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : '' }}">
+                                Terms
+                            </a>
+                        @endif
+
+                        <!-- Divider -->
+                        <div class="border-t border-gray-200 dark:border-gray-700 mx-4 my-4"></div>
+
+                        <!-- Mobile CTA Buttons -->
+                        <div class="px-4 space-y-3">
+                            <a href="/#beta-signup" @click="mobileMenuOpen = false" class="block w-full text-center bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                                Join the Beta Crew
+                            </a>
+                            @hasSection('mobile-nav-cta')
+                                @yield('mobile-nav-cta')
+                            @else
+                                <a href="/login" @click="mobileMenuOpen = false" class="block w-full text-center border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-semibold">Sign In</a>
+                            @endif
+                        </div>
+                    </div>
+                </div>
             </div>
         </header>
 

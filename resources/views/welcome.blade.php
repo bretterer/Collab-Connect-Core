@@ -30,6 +30,12 @@
     <a href="#beta-signup" class="nav-link">Join the Beta</a>
 @endsection
 
+@section('mobile-header-nav')
+    <a href="#features" @click="mobileMenuOpen = false" class="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">Features</a>
+    <a href="#how-it-works" @click="mobileMenuOpen = false" class="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">How it Works</a>
+    <a href="#beta-signup" @click="mobileMenuOpen = false" class="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">Join the Beta</a>
+@endsection
+
 @section('content')
 
             <!-- Hero Section -->
