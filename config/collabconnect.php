@@ -23,5 +23,5 @@ return [
     |
     */
 
-    'support_response_days' => env('SUPPORT_RESPONSE_DAYS', 1), // in business days
+    'support_response_days' => env('SUPPORT_RESPONSE_DAYS', 4), // in business days
 ];

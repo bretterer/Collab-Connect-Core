@@ -228,7 +228,7 @@
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-900 dark:text-white">Ready to send your message?</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">We'll respond within 24 hours</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">We'll respond within {{ config('collabconnect.support_response_days') }} business {{ config('collabconnect.support_response_days') == 1 ? 'day' : 'days' }}</p>
                         </div>
                     </div>
 

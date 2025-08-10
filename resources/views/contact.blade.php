@@ -77,7 +77,7 @@
                 </div>
                 <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Quick Response</h3>
                 <p class="text-gray-600 dark:text-gray-300 mb-4">We typically respond within</p>
-                <p class="text-gray-800 dark:text-gray-200 font-medium">24 hours</p>
+                <p class="text-gray-800 dark:text-gray-200 font-medium">{{ config('collabconnect.support_response_days') }} business {{ config('collabconnect.support_response_days') == 1 ? 'day' : 'days' }}</p>
             </div>
         </div>
     </div>
@@ -129,7 +129,7 @@
             <div class="mb-6">
                 <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address *</label>
                 <input type="email" id="email" name="email" required value="{{ old('email') }}"
-                       class="input-field w-full px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
+                       class="input-field w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors">
             </div>
 
             <div class="mb-6">
@@ -164,7 +164,7 @@
                 </label>
             </div>
 
-            <button type="submit" 
+            <button type="submit"
                     class="w-full btn-primary text-lg py-4">
                 Send Message
             </button>
@@ -187,19 +187,19 @@
         <div class="space-y-6">
             <div class="feature-card card-hover">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">When will CollabConnect launch?</h3>
-                <p class="text-gray-600 dark:text-gray-300">We're currently in beta development and planning to launch in early 2025. Join our beta crew to get early access!</p>
+                <p class="text-gray-600 dark:text-gray-300">We're currently in beta development and planning to launch in late 2025. Join our beta crew to get early access!</p>
             </div>
-            
+
             <div class="feature-card card-hover">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Is CollabConnect only for Cincinnati and Dayton?</h3>
                 <p class="text-gray-600 dark:text-gray-300">We're starting with Cincinnati and Dayton to perfect our local approach, but we plan to expand to other cities based on demand.</p>
             </div>
-            
+
             <div class="feature-card card-hover">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">How much will it cost to use CollabConnect?</h3>
                 <p class="text-gray-600 dark:text-gray-300">We're working on affordable subscription plans for both businesses and influencers. No commission fees - just transparent monthly pricing.</p>
             </div>
-            
+
             <div class="feature-card card-hover">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">What makes CollabConnect different?</h3>
                 <p class="text-gray-600 dark:text-gray-300">We focus exclusively on local connections with authentic micro-influencers, smart matching algorithms, and a commission-free model.</p>

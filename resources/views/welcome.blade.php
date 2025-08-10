@@ -404,6 +404,43 @@
                             Join the beta and be among the first Cincinnati & Dayton businesses to experience the power of local micro-influencer marketing.
                         </p>
 
+                        @if(session('success'))
+                            <div class="max-w-lg mx-auto mb-8 p-4 bg-green-100 dark:bg-green-900/50 border border-green-200 dark:border-green-800 rounded-xl">
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-green-600 dark:text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <p class="text-green-800 dark:text-green-200 font-medium">{{ session('success') }}</p>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if(session('error'))
+                            <div class="max-w-lg mx-auto mb-8 p-4 bg-red-100 dark:bg-red-900/50 border border-red-200 dark:border-red-800 rounded-xl">
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    <p class="text-red-800 dark:text-red-200 font-medium">{{ session('error') }}</p>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($errors->any())
+                            <div class="max-w-lg mx-auto mb-8 p-4 bg-red-100 dark:bg-red-900/50 border border-red-200 dark:border-red-800 rounded-xl">
+                                <div class="flex items-start">
+                                    <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    <div>
+                                        @foreach($errors->all() as $error)
+                                            <p class="text-red-800 dark:text-red-200">{{ $error }}</p>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
                         <form class="max-w-lg mx-auto" method="POST" action="{{ route('waitlist.store') }}" id="beta-signup-form">
                             @csrf
                             <div class="space-y-4 mb-6">
@@ -526,6 +563,21 @@
                         button.disabled = true;
                     });
                 }
+
+                // Reset form if there's a success message (meaning signup was successful)
+                @if(session('success'))
+                if (form) {
+                    form.reset();
+                    updateFieldVisibility(); // Reset conditional fields
+                    
+                    // Reset button state
+                    const button = form.querySelector('button[type="submit"]');
+                    if (button) {
+                        button.innerHTML = '🚀 Join the Beta Crew - FREE Access!';
+                        button.disabled = false;
+                    }
+                }
+                @endif
             });
         </script>
 @endsection
