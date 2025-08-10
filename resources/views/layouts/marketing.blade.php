@@ -343,9 +343,7 @@
                             <ul class="space-y-4">
                                 <li><a href="/about" class="hover:text-blue-400 transition-colors">About</a></li>
                                 <li><a href="/contact" class="hover:text-blue-400 transition-colors">Contact</a></li>
-                                <li><a href="#" class="hover:text-blue-400 transition-colors">Blog</a></li>
                                 <li><a href="/careers" class="hover:text-blue-400 transition-colors">Careers</a></li>
-                                <li><a href="#" class="hover:text-blue-400 transition-colors">Press</a></li>
                             </ul>
                         </div>
 
