@@ -19,8 +19,7 @@ class HandleToastMessages
         // Handle session flash toast messages
         if (session()->has('toast')) {
             $toastData = session('toast');
-            \Log::info('Toast data found: ', $toastData);
-            
+
             if (is_array($toastData) && isset($toastData['message']) && isset($toastData['type'])) {
                 match ($toastData['type']) {
                     'success' => Toaster::success($toastData['message']),
@@ -30,7 +29,7 @@ class HandleToastMessages
                     default => Toaster::info($toastData['message'])
                 };
             }
-            
+
             session()->forget('toast');
         }
 
