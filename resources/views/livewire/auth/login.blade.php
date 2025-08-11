@@ -78,6 +78,7 @@
         </div>
 
         <div class="mt-10">
+            @if (app()->environment('local'))
             <div class="relative">
                 <div class="absolute inset-0 flex items-center"
                      aria-hidden="true">
@@ -87,6 +88,7 @@
                     <span class="bg-white px-6 text-gray-900 dark:bg-gray-900 dark:text-gray-100">Or continue with</span>
                 </div>
             </div>
+            @endif
 
             <div class="mt-6 grid grid-cols-2 gap-4">
 
