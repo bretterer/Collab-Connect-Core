@@ -22,7 +22,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{user}/edit', App\Livewire\Admin\Users\UserEdit::class)->name('edit');
         });
 
-        Route::get('/beta-invites', App\Livewire\Admin\Users\BetaInvites::class)->name('beta-invites');
+        Route::get('/beta-invites', App\Livewire\Admin\BetaInvites::class)->name('beta-invites');
 
         // Campaign management
         Route::prefix('campaigns')->name('campaigns.')->group(function () {
