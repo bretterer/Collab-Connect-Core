@@ -165,7 +165,7 @@ class BetaInvites extends Component
             'code' => (new ReferralCode())->generateCode(),
         ]);
 
-        Mail::to($waitlistEntry->email)->send(new \App\Mail\ReferralProgramInvite($waitlistEntry->email, $waitlistEntry->name, $referralCode));
+        Mail::to($waitlistEntry->email)->send(new \App\Mail\ReferralProgramInvite($waitlistEntry->email, $waitlistEntry->name, $referralCode->code));
 
         $this->loadInvites();
         Toaster::success("Referral program added for {$waitlistEntry->email}");

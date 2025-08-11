@@ -27,6 +27,23 @@ There's no limit to how much you can earn - the more you refer, the more you mak
 Start Referring Friends
 </x-mail::button>
 
+## Spread the Word & Show Your Creativity!
+
+**Reach out to your communities.** Show us what you've got. **Let your creativity flow.** 
+
+We'd love to see how you share CollabConnect with your network! Whether it's through social posts, stories, or creative content - make sure to:
+- **Tag us** in your posts: @collabconnect / @collabconnectus / @collab_connect_us
+- **Use our hashtag**: #collabconnect
+
+**Follow us on social:**
+- 📘 [Facebook](https://www.facebook.com/CollabConnect)
+- 📸 [Instagram](https://www.instagram.com/collabconnectus) 
+- 🎵 [TikTok](https://www.tiktok.com/@collab_connect_us)
+- 🦋 [BlueSky](https://bsky.app/profile/collabconnect.app)
+- 💼 [LinkedIn](https://www.linkedin.com/company/collab-connect-us)
+
+We might even feature your creative referral posts on our channels!
+
 ## Terms & Conditions:
 - $5 reward is issued after referred user completes their first paid subscription
 - Digital gift cards are delivered via email within 5 business days

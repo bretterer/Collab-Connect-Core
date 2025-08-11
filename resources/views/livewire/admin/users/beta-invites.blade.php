@@ -100,40 +100,53 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     @if(!empty($invite['registered_at']))
                                         <span class="text-gray-400 dark:text-gray-500">Completed</span>
-                                    @elseif(!empty($invite['invited_at']))
-                                        <button wire:click="resendInvite({{ $invite['id'] }})"
-                                                class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 mr-3 disabled:opacity-50"
-                                                wire:loading.attr="disabled"
-                                                wire:target="resendInvite({{ $invite['id'] }})">
-                                            <span wire:loading.remove wire:target="resendInvite({{ $invite['id'] }})">Resend Invite</span>
-                                            <span wire:loading wire:target="resendInvite({{ $invite['id'] }})">Sending...</span>
-                                        </button>
                                     @else
-                                        <button wire:click="sendInvite({{ $invite['id'] }})"
-                                                class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 disabled:opacity-50"
-                                                wire:loading.attr="disabled"
-                                                wire:target="sendInvite({{ $invite['id'] }})">
-                                            <span wire:loading.remove wire:target="sendInvite({{ $invite['id'] }})">Send Invite</span>
-                                            <span wire:loading wire:target="sendInvite({{ $invite['id'] }})">Sending...</span>
-                                        </button>
-                                    @endif
+                                        <flux:dropdown align="right">
+                                            <flux:button variant="ghost" size="sm">
+                                                Actions
+                                                <flux:icon.chevron-down variant="micro" />
+                                            </flux:button>
+                                        
+                                            <flux:menu>
+                                                @if(!empty($invite['invited_at']))
+                                                    <flux:menu.item wire:click="resendInvite({{ $invite['id'] }})"
+                                                                    wire:loading.attr="disabled"
+                                                                    wire:target="resendInvite({{ $invite['id'] }})">
+                                                        <flux:icon.arrow-path-rounded-square variant="micro" />
+                                                        <span wire:loading.remove wire:target="resendInvite({{ $invite['id'] }})">Resend Invite</span>
+                                                        <span wire:loading wire:target="resendInvite({{ $invite['id'] }})">Sending...</span>
+                                                    </flux:menu.item>
+                                                @else
+                                                    <flux:menu.item wire:click="sendInvite({{ $invite['id'] }})"
+                                                                    wire:loading.attr="disabled"
+                                                                    wire:target="sendInvite({{ $invite['id'] }})">
+                                                        <flux:icon.envelope variant="micro" />
+                                                        <span wire:loading.remove wire:target="sendInvite({{ $invite['id'] }})">Send Invite</span>
+                                                        <span wire:loading wire:target="sendInvite({{ $invite['id'] }})">Sending...</span>
+                                                    </flux:menu.item>
+                                                @endif
 
-                                    @if(!empty($invite['referralCode']))
-                                        <button wire:click="resendReferralCode({{ $invite['id'] }})"
-                                                class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 disabled:opacity-50"
-                                                wire:loading.attr="disabled"
-                                                wire:target="resendReferralCode({{ $invite['id'] }})">
-                                        <span wire:loading.remove wire:target="resendReferralCode({{ $invite['id'] }})">Resend Code {{ $invite['referralCode'] }}</span>
-                                        <span wire:loading wire:target="resendReferralCode({{ $invite['id'] }})">Sending...</span>
-                                    </button>
-                                    @else
-                                    <button wire:click="addToReferralProgram({{ $invite['id'] }})"
-                                                class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 disabled:opacity-50"
-                                                wire:loading.attr="disabled"
-                                                wire:target="addToReferralProgram({{ $invite['id'] }})">
-                                        <span wire:loading.remove wire:target="addToReferralProgram({{ $invite['id'] }})">Referral Program</span>
-                                        <span wire:loading wire:target="addToReferralProgram({{ $invite['id'] }})">Sending...</span>
-                                    </button>
+                                                <flux:menu.separator />
+
+                                                @if(!empty($invite['referralCode']))
+                                                    <flux:menu.item wire:click="resendReferralCode({{ $invite['id'] }})"
+                                                                    wire:loading.attr="disabled"
+                                                                    wire:target="resendReferralCode({{ $invite['id'] }})">
+                                                        <flux:icon.gift variant="micro" />
+                                                        <span wire:loading.remove wire:target="resendReferralCode({{ $invite['id'] }})">Resend Code ({{ $invite['referralCode'] }})</span>
+                                                        <span wire:loading wire:target="resendReferralCode({{ $invite['id'] }})">Sending...</span>
+                                                    </flux:menu.item>
+                                                @else
+                                                    <flux:menu.item wire:click="addToReferralProgram({{ $invite['id'] }})"
+                                                                    wire:loading.attr="disabled"
+                                                                    wire:target="addToReferralProgram({{ $invite['id'] }})">
+                                                        <flux:icon.plus variant="micro" />
+                                                        <span wire:loading.remove wire:target="addToReferralProgram({{ $invite['id'] }})">Add to Referral Program</span>
+                                                        <span wire:loading wire:target="addToReferralProgram({{ $invite['id'] }})">Sending...</span>
+                                                    </flux:menu.item>
+                                                @endif
+                                            </flux:menu>
+                                        </flux:dropdown>
                                     @endif
                                 </td>
                             </tr>
