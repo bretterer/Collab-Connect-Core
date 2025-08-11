@@ -47,6 +47,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Details</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Referral Code</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -97,6 +98,16 @@
                                         </span>
                                     @endif
                                 </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if(!empty($invite['referralCode']))
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
+                                            {{ $invite['referralCode'] }}
+                                        </span>
+                                    @else
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300">
+                                            No Code
+                                        </span>
+                                    @endif
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     @if(!empty($invite['registered_at']))
                                         <span class="text-gray-400 dark:text-gray-500">Completed</span>
@@ -106,7 +117,7 @@
                                                 Actions
                                                 <flux:icon.chevron-down variant="micro" />
                                             </flux:button>
-                                        
+
                                             <flux:menu>
                                                 @if(!empty($invite['invited_at']))
                                                     <flux:menu.item wire:click="resendInvite({{ $invite['id'] }})"
