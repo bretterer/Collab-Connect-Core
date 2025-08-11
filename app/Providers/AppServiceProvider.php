@@ -25,5 +25,8 @@ class AppServiceProvider extends ServiceProvider
         
         // Ensure mail components are properly loaded
         Blade::componentNamespace('Illuminate\\Mail\\Markdown\\Components', 'mail');
+        
+        // Register login-link components
+        Blade::component('login-link', \Spatie\LoginLink\Http\Components\LoginLinkComponent::class);
     }
 }
