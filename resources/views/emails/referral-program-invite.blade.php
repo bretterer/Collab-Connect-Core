@@ -11,7 +11,7 @@ We're excited to invite you to join our **Referral Program**! As a valued member
 1. **Share your unique referral code:** `{{ $referralCode }}`
 2. **Friends sign up** using your code
 3. **They upgrade** to any paid plan
-4. **You earn $5** digital gift card instantly!
+4. **You receive a $5** digital gift card to your email!
 
 There's no limit to how much you can earn - the more you refer, the more you make!
 
