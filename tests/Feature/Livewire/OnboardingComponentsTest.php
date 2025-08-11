@@ -58,7 +58,7 @@ class OnboardingComponentsTest extends TestCase
         $component->set('selectedAccountType', 'business');
         $component->call('continue');
 
-        $component->assertRedirect(route('onboarding.business'));
+        $component->assertRedirect(route('business'));
     }
 
     #[Test]
@@ -72,7 +72,7 @@ class OnboardingComponentsTest extends TestCase
         $component->set('selectedAccountType', 'influencer');
         $component->call('continue');
 
-        $component->assertRedirect(route('onboarding.influencer'));
+        $component->assertRedirect(route('influencer'));
     }
 
     #[Test]

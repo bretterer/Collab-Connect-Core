@@ -100,7 +100,32 @@
                                 <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Find Businesses</span>
                             </a>
                         </li>
+
+                    @elseif(auth()->user()->account_type === App\Enums\AccountType::ADMIN)
+                        <!-- Admin Navigation -->
+                        <!-- Users -->
+                        <li>
+                            <a href="{{ route('admin.users.index') }}"
+                               class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('admin.users.*') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                                <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('admin.users.*') ? 'text-blue-700 dark:text-blue-400' : 'text-gray-400 group-hover:text-blue-700 dark:group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 14.25a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5zM12 21a9 9 0 100-18 9 9 0 000 18zM12 18a6 6 0 110-12 6 6 0 010 12z" />
+                                </svg>
+                                <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Users</span>
+                            </a>
+                        </li>
+
+                        <!-- Beta Invites -->
+                        <li>
+                            <a href="{{ route('admin.beta-invites') }}"
+                               class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('admin.beta-invites') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                                <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('admin.beta-invites') ? 'text-blue-700 dark:text-blue-400' : 'text-gray-400 group-hover:text-blue-700 dark:group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 14.25a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5zM12 21a9 9 0 100-18 9 9 0 000 18zM12 18a6 6 0 110-12 6 6 0 010 12z" />
+                                </svg>
+                                <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Beta Invites</span>
+                            </a>
+                        </li>
                     @endif
+
 
                     <!-- Messages -->
                     <li>

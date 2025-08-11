@@ -195,7 +195,7 @@
                         <div
                             class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700">
                             <x-login-link class="text-sm/6 font-semibold"
-                                :email="env('INIT_USER_EMAIL')"
+                                :email="config('collabconnect.init_user_email')"
                                 label="Login as Admin"
                                 redirect-url="{{ route('dashboard') }}" />
                         </div>
@@ -203,7 +203,7 @@
                         <div
                             class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700">
                             <x-login-link class="text-sm/6 font-semibold"
-                                :email="env('INIT_BUSINESS_EMAIL')"
+                                :email="config('collabconnect.init_business_email')"
                                 label="Login as Business"
                                 redirect-url="{{ route('dashboard') }}" />
                         </div>
@@ -211,7 +211,7 @@
                         <div
                             class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700">
                             <x-login-link class="text-sm/6 font-semibold"
-                                :email="env('INIT_INFLUENCER_EMAIL')"
+                                :email="config('collabconnect.init_influencer_email')"
                                 label="Login as Influencer"
                                 redirect-url="{{ route('dashboard') }}" />
                         </div>
@@ -225,6 +225,7 @@
         <!-- Main content area -->
         <main class="py-6">
             <div class="px-4 sm:px-6 lg:px-8">
+                <livewire:banner />
                 {{ $slot }}
             </div>
         </main>
@@ -232,6 +233,7 @@
 
     @fluxScripts
     @livewireScripts
+    <x-toaster-hub />
 </body>
 
 </html>

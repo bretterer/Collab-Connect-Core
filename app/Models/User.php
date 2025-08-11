@@ -4,7 +4,9 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\AccountType;
+use App\Events\AccountTypeSelected;
 use App\Services\ProfileService;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -12,7 +14,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -216,5 +218,47 @@ class User extends Authenticatable
     public function hasUnreadMessages(): bool
     {
         return $this->getUnreadMessageCount() > 0;
+    }
+
+    /**
+     * Set the user's account type.
+     */
+    public function setAccountType(AccountType $accountType): void
+    {
+        $this->account_type = $accountType;
+        $saved = $this->save();
+
+        if (! $saved) {
+            throw new \Exception('Failed to set account type for user.');
+        }
+
+        // Trigger any additional logic needed after setting the account type
+        AccountTypeSelected::dispatch($this, $accountType);
+    }
+
+    /**
+     * Check if the user's profile is completed.
+     */
+    public function profileCompleted(): bool
+    {
+        if ($this->account_type === AccountType::BUSINESS) {
+            $profile = $this->businessProfile;
+            return $profile && 
+                   $profile->business_name && 
+                   $profile->industry && 
+                   $profile->primary_zip_code && 
+                   $profile->contact_name && 
+                   $profile->contact_email;
+        }
+
+        if ($this->account_type === AccountType::INFLUENCER) {
+            $profile = $this->influencerProfile;
+            return $profile && 
+                   $profile->creator_name && 
+                   $profile->primary_niche && 
+                   $profile->primary_zip_code;
+        }
+
+        return false;
     }
 }

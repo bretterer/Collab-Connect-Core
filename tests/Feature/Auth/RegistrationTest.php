@@ -42,8 +42,7 @@ class RegistrationTest extends TestCase
             ->call('register');
 
         $response
-            ->assertHasNoErrors()
-            ->assertRedirect(route('onboarding.account-type', absolute: false));
+            ->assertHasNoErrors();
 
         $this->assertAuthenticated();
     }

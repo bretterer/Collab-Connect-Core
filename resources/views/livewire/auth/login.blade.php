@@ -7,10 +7,12 @@
              src="{{ Vite::asset('resources/images/CollabConnectDark.png') }}"
              alt="CollabConnect Logo" />
         <h2 class="mt-8 text-2xl/9 font-bold tracking-tight text-gray-900 dark:text-white">Sign in to your account</h2>
+        @if (Route::has('register'))
         <p class="mt-2 text-sm/6 text-gray-500 dark:text-gray-400">
             Not a member?
             <flux:link :href="route('register')"> Start a 14 day free trial</flux:link>
         </p>
+        @endif
     </div>
 
     <div class="mt-10">

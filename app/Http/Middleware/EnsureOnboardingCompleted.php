@@ -27,20 +27,13 @@ class EnsureOnboardingCompleted
             return $next($request);
         }
 
-        // If user is trying to access onboarding routes, let them through
-        if ($request->routeIs('onboarding.*')) {
-            return $next($request);
+        if (! $user->profileCompleted()) {
+            session()->flash('banner', [
+                'type' => 'warning',
+                'message' => 'Please complete your profile to access all features.',
+            ]);
         }
 
-        // If user is trying to access logout, let them through
-        if ($request->routeIs('logout')) {
-            return $next($request);
-        }
-
-        // If user needs onboarding, redirect them to onboarding
-        if ($user->needsOnboarding()) {
-            return redirect()->route('onboarding.account-type');
-        }
 
         return $next($request);
     }

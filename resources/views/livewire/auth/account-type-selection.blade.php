@@ -17,9 +17,9 @@
         <div class="relative">
             <button
                 type="button"
-                wire:click="selectAccountType('business')"
+                wire:click="selectAccountType(App\Enums\AccountType::BUSINESS)"
                 class="w-full text-left p-6 border-2 rounded-lg transition-all duration-200 hover:border-blue-300 dark:hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                    {{ $selectedAccountType === 'business' ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800' }}">
+                    {{ $selectedAccountType === App\Enums\AccountType::BUSINESS ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800' }}">
 
                 <div class="flex items-start space-x-4">
                     <div class="flex-shrink-0">
@@ -35,7 +35,7 @@
                             Perfect for restaurants, salons, retail stores, and other businesses looking to collaborate with local influencers to increase brand awareness and drive sales.
                         </p>
                     </div>
-                    @if($selectedAccountType === 'business')
+                    @if($selectedAccountType === App\Enums\AccountType::BUSINESS)
                         <div class="flex-shrink-0">
                             <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
@@ -50,9 +50,9 @@
         <div class="relative">
             <button
                 type="button"
-                wire:click="selectAccountType('influencer')"
+                wire:click="selectAccountType(App\Enums\AccountType::INFLUENCER)"
                 class="w-full text-left p-6 border-2 rounded-lg transition-all duration-200 hover:border-purple-300 dark:hover:border-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500
-                    {{ $selectedAccountType === 'influencer' ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800' }}">
+                    {{ $selectedAccountType === App\Enums\AccountType::INFLUENCER ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800' }}">
 
                 <div class="flex items-start space-x-4">
                     <div class="flex-shrink-0">
@@ -68,7 +68,7 @@
                             Ideal for content creators, social media influencers, and local personalities who want to collaborate with businesses and monetize their audience.
                         </p>
                     </div>
-                    @if($selectedAccountType === 'influencer')
+                    @if($selectedAccountType === App\Enums\AccountType::INFLUENCER)
                         <div class="flex-shrink-0">
                             <svg class="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>

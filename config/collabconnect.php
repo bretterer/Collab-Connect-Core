@@ -24,4 +24,32 @@ return [
     */
 
     'support_response_days' => env('SUPPORT_RESPONSE_DAYS', 4), // in business days
+
+    /*
+    |--------------------------------------------------------------------------
+    | Registration Enabled
+    |--------------------------------------------------------------------------
+    |
+    | This setting determines whether user registration is enabled or not.
+    | If set to true, users can register; if false, registration is disabled.
+    |
+    */
+
+    'registration_enabled' => env('REGISTRATION_ENABLED', false),
+
+    'beta_registration_only' => env('BETA_REGISTRATION_ONLY', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Initial User Email
+    |--------------------------------------------------------------------------
+    |
+    | This value is used for development/testing purposes to pre-populate
+    | user email fields or other initialization tasks.
+    |
+    */
+
+    'init_user_email' => env('INIT_USER_EMAIL'),
+    'init_business_email' => env('INIT_BUSINESS_EMAIL'),
+    'init_influencer_email' => env('INIT_INFLUENCER_EMAIL'),
 ];

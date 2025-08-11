@@ -9,13 +9,7 @@ require __DIR__.'/marketing.php';
 // Broadcasting routes
 Broadcast::routes(['middleware' => ['web', 'auth']]);
 
-Route::middleware(['auth'])->group(function () {
-    // Onboarding routes (accessible before onboarding is completed)
-    Route::prefix('onboarding')->name('onboarding.')->group(function () {
-        Route::get('/account-type', App\Livewire\Onboarding\AccountTypeSelection::class)->name('account-type');
-        Route::get('/business', App\Livewire\Onboarding\BusinessOnboarding::class)->name('business');
-        Route::get('/influencer', App\Livewire\Onboarding\InfluencerOnboarding::class)->name('influencer');
-    });
+Route::middleware(['auth', 'verified'])->group(function () {
 
     // Admin routes (protected by admin middleware)
     Route::prefix('admin')->name('admin.')->middleware(App\Http\Middleware\EnsureAdminAccess::class)->group(function () {
@@ -27,6 +21,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{user}', App\Livewire\Admin\Users\UserShow::class)->name('show');
             Route::get('/{user}/edit', App\Livewire\Admin\Users\UserEdit::class)->name('edit');
         });
+
+
+        Route::get('/beta-invites', App\Livewire\Admin\Users\BetaInvites::class)->name('beta-invites');
 
         // Campaign management
         Route::prefix('campaigns')->name('campaigns.')->group(function () {
