@@ -17,12 +17,13 @@ class VerifyEmail extends Component
         if (Auth::user()->hasVerifiedEmail()) {
             session()->flash('toast', [
                 'message' => 'Your email address is already verified.',
-                'type' => 'info'
+                'type' => 'info',
             ]);
             $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
         }
     }
-     /**
+
+    /**
      * Send an email verification notification to the user.
      */
     public function sendVerification(): void
@@ -30,18 +31,19 @@ class VerifyEmail extends Component
         if (Auth::user()->hasVerifiedEmail()) {
             session()->flash('toast', [
                 'message' => 'Your email address is already verified.',
-                'type' => 'info'
+                'type' => 'info',
             ]);
             $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
 
             return;
         }
 
-        $cacheKey = 'email_verification_sent_' . Auth::id();
+        $cacheKey = 'email_verification_sent_'.Auth::id();
 
         if (Cache::has($cacheKey)) {
             $remainingTime = Cache::get($cacheKey) - now()->timestamp;
             Toaster::warning("Please wait {$remainingTime} seconds before requesting another verification email.");
+
             return;
         }
 

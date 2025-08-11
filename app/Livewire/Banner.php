@@ -7,16 +7,17 @@ use Livewire\Component;
 class Banner extends Component
 {
     public ?array $banner = null;
+
     public bool $visible = true;
 
     public function mount(): void
     {
         $this->banner = session('banner');
-        
-        if ($this->banner && !isset($this->banner['closable'])) {
+
+        if ($this->banner && ! isset($this->banner['closable'])) {
             $this->banner['closable'] = false;
         }
-        
+
         // Clear the session banner after mounting
         session()->forget('banner');
     }

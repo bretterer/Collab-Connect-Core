@@ -33,14 +33,14 @@ class UtmTracking
             }
         }
 
-        if (Auth::check() && !empty($utm)) {
+        if (Auth::check() && ! empty($utm)) {
             Cookie::queue(Cookie::forget('utm_data'));
 
             if (empty(Auth::user()->utm_data)) {
                 Auth::user()->update(['utm_data' => $utm]);
             }
 
-        } elseif (!empty($utm)) {
+        } elseif (! empty($utm)) {
             Cookie::queue('utm_data', json_encode($utm), 60 * 24 * 365);
         }
 

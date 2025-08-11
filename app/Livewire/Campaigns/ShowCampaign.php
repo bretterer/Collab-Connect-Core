@@ -18,23 +18,24 @@ class ShowCampaign extends Component
     public Campaign $campaign;
 
     public bool $isOwner = false;
+
     public Collection $applications;
 
     public function mount(Campaign $campaign)
     {
         // Load the campaign with all relationships
         $this->campaign = $campaign->load([
-            'brief', 
-            'brand', 
-            'requirements', 
-            'compensation', 
+            'brief',
+            'brand',
+            'requirements',
+            'compensation',
             'user.businessProfile',
-            'applications.user.influencerProfile'
+            'applications.user.influencerProfile',
         ]);
 
         $this->applications = $this->campaign->applications;
 
-        if( Auth::user()->account_type === AccountType::INFLUENCER ) {
+        if (Auth::user()->account_type === AccountType::INFLUENCER) {
             $this->applications = $this->applications->filter(function ($application) {
                 return $application->user_id == Auth::user()->id;
             });

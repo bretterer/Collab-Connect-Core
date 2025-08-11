@@ -28,11 +28,11 @@ class AccountTypeSelection extends Component
             $user->setAccountType($this->selectedAccountType);
         } catch (\Exception $e) {
             $this->addError('account_type', 'Failed to set account type. Please try again.');
+
             return;
         }
 
         event(new Registered($user));
-
 
     }
 

@@ -12,7 +12,7 @@ class MediaKit extends Component
     public function mount()
     {
         // Ensure only influencer users can access media kit
-        if (!Auth::user()->isInfluencerAccount()) {
+        if (! Auth::user()->isInfluencerAccount()) {
             return redirect()->route('dashboard');
         }
     }

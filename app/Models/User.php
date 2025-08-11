@@ -243,19 +243,21 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         if ($this->account_type === AccountType::BUSINESS) {
             $profile = $this->businessProfile;
-            return $profile && 
-                   $profile->business_name && 
-                   $profile->industry && 
-                   $profile->primary_zip_code && 
-                   $profile->contact_name && 
+
+            return $profile &&
+                   $profile->business_name &&
+                   $profile->industry &&
+                   $profile->primary_zip_code &&
+                   $profile->contact_name &&
                    $profile->contact_email;
         }
 
         if ($this->account_type === AccountType::INFLUENCER) {
             $profile = $this->influencerProfile;
-            return $profile && 
-                   $profile->creator_name && 
-                   $profile->primary_niche && 
+
+            return $profile &&
+                   $profile->creator_name &&
+                   $profile->primary_niche &&
                    $profile->primary_zip_code;
         }
 

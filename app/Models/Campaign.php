@@ -155,21 +155,21 @@ class Campaign extends Model
         if ($this->compensation && method_exists($this->compensation, 'compensation_display')) {
             return $this->compensation->compensation_display;
         }
-        
+
         // Otherwise, build display from direct fields
         if ($this->compensation_type && $this->compensation_amount) {
             return match ($this->compensation_type) {
-                \App\Enums\CompensationType::MONETARY => '$' . number_format($this->compensation_amount),
-                \App\Enums\CompensationType::BARTER => 'Barter (worth $' . number_format($this->compensation_amount) . ')',
-                \App\Enums\CompensationType::FREE_PRODUCT => 'Free Products (worth $' . number_format($this->compensation_amount) . ')',
-                \App\Enums\CompensationType::DISCOUNT => $this->compensation_amount . '% Discount',
-                \App\Enums\CompensationType::GIFT_CARD => '$' . number_format($this->compensation_amount) . ' Gift Card',
-                \App\Enums\CompensationType::EXPERIENCE => 'Experience (worth $' . number_format($this->compensation_amount) . ')',
-                \App\Enums\CompensationType::OTHER => 'Custom ($' . number_format($this->compensation_amount) . ' value)',
+                \App\Enums\CompensationType::MONETARY => '$'.number_format($this->compensation_amount),
+                \App\Enums\CompensationType::BARTER => 'Barter (worth $'.number_format($this->compensation_amount).')',
+                \App\Enums\CompensationType::FREE_PRODUCT => 'Free Products (worth $'.number_format($this->compensation_amount).')',
+                \App\Enums\CompensationType::DISCOUNT => $this->compensation_amount.'% Discount',
+                \App\Enums\CompensationType::GIFT_CARD => '$'.number_format($this->compensation_amount).' Gift Card',
+                \App\Enums\CompensationType::EXPERIENCE => 'Experience (worth $'.number_format($this->compensation_amount).')',
+                \App\Enums\CompensationType::OTHER => 'Custom ($'.number_format($this->compensation_amount).' value)',
                 default => 'Not specified'
             };
         }
-        
+
         return 'Not set';
     }
 

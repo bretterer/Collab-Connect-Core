@@ -18,7 +18,7 @@ class CampaignShow extends Component
             'applications.user.influencerProfile',
             'compensation',
             'requirements',
-            'brief'
+            'brief',
         ]);
     }
 

@@ -1,9 +1,16 @@
 <?php
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    if(Cookie::has('referral_code')) {
+        $referralCode = Cookie::get('referral_code');
+    }
+    return view('welcome', [
+        'referralCode' => $referralCode ?? null,
+    ]);
 })->name('home');
 
 Route::get('/contact', function () {
@@ -25,6 +32,15 @@ Route::get('/careers', function () {
 Route::get('/about', function () {
     return view('about');
 })->name('about');
+
+Route::get('/refer', function (Request $request) {
+    if($request->has('code')) {
+        $code = $request->input('code');
+        Cookie::queue('referral_code', $code, 60 * 24 * 30); // Store for 30 days
+    }
+
+    return redirect()->route('home');
+});
 
 Route::post('/contact', function (Illuminate\Http\Request $request) {
     $validated = $request->validate([
@@ -61,12 +77,13 @@ Route::post('/contact', function (Illuminate\Http\Request $request) {
 
         // Clear any old input data and redirect with success message
         $request->session()->forget('_old_input');
+
         return back()->with('success', "Thank you for contacting us! We've sent you a confirmation email and will get back to you within {$responseText}.");
     } catch (\Exception $e) {
         \Illuminate\Support\Facades\Log::error('Contact form email failed', [
             'error' => $e->getMessage(),
             'email' => $validated['email'],
-            'subject' => $validated['subject']
+            'subject' => $validated['subject'],
         ]);
 
         return back()->with('error', 'Sorry, there was an issue sending your message. Please try again later or contact us directly at hello@collabconnect.app.');
@@ -80,6 +97,7 @@ Route::post('/waitlist', function (Illuminate\Http\Request $request) {
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'user_type' => 'required|in:business,influencer',
+            'referral_code' => 'nullable|string|max:8',
         ];
 
         // Add conditional validation based on user type
@@ -96,69 +114,46 @@ Route::post('/waitlist', function (Illuminate\Http\Request $request) {
 
         $validated = $request->validate($rules);
 
-    // Prepare CSV data - keeping existing CSV functionality
-    $csvData = [
-        now()->toDateTimeString(),
-        $validated['name'],
-        $validated['email'],
-        $validated['user_type'],
-        $validated['business_name'] ?? '',
-        $validated['follower_count'] ?? '',
-    ];
-
-    // Define CSV file path
-    $csvPath = storage_path('app/private/waitlist.csv');
-
-    // Create directory if it doesn't exist
-    if (! file_exists(dirname($csvPath))) {
-        mkdir(dirname($csvPath), 0755, true);
-    }
-
-    // Check if file exists to determine if we need headers
-    $fileExists = file_exists($csvPath);
-
-    // Open file for appending
-    $file = fopen($csvPath, 'a');
-
-    // Add headers if file is new
-    if (! $fileExists) {
-        fputcsv($file, ['Timestamp', 'Name', 'Email', 'User Type', 'Business Name', 'Follower Count']);
-    }
-
-    // Add the data
-    fputcsv($file, $csvData);
-    fclose($file);
-
-    try {
-        // Send notification email to CollabConnect team
-        \Illuminate\Support\Facades\Mail::to('hello@collabconnect.app')
-            ->send(new \App\Mail\BetaSignupNotification(
-                name: $validated['name'],
-                email: $validated['email'],
-                userType: $validated['user_type'],
-                businessName: $validated['business_name'] ?? null,
-                followerCount: $validated['follower_count'] ?? null
-            ));
-
-        // Send confirmation email to the user
-        \Illuminate\Support\Facades\Mail::to($validated['email'])
-            ->send(new \App\Mail\BetaSignupConfirmation(
-                name: $validated['name'],
-                userType: $validated['user_type'],
-                businessName: $validated['business_name'] ?? null,
-                followerCount: $validated['follower_count'] ?? null
-            ));
-
-                return back()->with('success', 'Thank you for joining our beta waitlist! Check your email for confirmation details.');
-    } catch (\Exception $e) {
-        \Illuminate\Support\Facades\Log::error('Beta signup email failed', [
-            'error' => $e->getMessage(),
+        // Save to database using Waitlist model
+        \App\Models\Waitlist::create([
+            'name' => $validated['name'],
             'email' => $validated['email'],
-            'user_type' => $validated['user_type']
+            'user_type' => $validated['user_type'],
+            'referral_code' => $validated['referral_code'] ?? '',
+            'business_name' => $validated['business_name'] ?? '',
+            'follower_count' => $validated['follower_count'] ?? '',
         ]);
 
-        // Still return success since CSV was saved, but mention email issue
-        return back()->with('success', 'Thank you for joining our beta waitlist! We\'ve received your signup and will be in touch soon.');
+        try {
+            // Send notification email to CollabConnect team
+            \Illuminate\Support\Facades\Mail::to('hello@collabconnect.app')
+                ->send(new \App\Mail\BetaSignupNotification(
+                    name: $validated['name'],
+                    email: $validated['email'],
+                    userType: $validated['user_type'],
+                    businessName: $validated['business_name'] ?? null,
+                    followerCount: $validated['follower_count'] ?? null
+                ));
+
+            // Send confirmation email to the user
+            \Illuminate\Support\Facades\Mail::to($validated['email'])
+                ->send(new \App\Mail\BetaSignupConfirmation(
+                    name: $validated['name'],
+                    userType: $validated['user_type'],
+                    businessName: $validated['business_name'] ?? null,
+                    followerCount: $validated['follower_count'] ?? null
+                ));
+
+            return back()->with('success', 'Thank you for joining our beta waitlist! Check your email for confirmation details.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Beta signup email failed', [
+                'error' => $e->getMessage(),
+                'email' => $validated['email'],
+                'user_type' => $validated['user_type'],
+            ]);
+
+            // Still return success since CSV was saved, but mention email issue
+            return back()->with('success', 'Thank you for joining our beta waitlist! We\'ve received your signup and will be in touch soon.');
         }
     } catch (\Illuminate\Validation\ValidationException $e) {
         // Handle validation errors properly
@@ -167,7 +162,7 @@ Route::post('/waitlist', function (Illuminate\Http\Request $request) {
         // Handle any other errors
         \Illuminate\Support\Facades\Log::error('Beta signup failed', [
             'error' => $e->getMessage(),
-            'request' => $request->all()
+            'request' => $request->all(),
         ]);
 
         return back()->with('error', 'Sorry, there was an issue processing your signup. Please try again later.');

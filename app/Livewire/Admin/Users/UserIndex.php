@@ -15,8 +15,11 @@ class UserIndex extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $accountTypeFilter = '';
+
     public string $sortBy = 'created_at';
+
     public string $sortDirection = 'desc';
 
     protected $queryString = [
@@ -62,8 +65,8 @@ class UserIndex extends Component
             ->with(['businessProfile', 'influencerProfile'])
             ->when($this->search, function (Builder $query) {
                 $query->where(function (Builder $q) {
-                    $q->where('name', 'like', '%' . $this->search . '%')
-                      ->orWhere('email', 'like', '%' . $this->search . '%');
+                    $q->where('name', 'like', '%'.$this->search.'%')
+                        ->orWhere('email', 'like', '%'.$this->search.'%');
                 });
             })
             ->when($this->accountTypeFilter, function (Builder $query) {

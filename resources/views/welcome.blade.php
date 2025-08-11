@@ -449,12 +449,21 @@
 
                         <form class="max-w-lg mx-auto" method="POST" action="{{ route('waitlist.store') }}" id="beta-signup-form">
                             @csrf
-                            <div class="space-y-4 mb-6">
-                                <input type="text" name="name" placeholder="Your Name" required
-                                    class="w-full px-4 py-4 rounded-xl border-0 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-4 focus:ring-white/25 shadow-lg bg-white dark:bg-gray-800">
+                            <div class="space-y-4 mb-6 text-left">
+                                <div class="w-full px-4 py-4 rounded-xl border-0 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-4 focus:ring-white/25 shadow-lg bg-white dark:bg-gray-800">
+                                    <label for="name" class="block text-xs font-medium text-gray-900 dark:text-gray-200">Name</label>
+                                    <input type="text" name="name" placeholder="Your Name" class="block w-full text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm/6 dark:bg-transparent dark:text-white dark:placeholder:text-gray-500" required />
+                                </div>
 
-                                <input type="email" name="email" placeholder="Your Email" required
-                                    class="w-full px-4 py-4 rounded-xl border-0 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-4 focus:ring-white/25 shadow-lg bg-white dark:bg-gray-800">
+                                <div class="w-full px-4 py-4 rounded-xl border-0 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-4 focus:ring-white/25 shadow-lg bg-white dark:bg-gray-800">
+                                    <label for="email" class="block text-xs font-medium text-gray-900 dark:text-gray-200">Email</label>
+                                    <input type="email" name="email" placeholder="Your Email" class="block w-full text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm/6 dark:bg-transparent dark:text-white dark:placeholder:text-gray-500" required />
+                                </div>
+
+                                <div class="w-full px-4 py-4 rounded-xl border-0 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-4 focus:ring-white/25 shadow-lg bg-white dark:bg-gray-800">
+                                    <label for="referral_code" class="block text-xs font-medium text-gray-900 dark:text-gray-200">Referral Code</label>
+                                    <input type="text" name="referral_code" placeholder="Your Referral Code" value="{{ $referralCode ?? '' }}" class="block w-full text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm/6 dark:bg-transparent dark:text-white dark:placeholder:text-gray-500" />
+                                </div>
 
                                 <select name="user_type" required id="user-type-select"
                                     class="w-full px-4 py-4 rounded-xl border-0 text-gray-700 dark:text-gray-100 focus:ring-4 focus:ring-white/25 shadow-lg bg-white dark:bg-gray-800">
@@ -575,7 +584,7 @@
                 if (form) {
                     form.reset();
                     updateFieldVisibility(); // Reset conditional fields
-                    
+
                     // Reset button state
                     const button = form.querySelector('button[type="submit"]');
                     if (button) {

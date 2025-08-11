@@ -11,12 +11,13 @@ use Livewire\Component;
 class Analytics extends Component
 {
     public $timeFrame = '6'; // months
+
     public $selectedMetric = 'overview';
-    
+
     public function mount()
     {
         // Ensure only business users can access analytics
-        if (!Auth::user()->isBusinessAccount()) {
+        if (! Auth::user()->isBusinessAccount()) {
             return redirect()->route('dashboard');
         }
     }
@@ -24,7 +25,7 @@ class Analytics extends Component
     public function render()
     {
         $analyticsService = new AnalyticsService(Auth::user());
-        
+
         $data = [
             'campaign_performance' => $analyticsService->getCampaignPerformance(),
             'application_analytics' => $analyticsService->getApplicationAnalytics(),

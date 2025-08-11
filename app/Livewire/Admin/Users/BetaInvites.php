@@ -3,17 +3,19 @@
 namespace App\Livewire\Admin\Users;
 
 use App\Enums\AccountType;
+use App\Models\ReferralCode;
+use App\Models\Waitlist;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Masmerise\Toaster\Toaster;
 
 #[Layout('layouts.app')]
 class BetaInvites extends Component
 {
     public $invites = [];
-    private $csvPath = 'private/waitlist.csv';
 
     public function mount()
     {
@@ -27,93 +29,52 @@ class BetaInvites extends Component
 
     public function loadInvites()
     {
-        $fullPath = storage_path('app/' . $this->csvPath);
-
-        if (!file_exists($fullPath)) {
-            $this->invites = [];
-            session()->flash('error', "Waitlist CSV file not found at: {$fullPath}");
-            return;
-        }
-
         try {
-            $csvContent = file_get_contents($fullPath);
-            $lines = explode("\n", $csvContent);
+            $waitlistEntries = Waitlist::latest()->with('referralCode')->get();
 
-            if (empty($lines)) {
-                $this->invites = [];
-                return;
-            }
-
-            // Remove any empty lines at the end
-            $lines = array_filter($lines, function($line) {
-                return !empty(trim($line));
-            });
-
-            $header = str_getcsv(array_shift($lines));
-
-            $this->invites = [];
-            foreach ($lines as $index => $line) {
-                $data = str_getcsv($line);
-
-                // Pad with empty strings if needed
-                while (count($data) < count($header)) {
-                    $data[] = '';
-                }
-
-                // Trim to header length if too long
-                if (count($data) > count($header)) {
-                    $data = array_slice($data, 0, count($header));
-                }
-
-                $row = array_combine($header, $data);
-
-                // Skip if no email (main identifier)
-                if (empty(trim($row['Email'] ?? ''))) {
-                    continue;
-                }
-
+            $this->invites = $waitlistEntries->map(function ($entry) {
                 // Parse the name field
-                $nameParts = explode(' ', trim($row['Name'] ?? ''), 2);
+                $nameParts = explode(' ', trim($entry->name), 2);
                 $firstName = $nameParts[0] ?? '';
                 $lastName = $nameParts[1] ?? '';
 
-                $this->invites[] = [
-                    'id' => $index,
+                return [
+                    'id' => $entry->id,
                     'first_name' => $firstName,
                     'last_name' => $lastName,
-                    'full_name' => trim($row['Name'] ?? ''),
-                    'email' => trim($row['Email'] ?? ''),
-                    'user_type' => strtolower(trim($row['User Type'] ?? '')),
-                    'business_name' => trim($row['Business Name'] ?? ''),
-                    'follower_count' => trim($row['Follower Count'] ?? ''),
-                    'invited_at' => !empty(trim($row['Invited At'] ?? '')) ? trim($row['Invited At']) : null,
-                    'registered_at' => !empty(trim($row['Registered At'] ?? '')) ? trim($row['Registered At']) : null,
-                    'invite_token' => !empty(trim($row['Invite Token'] ?? '')) ? trim($row['Invite Token']) : null,
+                    'full_name' => $entry->name,
+                    'email' => $entry->email,
+                    'user_type' => $entry->user_type,
+                    'business_name' => $entry->business_name,
+                    'follower_count' => $entry->follower_count,
+                    'invited_at' => $entry->invited_at,
+                    'registered_at' => null, // Will be handled by user registration
+                    'invite_token' => $entry->invite_token,
+                    'referralCode' => $entry->referralCode ? $entry->referralCode->code : null,
                 ];
-            }
+            })->toArray();
         } catch (\Exception $e) {
             $this->invites = [];
-            session()->flash('error', 'Error reading CSV: ' . $e->getMessage());
+            session()->flash('error', 'Error loading waitlist: ' . $e->getMessage());
         }
     }
 
-    public function sendInvite($inviteIndex)
+    public function sendInvite($inviteId)
     {
-        $invite = $this->invites[$inviteIndex] ?? null;
+        $waitlistEntry = Waitlist::find($inviteId);
 
-        if (!$invite || !empty($invite['invited_at'])) {
+        if (!$waitlistEntry || $waitlistEntry->invited_at) {
             session()->flash('error', 'Invite not found or already sent.');
             return;
         }
 
         // Generate secure token
         $token = Str::random(64);
-        $invitedAt = now()->toISOString();
 
-        // Update CSV with invitation data
-        $this->updateCsvRow($inviteIndex, [
-            'Invited At' => $invitedAt,
-            'Invite Token' => $token,
+        // Update database with invitation data
+        $waitlistEntry->update([
+            'invited_at' => now(),
+            'invite_token' => $token,
         ]);
 
         // Create signed URL that expires in 7 days
@@ -125,42 +86,41 @@ class BetaInvites extends Component
 
         // Create invite object for email
         $inviteData = (object) [
-            'first_name' => $invite['first_name'],
-            'last_name' => $invite['last_name'],
-            'email' => $invite['email'],
-            'account_type_interest' => $invite['user_type'] === 'business' ? AccountType::BUSINESS : AccountType::INFLUENCER,
+            'first_name' => explode(' ', $waitlistEntry->name)[0] ?? '',
+            'last_name' => explode(' ', $waitlistEntry->name)[1] ?? '',
+            'email' => $waitlistEntry->email,
+            'account_type_interest' => $waitlistEntry->user_type === 'business' ? AccountType::BUSINESS : AccountType::INFLUENCER,
         ];
 
         // Send email based on user type
-        $emailClass = match($invite['user_type']) {
+        $emailClass = match($waitlistEntry->user_type) {
             'business' => \App\Mail\BetaInviteBusiness::class,
             'influencer' => \App\Mail\BetaInviteInfluencer::class,
             default => \App\Mail\BetaInviteGeneric::class,
         };
 
-        Mail::to($invite['email'])->send(new $emailClass($inviteData, $signedUrl));
+        Mail::to($waitlistEntry->email)->send(new $emailClass($inviteData, $signedUrl));
 
         $this->loadInvites();
-        session()->flash('message', "Beta invite sent to {$invite['email']}");
+        session()->flash('message', "Beta invite sent to {$waitlistEntry->email}");
     }
 
-    public function resendInvite($inviteIndex)
+    public function resendInvite($inviteId)
     {
-        $invite = $this->invites[$inviteIndex] ?? null;
+        $waitlistEntry = Waitlist::find($inviteId);
 
-        if (!$invite) {
+        if (!$waitlistEntry) {
             session()->flash('error', 'Invite not found.');
             return;
         }
 
         // Generate new token
         $token = Str::random(64);
-        $invitedAt = now()->toISOString();
 
-        // Update CSV with new invitation data
-        $this->updateCsvRow($inviteIndex, [
-            'Invited At' => $invitedAt,
-            'Invite Token' => $token,
+        // Update database with new invitation data
+        $waitlistEntry->update([
+            'invited_at' => now(),
+            'invite_token' => $token,
         ]);
 
         // Create signed URL
@@ -172,76 +132,57 @@ class BetaInvites extends Component
 
         // Create invite object for email
         $inviteData = (object) [
-            'first_name' => $invite['first_name'],
-            'last_name' => $invite['last_name'],
-            'email' => $invite['email'],
-            'account_type_interest' => $invite['user_type'] === 'business' ? AccountType::BUSINESS : AccountType::INFLUENCER,
+            'first_name' => explode(' ', $waitlistEntry->name)[0] ?? '',
+            'last_name' => explode(' ', $waitlistEntry->name)[1] ?? '',
+            'email' => $waitlistEntry->email,
+            'account_type_interest' => $waitlistEntry->user_type === 'business' ? AccountType::BUSINESS : AccountType::INFLUENCER,
         ];
 
         // Send email
-        $emailClass = match($invite['user_type']) {
+        $emailClass = match($waitlistEntry->user_type) {
             'business' => \App\Mail\BetaInviteBusiness::class,
             'influencer' => \App\Mail\BetaInviteInfluencer::class,
             default => \App\Mail\BetaInviteGeneric::class,
         };
 
-        Mail::to($invite['email'])->send(new $emailClass($inviteData, $signedUrl));
+        Mail::to($waitlistEntry->email)->send(new $emailClass($inviteData, $signedUrl));
 
         $this->loadInvites();
-        session()->flash('message', "Beta invite resent to {$invite['email']}");
+        session()->flash('message', "Beta invite resent to {$waitlistEntry->email}");
     }
 
-    private function updateCsvRow($rowIndex, $updates)
+    public function addToReferralProgram($inviteId)
     {
-        $fullPath = storage_path('app/' . $this->csvPath);
+        $waitlistEntry = Waitlist::find($inviteId);
 
-        if (!file_exists($fullPath)) {
+        if (!$waitlistEntry) {
+            session()->flash('error', 'Invite not found.');
             return;
         }
 
-        $csvContent = file_get_contents($fullPath);
-        $lines = explode("\n", $csvContent);
-        $header = str_getcsv($lines[0]);
+        $referralCode = ReferralCode::create([
+            'email' => $waitlistEntry->email,
+            'code' => (new ReferralCode())->generateCode(),
+        ]);
 
-        // Add new columns to header if they don't exist
-        foreach (array_keys($updates) as $newColumn) {
-            if (!in_array($newColumn, $header)) {
-                $header[] = $newColumn;
-            }
-        }
+        Mail::to($waitlistEntry->email)->send(new \App\Mail\ReferralProgramInvite($waitlistEntry->email, $waitlistEntry->name, $referralCode));
 
-        // Update the specific row
-        if (isset($lines[$rowIndex + 1])) {
-            $data = str_getcsv($lines[$rowIndex + 1]);
-
-            // Ensure data array has same length as header
-            while (count($data) < count($header)) {
-                $data[] = '';
-            }
-
-            $row = array_combine($header, $data);
-
-            // Apply updates
-            foreach ($updates as $column => $value) {
-                $row[$column] = $value;
-            }
-
-            // Convert back to CSV row with proper escaping
-            $escapedValues = array_map(function($value) {
-                return '"' . str_replace('"', '""', $value) . '"';
-            }, array_values($row));
-
-            $lines[$rowIndex + 1] = implode(',', $escapedValues);
-        }
-
-        // Update header line with proper escaping
-        $escapedHeader = array_map(function($value) {
-            return '"' . str_replace('"', '""', $value) . '"';
-        }, $header);
-
-        $lines[0] = implode(',', $escapedHeader);
-
-        // Write back to file
-        file_put_contents($fullPath, implode("\n", $lines));
+        $this->loadInvites();
+        Toaster::success("Referral program added for {$waitlistEntry->email}");
     }
+
+    public function resendReferralCode($inviteId)
+    {
+        $waitlistEntry = Waitlist::find($inviteId);
+
+        if (!$waitlistEntry || !$waitlistEntry->referralCode) {
+            session()->flash('error', 'Referral code not found.');
+            return;
+        }
+
+        Mail::to($waitlistEntry->email)->send(new \App\Mail\ReferralProgramInvite($waitlistEntry->email, $waitlistEntry->name, $waitlistEntry->referralCode->code));
+
+        session()->flash('message', "Referral code resent to {$waitlistEntry->email}");
+    }
+
 }

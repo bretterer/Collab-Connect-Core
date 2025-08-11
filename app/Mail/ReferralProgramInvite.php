@@ -8,26 +8,27 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class BetaInviteInfluencer extends Mailable
+class ReferralProgramInvite extends Mailable
 {
     use Queueable, SerializesModels;
 
     public function __construct(
-        public object $invite,
-        public string $signedUrl
+        public string $email,
+        public string $name,
+        public string $referralCode
     ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'You\'re Invited to Join CollabConnect Beta - Influencers',
+            subject: 'Earn $5 for Every Friend You Refer to CollabConnect!',
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.beta-invite-influencer',
+            markdown: 'emails.referral-program-invite',
         );
     }
 

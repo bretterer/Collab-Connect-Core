@@ -7,7 +7,6 @@ use App\Enums\CampaignStatus;
 use App\Models\Campaign;
 use App\Models\CampaignApplication;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 

@@ -11,8 +11,11 @@ use Livewire\Component;
 class CampaignEdit extends Component
 {
     public Campaign $campaign;
+
     public string $campaignGoal;
+
     public ?string $campaignDescription;
+
     public CampaignStatus $status;
 
     public function mount(Campaign $campaign)
@@ -28,7 +31,7 @@ class CampaignEdit extends Component
         return [
             'campaignGoal' => 'required|string|max:500',
             'campaignDescription' => 'nullable|string|max:2000',
-            'status' => 'required|in:' . implode(',', array_map(fn($case) => $case->value, CampaignStatus::cases())),
+            'status' => 'required|in:'.implode(',', array_map(fn ($case) => $case->value, CampaignStatus::cases())),
         ];
     }
 
@@ -50,7 +53,7 @@ class CampaignEdit extends Component
     public function getStatusOptions()
     {
         return collect(CampaignStatus::cases())
-            ->mapWithKeys(fn($case) => [$case->value => $case->label()])
+            ->mapWithKeys(fn ($case) => [$case->value => $case->label()])
             ->toArray();
     }
 

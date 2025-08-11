@@ -17,6 +17,7 @@ class VerifyEmailController extends Controller
     {
         if ($request->user()->hasVerifiedEmail()) {
             Toaster::info('Your email address is already verified.');
+
             return redirect()->intended(route('dashboard', absolute: false));
         }
 
@@ -28,6 +29,7 @@ class VerifyEmailController extends Controller
         }
 
         Toaster::success('Your email address has been verified.');
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 }

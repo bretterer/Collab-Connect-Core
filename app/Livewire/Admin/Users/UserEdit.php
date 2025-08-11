@@ -11,8 +11,11 @@ use Livewire\Component;
 class UserEdit extends Component
 {
     public User $user;
+
     public string $name;
+
     public string $email;
+
     public AccountType $accountType;
 
     public function mount(User $user)
@@ -27,8 +30,8 @@ class UserEdit extends Component
     {
         return [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $this->user->id,
-            'accountType' => 'required|in:' . implode(',', array_map(fn($case) => $case->value, AccountType::cases())),
+            'email' => 'required|email|unique:users,email,'.$this->user->id,
+            'accountType' => 'required|in:'.implode(',', array_map(fn ($case) => $case->value, AccountType::cases())),
         ];
     }
 
@@ -50,7 +53,7 @@ class UserEdit extends Component
     public function getAccountTypeOptions()
     {
         return collect(AccountType::cases())
-            ->mapWithKeys(fn($case) => [$case->value => $case->label()])
+            ->mapWithKeys(fn ($case) => [$case->value => $case->label()])
             ->toArray();
     }
 

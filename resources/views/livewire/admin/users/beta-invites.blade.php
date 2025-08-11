@@ -51,7 +51,7 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        @foreach($invites as $index => $invite)
+                        @foreach($invites as $invite)
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900 dark:text-white">
@@ -62,7 +62,7 @@
                                     <div class="text-sm text-gray-900 dark:text-gray-100">{{ $invite['email'] }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
                                         {{ $invite['user_type'] === 'influencer' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200' }}">
                                         {{ ucfirst($invite['user_type']) }}
                                     </span>
@@ -101,21 +101,39 @@
                                     @if(!empty($invite['registered_at']))
                                         <span class="text-gray-400 dark:text-gray-500">Completed</span>
                                     @elseif(!empty($invite['invited_at']))
-                                        <button wire:click="resendInvite({{ $index }})" 
+                                        <button wire:click="resendInvite({{ $invite['id'] }})"
                                                 class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 mr-3 disabled:opacity-50"
                                                 wire:loading.attr="disabled"
-                                                wire:target="resendInvite({{ $index }})">
-                                            <span wire:loading.remove wire:target="resendInvite({{ $index }})">Resend</span>
-                                            <span wire:loading wire:target="resendInvite({{ $index }})">Sending...</span>
+                                                wire:target="resendInvite({{ $invite['id'] }})">
+                                            <span wire:loading.remove wire:target="resendInvite({{ $invite['id'] }})">Resend Invite</span>
+                                            <span wire:loading wire:target="resendInvite({{ $invite['id'] }})">Sending...</span>
                                         </button>
                                     @else
-                                        <button wire:click="sendInvite({{ $index }})" 
+                                        <button wire:click="sendInvite({{ $invite['id'] }})"
                                                 class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 disabled:opacity-50"
                                                 wire:loading.attr="disabled"
-                                                wire:target="sendInvite({{ $index }})">
-                                            <span wire:loading.remove wire:target="sendInvite({{ $index }})">Send Invite</span>
-                                            <span wire:loading wire:target="sendInvite({{ $index }})">Sending...</span>
+                                                wire:target="sendInvite({{ $invite['id'] }})">
+                                            <span wire:loading.remove wire:target="sendInvite({{ $invite['id'] }})">Send Invite</span>
+                                            <span wire:loading wire:target="sendInvite({{ $invite['id'] }})">Sending...</span>
                                         </button>
+                                    @endif
+
+                                    @if(!empty($invite['referralCode']))
+                                        <button wire:click="resendReferralCode({{ $invite['id'] }})"
+                                                class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 disabled:opacity-50"
+                                                wire:loading.attr="disabled"
+                                                wire:target="resendReferralCode({{ $invite['id'] }})">
+                                        <span wire:loading.remove wire:target="resendReferralCode({{ $invite['id'] }})">Resend Code {{ $invite['referralCode'] }}</span>
+                                        <span wire:loading wire:target="resendReferralCode({{ $invite['id'] }})">Sending...</span>
+                                    </button>
+                                    @else
+                                    <button wire:click="addToReferralProgram({{ $invite['id'] }})"
+                                                class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 disabled:opacity-50"
+                                                wire:loading.attr="disabled"
+                                                wire:target="addToReferralProgram({{ $invite['id'] }})">
+                                        <span wire:loading.remove wire:target="addToReferralProgram({{ $invite['id'] }})">Referral Program</span>
+                                        <span wire:loading wire:target="addToReferralProgram({{ $invite['id'] }})">Sending...</span>
+                                    </button>
                                     @endif
                                 </td>
                             </tr>

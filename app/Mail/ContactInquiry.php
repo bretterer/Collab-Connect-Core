@@ -3,7 +3,6 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
@@ -36,7 +35,7 @@ class ContactInquiry extends Mailable
         return new Envelope(
             subject: "[CollabConnect Contact] {$this->inquirySubject}",
             replyTo: [
-                new Address($this->email, "{$this->firstName} {$this->lastName}")
+                new Address($this->email, "{$this->firstName} {$this->lastName}"),
             ]
         );
     }

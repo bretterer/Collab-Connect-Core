@@ -3,7 +3,6 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
@@ -37,7 +36,7 @@ class BetaSignupNotification extends Mailable
         return new Envelope(
             subject: "[CollabConnect Beta] New {$userTypeLabel} Signup: {$this->name}",
             replyTo: [
-                new Address($this->email, $this->name)
+                new Address($this->email, $this->name),
             ]
         );
     }

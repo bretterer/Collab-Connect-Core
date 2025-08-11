@@ -19,8 +19,9 @@ class MessageSeeder extends Seeder
         $mainBusinessUser = User::where('email', env('INIT_BUSINESS_EMAIL', 'business@example.com'))->first();
         $mainInfluencerUser = User::where('email', env('INIT_INFLUENCER_EMAIL', 'influencer@example.com'))->first();
 
-        if (!$mainBusinessUser || !$mainInfluencerUser) {
+        if (! $mainBusinessUser || ! $mainInfluencerUser) {
             $this->command->warn('Main business or influencer user not found. Skipping message seeding.');
+
             return;
         }
 
@@ -49,7 +50,9 @@ class MessageSeeder extends Seeder
 
         // 3. Create 5-10 other conversations from the main influencer to other businesses
         foreach ($additionalBusinessUsers as $business) {
-            if ($conversationCount >= 16) break; // Limit total conversations
+            if ($conversationCount >= 16) {
+                break;
+            } // Limit total conversations
             $chat = Chat::findOrCreateBetweenUsers($business, $mainInfluencerUser);
             $this->createConversation($chat, $business, $mainInfluencerUser);
             $conversationCount++;
@@ -72,7 +75,7 @@ class MessageSeeder extends Seeder
                 ['user' => $businessUser, 'message' => "Of course! I'll send over the campaign brief with all the details. The timeline is flexible, so we can work around your schedule."],
             ],
             [
-                ['user' => $businessUser, 'message' => "Hello! I love your content style and think it would align perfectly with our brand values. Would you be open to discussing a collaboration?"],
+                ['user' => $businessUser, 'message' => 'Hello! I love your content style and think it would align perfectly with our brand values. Would you be open to discussing a collaboration?'],
                 ['user' => $influencerUser, 'message' => "Hi there! Thanks for the compliment. I'd definitely be open to learning more. What kind of brand are you representing?"],
                 ['user' => $businessUser, 'message' => "We're a local sustainable fashion brand. We're looking for influencers who are passionate about eco-friendly fashion to help spread our message."],
                 ['user' => $influencerUser, 'message' => "That's amazing! Sustainability is something I'm really passionate about. What would the collaboration involve?"],
@@ -80,18 +83,18 @@ class MessageSeeder extends Seeder
             [
                 ['user' => $influencerUser, 'message' => "Hi! I saw your campaign posting and I'm really interested. Your brand mission resonates with me and my audience."],
                 ['user' => $businessUser, 'message' => "Hi {$influencerUser->name}! Thank you for your interest. I checked out your profile and your engagement rates are impressive. Let's discuss the details."],
-                ['user' => $influencerUser, 'message' => "Perfect! I have some creative ideas for how we could showcase your products. When would be a good time to discuss this further?"],
+                ['user' => $influencerUser, 'message' => 'Perfect! I have some creative ideas for how we could showcase your products. When would be a good time to discuss this further?'],
                 ['user' => $businessUser, 'message' => "I'm available this week for a call. Let's schedule something that works for both of us."],
             ],
             [
                 ['user' => $businessUser, 'message' => "Hey {$influencerUser->name}! Your recent posts about local businesses caught my attention. I'd love to discuss a potential partnership."],
-                ['user' => $influencerUser, 'message' => "Hi! I love supporting local businesses. What did you have in mind?"],
+                ['user' => $influencerUser, 'message' => 'Hi! I love supporting local businesses. What did you have in mind?'],
                 ['user' => $businessUser, 'message' => "We're opening a new location and would love to have you come try our menu and share your experience with your followers."],
             ],
             [
-                ['user' => $influencerUser, 'message' => "Hello! I applied for your campaign and wanted to follow up. I have some great ideas for content creation."],
+                ['user' => $influencerUser, 'message' => 'Hello! I applied for your campaign and wanted to follow up. I have some great ideas for content creation.'],
                 ['user' => $businessUser, 'message' => "Thanks for applying! I've been reviewing applications and yours stood out. What kind of content were you thinking?"],
-                ['user' => $influencerUser, 'message' => "I was thinking a mix of Instagram posts and stories, maybe a reel showing the product in action. I could also do some behind-the-scenes content."],
+                ['user' => $influencerUser, 'message' => 'I was thinking a mix of Instagram posts and stories, maybe a reel showing the product in action. I could also do some behind-the-scenes content.'],
             ],
         ];
 
@@ -116,7 +119,7 @@ class MessageSeeder extends Seeder
                 'updated_at' => $currentTime,
                 // Randomly mark some messages as read
                 'read_at' => fake()->boolean(70) ? $currentTime->addMinutes(fake()->numberBetween(1, 30)) : null,
-                'read_by_user_id' => fake()->boolean(70) ? 
+                'read_by_user_id' => fake()->boolean(70) ?
                     ($messageData['user']->id === $businessUser->id ? $influencerUser->id : $businessUser->id) : null,
             ]);
         }

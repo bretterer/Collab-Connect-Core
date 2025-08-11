@@ -293,7 +293,7 @@ class CampaignSeeder extends Seeder
             CampaignStatus::PUBLISHED,
             CampaignStatus::DRAFT,
             CampaignStatus::SCHEDULED,
-            CampaignStatus::ARCHIVED
+            CampaignStatus::ARCHIVED,
         ];
 
         foreach ($businessUsers as $businessUser) {
@@ -316,7 +316,7 @@ class CampaignSeeder extends Seeder
 
                 // Random campaign status
                 $campaignStatus = $campaignStatuses[array_rand($campaignStatuses)];
-                
+
                 // Set dates and status-specific fields based on campaign status
                 [$applicationDeadline, $campaignCompletion, $publishedAt, $scheduledDate, $currentStep] = $this->getDatesForStatus($campaignStatus);
 
@@ -328,7 +328,7 @@ class CampaignSeeder extends Seeder
                 $targetPlatforms = $this->getRandomTargetPlatforms();
                 $deliverables = $this->getRandomDeliverables($targetPlatforms);
                 $successMetrics = $this->getRandomSuccessMetrics();
-                
+
                 Campaign::factory()->withFullDetails()->create([
                     'user_id' => $businessUser->id,
                     'status' => $campaignStatus,
@@ -377,15 +377,15 @@ class CampaignSeeder extends Seeder
         // Create specific campaigns for the default business user to showcase gifted product campaigns
         if ($defaultBusinessUser) {
             $giftingIndustries = ['food_service', 'boutique', 'salon'];
-            
+
             foreach ($giftingIndustries as $industry) {
                 $templates = $campaignTemplates[$industry];
-                
+
                 // Create one campaign from each industry template
                 foreach ($templates as $template) {
                     $compensationType = $template['compensation_type'] ?? CompensationType::FREE_PRODUCT;
                     $compensationAmount = $this->getCompensationAmount($compensationType, $template['compensation_range']);
-                    
+
                     // Random campaign status (bias towards published for gifting campaigns)
                     $giftingStatuses = [
                         CampaignStatus::PUBLISHED,
@@ -394,19 +394,19 @@ class CampaignSeeder extends Seeder
                         CampaignStatus::SCHEDULED,
                     ];
                     $campaignStatus = $giftingStatuses[array_rand($giftingStatuses)];
-                    
+
                     // Set dates and status-specific fields based on campaign status
                     [$applicationDeadline, $campaignCompletion, $publishedAt, $scheduledDate, $currentStep] = $this->getDatesForStatus($campaignStatus);
-                    
+
                     // Random target zip code (using business zip or random)
                     $targetZip = $defaultBusinessUser->businessProfile->primary_zip_code ?? '12345';
-                    
+
                     // Generate comprehensive campaign data
                     $influencerCount = rand($template['influencers_range'][0], $template['influencers_range'][1]);
                     $targetPlatforms = $this->getRandomTargetPlatforms();
                     $deliverables = $this->getRandomDeliverables($targetPlatforms);
                     $successMetrics = $this->getRandomSuccessMetrics();
-                    
+
                     Campaign::factory()->withFullDetails()->create([
                         'user_id' => $defaultBusinessUser->id,
                         'status' => $campaignStatus,
@@ -451,15 +451,15 @@ class CampaignSeeder extends Seeder
                     ]);
                 }
             }
-            
+
             $this->command->info('Created additional gifting campaigns for default business user.');
         }
 
         $publishedCount = Campaign::where('status', CampaignStatus::PUBLISHED)->count();
-        $draftCount = Campaign::where('status', CampaignStatus::DRAFT)->count(); 
+        $draftCount = Campaign::where('status', CampaignStatus::DRAFT)->count();
         $scheduledCount = Campaign::where('status', CampaignStatus::SCHEDULED)->count();
         $archivedCount = Campaign::where('status', CampaignStatus::ARCHIVED)->count();
-        
+
         $this->command->info("Created {$publishedCount} published, {$draftCount} draft, {$scheduledCount} scheduled, and {$archivedCount} archived campaigns.");
     }
 
@@ -471,28 +471,28 @@ class CampaignSeeder extends Seeder
                 now()->addDays(rand(75, 120)), // campaign_completion_date
                 now()->subDays(rand(1, 14)), // published_at
                 null, // scheduled_date
-                4 // current_step (completed)
+                4, // current_step (completed)
             ],
             CampaignStatus::DRAFT => [
                 now()->addDays(rand(7, 60)), // application_deadline
                 now()->addDays(rand(75, 120)), // campaign_completion_date
                 null, // published_at
                 null, // scheduled_date
-                rand(1, 3) // current_step (incomplete)
+                rand(1, 3), // current_step (incomplete)
             ],
             CampaignStatus::SCHEDULED => [
                 now()->addDays(rand(7, 60)), // application_deadline
                 now()->addDays(rand(75, 120)), // campaign_completion_date
                 null, // published_at
                 now()->addDays(rand(1, 30)), // scheduled_date
-                4 // current_step (completed, ready to publish)
+                4, // current_step (completed, ready to publish)
             ],
             CampaignStatus::ARCHIVED => [
                 now()->subDays(rand(60, 180)), // application_deadline (past)
                 now()->subDays(rand(30, 120)), // campaign_completion_date (past)
                 now()->subDays(rand(180, 365)), // published_at (long ago)
                 null, // scheduled_date
-                4 // current_step (was completed)
+                4, // current_step (was completed)
             ],
         };
     }
@@ -527,19 +527,19 @@ class CampaignSeeder extends Seeder
     {
         $platforms = TargetPlatform::cases();
         $selectedPlatforms = [];
-        
+
         // Select 1-3 random platforms
         $count = rand(1, 3);
         $randomPlatforms = array_rand($platforms, $count);
-        
-        if (!is_array($randomPlatforms)) {
+
+        if (! is_array($randomPlatforms)) {
             $randomPlatforms = [$randomPlatforms];
         }
-        
+
         foreach ($randomPlatforms as $index) {
             $selectedPlatforms[] = $platforms[$index]->value;
         }
-        
+
         return $selectedPlatforms;
     }
 
@@ -547,19 +547,19 @@ class CampaignSeeder extends Seeder
     {
         $deliverables = DeliverableType::cases();
         $selectedDeliverables = [];
-        
+
         // Select 1-4 random deliverables
         $count = rand(1, 4);
         $randomDeliverables = array_rand($deliverables, min($count, count($deliverables)));
-        
-        if (!is_array($randomDeliverables)) {
+
+        if (! is_array($randomDeliverables)) {
             $randomDeliverables = [$randomDeliverables];
         }
-        
+
         foreach ($randomDeliverables as $index) {
             $selectedDeliverables[] = $deliverables[$index]->value;
         }
-        
+
         return $selectedDeliverables;
     }
 
@@ -567,19 +567,19 @@ class CampaignSeeder extends Seeder
     {
         $metrics = SuccessMetric::cases();
         $selectedMetrics = [];
-        
+
         // Select 2-5 random metrics
         $count = rand(2, 5);
         $randomMetrics = array_rand($metrics, min($count, count($metrics)));
-        
-        if (!is_array($randomMetrics)) {
+
+        if (! is_array($randomMetrics)) {
             $randomMetrics = [$randomMetrics];
         }
-        
+
         foreach ($randomMetrics as $index) {
             $selectedMetrics[] = $metrics[$index]->value;
         }
-        
+
         return $selectedMetrics;
     }
 
@@ -594,9 +594,9 @@ class CampaignSeeder extends Seeder
             'Within 25 miles',
             'Within 50 miles',
             'Downtown District',
-            'Suburban Areas'
+            'Suburban Areas',
         ];
-        
+
         return $areas[array_rand($areas)];
     }
 
@@ -606,21 +606,21 @@ class CampaignSeeder extends Seeder
             CompensationType::MONETARY => [
                 'payment_method' => 'bank_transfer',
                 'payment_timeline' => 'within_30_days',
-                'tax_form_required' => $amount >= 600
+                'tax_form_required' => $amount >= 600,
             ],
             CompensationType::FREE_PRODUCT => [
                 'product_selection' => 'from_current_collection',
                 'retail_value' => $amount,
-                'shipping_included' => true
+                'shipping_included' => true,
             ],
             CompensationType::GIFT_CARD => [
                 'card_type' => 'digital',
                 'expiration' => '12_months',
-                'stackable' => true
+                'stackable' => true,
             ],
             default => [
                 'details' => 'To be discussed upon acceptance',
-                'estimated_value' => $amount
+                'estimated_value' => $amount,
             ]
         };
     }
@@ -629,7 +629,7 @@ class CampaignSeeder extends Seeder
     {
         $businessName = $businessProfile->business_name ?? 'Our Company';
         $industry = $businessProfile->industry?->label() ?? 'Business';
-        
+
         return "At {$businessName}, we're a leading {$industry} company dedicated to delivering exceptional products and experiences to our customers. We've built a strong reputation for quality, innovation, and customer satisfaction in our industry.";
     }
 
@@ -637,19 +637,19 @@ class CampaignSeeder extends Seeder
     {
         $campaigns = [
             "We're currently running our Spring Launch campaign focusing on new product awareness and customer acquisition.",
-            "Our ongoing brand awareness initiative emphasizes community engagement and authentic storytelling.",
-            "Currently promoting our seasonal collection through multi-channel marketing efforts.",
-            "Running a customer loyalty campaign to increase repeat purchases and brand advocacy.",
-            "Focused on digital-first marketing strategy to reach younger demographics.",
+            'Our ongoing brand awareness initiative emphasizes community engagement and authentic storytelling.',
+            'Currently promoting our seasonal collection through multi-channel marketing efforts.',
+            'Running a customer loyalty campaign to increase repeat purchases and brand advocacy.',
+            'Focused on digital-first marketing strategy to reach younger demographics.',
         ];
-        
+
         return $campaigns[array_rand($campaigns)];
     }
 
     private function getBrandStory($businessProfile): string
     {
         $businessName = $businessProfile->business_name ?? 'Our Company';
-        
+
         return "Founded with a passion for excellence, {$businessName} started as a vision to create products that make a difference in people's lives. Our journey has been driven by innovation, quality, and a commitment to our community. Today, we continue to grow while staying true to our core values and mission.";
     }
 
@@ -668,78 +668,78 @@ class CampaignSeeder extends Seeder
     private function getKeyInsights(): string
     {
         $insights = [
-            "Our target audience responds well to authentic, unfiltered content that shows real product usage.",
-            "Visual storytelling performs better than traditional advertising approaches with our demographic.",
-            "Content that includes tutorials or how-to elements drives higher engagement rates.",
-            "Our community values transparency and behind-the-scenes content.",
-            "User-generated content featuring our products has 3x higher engagement than brand-created content."
+            'Our target audience responds well to authentic, unfiltered content that shows real product usage.',
+            'Visual storytelling performs better than traditional advertising approaches with our demographic.',
+            'Content that includes tutorials or how-to elements drives higher engagement rates.',
+            'Our community values transparency and behind-the-scenes content.',
+            'User-generated content featuring our products has 3x higher engagement than brand-created content.',
         ];
-        
+
         return $insights[array_rand($insights)];
     }
 
     private function getFanMotivator(): string
     {
         $motivators = [
-            "Quality products that enhance their lifestyle and provide real value",
-            "Being part of a community that shares similar values and interests",
-            "Access to exclusive products and experiences not available elsewhere", 
-            "Supporting a brand that aligns with their personal values and beliefs",
-            "The confidence that comes from using trusted, high-quality products"
+            'Quality products that enhance their lifestyle and provide real value',
+            'Being part of a community that shares similar values and interests',
+            'Access to exclusive products and experiences not available elsewhere',
+            'Supporting a brand that aligns with their personal values and beliefs',
+            'The confidence that comes from using trusted, high-quality products',
         ];
-        
+
         return $motivators[array_rand($motivators)];
     }
 
     private function getCreativeConnection(): string
     {
         $connections = [
-            "Show how our products seamlessly fit into your daily routine and enhance your lifestyle",
-            "Share your authentic experience and genuine reactions to our products",
-            "Create content that tells a story about how our products solve real problems",
-            "Demonstrate the quality and craftsmanship that sets our products apart",
-            "Connect with your audience by sharing why you personally love our brand"
+            'Show how our products seamlessly fit into your daily routine and enhance your lifestyle',
+            'Share your authentic experience and genuine reactions to our products',
+            'Create content that tells a story about how our products solve real problems',
+            'Demonstrate the quality and craftsmanship that sets our products apart',
+            'Connect with your audience by sharing why you personally love our brand',
         ];
-        
+
         return $connections[array_rand($connections)];
     }
 
     private function getSpecificProducts(): string
     {
         $products = [
-            "Our latest seasonal collection featuring new colors and designs",
-            "Flagship products from our bestselling line that define our brand",
+            'Our latest seasonal collection featuring new colors and designs',
+            'Flagship products from our bestselling line that define our brand',
             "New product launch items that we're excited to introduce to the market",
-            "Customer favorite products with proven track record of satisfaction",
-            "Limited edition items that create exclusivity and urgency"
+            'Customer favorite products with proven track record of satisfaction',
+            'Limited edition items that create exclusivity and urgency',
         ];
-        
+
         return $products[array_rand($products)];
     }
 
     private function getPostingRestrictions(): string
     {
         $restrictions = [
-            "Please avoid posting near competing brands or products in the same category",
-            "Maintain family-friendly content that aligns with our brand values",
-            "No controversial topics or divisive political content in posts featuring our products",
-            "Ensure all claims about product benefits are accurate and not exaggerated",
-            "Include proper disclaimers and hashtags as required by FTC guidelines"
+            'Please avoid posting near competing brands or products in the same category',
+            'Maintain family-friendly content that aligns with our brand values',
+            'No controversial topics or divisive political content in posts featuring our products',
+            'Ensure all claims about product benefits are accurate and not exaggerated',
+            'Include proper disclaimers and hashtags as required by FTC guidelines',
         ];
-        
+
         return $restrictions[array_rand($restrictions)];
     }
 
     private function getAdditionalConsiderations(): string
     {
         $considerations = [
-            "We value long-term partnerships and may extend collaboration opportunities for top performers",
-            "High-performing content may be featured on our official brand channels with proper credit",
-            "We encourage creative freedom while maintaining brand consistency in messaging",
-            "Please allow 3-5 business days for content approval before posting",
-            "We provide detailed product information and talking points to support content creation"
+            'We value long-term partnerships and may extend collaboration opportunities for top performers',
+            'High-performing content may be featured on our official brand channels with proper credit',
+            'We encourage creative freedom while maintaining brand consistency in messaging',
+            'Please allow 3-5 business days for content approval before posting',
+            'We provide detailed product information and talking points to support content creation',
         ];
-        
+
         return $considerations[array_rand($considerations)];
     }
 
@@ -751,29 +751,29 @@ class CampaignSeeder extends Seeder
     private function getTargetAudience(): string
     {
         $audiences = [
-            "Ages 18-34, primarily female, interested in fashion and lifestyle content",
-            "Health-conscious individuals aged 25-45 who value wellness and fitness",
-            "Parents aged 28-40 looking for family-friendly products and experiences", 
-            "Young professionals aged 22-35 who appreciate quality and convenience",
-            "Creative individuals aged 20-40 who value unique and innovative products"
+            'Ages 18-34, primarily female, interested in fashion and lifestyle content',
+            'Health-conscious individuals aged 25-45 who value wellness and fitness',
+            'Parents aged 28-40 looking for family-friendly products and experiences',
+            'Young professionals aged 22-35 who appreciate quality and convenience',
+            'Creative individuals aged 20-40 who value unique and innovative products',
         ];
-        
+
         return $audiences[array_rand($audiences)];
     }
 
     private function getContentGuidelines(): string
     {
-        return "Please maintain authentic tone and voice while naturally incorporating our products. Use high-quality images with good lighting. Include lifestyle shots showing products in use. Mention specific product features and benefits that resonate with you personally.";
+        return 'Please maintain authentic tone and voice while naturally incorporating our products. Use high-quality images with good lighting. Include lifestyle shots showing products in use. Mention specific product features and benefits that resonate with you personally.';
     }
 
     private function getBrandGuidelines(): string
     {
-        return "Use our official brand colors and fonts when possible. Tag our official social media accounts. Include required hashtags and disclaimers. Maintain consistent messaging about our brand values. Ensure content reflects our premium positioning.";
+        return 'Use our official brand colors and fonts when possible. Tag our official social media accounts. Include required hashtags and disclaimers. Maintain consistent messaging about our brand values. Ensure content reflects our premium positioning.';
     }
 
     private function getMainContact($businessUser): string
     {
-        return $businessUser->name . " (" . $businessUser->email . ")";
+        return $businessUser->name.' ('.$businessUser->email.')';
     }
 
     private function getSocialRequirements($influencerCount): array
@@ -781,14 +781,14 @@ class CampaignSeeder extends Seeder
         $baseFollowers = [
             'instagram' => rand(10000, 100000),
             'tiktok' => rand(25000, 500000),
-            'youtube' => rand(5000, 50000)
+            'youtube' => rand(5000, 50000),
         ];
-        
+
         return [
             'minimum_followers' => $baseFollowers,
             'engagement_rate' => 'minimum_2_percent',
             'audience_demographics' => 'primarily_us_based',
-            'content_quality' => 'professional_standard'
+            'content_quality' => 'professional_standard',
         ];
     }
 
@@ -798,7 +798,7 @@ class CampaignSeeder extends Seeder
             'post_timing' => 'peak_engagement_hours',
             'hashtag_requirements' => ['#sponsored', '#ad', '#partnership'],
             'mention_requirements' => 'tag_brand_account',
-            'content_approval' => 'required_before_posting'
+            'content_approval' => 'required_before_posting',
         ];
     }
 
@@ -808,17 +808,17 @@ class CampaignSeeder extends Seeder
             'content_rights' => 'usage_rights_granted',
             'exclusivity_period' => '30_days_same_category',
             'reporting_required' => 'performance_metrics_within_48_hours',
-            'compliance' => 'ftc_guidelines_mandatory'
+            'compliance' => 'ftc_guidelines_mandatory',
         ];
     }
 
     private function getGiftingCompensationDescription(string $industry, int $amount): string
     {
         return match ($industry) {
-            'food_service' => "Complimentary dining experience and take-home products worth $".number_format($amount),
-            'boutique' => "Curated fashion pieces and accessories worth $".number_format($amount),
-            'salon' => "Premium beauty treatments and product package worth $".number_format($amount),
-            default => "Gifted products and services worth $".number_format($amount),
+            'food_service' => 'Complimentary dining experience and take-home products worth $'.number_format($amount),
+            'boutique' => 'Curated fashion pieces and accessories worth $'.number_format($amount),
+            'salon' => 'Premium beauty treatments and product package worth $'.number_format($amount),
+            default => 'Gifted products and services worth $'.number_format($amount),
         };
     }
 
@@ -829,23 +829,23 @@ class CampaignSeeder extends Seeder
                 'includes' => 'Full meal experience for 2 people plus take-home specialty items',
                 'estimated_value' => $amount,
                 'additional_perks' => 'Recipe cards and chef recommendations',
-                'pickup_required' => true
+                'pickup_required' => true,
             ],
             'boutique' => [
                 'includes' => 'Choice of 2-3 pieces from current collection',
                 'estimated_value' => $amount,
                 'size_consultation' => 'Personal styling session included',
-                'exchange_policy' => '30 days for size exchanges'
+                'exchange_policy' => '30 days for size exchanges',
             ],
             'salon' => [
                 'includes' => 'Full service treatment plus take-home product kit',
                 'estimated_value' => $amount,
                 'appointment_required' => 'Must schedule 48 hours in advance',
-                'aftercare_included' => 'Professional maintenance tips'
+                'aftercare_included' => 'Professional maintenance tips',
             ],
             default => [
                 'estimated_value' => $amount,
-                'details' => 'Product selection to be discussed'
+                'details' => 'Product selection to be discussed',
             ]
         };
     }
@@ -854,8 +854,8 @@ class CampaignSeeder extends Seeder
     {
         return match ($industry) {
             'food_service' => "We're a locally-owned restaurant specializing in farm-to-table cuisine that celebrates seasonal ingredients and artisanal craftsmanship. Our commitment to quality and community has made us a beloved gathering place for food enthusiasts.",
-            'boutique' => "Our boutique curates unique, sustainable fashion pieces from emerging and established designers who share our values of quality, creativity, and ethical production. We believe in fashion that tells a story and makes a statement.",
-            'salon' => "As a full-service salon and spa, we specialize in personalized beauty experiences using premium, cruelty-free products. Our team of expert stylists and aestheticians are passionate about helping clients look and feel their absolute best.",
+            'boutique' => 'Our boutique curates unique, sustainable fashion pieces from emerging and established designers who share our values of quality, creativity, and ethical production. We believe in fashion that tells a story and makes a statement.',
+            'salon' => 'As a full-service salon and spa, we specialize in personalized beauty experiences using premium, cruelty-free products. Our team of expert stylists and aestheticians are passionate about helping clients look and feel their absolute best.',
             default => "We're committed to delivering exceptional products and experiences to our valued customers."
         };
     }
@@ -863,30 +863,30 @@ class CampaignSeeder extends Seeder
     private function getGiftingBrandStory(string $industry): string
     {
         return match ($industry) {
-            'food_service' => "What started as a passion for bringing people together over exceptional food has grown into a cornerstone of our local culinary scene. We source from local farms, work with talented chefs, and create experiences that nourish both body and soul.",
+            'food_service' => 'What started as a passion for bringing people together over exceptional food has grown into a cornerstone of our local culinary scene. We source from local farms, work with talented chefs, and create experiences that nourish both body and soul.',
             'boutique' => "Born from a love of unique fashion and sustainable practices, our boutique represents more than just clothing - it's a celebration of individual style and conscious consumerism. Every piece in our collection is chosen for its quality, story, and positive impact.",
             'salon' => "Founded by master stylists with a vision for personalized beauty, we've built our reputation on exceptional service and genuine care for each client's unique needs. We believe beauty is about confidence, self-expression, and feeling amazing in your own skin.",
-            default => "Our story is one of passion, quality, and dedication to our community."
+            default => 'Our story is one of passion, quality, and dedication to our community.'
         };
     }
 
     private function getGiftingKeyInsights(string $industry): string
     {
         return match ($industry) {
-            'food_service' => "Food content that shows the full experience - from the ambiance and presentation to the actual taste and quality - resonates most with our audience. Behind-the-scenes content and chef interactions perform exceptionally well.",
-            'boutique' => "Style content that shows versatility and real-world wearability performs better than traditional fashion photography. Our customers love seeing how pieces can be styled for different occasions and personal aesthetics.",
-            'salon' => "Before and after transformations generate incredible engagement, but the process and education around techniques and products create lasting connections with potential clients seeking similar results.",
-            default => "Authentic experiences and genuine reactions drive the highest engagement with our brand."
+            'food_service' => 'Food content that shows the full experience - from the ambiance and presentation to the actual taste and quality - resonates most with our audience. Behind-the-scenes content and chef interactions perform exceptionally well.',
+            'boutique' => 'Style content that shows versatility and real-world wearability performs better than traditional fashion photography. Our customers love seeing how pieces can be styled for different occasions and personal aesthetics.',
+            'salon' => 'Before and after transformations generate incredible engagement, but the process and education around techniques and products create lasting connections with potential clients seeking similar results.',
+            default => 'Authentic experiences and genuine reactions drive the highest engagement with our brand.'
         };
     }
 
     private function getGiftingFanMotivator(string $industry): string
     {
         return match ($industry) {
-            'food_service' => "The joy of discovering exceptional flavors and supporting local, sustainable dining experiences that bring people together over memorable meals.",
-            'boutique' => "Finding unique pieces that express their personal style while supporting ethical fashion practices and emerging designers.",
-            'salon' => "The confidence that comes from professional beauty treatments and the self-care ritual that enhances their natural beauty and personal wellness.",
-            default => "Quality experiences that enhance their lifestyle and align with their values."
+            'food_service' => 'The joy of discovering exceptional flavors and supporting local, sustainable dining experiences that bring people together over memorable meals.',
+            'boutique' => 'Finding unique pieces that express their personal style while supporting ethical fashion practices and emerging designers.',
+            'salon' => 'The confidence that comes from professional beauty treatments and the self-care ritual that enhances their natural beauty and personal wellness.',
+            default => 'Quality experiences that enhance their lifestyle and align with their values.'
         };
     }
 
@@ -894,19 +894,19 @@ class CampaignSeeder extends Seeder
     {
         return match ($industry) {
             'food_service' => "Share the complete dining journey - the atmosphere, the artful presentation, your genuine reactions to flavors, and how the experience made you feel. Food is about more than taste; it's about connection and community.",
-            'boutique' => "Show how our pieces integrate with your personal style and lifestyle. Mix and match items, demonstrate versatility, and share why certain pieces spoke to you. Fashion should feel personal and authentic.",
-            'salon' => "Document your transformation journey and the boost in confidence that follows. Share the techniques you learned, the products you loved, and how the experience enhanced your self-care routine.",
-            default => "Create authentic content that shows how our products genuinely enhance your lifestyle."
+            'boutique' => 'Show how our pieces integrate with your personal style and lifestyle. Mix and match items, demonstrate versatility, and share why certain pieces spoke to you. Fashion should feel personal and authentic.',
+            'salon' => 'Document your transformation journey and the boost in confidence that follows. Share the techniques you learned, the products you loved, and how the experience enhanced your self-care routine.',
+            default => 'Create authentic content that shows how our products genuinely enhance your lifestyle.'
         };
     }
 
     private function getGiftingSpecificProducts(string $industry): string
     {
         return match ($industry) {
-            'food_service' => "Featured seasonal menu items, signature craft beverages, artisanal pastries, and take-home specialty products like house-made sauces or coffee blends.",
-            'boutique' => "Current seasonal collection pieces, statement accessories, sustainable fashion basics, and limited-edition designer collaborations that reflect our brand aesthetic.",
-            'salon' => "Signature treatments like custom color services, rejuvenating facials, professional styling sessions, and our curated selection of premium take-home beauty products.",
-            default => "Our featured products and services that best represent our brand quality and values."
+            'food_service' => 'Featured seasonal menu items, signature craft beverages, artisanal pastries, and take-home specialty products like house-made sauces or coffee blends.',
+            'boutique' => 'Current seasonal collection pieces, statement accessories, sustainable fashion basics, and limited-edition designer collaborations that reflect our brand aesthetic.',
+            'salon' => 'Signature treatments like custom color services, rejuvenating facials, professional styling sessions, and our curated selection of premium take-home beauty products.',
+            default => 'Our featured products and services that best represent our brand quality and values.'
         };
     }
 
@@ -914,8 +914,8 @@ class CampaignSeeder extends Seeder
     {
         return match ($industry) {
             'food_service' => "Please coordinate visit timing with our team to ensure optimal experience and photo opportunities. We're happy to provide ingredient lists for dietary considerations and recipe inspirations for content creation.",
-            'boutique' => "We offer personal styling consultations to help select pieces that photograph beautifully and suit your aesthetic. Size exchanges are available, and we can provide garment care instructions for longevity.",
-            'salon' => "Consultation appointments are required to customize services to your needs and desired outcomes. We provide professional maintenance tips and product recommendations to extend your results.",
+            'boutique' => 'We offer personal styling consultations to help select pieces that photograph beautifully and suit your aesthetic. Size exchanges are available, and we can provide garment care instructions for longevity.',
+            'salon' => 'Consultation appointments are required to customize services to your needs and desired outcomes. We provide professional maintenance tips and product recommendations to extend your results.',
             default => "We're committed to ensuring you have everything needed for successful content creation and a positive brand experience."
         };
     }
@@ -923,10 +923,10 @@ class CampaignSeeder extends Seeder
     private function getGiftingTargetAudience(string $industry): string
     {
         return match ($industry) {
-            'food_service' => "Food enthusiasts and lifestyle influencers aged 25-45 who appreciate culinary artistry, local dining experiences, and sustainable food practices.",
-            'boutique' => "Fashion-forward individuals aged 22-40 who value unique style, sustainable fashion, and supporting independent designers and small businesses.",
-            'salon' => "Beauty and lifestyle enthusiasts aged 25-50 who prioritize self-care, professional beauty treatments, and high-quality beauty products and services.",
-            default => "Individuals who appreciate quality products and authentic brand experiences."
+            'food_service' => 'Food enthusiasts and lifestyle influencers aged 25-45 who appreciate culinary artistry, local dining experiences, and sustainable food practices.',
+            'boutique' => 'Fashion-forward individuals aged 22-40 who value unique style, sustainable fashion, and supporting independent designers and small businesses.',
+            'salon' => 'Beauty and lifestyle enthusiasts aged 25-50 who prioritize self-care, professional beauty treatments, and high-quality beauty products and services.',
+            default => 'Individuals who appreciate quality products and authentic brand experiences.'
         };
     }
 }

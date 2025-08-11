@@ -15,8 +15,11 @@ class CampaignIndex extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $statusFilter = '';
+
     public string $sortBy = 'created_at';
+
     public string $sortDirection = 'desc';
 
     protected $queryString = [
@@ -63,12 +66,12 @@ class CampaignIndex extends Component
             ->with(['user.businessProfile', 'applications'])
             ->when($this->search, function (Builder $query) {
                 $query->where(function (Builder $q) {
-                    $q->where('campaign_goal', 'like', '%' . $this->search . '%')
-                      ->orWhere('campaign_description', 'like', '%' . $this->search . '%')
-                      ->orWhereHas('user', function (Builder $userQuery) {
-                          $userQuery->where('name', 'like', '%' . $this->search . '%')
-                                   ->orWhere('email', 'like', '%' . $this->search . '%');
-                      });
+                    $q->where('campaign_goal', 'like', '%'.$this->search.'%')
+                        ->orWhere('campaign_description', 'like', '%'.$this->search.'%')
+                        ->orWhereHas('user', function (Builder $userQuery) {
+                            $userQuery->where('name', 'like', '%'.$this->search.'%')
+                                ->orWhere('email', 'like', '%'.$this->search.'%');
+                        });
                 });
             })
             ->when($this->statusFilter, function (Builder $query) {

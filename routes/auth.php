@@ -7,13 +7,11 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 use Spatie\Honeypot\ProtectAgainstSpam;
 
-
 Route::middleware('guest')->group(function () {
     Route::get('login', Auth\Login::class)->name('login')->middleware(ProtectAgainstSpam::class);
     Route::get('forgot-password', Auth\ForgotPassword::class)->name('password.request');
     Route::get('reset-password/{token}', Auth\ResetPassword::class)->name('password.reset');
 });
-
 
 Route::middleware('auth')->group(function () {
     Route::get('verify-email', App\Livewire\Auth\VerifyEmail::class)
@@ -25,7 +23,7 @@ Route::middleware('auth')->group(function () {
 });
 
 if (config('collabconnect.registration_enabled')) {
-    if( config('collabconnect.beta_registration_only') ) {
+    if (config('collabconnect.beta_registration_only')) {
         Route::get('register', Auth\Register::class)->name('register')->middleware('signed');
     } else {
         Route::get('register', Auth\Register::class)->name('register');

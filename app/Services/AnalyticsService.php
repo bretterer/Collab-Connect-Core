@@ -156,18 +156,18 @@ class AnalyticsService
                 'applications',
                 'applications as accepted_applications_count' => function ($query) {
                     $query->where('status', CampaignApplicationStatus::ACCEPTED);
-                }
+                },
             ])
             ->get();
-            
-        return $campaigns->sortByDesc(function ($campaign) {
-                // Score based on application count and acceptance rate
-                $applicationCount = $campaign->applications_count ?: 0;
-                $acceptedCount = $campaign->accepted_applications_count ?: 0;
-                $acceptanceRate = $applicationCount > 0 ? $acceptedCount / $applicationCount : 0;
 
-                return ($applicationCount * 0.7) + ($acceptanceRate * 100 * 0.3);
-            })
+        return $campaigns->sortByDesc(function ($campaign) {
+            // Score based on application count and acceptance rate
+            $applicationCount = $campaign->applications_count ?: 0;
+            $acceptedCount = $campaign->accepted_applications_count ?: 0;
+            $acceptanceRate = $applicationCount > 0 ? $acceptedCount / $applicationCount : 0;
+
+            return ($applicationCount * 0.7) + ($acceptanceRate * 100 * 0.3);
+        })
             ->take($limit)
             ->values();
     }
@@ -292,8 +292,8 @@ class AnalyticsService
         return CampaignApplication::whereHas('campaign', function ($query) {
             $query->where('user_id', $this->user->id);
         })
-        ->with(['user', 'campaign'])
-        ->get();
+            ->with(['user', 'campaign'])
+            ->get();
     }
 
     /**
@@ -301,7 +301,7 @@ class AnalyticsService
      */
     private function getCampaignBudget(Campaign $campaign): float
     {
-        if (!$campaign->compensation || !$campaign->compensation->isMonetaryCompensation()) {
+        if (! $campaign->compensation || ! $campaign->compensation->isMonetaryCompensation()) {
             return 0;
         }
 

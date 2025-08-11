@@ -34,7 +34,6 @@ class EnsureOnboardingCompleted
             ]);
         }
 
-
         return $next($request);
     }
 }
