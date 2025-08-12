@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Cashier\Cashier;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Ensure mail components are properly loaded
         Blade::componentNamespace('Illuminate\\Mail\\Markdown\\Components', 'mail');
+
+        Cashier::calculateTaxes();
 
     }
 }

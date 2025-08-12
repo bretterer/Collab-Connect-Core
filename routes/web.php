@@ -36,6 +36,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Analytics & Reports
         Route::get('/analytics', App\Livewire\Admin\Analytics::class)->name('analytics');
+
+        // Subscription & Payment Management
+        Route::prefix('payments')->name('payments.')->group(function () {
+            // Route::get('/plans', App\Livewire\Admin\Payments\Plans::class)->name('plans');
+        });
+
+        Route::prefix('products')->name('products.')->group(function () {
+
+        });
+
     });
 
     // Main dashboard (protected by onboarding middleware)
