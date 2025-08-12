@@ -30,20 +30,19 @@ php artisan test tests/Feature/Livewire/InfluencerCampaignsTest.php
 php artisan config:clear --ansi && php artisan test
 
 # Development tools
-php artisan solo  # Solo terminal for development
+composer dev
+
+# Stripe sync
+php artisan collabconnect:sync-stripe  # Sync all products and prices
+php artisan collabconnect:sync-stripe --products-only  # Only sync products
+php artisan collabconnect:sync-stripe --prices-only  # Only sync prices
+php artisan collabconnect:sync-stripe --limit=50  # Limit items synced
+php artisan collabconnect:sync-stripe --active-only  # Only sync active items
+php artisan collabconnect:sync-stripe --force  # Skip confirmation prompt
 
 # Frontend
 npm run dev
 npm run build
-```
-
-### Code Quality
-```bash
-# Linting (Laravel Pint)
-./vendor/bin/pint
-
-# Debug tools
-php artisan debugbar:clear
 ```
 
 ## Architecture Overview

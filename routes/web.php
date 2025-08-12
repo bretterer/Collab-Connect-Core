@@ -38,13 +38,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/analytics', App\Livewire\Admin\Analytics::class)->name('analytics');
 
         // Subscription & Payment Management
-        Route::prefix('payments')->name('payments.')->group(function () {
-            // Route::get('/plans', App\Livewire\Admin\Payments\Plans::class)->name('plans');
-        });
-
-        Route::prefix('products')->name('products.')->group(function () {
-
-        });
+        Route::get('/pricing', App\Livewire\Admin\Pricing::class)->name('pricing');
 
     });
 

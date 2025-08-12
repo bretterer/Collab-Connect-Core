@@ -4,7 +4,6 @@ namespace App\Listeners;
 
 use App\Models\StripePrice;
 use App\Models\StripeProduct;
-use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\Events\WebhookReceived;
 
 class StripePriceCreated
@@ -14,11 +13,7 @@ class StripePriceCreated
      */
     public function handle(WebhookReceived $event): void
     {
-        Log::info('StripePriceCreated event received', [
-            'payload' => $event->payload,
-        ]);
         if ($event->payload['type'] === 'price.created') {
-
 
             $priceData = $event->payload['data']['object'];
 
