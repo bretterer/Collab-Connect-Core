@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\AccountType;
 use App\Events\AccountTypeSelected;
 use App\Services\ProfileService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -18,7 +18,7 @@ use Laravel\Cashier\Billable;
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, Billable;
+    use Billable, HasFactory, Notifiable;
 
     /**
      * The attributes that should be hidden for serialization.
@@ -54,6 +54,17 @@ class User extends Authenticatable implements MustVerifyEmail
             ->take(2)
             ->map(fn ($word) => Str::substr($word, 0, 1))
             ->implode('');
+    }
+
+    public function currentBusiness(): HasOne
+    {
+        return $this->hasOne(Business::class, 'id', 'current_business');
+    }
+
+    public function setCurrentBusiness(Business $business): void
+    {
+        $this->current_business = $business->id;
+        $this->save();
     }
 
     /**
@@ -201,6 +212,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
+    }
+
+    public function businesses(): HasManyThrough
+    {
+        return $this->hasManyThrough(Business::class, BusinessUser::class);
     }
 
     /**

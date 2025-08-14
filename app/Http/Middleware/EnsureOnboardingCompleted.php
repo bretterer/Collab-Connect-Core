@@ -28,10 +28,12 @@ class EnsureOnboardingCompleted
         }
 
         if (! $user->profileCompleted()) {
-            session()->flash('banner', [
-                'type' => 'warning',
-                'message' => 'Please complete your profile to access all features.',
-            ]);
+            if ($user->isInfluencerAccount()) {
+                return redirect()->route('onboarding.influencer');
+            }
+            if ($user->isBusinessAccount()) {
+                return redirect()->route('onboarding.business');
+            }
         }
 
         return $next($request);

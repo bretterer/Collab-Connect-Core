@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureNeedsOnboarding;
 use App\Http\Middleware\EnsureOnboardingCompleted;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
@@ -40,6 +41,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Subscription & Payment Management
         Route::get('/pricing', App\Livewire\Admin\Pricing::class)->name('pricing');
 
+    });
+
+    Route::middleware(['auth', EnsureNeedsOnboarding::class])->group(function () {
+        Route::get('/onboarding/business', App\Livewire\Onboarding\BusinessOnboarding::class)->name('onboarding.business');
+        Route::get('/onboarding/influencer', App\Livewire\Onboarding\InfluencerOnboarding::class)->name('onboarding.influencer');
     });
 
     // Main dashboard (protected by onboarding middleware)
