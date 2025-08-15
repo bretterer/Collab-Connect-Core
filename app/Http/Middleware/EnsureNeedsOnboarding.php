@@ -15,6 +15,11 @@ class EnsureNeedsOnboarding
      */
     public function handle(Request $request, Closure $next): Response
     {
+        $user = $request->user();
+
+        if ($user->isBusinessAccount() && $user->currentBusiness->onboarding_complete) {
+            return redirect()->route('dashboard');
+        }
 
         return $next($request);
     }

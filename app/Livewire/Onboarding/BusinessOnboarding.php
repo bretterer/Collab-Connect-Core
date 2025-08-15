@@ -61,7 +61,32 @@ class BusinessOnboarding extends Component
 
     public string $state = '';
 
-    public string $zip = '';
+    public string $postalCode = '';
+
+    public array $targetGender = [];
+
+    public array $targetAgeRange = [];
+
+    public array $businessGoals = [];
+
+    public array $platforms = [];
+
+    public bool $emailNotifications = true;
+
+    public bool $marketingEmails = false;
+
+    // Add this method for debugging
+    public function updatedBusinessGoals()
+    {
+        // This will help ensure the array updates are tracked
+        $this->businessGoals = array_values($this->businessGoals);
+    }
+
+    public function updatedPlatforms()
+    {
+        // This will help ensure the array updates are tracked
+        $this->platforms = array_values($this->platforms);
+    }
 
     protected array $stepConfiguration = [
         1 => [
@@ -77,7 +102,7 @@ class BusinessOnboarding extends Component
         2 => [
             'title' => 'Business Profile & Identity',
             'component' => 'step2',
-            'fields' => ['businessType', 'industry', 'businessDescription', 'uniqueValueProposition', 'logo'],
+            'fields' => ['businessType', 'industry', 'businessDescription', 'uniqueValueProposition'],
             'tips' => [
                 'Showcase your brand\'s personality through visuals',
                 'Highlight unique selling points to stand out',
@@ -87,7 +112,7 @@ class BusinessOnboarding extends Component
         3 => [
             'title' => 'Platform Preferences & Goals',
             'component' => 'step3',
-            'fields' => ['instagramHandle', 'facebookHandle', 'tiktokHandle', 'linkedinHandle'],
+            'fields' => ['city', 'state', 'postalCode', 'targetGender', 'targetAgeRange', 'businessGoals', 'platforms'],
             'tips' => [
                 'Choose platforms that align with your target audience',
                 'Set clear goals for your influencer marketing campaigns',
@@ -95,18 +120,8 @@ class BusinessOnboarding extends Component
             ],
         ],
         4 => [
-            'title' => 'Plan Selection & Setup',
-            'component' => 'step4',
-            'fields' => [],
-            'tips' => [
-                'Choose the right plan based on your business needs',
-                'Take advantage of free trials to test features',
-                'Consult with our team for personalized recommendations',
-            ],
-        ],
-        5 => [
             'title' => 'Welcome to CollabConnect',
-            'component' => 'step5',
+            'component' => 'step4',
             'fields' => [],
             'tips' => [
                 'Your profile is complete and ready to attract influencers',
@@ -146,6 +161,13 @@ class BusinessOnboarding extends Component
         $this->industry = $this->business->industry?->value ?? '';
         $this->businessDescription = $this->business->description ?? '';
         $this->uniqueValueProposition = $this->business->selling_points ?? '';
+        $this->city = $this->business->city ?? '';
+        $this->state = $this->business->state ?? '';
+        $this->postalCode = $this->business->postal_code ?? '';
+        $this->targetAgeRange = $this->business->target_age_range ?? [];
+        $this->targetGender = $this->business->target_gender ?? [];
+        $this->businessGoals = $this->business->business_goals ?? [];
+        $this->platforms = $this->business->platforms ?? [];
     }
 
     private function getOnboardingCacheKey(): string
@@ -180,6 +202,7 @@ class BusinessOnboarding extends Component
         return count($this->stepConfiguration);
     }
 
+
     public function validateCurrentStep()
     {
         $rules = $this->getValidationRulesForStep($this->step);
@@ -207,13 +230,15 @@ class BusinessOnboarding extends Component
                 'industry' => ['required', BusinessIndustry::validationRule()],
                 'businessDescription' => 'required|string|max:1000',
                 'uniqueValueProposition' => 'nullable|string|max:500',
-                'logo' => 'nullable|image|max:5120', // 5MB max
             ],
             3 => [
-                'instagramHandle' => 'nullable|string|max:255',
-                'facebookHandle' => 'nullable|string|max:255',
-                'tiktokHandle' => 'nullable|string|max:255',
-                'linkedinHandle' => 'nullable|string|max:255',
+                'city' => 'nullable|string|max:255',
+                'state' => 'nullable|string|max:255',
+                'postalCode' => 'nullable|string|max:20',
+                'targetAgeRange' => 'nullable|array',
+                'targetGender' => 'nullable|array',
+                'businessGoals' => 'nullable|array',
+                'platforms' => 'nullable|array',
             ],
             default => []
         };
@@ -239,8 +264,15 @@ class BusinessOnboarding extends Component
                 'businessDescription.required' => 'Business description is required.',
                 'businessDescription.max' => 'Business description cannot exceed 1000 characters.',
                 'uniqueValueProposition.max' => 'Value proposition cannot exceed 500 characters.',
-                'logo.image' => 'Logo must be an image file.',
-                'logo.max' => 'Logo file size cannot exceed 5MB.',
+            ],
+            3 => [
+                'city.max' => 'City cannot exceed 255 characters.',
+                'state.max' => 'State cannot exceed 255 characters.',
+                'postalCode.max' => 'Postal code cannot exceed 20 characters.',
+                'targetAgeRange.array' => 'Target age range must be an array.',
+                'targetGender.array' => 'Target gender must be an array.',
+                'businessGoals.array' => 'Business goals must be an array.',
+                'platforms.array' => 'Platforms must be an array.',
             ],
             default => []
         };
@@ -276,6 +308,10 @@ class BusinessOnboarding extends Component
             case 2:
                 $this->saveStep2();
                 break;
+
+            case 3:
+                $this->saveStep3();
+                break;
         }
     }
 
@@ -307,16 +343,21 @@ class BusinessOnboarding extends Component
             'description' => $this->businessDescription,
             'selling_points' => $this->uniqueValueProposition,
         ]);
-
-        // Handle logo upload
-        if ($this->logo) {
-            $this->business->clearMediaCollection('logo');
-            $this->business
-                ->addMedia($this->logo->getRealPath())
-                ->usingName($this->logo->getClientOriginalName())
-                ->toMediaCollection('logo');
-        }
     }
+
+    private function saveStep3(): void
+    {
+        $this->business->update([
+            'city' => $this->city,
+            'state' => $this->state,
+            'postal_code' => $this->postalCode,
+            'target_age_range' => $this->targetAgeRange,
+            'target_gender' => $this->targetGender,
+            'business_goals' => $this->businessGoals,
+            'platforms' => $this->platforms,
+        ]);
+    }
+
 
     private function createBusiness(): Business
     {
@@ -350,7 +391,7 @@ class BusinessOnboarding extends Component
         $this->saveStepData();
 
         // Mark onboarding as complete
-        Auth::user()->update(['onboarding_completed_at' => now()]);
+        Auth::user()->currentBusiness()->update(['onboarding_complete' => true]);
 
         // Clear the cached step since onboarding is complete
         $this->clearOnboardingStep();

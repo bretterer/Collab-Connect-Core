@@ -1,183 +1,48 @@
-<!-- Step 4: Plan Selection & Setup -->
-<div class="space-y-6">
-    <div class="flex items-center space-x-3">
-        <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
-            <span class="text-white font-bold text-sm">4</span>
-        </div>
-        <flux:heading size="xl" class="text-gray-800 dark:text-gray-200">
-            Platform Preferences & Setup
-        </flux:heading>
-    </div>
-
-    <!-- Preferred Social Media Platforms -->
-    <div class="space-y-4">
-        <flux:heading class="text-gray-800 dark:text-gray-200">
-            Which social media platforms are you most interested in?
-        </flux:heading>
-        <flux:description class="text-gray-600 dark:text-gray-400">
-            Select the platforms where you'd like to connect with influencers.
-        </flux:description>
-
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div class="relative">
-                <flux:checkbox wire:model="platforms" value="instagram" class="peer sr-only">
-                    Instagram
-                </flux:checkbox>
-                <label class="flex items-center justify-center p-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/20">
-                    <div class="text-center">
-                        <div class="text-2xl mb-2">📸</div>
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300">Instagram</div>
-                    </div>
-                </label>
-            </div>
-
-            <div class="relative">
-                <flux:checkbox wire:model="platforms" value="tiktok" class="peer sr-only">
-                    TikTok
-                </flux:checkbox>
-                <label class="flex items-center justify-center p-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/20">
-                    <div class="text-center">
-                        <div class="text-2xl mb-2">🎵</div>
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300">TikTok</div>
-                    </div>
-                </label>
-            </div>
-
-            <div class="relative">
-                <flux:checkbox wire:model="platforms" value="youtube" class="peer sr-only">
-                    YouTube
-                </flux:checkbox>
-                <label class="flex items-center justify-center p-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/20">
-                    <div class="text-center">
-                        <div class="text-2xl mb-2">📺</div>
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300">YouTube</div>
-                    </div>
-                </label>
-            </div>
-
-            <div class="relative">
-                <flux:checkbox wire:model="platforms" value="facebook" class="peer sr-only">
-                    Facebook
-                </flux:checkbox>
-                <label class="flex items-center justify-center p-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/20">
-                    <div class="text-center">
-                        <div class="text-2xl mb-2">👥</div>
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300">Facebook</div>
-                    </div>
-                </label>
-            </div>
-
-            <div class="relative">
-                <flux:checkbox wire:model="platforms" value="twitter" class="peer sr-only">
-                    Twitter/X
-                </flux:checkbox>
-                <label class="flex items-center justify-center p-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/20">
-                    <div class="text-center">
-                        <div class="text-2xl mb-2">🐦</div>
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300">Twitter/X</div>
-                    </div>
-                </label>
-            </div>
-
-            <div class="relative">
-                <flux:checkbox wire:model="platforms" value="linkedin" class="peer sr-only">
-                    LinkedIn
-                </flux:checkbox>
-                <label class="flex items-center justify-center p-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/20">
-                    <div class="text-center">
-                        <div class="text-2xl mb-2">💼</div>
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300">LinkedIn</div>
-                    </div>
-                </label>
+<!-- Step 4: Welcome to CollabConnect -->
+<div class="space-y-8">
+    <!-- Success Header -->
+    <div class="text-center space-y-4">
+        <div class="flex justify-center">
+            <div class="w-20 h-20 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                <span class="text-3xl">🎉</span>
             </div>
         </div>
-        <flux:error name="platforms" />
-    </div>
-
-    <!-- Plan Selection -->
-    <div class="space-y-6">
-        <flux:heading class="text-gray-800 dark:text-gray-200">
-            Choose your plan
+        <flux:heading size="2xl" class="text-gray-800 dark:text-gray-200">
+            Welcome to CollabConnect!
         </flux:heading>
-        <flux:description class="text-gray-600 dark:text-gray-400">
-            Select the plan that best fits your business needs. You can upgrade or downgrade anytime.
-        </flux:description>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Starter Plan -->
-            <div class="relative">
-                <flux:radio wire:model="selectedPlan" value="starter" class="peer sr-only">
-                    Starter Plan
-                </flux:radio>
-                <label class="block p-6 border-2 border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:border-gray-300 dark:hover:border-gray-500 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/20">
-                    <div class="text-center space-y-4">
-                        <flux:badge color="green">Most Popular</flux:badge>
-                        <div>
-                            <div class="text-xl font-bold text-gray-800 dark:text-gray-200">Starter</div>
-                            <div class="text-3xl font-bold text-blue-600">$29</div>
-                            <div class="text-sm text-gray-500">/month</div>
-                        </div>
-                        <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                            <div>✓ Up to 3 active campaigns</div>
-                            <div>✓ 50 influencer contacts/month</div>
-                            <div>✓ Basic analytics</div>
-                            <div>✓ Email support</div>
-                        </div>
-                    </div>
-                </label>
-            </div>
-
-            <!-- Growth Plan -->
-            <div class="relative">
-                <flux:radio wire:model="selectedPlan" value="growth" class="peer sr-only">
-                    Growth Plan
-                </flux:radio>
-                <label class="block p-6 border-2 border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:border-gray-300 dark:hover:border-gray-500 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/20">
-                    <div class="text-center space-y-4">
-                        <flux:badge color="blue">Recommended</flux:badge>
-                        <div>
-                            <div class="text-xl font-bold text-gray-800 dark:text-gray-200">Growth</div>
-                            <div class="text-3xl font-bold text-blue-600">$79</div>
-                            <div class="text-sm text-gray-500">/month</div>
-                        </div>
-                        <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                            <div>✓ Up to 10 active campaigns</div>
-                            <div>✓ 200 influencer contacts/month</div>
-                            <div>✓ Advanced analytics</div>
-                            <div>✓ Priority support</div>
-                            <div>✓ Custom campaign templates</div>
-                        </div>
-                    </div>
-                </label>
-            </div>
-
-            <!-- Scale Plan -->
-            <div class="relative">
-                <flux:radio wire:model="selectedPlan" value="scale" class="peer sr-only">
-                    Scale Plan
-                </flux:radio>
-                <label class="block p-6 border-2 border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:border-gray-300 dark:hover:border-gray-500 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/20">
-                    <div class="text-center space-y-4">
-                        <flux:badge color="purple">Enterprise</flux:badge>
-                        <div>
-                            <div class="text-xl font-bold text-gray-800 dark:text-gray-200">Scale</div>
-                            <div class="text-3xl font-bold text-blue-600">$199</div>
-                            <div class="text-sm text-gray-500">/month</div>
-                        </div>
-                        <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                            <div>✓ Unlimited campaigns</div>
-                            <div>✓ Unlimited contacts</div>
-                            <div>✓ Premium analytics & reports</div>
-                            <div>✓ Dedicated account manager</div>
-                            <div>✓ API access</div>
-                        </div>
-                    </div>
-                </label>
-            </div>
-        </div>
-        <flux:error name="selectedPlan" />
+        <flux:subheading class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Your business profile is complete and you're ready to start connecting with amazing influencers.
+        </flux:subheading>
     </div>
 
+    <!-- Success Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="text-center p-6 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+            <div class="text-3xl mb-2">✅</div>
+            <flux:heading class="text-blue-600 dark:text-blue-400 mb-1">Profile Complete</flux:heading>
+            <flux:text class="text-sm text-blue-700 dark:text-blue-300">
+                Your business information has been saved
+            </flux:text>
+        </div>
+
+        <div class="text-center p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
+            <div class="text-3xl mb-2">🚀</div>
+            <flux:heading class="text-purple-600 dark:text-purple-400 mb-1">Ready to Launch</flux:heading>
+            <flux:text class="text-sm text-purple-700 dark:text-purple-300">
+                You can now create campaigns and connect with influencers
+            </flux:text>
+        </div>
+
+        <div class="text-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800">
+            <div class="text-3xl mb-2">🎯</div>
+            <flux:heading class="text-green-600 dark:text-green-400 mb-1">Smart Matching</flux:heading>
+            <flux:text class="text-sm text-green-700 dark:text-green-300">
+                Our algorithm will find the perfect influencers for your brand
+            </flux:text>
+        </div>
+    </div>
+
+    @if(false===true)
     <!-- Notification Preferences -->
     <div class="space-y-4">
         <flux:heading class="text-gray-800 dark:text-gray-200">
@@ -212,5 +77,115 @@
                 </div>
             </flux:field>
         </div>
+    </div>
+    @endif
+
+    <!-- What's Next Section -->
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-8 shadow-sm">
+        <flux:heading size="xl" class="text-gray-800 dark:text-gray-200 mb-6 text-center">
+            What's next? Here's what you can do now:
+        </flux:heading>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Create First Campaign -->
+            <div class="flex items-start space-x-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span class="text-white text-lg">📝</span>
+                </div>
+                <div>
+                    <flux:heading size="sm" class="text-blue-800 dark:text-blue-200 mb-2">
+                        Create Your First Campaign
+                    </flux:heading>
+                    <flux:text class="text-sm text-blue-700 dark:text-blue-300">
+                        Set up your first influencer marketing campaign with detailed requirements and compensation.
+                    </flux:text>
+                </div>
+            </div>
+
+            <!-- Browse Influencers -->
+            <div class="flex items-start space-x-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span class="text-white text-lg">🔍</span>
+                </div>
+                <div>
+                    <flux:heading size="sm" class="text-purple-800 dark:text-purple-200 mb-2">
+                        Discover Influencers
+                    </flux:heading>
+                    <flux:text class="text-sm text-purple-700 dark:text-purple-300">
+                        Browse our database of verified influencers and find the perfect match for your brand.
+                    </flux:text>
+                </div>
+            </div>
+
+            <!-- Set Up Analytics -->
+            <div class="flex items-start space-x-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span class="text-white text-lg">📊</span>
+                </div>
+                <div>
+                    <flux:heading size="sm" class="text-green-800 dark:text-green-200 mb-2">
+                        Track Performance
+                    </flux:heading>
+                    <flux:text class="text-sm text-green-700 dark:text-green-300">
+                        Monitor campaign performance with detailed analytics and insights.
+                    </flux:text>
+                </div>
+            </div>
+
+            <!-- Get Support -->
+            <div class="flex items-start space-x-4 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span class="text-white text-lg">💬</span>
+                </div>
+                <div>
+                    <flux:heading size="sm" class="text-orange-800 dark:text-orange-200 mb-2">
+                        Get Help & Support
+                    </flux:heading>
+                    <flux:text class="text-sm text-orange-700 dark:text-orange-300">
+                        Access our help center, tutorials, and contact our support team anytime.
+                    </flux:text>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Tips -->
+    <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl p-8">
+        <flux:heading class="text-white mb-4 text-center">
+            💡 Pro Tips for Success
+        </flux:heading>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex items-start space-x-3">
+                <div class="w-2 h-2 bg-white rounded-full mt-2 flex-shrink-0"></div>
+                <flux:text class="text-sm text-blue-50">
+                    Be specific about your campaign goals and target audience
+                </flux:text>
+            </div>
+            <div class="flex items-start space-x-3">
+                <div class="w-2 h-2 bg-white rounded-full mt-2 flex-shrink-0"></div>
+                <flux:text class="text-sm text-blue-50">
+                    Provide clear brand guidelines and creative direction
+                </flux:text>
+            </div>
+            <div class="flex items-start space-x-3">
+                <div class="w-2 h-2 bg-white rounded-full mt-2 flex-shrink-0"></div>
+                <flux:text class="text-sm text-blue-50">
+                    Communicate openly with influencers throughout the process
+                </flux:text>
+            </div>
+            <div class="flex items-start space-x-3">
+                <div class="w-2 h-2 bg-white rounded-full mt-2 flex-shrink-0"></div>
+                <flux:text class="text-sm text-blue-50">
+                    Track and measure results to optimize future campaigns
+                </flux:text>
+            </div>
+        </div>
+    </div>
+
+    <!-- Final Message -->
+    <div class="text-center space-y-2">
+        <flux:text class="text-gray-600 dark:text-gray-400">
+            Thank you for choosing CollabConnect. We're excited to help you grow your business!
+        </flux:text>
     </div>
 </div>

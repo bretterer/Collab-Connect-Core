@@ -13,8 +13,6 @@ enum SocialPlatform: string
     case YOUTUBE = 'youtube';
     case FACEBOOK = 'facebook';
     case X = 'x';
-    case LINKEDIN = 'linkedin';
-    case PINTEREST = 'pinterest';
     case SNAPCHAT = 'snapchat';
 
     public function label(): string
@@ -25,8 +23,6 @@ enum SocialPlatform: string
             self::YOUTUBE => 'YouTube',
             self::FACEBOOK => 'Facebook',
             self::X => 'X (Twitter)',
-            self::LINKEDIN => 'LinkedIn',
-            self::PINTEREST => 'Pinterest',
             self::SNAPCHAT => 'Snapchat',
         };
     }
@@ -39,8 +35,6 @@ enum SocialPlatform: string
             self::YOUTUBE => 'https://youtube.com/@',
             self::FACEBOOK => 'https://facebook.com/',
             self::X => 'https://x.com/',
-            self::LINKEDIN => 'https://linkedin.com/in/',
-            self::PINTEREST => 'https://pinterest.com/',
             self::SNAPCHAT => 'https://snapchat.com/add/',
         };
     }
@@ -50,18 +44,24 @@ enum SocialPlatform: string
         return $this->baseUrl().$username;
     }
 
+    public function getIcon(): string
+    {
+        return match ($this) {
+            self::INSTAGRAM => '📸',
+            self::TIKTOK => '🎵',
+            self::YOUTUBE => '📺',
+            self::FACEBOOK => '👥',
+            self::X => '🐦',
+            self::SNAPCHAT => '👻',
+        };
+    }
+
     /**
      * Get platforms most relevant for businesses
      */
     public static function forBusinesses(): array
     {
-        return [
-            self::INSTAGRAM,
-            self::FACEBOOK,
-            self::LINKEDIN,
-            self::YOUTUBE,
-            self::X,
-        ];
+        return self::cases();
     }
 
     /**

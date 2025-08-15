@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BusinessIndustry;
 use App\Enums\BusinessType;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
@@ -13,7 +14,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Business extends Model implements HasMedia
 {
-    use InteractsWithMedia;
+    use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
         'name',
@@ -28,6 +29,13 @@ class Business extends Model implements HasMedia
         'industry',
         'description',
         'selling_points',
+        'city',
+        'state',
+        'postal_code',
+        'target_age_range',
+        'target_gender',
+        'business_goals',
+        'platforms',
     ];
 
     public function casts(): array
@@ -35,6 +43,10 @@ class Business extends Model implements HasMedia
         return [
             'type' => BusinessType::class,
             'industry' => BusinessIndustry::class,
+            'target_age_range' => 'array',
+            'target_gender' => 'array',
+            'business_goals' => 'array',
+            'platforms' => 'array',
         ];
     }
 

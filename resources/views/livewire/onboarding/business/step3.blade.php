@@ -59,20 +59,32 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @foreach(App\Enums\BusinessGoal::cases() as $goal)
-            <div class="relative">
-                <flux:checkbox wire:model="businessGoals" value="{{ $goal->value }}" class="peer sr-only">
-                    {{ $goal->label() }}
-                </flux:checkbox>
-                <label class="flex items-center p-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/20">
-                    <div class="flex items-center space-x-3">
-                        <div class="text-2xl">{{ $goal->icon() }}</div>
-                        <div>
-                            <div class="font-medium text-gray-700 dark:text-gray-300">{{ $goal->label() }}</div>
-                            <div class="text-sm text-gray-500">{{ $goal->description() }}</div>
-                        </div>
+            <label class="flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200
+                         {{ in_array($goal->value, $businessGoals)
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm'
+                            : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
+                <input type="checkbox"
+                       wire:model.live="businessGoals"
+                       value="{{ $goal->value }}"
+                       class="sr-only">
+                <div class="flex items-center space-x-3 w-full">
+                    <div class="text-2xl">{{ $goal->icon() }}</div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-700 dark:text-gray-300">{{ $goal->label() }}</div>
+                        <div class="text-sm text-gray-500">{{ $goal->description() }}</div>
                     </div>
-                </label>
-            </div>
+                    <div class="ml-auto">
+                        @if(in_array($goal->value, $businessGoals))
+                            <div class="text-blue-500">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+
+                        @endif
+                    </div>
+                </div>
+            </label>
             @endforeach
         </div>
         <flux:error name="businessGoals" />
@@ -114,5 +126,40 @@
         </div>
     </div>
 
+    <!-- Platform Preferences -->
+    <div class="space-y-4">
+        <flux:heading class="text-gray-800 dark:text-gray-200">
+            Which social media platforms are you most interested in?
+        </flux:heading>
+        <flux:description class="text-gray-600 dark:text-gray-400">
+            Select the platforms where you'd like to connect with influencers.
+        </flux:description>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            @foreach(App\Enums\SocialPlatform::forBusinesses() as $platform)
+            <label class="flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 
+                         {{ in_array($platform->value, $platforms) 
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm' 
+                            : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
+                <input type="checkbox" 
+                       wire:model.live="platforms" 
+                       value="{{ $platform->value }}" 
+                       class="sr-only">
+                <div class="text-center">
+                    <div class="text-2xl mb-2">{{ $platform->getIcon() }}</div>
+                    <div class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $platform->label() }}</div>
+                    @if(in_array($platform->value, $platforms))
+                        <div class="mt-2 text-blue-500">
+                            <svg class="w-4 h-4 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                    @endif
+                </div>
+            </label>
+            @endforeach
+        </div>
+        <flux:error name="platforms" />
+    </div>
 
 </div>
