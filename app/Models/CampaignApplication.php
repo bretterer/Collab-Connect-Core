@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CampaignApplicationStatus;
+use App\Events\CampaignApplicationCreated;
 use Database\Factories\CampaignApplicationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -31,6 +32,10 @@ class CampaignApplication extends Model
         'accepted_at' => 'datetime',
         'rejected_at' => 'datetime',
         'status' => CampaignApplicationStatus::class,
+    ];
+
+    protected $dispatchesEvents = [
+        'created' => CampaignApplicationCreated::class,
     ];
 
     public function campaign(): BelongsTo

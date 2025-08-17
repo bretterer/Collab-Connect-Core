@@ -49,7 +49,7 @@ class CampaignServiceTest extends TestCase
 
         $this->assertInstanceOf(Campaign::class, $campaign);
         $this->assertEquals(CampaignStatus::DRAFT, $campaign->status);
-        $this->assertEquals($this->businessUser->id, $campaign->user_id);
+        $this->assertEquals($this->businessUser->currentBusiness->id, $campaign->business_id);
         $this->assertEquals('Promote our new product line', $campaign->campaign_goal);
         $this->assertEquals(CampaignType::USER_GENERATED, $campaign->campaign_type);
         $this->assertEquals('49503', $campaign->target_zip_code);
@@ -60,7 +60,7 @@ class CampaignServiceTest extends TestCase
     public function test_save_draft_updates_existing_campaign()
     {
         $campaign = Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Original goal',
             'status' => CampaignStatus::DRAFT,
         ]);
@@ -145,11 +145,11 @@ class CampaignServiceTest extends TestCase
         Event::fake();
 
         $campaign = Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::DRAFT,
         ]);
 
-        $publishedCampaign = CampaignService::publishCampaign($campaign);
+        $publishedCampaign = CampaignService::publishCampaign($campaign, $this->businessUser);
 
         $this->assertEquals(CampaignStatus::PUBLISHED, $publishedCampaign->status);
         $this->assertNotNull($publishedCampaign->published_at);
@@ -165,12 +165,12 @@ class CampaignServiceTest extends TestCase
         Event::fake();
 
         $campaign = Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::DRAFT,
         ]);
 
         $scheduledDate = Carbon::now()->addDays(7)->format('Y-m-d');
-        $scheduledCampaign = CampaignService::scheduleCampaign($campaign, $scheduledDate);
+        $scheduledCampaign = CampaignService::scheduleCampaign($campaign, $scheduledDate, $this->businessUser);
 
         $this->assertEquals(CampaignStatus::SCHEDULED, $scheduledCampaign->status);
         $this->assertEquals($scheduledDate, $scheduledCampaign->scheduled_date->format('Y-m-d'));
@@ -187,10 +187,10 @@ class CampaignServiceTest extends TestCase
         Event::fake();
 
         $campaign = Campaign::factory()->published()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
 
-        $archivedCampaign = CampaignService::archiveCampaign($campaign);
+        $archivedCampaign = CampaignService::archiveCampaign($campaign, $this->businessUser);
 
         $this->assertEquals(CampaignStatus::ARCHIVED, $archivedCampaign->status);
 
@@ -205,10 +205,10 @@ class CampaignServiceTest extends TestCase
         Event::fake();
 
         $campaign = Campaign::factory()->scheduled()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
 
-        $unscheduledCampaign = CampaignService::unscheduleCampaign($campaign);
+        $unscheduledCampaign = CampaignService::unscheduleCampaign($campaign, $this->businessUser);
 
         $this->assertEquals(CampaignStatus::DRAFT, $unscheduledCampaign->status);
         $this->assertNull($unscheduledCampaign->scheduled_date);
@@ -224,7 +224,7 @@ class CampaignServiceTest extends TestCase
         Event::fake();
 
         $campaign = Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Original goal',
             'target_zip_code' => '49503',
         ]);
@@ -235,7 +235,7 @@ class CampaignServiceTest extends TestCase
             'campaign_description' => 'New description',
         ];
 
-        $updatedCampaign = CampaignService::updateCampaign($campaign->id, $updateData);
+        $updatedCampaign = CampaignService::updateCampaign($campaign->id, $updateData, $this->businessUser);
 
         $this->assertEquals('Updated goal', $updatedCampaign->campaign_goal);
         $this->assertEquals('49504', $updatedCampaign->target_zip_code);
@@ -253,15 +253,15 @@ class CampaignServiceTest extends TestCase
     {
         // Create campaigns with different statuses
         Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::DRAFT,
         ]);
         Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::PUBLISHED,
         ]);
         Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::DRAFT,
         ]);
 
@@ -274,14 +274,14 @@ class CampaignServiceTest extends TestCase
     public function test_get_user_published_returns_correct_campaigns()
     {
         Campaign::factory()->published()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
         Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::DRAFT,
         ]);
         Campaign::factory()->published()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
 
         $published = CampaignService::getUserPublished($this->businessUser);
@@ -293,14 +293,14 @@ class CampaignServiceTest extends TestCase
     public function test_get_user_scheduled_returns_correct_campaigns()
     {
         Campaign::factory()->scheduled()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
         Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::DRAFT,
         ]);
         Campaign::factory()->scheduled()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
 
         $scheduled = CampaignService::getUserScheduled($this->businessUser);
@@ -312,14 +312,14 @@ class CampaignServiceTest extends TestCase
     public function test_get_user_archived_returns_correct_campaigns()
     {
         Campaign::factory()->archived()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
         Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::DRAFT,
         ]);
         Campaign::factory()->archived()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
 
         $archived = CampaignService::getUserArchived($this->businessUser);

@@ -12,10 +12,10 @@ use App\Livewire\Onboarding\BusinessOnboarding;
 use App\Models\Business;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\TestCase;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
 
 class BusinessOnboardingTest extends TestCase
 {
@@ -26,11 +26,11 @@ class BusinessOnboardingTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->user = User::factory()->create([
             'account_type' => AccountType::BUSINESS,
         ]);
-        
+
         $this->actingAs($this->user);
     }
 
@@ -255,7 +255,7 @@ class BusinessOnboardingTest extends TestCase
     public function onboarding_caching_works_correctly()
     {
         $business = $this->createBusinessAndGoToStep(2);
-        $cacheKey = 'onboarding_step_business_' . $business->id;
+        $cacheKey = 'onboarding_step_business_'.$business->id;
 
         // Verify cache is set
         $this->assertEquals(2, Cache::get($cacheKey));
@@ -281,7 +281,7 @@ class BusinessOnboardingTest extends TestCase
         $this->assertEquals(1, $business->onboarding_complete);
 
         // Verify cache is cleared
-        $cacheKey = 'onboarding_step_business_' . $business->id;
+        $cacheKey = 'onboarding_step_business_'.$business->id;
         $this->assertNull(Cache::get($cacheKey));
     }
 
@@ -306,7 +306,7 @@ class BusinessOnboardingTest extends TestCase
     {
         $component = Livewire::test(BusinessOnboarding::class);
         $maxSteps = $component->instance()->getMaxSteps();
-        
+
         $this->assertEquals(4, $maxSteps);
     }
 
@@ -315,9 +315,9 @@ class BusinessOnboardingTest extends TestCase
     {
         $component = Livewire::test(BusinessOnboarding::class)
             ->set('step', 2);
-        
+
         $stepData = $component->instance()->getCurrentStepData();
-        
+
         $this->assertEquals('Business Profile & Identity', $stepData['title']);
         $this->assertEquals('step2', $stepData['component']);
         $this->assertContains('businessType', $stepData['fields']);
@@ -410,12 +410,12 @@ class BusinessOnboardingTest extends TestCase
         \App\Models\BusinessUser::create([
             'business_id' => $business->id,
             'user_id' => $this->user->id,
-            'role' => 'owner'
+            'role' => 'owner',
         ]);
 
         // Set cache to target step
         if ($targetStep > 1) {
-            Cache::put('onboarding_step_business_' . $business->id, $targetStep, now()->addHours(24));
+            Cache::put('onboarding_step_business_'.$business->id, $targetStep, now()->addHours(24));
         }
 
         return $business;

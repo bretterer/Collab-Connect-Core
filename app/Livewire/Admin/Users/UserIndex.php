@@ -62,7 +62,7 @@ class UserIndex extends Component
     public function render()
     {
         $users = User::query()
-            ->with(['businessProfile', 'influencerProfile'])
+            ->with(['currentBusiness', 'influencer'])
             ->when($this->search, function (Builder $query) {
                 $query->where(function (Builder $q) {
                     $q->where('name', 'like', '%'.$this->search.'%')

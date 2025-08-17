@@ -82,19 +82,27 @@ class UserFactory extends Factory
     {
         return $this->afterCreating(function ($user) use ($profileAttributes) {
             if ($user->account_type === AccountType::BUSINESS) {
-                $user->businessProfile()->create(
-                    array_merge(
-                        \Database\Factories\BusinessProfileFactory::new()->make()->toArray(),
-                        $profileAttributes
-                    )
+                // Create a Business and link it to the user
+                $business = \App\Models\Business::factory()->create(
+                    array_merge(['onboarding_complete' => true], $profileAttributes)
                 );
+
+                // Create the business-user relationship
+                \App\Models\BusinessUser::create([
+                    'business_id' => $business->id,
+                    'user_id' => $user->id,
+                    'role' => 'owner',
+                ]);
+
+                // Set as current business
+                $user->setCurrentBusiness($business);
+
             } elseif ($user->account_type === AccountType::INFLUENCER) {
-                $user->influencerProfile()->create(
-                    array_merge(
-                        \Database\Factories\InfluencerProfileFactory::new()->make()->toArray(),
-                        $profileAttributes
-                    )
+                // Create an Influencer and link it to the user
+                $influencer = \App\Models\Influencer::factory()->create(
+                    array_merge(['user_id' => $user->id, 'onboarding_complete' => true], $profileAttributes)
                 );
+
             }
         });
     }

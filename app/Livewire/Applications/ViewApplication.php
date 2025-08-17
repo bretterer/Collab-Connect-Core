@@ -16,14 +16,12 @@ class ViewApplication extends BaseComponent
     public function mount(CampaignApplication $application)
     {
         // Ensure the user owns the campaign this application is for
-        if ($application->campaign->user_id !== Auth::user()->id) {
+        if ($application->campaign->business->owner->first()->id !== Auth::user()->id) {
             abort(403, 'You do not have permission to view this application.');
         }
 
         $this->application = $application->load([
-            'user.influencerProfile',
             'user.socialMediaAccounts',
-            'campaign.user.businessProfile',
             'campaign.compensation',
             'campaign.requirements',
             'campaign.brief',

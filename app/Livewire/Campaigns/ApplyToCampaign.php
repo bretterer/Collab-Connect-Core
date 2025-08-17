@@ -22,7 +22,7 @@ class ApplyToCampaign extends BaseComponent
 
     public function mount(Campaign $campaign, string $buttonText = 'Apply Now')
     {
-        $this->campaign = $campaign->load(['compensation', 'user.businessProfile']);
+        $this->campaign = $campaign->load(['compensation', 'business']);
         $this->buttonText = $buttonText;
 
         // Check if user already applied

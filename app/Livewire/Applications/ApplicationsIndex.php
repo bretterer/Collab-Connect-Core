@@ -42,10 +42,10 @@ class ApplicationsIndex extends BaseComponent
     {
         $query = CampaignApplication::query()
             ->whereHas('campaign', function ($q) {
-                $q->where('user_id', Auth::user()->id);
+                $q->where('business_id', Auth::user()->currentBusiness->id);
             })
             ->with([
-                'user.influencerProfile',
+                'user.influencer',
                 'user.socialMediaAccounts',
                 'campaign',
             ]);
@@ -83,7 +83,7 @@ class ApplicationsIndex extends BaseComponent
 
     public function getCampaignsProperty()
     {
-        return Campaign::where('user_id', Auth::user()->id)
+        return Campaign::where('business_id', Auth::user()->currentBusiness->id)
             ->whereHas('applications')
             ->withCount('applications')
             ->orderBy('created_at', 'desc')
@@ -93,7 +93,7 @@ class ApplicationsIndex extends BaseComponent
     public function getStatsProperty()
     {
         $baseQuery = CampaignApplication::whereHas('campaign', function ($q) {
-            $q->where('user_id', Auth::user()->id);
+            $q->where('business_id', Auth::user()->currentBusiness->id);
         });
 
         return [

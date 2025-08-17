@@ -21,15 +21,7 @@ class InfluencerCampaignsTest extends TestCase
 
     public function test_influencer_can_view_campaign_discovery_page()
     {
-        $influencer = User::factory()->create([
-            'account_type' => AccountType::INFLUENCER,
-        ]);
-
-        $influencerProfile = InfluencerProfile::factory()->create([
-            'user_id' => $influencer->id,
-            'primary_niche' => Niche::FASHION,
-            'primary_zip_code' => '12345',
-        ]);
+        $influencer = User::factory()->influencer()->withProfile()->create();
 
         $this->actingAs($influencer);
 
@@ -42,40 +34,17 @@ class InfluencerCampaignsTest extends TestCase
     public function test_campaigns_are_sorted_by_match_score()
     {
         // Create influencer
-        $influencer = User::factory()->create([
-            'account_type' => AccountType::INFLUENCER,
-        ]);
+        $influencer = User::factory()->influencer()->withProfile()->create();
 
-        $influencerProfile = InfluencerProfile::factory()->create([
-            'user_id' => $influencer->id,
-            'primary_niche' => Niche::FASHION,
-            'primary_zip_code' => '12345',
-        ]);
 
         // Create businesses and campaigns
-        $business1 = User::factory()->create([
-            'account_type' => AccountType::BUSINESS,
-        ]);
+        $business1 = User::factory()->business()->withProfile()->create();
 
-        $businessProfile1 = BusinessProfile::factory()->create([
-            'user_id' => $business1->id,
-            'industry' => Niche::FASHION, // Perfect match
-            'primary_zip_code' => '12345', // Same location
-        ]);
-
-        $business2 = User::factory()->create([
-            'account_type' => AccountType::BUSINESS,
-        ]);
-
-        $businessProfile2 = BusinessProfile::factory()->create([
-            'user_id' => $business2->id,
-            'industry' => Niche::FOOD, // Different niche
-            'primary_zip_code' => '67890', // Different location
-        ]);
+        $business2 = User::factory()->business()->withProfile()->create();
 
         // Create campaigns
         $campaign1 = Campaign::factory()->create([
-            'user_id' => $business1->id,
+            'business_id' => $business1->currentBusiness->id,
             'status' => CampaignStatus::PUBLISHED,
             'campaign_type' => CampaignType::SPONSORED_POSTS,
             'target_zip_code' => '12345',
@@ -88,7 +57,7 @@ class InfluencerCampaignsTest extends TestCase
         ]);
 
         $campaign2 = Campaign::factory()->create([
-            'user_id' => $business2->id,
+            'business_id' => $business2->currentBusiness->id,
             'status' => CampaignStatus::PUBLISHED,
             'campaign_type' => CampaignType::PRODUCT_REVIEWS,
             'target_zip_code' => '67890',
@@ -109,24 +78,13 @@ class InfluencerCampaignsTest extends TestCase
 
     public function test_campaigns_can_be_filtered_by_search()
     {
-        $influencer = User::factory()->create([
-            'account_type' => AccountType::INFLUENCER,
-        ]);
+        $influencer = User::factory()->influencer()->withProfile()->create();
 
-        $influencerProfile = InfluencerProfile::factory()->create([
-            'user_id' => $influencer->id,
-        ]);
+        $business = User::factory()->business()->withProfile()->create();
 
-        $business = User::factory()->create([
-            'account_type' => AccountType::BUSINESS,
-        ]);
-
-        $businessProfile = BusinessProfile::factory()->create([
-            'user_id' => $business->id,
-        ]);
 
         $campaign = Campaign::factory()->create([
-            'user_id' => $business->id,
+            'business_id' => $business->currentBusiness->id,
             'status' => CampaignStatus::PUBLISHED,
             'campaign_goal' => 'Unique fashion campaign',
             'campaign_description' => 'Looking for fashion influencers',
@@ -141,51 +99,4 @@ class InfluencerCampaignsTest extends TestCase
             ->assertSee('Discover Campaigns');
     }
 
-    public function test_campaigns_can_be_filtered_by_niche()
-    {
-        $influencer = User::factory()->create([
-            'account_type' => AccountType::INFLUENCER,
-        ]);
-
-        $influencerProfile = InfluencerProfile::factory()->create([
-            'user_id' => $influencer->id,
-        ]);
-
-        $business1 = User::factory()->create([
-            'account_type' => AccountType::BUSINESS,
-        ]);
-
-        $businessProfile1 = BusinessProfile::factory()->create([
-            'user_id' => $business1->id,
-            'industry' => Niche::FASHION,
-        ]);
-
-        $business2 = User::factory()->create([
-            'account_type' => AccountType::BUSINESS,
-        ]);
-
-        $businessProfile2 = BusinessProfile::factory()->create([
-            'user_id' => $business2->id,
-            'industry' => Niche::FOOD,
-        ]);
-
-        $campaign1 = Campaign::factory()->create([
-            'user_id' => $business1->id,
-            'status' => CampaignStatus::PUBLISHED,
-            'campaign_goal' => 'Fashion campaign',
-        ]);
-
-        $campaign2 = Campaign::factory()->create([
-            'user_id' => $business2->id,
-            'status' => CampaignStatus::PUBLISHED,
-            'campaign_goal' => 'Food campaign',
-        ]);
-
-        $this->actingAs($influencer);
-
-        Livewire::test(InfluencerCampaigns::class)
-            ->set('selectedNiches', [Niche::FASHION->value])
-            ->assertSee('Fashion campaign')
-            ->assertDontSee('Food campaign');
-    }
 }

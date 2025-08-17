@@ -88,17 +88,19 @@ class SearchService
 
         if (! empty($nearbyZipCodes)) {
             // Use proximity search
-            $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencerProfile' : 'businessProfile';
+            $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencer' : 'businessProfile';
+            $zipCodeColumn = $targetAccountType === AccountType::INFLUENCER ? 'postal_code' : 'primary_zip_code';
 
-            return $query->whereHas($relationshipMethod, function ($q) use ($nearbyZipCodes) {
-                $q->whereIn('primary_zip_code', $nearbyZipCodes);
+            return $query->whereHas($relationshipMethod, function ($q) use ($nearbyZipCodes, $zipCodeColumn) {
+                $q->whereIn($zipCodeColumn, $nearbyZipCodes);
             });
         } else {
             // Fallback to text search
-            $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencerProfile' : 'businessProfile';
+            $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencer' : 'businessProfile';
+            $zipCodeColumn = $targetAccountType === AccountType::INFLUENCER ? 'postal_code' : 'primary_zip_code';
 
-            return $query->whereHas($relationshipMethod, function ($q) use ($location) {
-                $q->where('primary_zip_code', 'like', '%'.$location.'%');
+            return $query->whereHas($relationshipMethod, function ($q) use ($location, $zipCodeColumn) {
+                $q->where($zipCodeColumn, 'like', '%'.$location.'%');
             });
         }
     }
@@ -132,11 +134,17 @@ class SearchService
             return $query;
         }
 
-        $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencerProfile' : 'businessProfile';
-        $nicheColumn = $targetAccountType === AccountType::INFLUENCER ? 'primary_niche' : 'industry';
+        $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencer' : 'business';
+        $nicheColumn = $targetAccountType === AccountType::INFLUENCER ? 'content_types' : 'industry';
 
         return $query->whereHas($relationshipMethod, function ($q) use ($selectedNiches, $nicheColumn) {
-            $q->whereIn($nicheColumn, $selectedNiches);
+            // Wrap the multiple `whereJsonContains` conditions in a closure
+            $q->where(function ($query) use ($selectedNiches, $nicheColumn) {
+                foreach ($selectedNiches as $niche) {
+                    // Use `orWhereJsonContains` for each niche to create an OR condition
+                    $query->orWhereJsonContains($nicheColumn, $niche);
+                }
+            });
         });
     }
 
@@ -205,7 +213,7 @@ class SearchService
     private static function loadRelationships(Builder $query, AccountType $targetAccountType): Builder
     {
         if ($targetAccountType === AccountType::INFLUENCER) {
-            return $query->with(['influencerProfile', 'socialMediaAccounts']);
+            return $query->with(['influencer', 'socialMediaAccounts']);
         } else {
             return $query->with(['businessProfile']);
         }

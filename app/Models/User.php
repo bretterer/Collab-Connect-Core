@@ -4,9 +4,11 @@ namespace App\Models;
 
 use App\Enums\AccountType;
 use App\Events\AccountTypeSelected;
+use App\Models\Business;
 use App\Services\ProfileService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -68,19 +70,33 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the user's business profile
+     * Get the businesses this user belongs to
      */
-    public function businessProfile(): HasOne
+    public function businesses(): BelongsToMany
     {
-        return $this->hasOne(BusinessProfile::class);
+        return $this->belongsToMany(Business::class, 'business_users')
+            ->withPivot('role');
     }
 
     /**
      * Get the user's influencer profile
      */
-    public function influencerProfile(): HasOne
+    public function influencer(): HasOne
     {
-        return $this->hasOne(InfluencerProfile::class);
+        return $this->hasOne(Influencer::class);
+    }
+
+    public function profile(): HasOne
+    {
+        if($this->isInfluencerAccount()) {
+            return $this->hasOne(Influencer::class);
+        }
+
+        if($this->isBusinessAccount()) {
+            return $this->hasOne(Business::class, 'id', 'current_business');;
+        }
+
+        throw new \Exception('User profile type not defined for this user.');
     }
 
     /**
@@ -214,11 +230,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Message::class);
     }
 
-    public function businesses(): HasManyThrough
-    {
-        return $this->hasManyThrough(Business::class, BusinessUser::class);
-    }
-
     /**
      * Get the total count of unread messages across all chats for this user.
      */
@@ -251,33 +262,5 @@ class User extends Authenticatable implements MustVerifyEmail
 
         // Trigger any additional logic needed after setting the account type
         AccountTypeSelected::dispatch($this, $accountType);
-    }
-
-    /**
-     * Check if the user's profile is completed.
-     */
-    public function profileCompleted(): bool
-    {
-        if ($this->account_type === AccountType::BUSINESS) {
-            $profile = $this->businessProfile;
-
-            return $profile &&
-                   $profile->business_name &&
-                   $profile->industry &&
-                   $profile->primary_zip_code &&
-                   $profile->contact_name &&
-                   $profile->contact_email;
-        }
-
-        if ($this->account_type === AccountType::INFLUENCER) {
-            $profile = $this->influencerProfile;
-
-            return $profile &&
-                   $profile->creator_name &&
-                   $profile->primary_niche &&
-                   $profile->primary_zip_code;
-        }
-
-        return false;
     }
 }

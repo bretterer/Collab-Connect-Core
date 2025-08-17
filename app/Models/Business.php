@@ -6,8 +6,8 @@ use App\Enums\BusinessIndustry;
 use App\Enums\BusinessType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -80,13 +80,29 @@ class Business extends Model implements HasMedia
         return $this->getFirstMediaUrl('logo', 'thumb') ?: null;
     }
 
-    public function users(): HasManyThrough
+    public function users(): BelongsToMany
     {
-        return $this->hasManyThrough(User::class, BusinessUser::class);
+        return $this->belongsToMany(User::class, 'business_users')
+            ->withPivot('role');
     }
 
     public function socials(): HasMany
     {
         return $this->hasMany(BusinessSocial::class);
+    }
+
+    public function campaigns(): HasMany
+    {
+        return $this->hasMany(Campaign::class);
+    }
+
+    /**
+     * Get the owner of the business based on the users where role is `owner`
+     */
+    public function owner(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'business_users')
+            ->withPivot('role')
+            ->wherePivot('role', 'owner');
     }
 }

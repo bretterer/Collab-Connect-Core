@@ -220,6 +220,12 @@
                                             </p>
                                         </div>
                                         <div class="flex items-center space-x-2">
+                                            <a href="{{ route('applications.show', $application->id) }}" class="p-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="View">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                                </svg>
+                                            </a>
                                             <button wire:click="acceptApplication({{ $application->id }})" class="p-2 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/20 rounded-lg transition-colors" title="Accept">
                                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
@@ -421,7 +427,7 @@
                                     <div class="flex items-start justify-between mb-4">
                                         <div class="flex items-center space-x-3">
                                             <div class="h-12 w-12 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold">
-                                                {{ substr($campaign->user->businessProfile?->business_name ?? $campaign->user->name, 0, 1) }}
+                                                {{ substr($campaign->user->currentBusiness?->business_name ?? $campaign->user->name, 0, 1) }}
                                             </div>
                                             <div>
                                                 <div class="flex items-center space-x-2 mb-1">
@@ -527,7 +533,7 @@
                                         {{ Str::limit($application->campaign->campaign_goal, 40) }}
                                     </h4>
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                                        {{ $application->campaign->user->businessProfile?->business_name ?? $application->campaign->user->name }}
+                                        {{ $application->campaign->name }}
                                     </p>
                                     <div class="flex items-center justify-between">
                                         <span class="text-xs text-gray-500 dark:text-gray-400">{{ $application->campaign->compensation_display }}</span>
@@ -574,7 +580,7 @@
                                         {{ Str::limit($application->campaign->campaign_goal, 40) }}
                                     </h4>
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                                        {{ $application->campaign->user->businessProfile?->business_name ?? $application->campaign->user->name }}
+                                        {{ $application->campaign->business->name ?? $application->campaign->user->name }}
                                     </p>
                                     <div class="flex items-center justify-between">
                                         <span class="text-xs text-gray-500 dark:text-gray-400">{{ $application->campaign->compensation_display }}</span>

@@ -88,7 +88,7 @@ class Dashboard extends Component
             ->where('status', CampaignStatus::PUBLISHED)
             ->where('user_id', '!=', $user->id)
             ->with([
-                'user.businessProfile',
+                'user.currentBusiness',
                 'compensation',
                 'requirements',
                 'brief',
@@ -198,9 +198,9 @@ class Dashboard extends Component
         // For now, we'll use some basic niche matching logic
         // This could be expanded to include campaign requirements or business industry
         $influencerNiche = $influencerProfile->primary_niche;
-        $businessProfile = $campaign->user->businessProfile;
+        $currentBusiness = $campaign->user->currentBusiness;
 
-        if (! $businessProfile || ! $businessProfile->industry) {
+        if (! $currentBusiness || ! $currentBusiness->industry) {
             return 50; // Neutral score if no business industry data
         }
 
@@ -217,7 +217,7 @@ class Dashboard extends Component
 
         $matchingIndustries = $nicheMatchMap[$influencerNiche->value] ?? [];
 
-        if (in_array($businessProfile->industry?->value, $matchingIndustries)) {
+        if (in_array($currentBusiness->industry?->value, $matchingIndustries)) {
             return 95;
         }
 
@@ -279,7 +279,7 @@ class Dashboard extends Component
 
         return \App\Models\CampaignApplication::query()
             ->where('user_id', Auth::user()->id)
-            ->with(['campaign.user.businessProfile', 'campaign.compensation'])
+            ->with(['campaign', 'campaign.compensation'])
             ->orderBy('submitted_at', 'desc')
             ->get();
     }
@@ -296,7 +296,7 @@ class Dashboard extends Component
         return \App\Models\CampaignApplication::query()
             ->where('user_id', Auth::user()->id)
             ->where('status', CampaignApplicationStatus::ACCEPTED)
-            ->with(['campaign.user.businessProfile', 'campaign.compensation'])
+            ->with(['campaign.business', 'campaign.compensation'])
             ->whereHas('campaign', function ($query) {
                 $query->where('status', \App\Enums\CampaignStatus::PUBLISHED);
             })
@@ -316,10 +316,9 @@ class Dashboard extends Component
         return \App\Models\CampaignApplication::query()
             ->where('status', CampaignApplicationStatus::PENDING)
             ->whereHas('campaign', function ($query) {
-                $query->where('user_id', Auth::user()->id);
+                $query->where('business_id', Auth::user()->currentBusiness->id);
             })
             ->with([
-                'user.influencerProfile',
                 'campaign',
                 'user.socialMediaAccounts',
             ])
@@ -339,10 +338,9 @@ class Dashboard extends Component
         return \App\Models\CampaignApplication::query()
             ->where('status', CampaignApplicationStatus::ACCEPTED)
             ->whereHas('campaign', function ($query) {
-                $query->where('user_id', Auth::user()->id);
+                $query->where('business_id', Auth::user()->currentBusiness->id);
             })
             ->with([
-                'user.influencerProfile',
                 'campaign',
                 'user.socialMediaAccounts',
             ])
@@ -361,7 +359,7 @@ class Dashboard extends Component
 
         return \App\Models\CampaignApplication::query()
             ->whereHas('campaign', function ($query) {
-                $query->where('user_id', Auth::user()->id);
+                $query->where('business_id', Auth::user()->currentBusiness->id);
             })
             ->count();
     }

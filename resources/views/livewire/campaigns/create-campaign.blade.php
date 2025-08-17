@@ -718,7 +718,7 @@
                             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-6">
                                 <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Additional Requirements</h3>
                                 <div class="text-gray-900 dark:text-white prose prose-sm max-w-none">
-                                    {!! join(', ', $additionalRequirements) !!}
+                                    {!! $additionalRequirements !!}
                                 </div>
                             </div>
                             @endif

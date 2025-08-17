@@ -29,8 +29,7 @@ class ShowCampaign extends Component
             'brand',
             'requirements',
             'compensation',
-            'user.businessProfile',
-            'applications.user.influencerProfile',
+            'applications.user.influencer',
         ]);
 
         $this->applications = $this->campaign->applications;
@@ -42,7 +41,7 @@ class ShowCampaign extends Component
         }
 
         // Check if current user is the owner
-        $this->isOwner = $this->campaign->user_id === Auth::user()->id;
+        $this->isOwner = $this->campaign->business->owner->first()->id === Auth::user()->id;
 
         // Use the policy to authorize viewing
         $this->authorize('view', $campaign);

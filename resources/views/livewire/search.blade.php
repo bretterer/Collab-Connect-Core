@@ -73,14 +73,10 @@
                 <!-- Niche/Industry Filter -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        @if($targetAccountType === App\Enums\AccountType::INFLUENCER)
-                            Niches
-                        @else
-                            Industries
-                        @endif
+                       Industries
                     </label>
-                    <div class="space-y-2 max-h-40 overflow-y-auto">
-                        @foreach(App\Enums\Niche::cases() as $niche)
+                    <div class="space-y-2">
+                        @foreach(App\Enums\BusinessIndustry::cases() as $niche)
                             <label class="flex items-center">
                                 <input type="checkbox"
                                        wire:model.live="selectedNiches"

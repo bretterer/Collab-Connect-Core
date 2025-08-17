@@ -11,6 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Cashier\Cashier;
 use Livewire\Livewire;
 use Mockery;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PricingTest extends TestCase
@@ -18,7 +19,9 @@ class PricingTest extends TestCase
     use RefreshDatabase;
 
     protected User $adminUser;
+
     protected StripeProduct $product;
+
     protected StripePrice $price;
 
     protected function setUp(): void
@@ -49,7 +52,7 @@ class PricingTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_view_pricing_page()
     {
         $this->actingAs($this->adminUser)
@@ -58,7 +61,7 @@ class PricingTest extends TestCase
             ->assertSeeLivewire(Pricing::class);
     }
 
-    /** @test */
+    #[Test]
     public function pricing_component_displays_products_and_prices()
     {
         Livewire::actingAs($this->adminUser)
@@ -69,7 +72,7 @@ class PricingTest extends TestCase
             ->assertSee('2 features');
     }
 
-    /** @test */
+    #[Test]
     public function can_open_product_edit_modal()
     {
         Livewire::actingAs($this->adminUser)
@@ -81,7 +84,7 @@ class PricingTest extends TestCase
             ->assertSee('Edit Product Account Type');
     }
 
-    /** @test */
+    #[Test]
     public function can_open_price_edit_modal()
     {
         Livewire::actingAs($this->adminUser)
@@ -93,13 +96,13 @@ class PricingTest extends TestCase
             ->assertSee('Edit Price Features');
     }
 
-    /** @test */
+    #[Test]
     public function can_update_product_account_type()
     {
         // For this test, we'll check the validation and UI behavior
         // The Stripe call will fail but that's expected in test environment
         // We'll test the error handling instead
-        
+
         Livewire::actingAs($this->adminUser)
             ->test(Pricing::class)
             ->call('editProduct', $this->product->id)
@@ -109,23 +112,23 @@ class PricingTest extends TestCase
             ->assertSet('showEditModal', true); // Modal should remain open on error
     }
 
-    /** @test */
+    #[Test]
     public function can_update_price_features()
     {
         // Mock the Stripe client by mocking Cashier::stripe()
         $pricesMock = Mockery::mock();
         $stripeMock = Mockery::mock();
-        
+
         $stripeMock->prices = $pricesMock;
-            
+
         $pricesMock->shouldReceive('update')
             ->with($this->price->stripe_id, [
-                'metadata' => ['features' => json_encode(['New Feature 1', 'New Feature 2', 'New Feature 3'])]
+                'metadata' => ['features' => json_encode(['New Feature 1', 'New Feature 2', 'New Feature 3'])],
             ])
             ->once();
 
         // Mock the static method using Mockery
-        $this->mock(Cashier::class, function($mock) use ($stripeMock) {
+        $this->mock(Cashier::class, function ($mock) use ($stripeMock) {
             $mock->shouldReceive('stripe')->andReturn($stripeMock);
         });
 
@@ -138,7 +141,7 @@ class PricingTest extends TestCase
             ->assertSessionHas('message', 'Price features updated successfully. Changes will sync via webhook.');
     }
 
-    /** @test */
+    #[Test]
     public function can_add_and_remove_features()
     {
         Livewire::actingAs($this->adminUser)
@@ -150,7 +153,7 @@ class PricingTest extends TestCase
             ->assertSet('priceFeatures', ['Feature 1', '']);
     }
 
-    /** @test */
+    #[Test]
     public function validates_required_account_type()
     {
         // Mock Stripe API (should not be called) - remove this as validation doesn't call Stripe
@@ -163,7 +166,7 @@ class PricingTest extends TestCase
             ->assertHasErrors(['selectedAccountType']);
     }
 
-    /** @test */
+    #[Test]
     public function validates_account_type_enum_values()
     {
         // Mock Stripe API (should not be called) - remove this as validation doesn't call Stripe
@@ -176,15 +179,15 @@ class PricingTest extends TestCase
             ->assertHasErrors(['selectedAccountType']);
     }
 
-    /** @test */
+    #[Test]
     public function handles_stripe_api_errors_gracefully()
     {
         // Mock Stripe API to throw exception
         $productsMock = Mockery::mock();
         $stripeMock = Mockery::mock();
-        
+
         $stripeMock->products = $productsMock;
-            
+
         $productsMock->shouldReceive('update')
             ->andThrow(new \Exception('Stripe API Error'));
 
@@ -198,7 +201,7 @@ class PricingTest extends TestCase
             ->assertSessionHas('error', 'Failed to update product account type: Stripe API Error');
     }
 
-    /** @test */
+    #[Test]
     public function can_close_modal()
     {
         Livewire::actingAs($this->adminUser)
@@ -211,12 +214,12 @@ class PricingTest extends TestCase
             ->assertSet('selectedAccountType', null);
     }
 
-    /** @test */
+    #[Test]
     public function handles_legacy_account_type_values()
     {
         // Create product with legacy string account type
         $legacyProduct = StripeProduct::factory()->create([
-            'metadata' => ['account_type' => 'BUSINESS'] // String instead of enum
+            'metadata' => ['account_type' => 'BUSINESS'], // String instead of enum
         ]);
 
         Livewire::actingAs($this->adminUser)
@@ -225,15 +228,15 @@ class PricingTest extends TestCase
             ->assertSet('selectedAccountType', AccountType::BUSINESS->value);
     }
 
-    /** @test */
+    #[Test]
     public function displays_correct_account_type_labels()
     {
         $businessProduct = StripeProduct::factory()->create([
-            'metadata' => ['account_type' => 'BUSINESS']
+            'metadata' => ['account_type' => 'BUSINESS'],
         ]);
 
         $influencerProduct = StripeProduct::factory()->create([
-            'metadata' => ['account_type' => 'INFLUENCER']
+            'metadata' => ['account_type' => 'INFLUENCER'],
         ]);
 
         Livewire::actingAs($this->adminUser)

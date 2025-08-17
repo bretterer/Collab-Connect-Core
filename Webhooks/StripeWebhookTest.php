@@ -10,13 +10,14 @@ use App\Models\StripePrice;
 use App\Models\StripeProduct;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Cashier\Events\WebhookReceived;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class StripeWebhookTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function handles_product_created_webhook()
     {
         $webhookPayload = [
@@ -28,15 +29,15 @@ class StripeWebhookTest extends TestCase
                     'active' => true,
                     'description' => 'A test product',
                     'metadata' => [
-                        'account_type' => 'BUSINESS'
+                        'account_type' => 'BUSINESS',
                     ],
                     'livemode' => false,
-                ]
-            ]
+                ],
+            ],
         ];
 
         $event = new WebhookReceived($webhookPayload);
-        $listener = new StripeProductCreated();
+        $listener = new StripeProductCreated;
         $listener->handle($event);
 
         $this->assertDatabaseHas('stripe_products', [
@@ -51,7 +52,7 @@ class StripeWebhookTest extends TestCase
         $this->assertEquals(['account_type' => 'BUSINESS'], $product->metadata);
     }
 
-    /** @test */
+    #[Test]
     public function handles_product_updated_webhook()
     {
         // Create existing product
@@ -70,15 +71,15 @@ class StripeWebhookTest extends TestCase
                     'active' => true,
                     'description' => 'Updated description',
                     'metadata' => [
-                        'account_type' => 'INFLUENCER'
+                        'account_type' => 'INFLUENCER',
                     ],
                     'livemode' => false,
-                ]
-            ]
+                ],
+            ],
         ];
 
         $event = new WebhookReceived($webhookPayload);
-        $listener = new StripeProductUpdated();
+        $listener = new StripeProductUpdated;
         $listener->handle($event);
 
         // Refresh the model
@@ -90,7 +91,7 @@ class StripeWebhookTest extends TestCase
         $this->assertEquals(['account_type' => 'INFLUENCER'], $product->metadata);
     }
 
-    /** @test */
+    #[Test]
     public function handles_product_deleted_webhook()
     {
         // Create existing product
@@ -103,12 +104,12 @@ class StripeWebhookTest extends TestCase
             'data' => [
                 'object' => [
                     'id' => 'prod_test123',
-                ]
-            ]
+                ],
+            ],
         ];
 
         $event = new WebhookReceived($webhookPayload);
-        $listener = new StripeProductDeleted();
+        $listener = new StripeProductDeleted;
         $listener->handle($event);
 
         $this->assertSoftDeleted('stripe_products', [
@@ -116,7 +117,7 @@ class StripeWebhookTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function handles_price_created_webhook()
     {
         // Create a product first (prices need products)
@@ -134,7 +135,7 @@ class StripeWebhookTest extends TestCase
                     'billing_scheme' => 'per_unit',
                     'livemode' => false,
                     'metadata' => [
-                        'features' => json_encode(['Feature 1', 'Feature 2'])
+                        'features' => json_encode(['Feature 1', 'Feature 2']),
                     ],
                     'recurring' => [
                         'interval' => 'month',
@@ -142,12 +143,12 @@ class StripeWebhookTest extends TestCase
                     ],
                     'type' => 'recurring',
                     'unit_amount' => 1999,
-                ]
-            ]
+                ],
+            ],
         ];
 
         $event = new WebhookReceived($webhookPayload);
-        $listener = new StripePriceCreated();
+        $listener = new StripePriceCreated;
         $listener->handle($event);
 
         $this->assertDatabaseHas('stripe_prices', [
@@ -165,13 +166,13 @@ class StripeWebhookTest extends TestCase
             'interval' => 'month',
             'interval_count' => 1,
         ], $price->recurring);
-        
+
         $this->assertEquals([
-            'features' => json_encode(['Feature 1', 'Feature 2'])
+            'features' => json_encode(['Feature 1', 'Feature 2']),
         ], $price->metadata);
     }
 
-    /** @test */
+    #[Test]
     public function price_created_webhook_throws_exception_when_product_not_found()
     {
         $webhookPayload = [
@@ -187,20 +188,20 @@ class StripeWebhookTest extends TestCase
                     'recurring' => null,
                     'type' => 'one_time',
                     'unit_amount' => 1999,
-                ]
-            ]
+                ],
+            ],
         ];
 
         $event = new WebhookReceived($webhookPayload);
-        $listener = new StripePriceCreated();
+        $listener = new StripePriceCreated;
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Stripe product not found');
-        
+
         $listener->handle($event);
     }
 
-    /** @test */
+    #[Test]
     public function handles_product_webhook_with_null_metadata()
     {
         $webhookPayload = [
@@ -213,12 +214,12 @@ class StripeWebhookTest extends TestCase
                     'description' => null,
                     'metadata' => null,
                     'livemode' => false,
-                ]
-            ]
+                ],
+            ],
         ];
 
         $event = new WebhookReceived($webhookPayload);
-        $listener = new StripeProductCreated();
+        $listener = new StripeProductCreated;
         $listener->handle($event);
 
         $this->assertDatabaseHas('stripe_products', [
@@ -231,7 +232,7 @@ class StripeWebhookTest extends TestCase
         $this->assertNull($product->metadata);
     }
 
-    /** @test */
+    #[Test]
     public function handles_price_webhook_with_null_metadata_and_recurring()
     {
         $product = StripeProduct::factory()->create([
@@ -251,12 +252,12 @@ class StripeWebhookTest extends TestCase
                     'recurring' => null,
                     'type' => 'one_time',
                     'unit_amount' => 1999,
-                ]
-            ]
+                ],
+            ],
         ];
 
         $event = new WebhookReceived($webhookPayload);
-        $listener = new StripePriceCreated();
+        $listener = new StripePriceCreated;
         $listener->handle($event);
 
         $this->assertDatabaseHas('stripe_prices', [
@@ -269,7 +270,7 @@ class StripeWebhookTest extends TestCase
         $this->assertNull($price->recurring);
     }
 
-    /** @test */
+    #[Test]
     public function ignores_non_matching_webhook_types()
     {
         $webhookPayload = [
@@ -277,16 +278,16 @@ class StripeWebhookTest extends TestCase
             'data' => [
                 'object' => [
                     'id' => 'cus_test123',
-                ]
-            ]
+                ],
+            ],
         ];
 
         $event = new WebhookReceived($webhookPayload);
-        
+
         // These listeners should not create any records
-        $productListener = new StripeProductCreated();
-        $priceListener = new StripePriceCreated();
-        
+        $productListener = new StripeProductCreated;
+        $priceListener = new StripePriceCreated;
+
         $productListener->handle($event);
         $priceListener->handle($event);
 
@@ -294,7 +295,7 @@ class StripeWebhookTest extends TestCase
         $this->assertDatabaseEmpty('stripe_prices');
     }
 
-    /** @test */
+    #[Test]
     public function handles_product_updated_webhook_for_nonexistent_product()
     {
         // StripeProductUpdated uses updateOrCreate, so it should create the product if it doesn't exist
@@ -308,13 +309,13 @@ class StripeWebhookTest extends TestCase
                     'description' => 'This product does not exist',
                     'metadata' => ['account_type' => 'BUSINESS'],
                     'livemode' => false,
-                ]
-            ]
+                ],
+            ],
         ];
 
         $event = new WebhookReceived($webhookPayload);
-        $listener = new StripeProductUpdated();
-        
+        $listener = new StripeProductUpdated;
+
         $listener->handle($event);
 
         // Product should be created since updateOrCreate is used
@@ -325,7 +326,7 @@ class StripeWebhookTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function handles_product_deleted_webhook_for_nonexistent_product()
     {
         $webhookPayload = [
@@ -333,20 +334,20 @@ class StripeWebhookTest extends TestCase
             'data' => [
                 'object' => [
                     'id' => 'prod_nonexistent',
-                ]
-            ]
+                ],
+            ],
         ];
 
         $event = new WebhookReceived($webhookPayload);
-        $listener = new StripeProductDeleted();
-        
+        $listener = new StripeProductDeleted;
+
         // Should handle gracefully without throwing exception
         $listener->handle($event);
 
         $this->assertTrue(true); // No exception thrown
     }
 
-    /** @test */
+    #[Test]
     public function handles_free_price_webhook()
     {
         $product = StripeProduct::factory()->create([
@@ -366,12 +367,12 @@ class StripeWebhookTest extends TestCase
                     'recurring' => null,
                     'type' => 'one_time',
                     'unit_amount' => 0, // Free price
-                ]
-            ]
+                ],
+            ],
         ];
 
         $event = new WebhookReceived($webhookPayload);
-        $listener = new StripePriceCreated();
+        $listener = new StripePriceCreated;
         $listener->handle($event);
 
         $this->assertDatabaseHas('stripe_prices', [

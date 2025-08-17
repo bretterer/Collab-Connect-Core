@@ -27,8 +27,8 @@ class ApplicationSeeder extends Seeder
 
         // Get all influencer users with profiles
         $influencers = User::where('account_type', AccountType::INFLUENCER)
-            ->whereHas('influencerProfile')
-            ->with('influencerProfile')
+            ->whereHas('influencer')
+            ->with('influencer')
             ->get();
 
         if ($influencers->isEmpty()) {
@@ -152,7 +152,7 @@ class ApplicationSeeder extends Seeder
         $followerCount = $primarySocialAccount ? number_format($primarySocialAccount->follower_count) : '10K';
 
         // Get a niche based on influencer profile or generate one
-        $niche = $influencer->influencerProfile->content_niches[0] ?? fake()->randomElement([
+        $niche = $influencer->influencer->content_niches[0] ?? fake()->randomElement([
             'lifestyle', 'fashion', 'beauty', 'fitness', 'food', 'travel', 'tech', 'home decor',
         ]);
 

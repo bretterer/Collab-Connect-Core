@@ -7,7 +7,8 @@ use App\Models\StripePrice;
 use App\Models\StripeProduct;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use Illuminate\Foundation\Testing\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class PricingIntegrationTest extends TestCase
 {
@@ -24,7 +25,7 @@ class PricingIntegrationTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function complete_pricing_workflow()
     {
         // 1. Create products via factory (simulating Stripe sync)
@@ -46,9 +47,9 @@ class PricingIntegrationTest extends TestCase
                 'features' => json_encode([
                     'Unlimited campaigns',
                     'Advanced analytics',
-                    'Priority support'
-                ])
-            ]
+                    'Priority support',
+                ]),
+            ],
         ]);
 
         $businessYearly = StripePrice::factory()->recurring()->create([
@@ -60,9 +61,9 @@ class PricingIntegrationTest extends TestCase
                     'Unlimited campaigns',
                     'Advanced analytics',
                     'Priority support',
-                    '2 months free'
-                ])
-            ]
+                    '2 months free',
+                ]),
+            ],
         ]);
 
         $influencerMonthly = StripePrice::factory()->recurring()->create([
@@ -72,9 +73,9 @@ class PricingIntegrationTest extends TestCase
                 'features' => json_encode([
                     'Campaign discovery',
                     'Basic analytics',
-                    'Email support'
-                ])
-            ]
+                    'Email support',
+                ]),
+            ],
         ]);
 
         // 3. Test admin can view all products and prices
@@ -105,7 +106,7 @@ class PricingIntegrationTest extends TestCase
         // 5. Test price features are properly stored and retrieved
         $businessPrice = StripePrice::where('unit_amount', 2999)->first();
         $features = json_decode($businessPrice->metadata['features'], true);
-        
+
         $this->assertCount(3, $features);
         $this->assertContains('Unlimited campaigns', $features);
         $this->assertContains('Advanced analytics', $features);
@@ -114,27 +115,27 @@ class PricingIntegrationTest extends TestCase
         // 6. Test yearly plan has additional features
         $yearlyPrice = StripePrice::where('unit_amount', 29999)->first();
         $yearlyFeatures = json_decode($yearlyPrice->metadata['features'], true);
-        
+
         $this->assertCount(4, $yearlyFeatures);
         $this->assertContains('2 months free', $yearlyFeatures);
     }
 
-    /** @test */
+    #[Test]
     public function pricing_data_structure_integrity()
     {
         $product = StripeProduct::factory()->create([
             'metadata' => [
                 'account_type' => 'BUSINESS',
-                'custom_field' => 'custom_value'
-            ]
+                'custom_field' => 'custom_value',
+            ],
         ]);
 
         $price = StripePrice::factory()->create([
             'stripe_product_id' => $product->id,
             'metadata' => [
                 'features' => json_encode(['Feature A', 'Feature B']),
-                'highlight' => 'Most Popular'
-            ]
+                'highlight' => 'Most Popular',
+            ],
         ]);
 
         // Test relationships work correctly
@@ -144,7 +145,7 @@ class PricingIntegrationTest extends TestCase
         // Test metadata is properly cast
         $this->assertIsArray($product->metadata);
         $this->assertIsArray($price->metadata);
-        
+
         // Test JSON features are accessible
         $features = json_decode($price->metadata['features'], true);
         $this->assertIsArray($features);
@@ -155,18 +156,18 @@ class PricingIntegrationTest extends TestCase
         $this->assertEquals('Most Popular', $price->metadata['highlight']);
     }
 
-    /** @test */
+    #[Test]
     public function account_type_enum_integration()
     {
         // Test creating products with different account types
         foreach ([AccountType::BUSINESS, AccountType::INFLUENCER] as $accountType) {
             $product = StripeProduct::factory()->create([
-                'metadata' => ['account_type' => $accountType->name]
+                'metadata' => ['account_type' => $accountType->name],
             ]);
 
             // Test we can retrieve and use the enum
             $storedAccountType = $product->metadata['account_type'];
-            
+
             // Find matching enum case
             $enumCase = null;
             foreach (AccountType::cases() as $case) {
@@ -181,7 +182,7 @@ class PricingIntegrationTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function handles_edge_cases()
     {
         // Test free price
@@ -191,7 +192,7 @@ class PricingIntegrationTest extends TestCase
         // Test inactive products and prices
         $inactiveProduct = StripeProduct::factory()->inactive()->create();
         $inactivePrice = StripePrice::factory()->inactive()->create();
-        
+
         $this->assertFalse($inactiveProduct->active);
         $this->assertFalse($inactivePrice->active);
 
@@ -209,12 +210,20 @@ class PricingIntegrationTest extends TestCase
         $this->assertNull($oneTimePrice->recurring);
     }
 
-    /** @test */
+    #[Test]
     public function bulk_operations_work_correctly()
     {
+        // Explicitly clean the database for this test
+        StripePrice::query()->delete();
+        StripeProduct::query()->delete();
+
+        // Ensure we start with a clean database
+        $this->assertEquals(0, StripeProduct::count());
+        $this->assertEquals(0, StripePrice::count());
+
         // Create multiple products and prices
         $products = StripeProduct::factory(5)->create();
-        
+
         foreach ($products as $product) {
             StripePrice::factory(2)->create(['stripe_product_id' => $product->id]);
         }
@@ -225,7 +234,7 @@ class PricingIntegrationTest extends TestCase
 
         // Test eager loading
         $productsWithPrices = StripeProduct::with('stripePrices')->get();
-        
+
         foreach ($productsWithPrices as $product) {
             $this->assertEquals(2, $product->stripePrices->count());
             // Ensure no N+1 queries by accessing related data
@@ -235,12 +244,16 @@ class PricingIntegrationTest extends TestCase
         }
 
         // Test filtering active items
-        StripeProduct::factory(2)->inactive()->create();
-        StripePrice::factory(3)->inactive()->create();
-        
+        $inactiveProducts = StripeProduct::factory(2)->inactive()->create();
+        StripePrice::factory(3)->inactive()->create(['stripe_product_id' => $inactiveProducts->first()->id]);
+
+        // Now we should have 7 total products (5 active, 2 inactive) and 13 total prices (10 active, 3 inactive)
+        $this->assertEquals(7, StripeProduct::count());
+        $this->assertEquals(13, StripePrice::count());
+
         $activeProducts = StripeProduct::where('active', true)->count();
         $activePrices = StripePrice::where('active', true)->count();
-        
+
         $this->assertEquals(5, $activeProducts); // Original 5 are active
         $this->assertEquals(10, $activePrices); // Original 10 are active
     }

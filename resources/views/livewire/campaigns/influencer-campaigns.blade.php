@@ -47,7 +47,7 @@
                                     {{ $perPage }} per page
                                 </span>
                             @endif
-                            
+
                             <!-- Clear Filters Button (when collapsed and filters exist) -->
                             @if($search || count($selectedNiches) > 0 || count($selectedCampaignTypes) > 0 || $sortBy !== 'match_score')
                                 <button
@@ -63,23 +63,23 @@
                             @endif
                         </div>
                     </div>
-                    <button 
+                    <button
                         @click="filtersOpen = !filtersOpen"
                         class="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
                     >
                         <span x-text="filtersOpen ? 'Hide Filters' : 'Show Filters'"></span>
-                        <svg 
-                            class="w-4 h-4 transition-transform duration-200" 
+                        <svg
+                            class="w-4 h-4 transition-transform duration-200"
                             :class="{ 'rotate-180': filtersOpen }"
-                            fill="none" 
-                            stroke="currentColor" 
+                            fill="none"
+                            stroke="currentColor"
                             viewBox="0 0 24 24"
                         >
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </button>
                 </div>
-                
+
                 <div x-show="filtersOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-95">
                     <!-- Quick Actions Row -->
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -241,14 +241,14 @@
                         <!-- Business Info -->
                         <div class="flex items-center mb-3">
                             <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                                {{ substr($campaign->user->businessProfile?->business_name ?? $campaign->user->name, 0, 2) }}
+                                {{ substr($campaign->business->name ?? 'N/A', 0, 2) }}
                             </div>
                             <div class="ml-3">
                                 <p class="text-sm font-medium text-gray-900 dark:text-white">
-                                    {{ $campaign->user->businessProfile?->business_name ?? $campaign->user->name }}
+                                    {{ $campaign->business->name ?? 'Unknown Business' }}
                                 </p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                                    {{ $campaign->user->businessProfile?->industry?->label() ?? 'Business' }}
+                                    {{ $campaign->industry?->label() ?? 'Business' }}
                                 </p>
                             </div>
                         </div>
@@ -318,7 +318,7 @@
                                     <div class="space-y-1">
                                         <div><span class="font-medium">Name:</span> {{ $debugData['influencer']['name'] }}</div>
                                         <div><span class="font-medium">Email:</span> {{ $debugData['influencer']['email'] }}</div>
-                                        <div><span class="font-medium">Primary Niche:</span> {{ $debugData['influencer']['primary_niche'] }}</div>
+                                        <div><span class="font-medium">Primary Industry:</span> {{ $debugData['influencer']['primary_industry'] }}</div>
                                         <div><span class="font-medium">Zip Code:</span> {{ $debugData['influencer']['primary_zip_code'] }}</div>
                                         <div><span class="font-medium">Followers:</span> {{ $debugData['influencer']['follower_count'] }}</div>
                                     </div>
@@ -328,7 +328,7 @@
                                 <div>
                                     <h5 class="font-medium text-gray-600 dark:text-gray-400 mb-2">📋 Campaign Data</h5>
                                     <div class="space-y-1">
-                                        <div><span class="font-medium">Business:</span> {{ $debugData['campaign']['business_name'] }}</div>
+                                        <div><span class="font-medium">Business:</span> {{ $debugData['campaign']['name'] }}</div>
                                         <div><span class="font-medium">Industry:</span> {{ $debugData['campaign']['business_industry'] }}</div>
                                         <div><span class="font-medium">Type:</span> {{ $debugData['campaign']['campaign_type'] }}</div>
                                         <div><span class="font-medium">Compensation:</span> {{ $debugData['campaign']['compensation_type'] }}</div>
@@ -352,10 +352,10 @@
                                     </div>
                                     <div class="bg-white dark:bg-gray-700 p-2 rounded border">
                                         <div class="text-center">
-                                            <div class="text-lg font-bold text-green-600">{{ $debugData['scores']['niche']['raw'] }}%</div>
-                                            <div class="text-xs text-gray-500">Niche</div>
-                                            <div class="text-xs text-gray-400">({{ $debugData['scores']['niche']['weight'] }})</div>
-                                            <div class="text-xs text-gray-400">→ {{ $debugData['scores']['niche']['weighted'] }}</div>
+                                            <div class="text-lg font-bold text-green-600">{{ $debugData['scores']['industry']['raw'] }}%</div>
+                                            <div class="text-xs text-gray-500">Industry</div>
+                                            <div class="text-xs text-gray-400">({{ $debugData['scores']['industry']['weight'] }})</div>
+                                            <div class="text-xs text-gray-400">→ {{ $debugData['scores']['industry']['weighted'] }}</div>
                                         </div>
                                     </div>
                                     <div class="bg-white dark:bg-gray-700 p-2 rounded border">

@@ -131,11 +131,11 @@ class CreateCampaign extends BaseComponent
             if (! $campaign) {
                 abort(404, 'Campaign not found.');
             }
+            $this->campaignId = $campaign->id;
 
             // Use the policy to authorize editing
             $this->authorize('update', $campaign);
 
-            $this->campaignId = $campaign->id;
         }
 
         // Load campaign data

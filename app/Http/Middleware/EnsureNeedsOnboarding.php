@@ -21,6 +21,10 @@ class EnsureNeedsOnboarding
             return redirect()->route('dashboard');
         }
 
+        if ($user->isInfluencerAccount() && $user->influencer->onboarding_complete) {
+            return redirect()->route('dashboard');
+        }
+
         return $next($request);
     }
 }

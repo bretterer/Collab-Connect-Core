@@ -27,13 +27,12 @@ class EnsureOnboardingCompleted
             return $next($request);
         }
 
-        if ($user->isInfluencerAccount()) {
+        if ($user->isInfluencerAccount() && ! $user->influencer->onboarding_complete) {
             return redirect()->route('onboarding.influencer');
         }
         if ($user->isBusinessAccount() && ! $user->currentBusiness->onboarding_complete) {
             return redirect()->route('onboarding.business');
         }
-
 
         return $next($request);
     }

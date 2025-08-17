@@ -13,6 +13,7 @@ use App\Services\CampaignService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CampaignStatusTransitionTest extends TestCase
@@ -28,12 +29,13 @@ class CampaignStatusTransitionTest extends TestCase
         $this->businessUser = User::factory()->business()->withProfile()->create();
     }
 
-    public function test_draft_campaign_can_be_published()
+    #[Test]
+    public function draft_campaign_can_be_published()
     {
         Event::fake();
 
         $campaign = Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::DRAFT,
             'published_at' => null,
         ]);
@@ -41,7 +43,7 @@ class CampaignStatusTransitionTest extends TestCase
         $this->assertTrue($campaign->isDraft());
         $this->assertFalse($campaign->isPublished());
 
-        $publishedCampaign = CampaignService::publishCampaign($campaign);
+        $publishedCampaign = CampaignService::publishCampaign($campaign, $this->businessUser);
 
         $this->assertTrue($publishedCampaign->isPublished());
         $this->assertFalse($publishedCampaign->isDraft());
@@ -50,12 +52,13 @@ class CampaignStatusTransitionTest extends TestCase
         Event::assertDispatched(CampaignPublished::class);
     }
 
-    public function test_draft_campaign_can_be_scheduled()
+    #[Test]
+    public function draft_campaign_can_be_scheduled()
     {
         Event::fake();
 
         $campaign = Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::DRAFT,
             'scheduled_date' => null,
         ]);
@@ -64,7 +67,7 @@ class CampaignStatusTransitionTest extends TestCase
         $this->assertFalse($campaign->isScheduled());
 
         $futureDate = Carbon::now()->addDays(7)->format('Y-m-d');
-        $scheduledCampaign = CampaignService::scheduleCampaign($campaign, $futureDate);
+        $scheduledCampaign = CampaignService::scheduleCampaign($campaign, $futureDate, $this->businessUser);
 
         $this->assertTrue($scheduledCampaign->isScheduled());
         $this->assertFalse($scheduledCampaign->isDraft());
@@ -73,18 +76,19 @@ class CampaignStatusTransitionTest extends TestCase
         Event::assertDispatched(CampaignScheduled::class);
     }
 
-    public function test_published_campaign_can_be_archived()
+    #[Test]
+    public function published_campaign_can_be_archived()
     {
         Event::fake();
 
         $campaign = Campaign::factory()->published()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
 
         $this->assertTrue($campaign->isPublished());
         $this->assertFalse($campaign->isArchived());
 
-        $archivedCampaign = CampaignService::archiveCampaign($campaign);
+        $archivedCampaign = CampaignService::archiveCampaign($campaign, $this->businessUser);
 
         $this->assertTrue($archivedCampaign->isArchived());
         $this->assertFalse($archivedCampaign->isPublished());
@@ -92,18 +96,19 @@ class CampaignStatusTransitionTest extends TestCase
         Event::assertDispatched(CampaignArchived::class);
     }
 
-    public function test_scheduled_campaign_can_be_unscheduled()
+    #[Test]
+    public function scheduled_campaign_can_be_unscheduled()
     {
         Event::fake();
 
         $campaign = Campaign::factory()->scheduled()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
 
         $this->assertTrue($campaign->isScheduled());
         $this->assertNotNull($campaign->scheduled_date);
 
-        $unscheduledCampaign = CampaignService::unscheduleCampaign($campaign);
+        $unscheduledCampaign = CampaignService::unscheduleCampaign($campaign, $this->businessUser);
 
         $this->assertTrue($unscheduledCampaign->isDraft());
         $this->assertFalse($unscheduledCampaign->isScheduled());
@@ -112,18 +117,19 @@ class CampaignStatusTransitionTest extends TestCase
         Event::assertDispatched(CampaignUnpublished::class);
     }
 
-    public function test_scheduled_campaign_can_be_archived()
+    #[Test]
+    public function scheduled_campaign_can_be_archived()
     {
         Event::fake();
 
         $campaign = Campaign::factory()->scheduled()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
 
         $this->assertTrue($campaign->isScheduled());
         $this->assertFalse($campaign->isArchived());
 
-        $archivedCampaign = CampaignService::archiveCampaign($campaign);
+        $archivedCampaign = CampaignService::archiveCampaign($campaign, $this->businessUser);
 
         $this->assertTrue($archivedCampaign->isArchived());
         $this->assertFalse($archivedCampaign->isScheduled());
@@ -131,7 +137,8 @@ class CampaignStatusTransitionTest extends TestCase
         Event::assertDispatched(CampaignArchived::class);
     }
 
-    public function test_all_campaign_status_helper_methods()
+    #[Test]
+    public function all_campaign_status_helper_methods()
     {
         $draftCampaign = Campaign::factory()->create(['status' => CampaignStatus::DRAFT]);
         $publishedCampaign = Campaign::factory()->create(['status' => CampaignStatus::PUBLISHED]);
@@ -163,7 +170,8 @@ class CampaignStatusTransitionTest extends TestCase
         $this->assertTrue($archivedCampaign->isArchived());
     }
 
-    public function test_campaign_scopes_filter_by_status()
+    #[Test]
+    public function campaign_scopes_filter_by_status()
     {
         // Create campaigns with different statuses
         Campaign::factory()->create(['status' => CampaignStatus::DRAFT]);
@@ -193,43 +201,45 @@ class CampaignStatusTransitionTest extends TestCase
         $this->assertTrue($archived->every(fn ($campaign) => $campaign->isArchived()));
     }
 
-    public function test_campaign_service_user_filtering_methods()
+    #[Test]
+    public function campaign_service_user_filtering_methods()
     {
         $otherUser = User::factory()->business()->withProfile()->create();
 
         // Create campaigns for both users with different statuses
-        Campaign::factory()->create(['user_id' => $this->businessUser->id, 'status' => CampaignStatus::DRAFT]);
-        Campaign::factory()->create(['user_id' => $this->businessUser->id, 'status' => CampaignStatus::DRAFT]);
-        Campaign::factory()->published()->create(['user_id' => $this->businessUser->id]);
-        Campaign::factory()->scheduled()->create(['user_id' => $this->businessUser->id]);
-        Campaign::factory()->archived()->create(['user_id' => $this->businessUser->id]);
+        Campaign::factory()->create(['business_id' => $this->businessUser->currentBusiness->id, 'status' => CampaignStatus::DRAFT]);
+        Campaign::factory()->create(['business_id' => $this->businessUser->currentBusiness->id, 'status' => CampaignStatus::DRAFT]);
+        Campaign::factory()->published()->create(['business_id' => $this->businessUser->currentBusiness->id]);
+        Campaign::factory()->scheduled()->create(['business_id' => $this->businessUser->currentBusiness->id]);
+        Campaign::factory()->archived()->create(['business_id' => $this->businessUser->currentBusiness->id]);
 
         // Create campaigns for other user (should not be included)
-        Campaign::factory()->create(['user_id' => $otherUser->id, 'status' => CampaignStatus::DRAFT]);
-        Campaign::factory()->published()->create(['user_id' => $otherUser->id]);
+        Campaign::factory()->create(['business_id' => $otherUser->currentBusiness->id, 'status' => CampaignStatus::DRAFT]);
+        Campaign::factory()->published()->create(['business_id' => $otherUser->currentBusiness->id]);
 
         // Test user-specific filtering
         $userDrafts = CampaignService::getUserDrafts($this->businessUser);
         $this->assertCount(2, $userDrafts);
-        $this->assertTrue($userDrafts->every(fn ($c) => $c->user_id === $this->businessUser->id && $c->isDraft()));
+        $this->assertTrue($userDrafts->every(fn ($c) => $c->business_id === $this->businessUser->currentBusiness->id && $c->isDraft()));
 
         $userPublished = CampaignService::getUserPublished($this->businessUser);
         $this->assertCount(1, $userPublished);
-        $this->assertTrue($userPublished->every(fn ($c) => $c->user_id === $this->businessUser->id && $c->isPublished()));
+        $this->assertTrue($userPublished->every(fn ($c) => $c->business_id === $this->businessUser->currentBusiness->id && $c->isPublished()));
 
         $userScheduled = CampaignService::getUserScheduled($this->businessUser);
         $this->assertCount(1, $userScheduled);
-        $this->assertTrue($userScheduled->every(fn ($c) => $c->user_id === $this->businessUser->id && $c->isScheduled()));
+        $this->assertTrue($userScheduled->every(fn ($c) => $c->business_id === $this->businessUser->currentBusiness->id && $c->isScheduled()));
 
         $userArchived = CampaignService::getUserArchived($this->businessUser);
         $this->assertCount(1, $userArchived);
-        $this->assertTrue($userArchived->every(fn ($c) => $c->user_id === $this->businessUser->id && $c->isArchived()));
+        $this->assertTrue($userArchived->every(fn ($c) => $c->business_id === $this->businessUser->currentBusiness->id && $c->isArchived()));
     }
 
-    public function test_campaign_status_transitions_preserve_other_data()
+    #[Test]
+    public function campaign_status_transitions_preserve_other_data()
     {
         $campaign = Campaign::factory()->withFullDetails()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::DRAFT,
             'campaign_goal' => 'Original goal',
             'target_zip_code' => '49503',
@@ -242,7 +252,7 @@ class CampaignStatusTransitionTest extends TestCase
         $this->assertNotNull($campaign->compensation);
 
         // Publish the campaign
-        $publishedCampaign = CampaignService::publishCampaign($campaign);
+        $publishedCampaign = CampaignService::publishCampaign($campaign, $this->businessUser);
 
         // Verify status changed but other data remains
         $this->assertEquals(CampaignStatus::PUBLISHED, $publishedCampaign->status);
@@ -257,7 +267,8 @@ class CampaignStatusTransitionTest extends TestCase
         $this->assertNotNull($publishedCampaign->compensation);
     }
 
-    public function test_campaign_status_enum_casting()
+    #[Test]
+    public function campaign_status_enum_casting()
     {
         $campaign = Campaign::factory()->create([
             'status' => 'draft',
@@ -275,10 +286,11 @@ class CampaignStatusTransitionTest extends TestCase
         $this->assertTrue($campaign->isPublished());
     }
 
-    public function test_campaign_published_at_timestamp()
+    #[Test]
+    public function campaign_published_at_timestamp()
     {
         $campaign = Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::DRAFT,
             'published_at' => null,
         ]);
@@ -286,7 +298,7 @@ class CampaignStatusTransitionTest extends TestCase
         $this->assertNull($campaign->published_at);
 
         $beforePublish = Carbon::now()->subSecond(); // Give a little buffer
-        $publishedCampaign = CampaignService::publishCampaign($campaign);
+        $publishedCampaign = CampaignService::publishCampaign($campaign, $this->businessUser);
         $afterPublish = Carbon::now()->addSecond(); // Give a little buffer
 
         $this->assertNotNull($publishedCampaign->published_at);
@@ -294,27 +306,29 @@ class CampaignStatusTransitionTest extends TestCase
         $this->assertTrue($publishedCampaign->published_at->between($beforePublish, $afterPublish));
     }
 
-    public function test_campaign_scheduled_date_handling()
+    #[Test]
+    public function campaign_scheduled_date_handling()
     {
         $campaign = Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::DRAFT,
             'scheduled_date' => null,
         ]);
 
         $futureDate = Carbon::now()->addDays(10)->format('Y-m-d');
-        $scheduledCampaign = CampaignService::scheduleCampaign($campaign, $futureDate);
+        $scheduledCampaign = CampaignService::scheduleCampaign($campaign, $futureDate, $this->businessUser);
 
         $this->assertNotNull($scheduledCampaign->scheduled_date);
         $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $scheduledCampaign->scheduled_date);
         $this->assertEquals($futureDate, $scheduledCampaign->scheduled_date->format('Y-m-d'));
 
         // Test unscheduling clears the date
-        $unscheduledCampaign = CampaignService::unscheduleCampaign($scheduledCampaign);
+        $unscheduledCampaign = CampaignService::unscheduleCampaign($scheduledCampaign, $this->businessUser);
         $this->assertNull($unscheduledCampaign->scheduled_date);
     }
 
-    public function test_campaign_factory_status_states()
+    #[Test]
+    public function campaign_factory_status_states()
     {
         $draftCampaign = Campaign::factory()->create();
         $publishedCampaign = Campaign::factory()->published()->create();
@@ -333,29 +347,30 @@ class CampaignStatusTransitionTest extends TestCase
         $this->assertNotNull($scheduledCampaign->scheduled_date);
     }
 
-    public function test_multiple_status_transitions()
+    #[Test]
+    public function multiple_status_transitions()
     {
         Event::fake();
 
         $campaign = Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::DRAFT,
         ]);
 
         // Draft -> Scheduled
-        $scheduledCampaign = CampaignService::scheduleCampaign($campaign, Carbon::now()->addDays(5)->format('Y-m-d'));
+        $scheduledCampaign = CampaignService::scheduleCampaign($campaign, Carbon::now()->addDays(5)->format('Y-m-d'), $this->businessUser);
         $this->assertTrue($scheduledCampaign->isScheduled());
 
         // Scheduled -> Draft (unschedule)
-        $unscheduledCampaign = CampaignService::unscheduleCampaign($scheduledCampaign);
+        $unscheduledCampaign = CampaignService::unscheduleCampaign($scheduledCampaign, $this->businessUser);
         $this->assertTrue($unscheduledCampaign->isDraft());
 
         // Draft -> Published
-        $publishedCampaign = CampaignService::publishCampaign($unscheduledCampaign);
+        $publishedCampaign = CampaignService::publishCampaign($unscheduledCampaign, $this->businessUser);
         $this->assertTrue($publishedCampaign->isPublished());
 
         // Published -> Archived
-        $archivedCampaign = CampaignService::archiveCampaign($publishedCampaign);
+        $archivedCampaign = CampaignService::archiveCampaign($publishedCampaign, $this->businessUser);
         $this->assertTrue($archivedCampaign->isArchived());
 
         // Verify events were fired for each transition

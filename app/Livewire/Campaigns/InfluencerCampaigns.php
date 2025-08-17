@@ -3,8 +3,8 @@
 namespace App\Livewire\Campaigns;
 
 use App\Enums\AccountType;
+use App\Enums\BusinessIndustry;
 use App\Enums\CampaignStatus;
-use App\Enums\Niche;
 use App\Livewire\BaseComponent;
 use App\Models\Campaign;
 use App\Models\PostalCode;
@@ -49,7 +49,7 @@ class InfluencerCampaigns extends BaseComponent
     public function getOpenCampaigns()
     {
         $user = Auth::user();
-        $influencerProfile = $user->influencerProfile;
+        $influencerProfile = $user->influencer;
 
         if (! $influencerProfile) {
             return collect();
@@ -57,9 +57,9 @@ class InfluencerCampaigns extends BaseComponent
 
         $query = Campaign::query()
             ->where('status', CampaignStatus::PUBLISHED)
-            ->where('user_id', '!=', $user->id) // Exclude own campaigns
+            ->where('business_id', '!=', $user->current_business) // Exclude own business campaigns
             ->where('application_deadline', '>', now())
-            ->with(['user.businessProfile']);
+            ->with(['business']);
 
         // Apply search filter
         if (! empty($this->search)) {
@@ -71,7 +71,7 @@ class InfluencerCampaigns extends BaseComponent
 
         // Apply niche filter
         if (! empty($this->selectedNiches)) {
-            $query->whereHas('user.businessProfile', function ($q) {
+            $query->whereHas('business', function ($q) {
                 $q->whereIn('industry', $this->selectedNiches);
             });
         }
@@ -106,9 +106,9 @@ class InfluencerCampaigns extends BaseComponent
         $locationScore = $this->calculateLocationScore($campaign, $influencerProfile);
         $score += $locationScore * 0.35;
 
-        // Niche match (35% weight)
-        $nicheScore = $this->calculateNicheScore($campaign, $influencerProfile);
-        $score += $nicheScore * 0.35;
+        // Industry match (35% weight)
+        $industryScore = $this->calculateIndustryScore($campaign, $influencerProfile);
+        $score += $industryScore * 0.35;
 
         // Campaign type match (20% weight)
         $campaignTypeScore = $this->calculateCampaignTypeScore($campaign, $influencerProfile);
@@ -152,10 +152,10 @@ class InfluencerCampaigns extends BaseComponent
         $baseScore = 25.0;
 
         // Add variation based on campaign characteristics and business industry
-        $businessProfile = $campaign->user->businessProfile;
+        $business = $campaign->business;
         $variation = 0;
 
-        if ($businessProfile) {
+        if ($business) {
             // Different industries might have different appeal for remote work
             $industryVariations = [
                 'fashion' => 5,
@@ -168,7 +168,7 @@ class InfluencerCampaigns extends BaseComponent
                 'family' => 1,
             ];
 
-            $industry = $businessProfile->industry;
+            $industry = $business->industry;
             if (is_object($industry)) {
                 $industry = $industry->value;
             }
@@ -183,38 +183,39 @@ class InfluencerCampaigns extends BaseComponent
         return $finalScore;
     }
 
-    private function calculateNicheScore(Campaign $campaign, $influencerProfile): float
+    private function calculateIndustryScore(Campaign $campaign, $influencerProfile): float
     {
-        $influencerNiche = $influencerProfile->primary_niche;
+        $influencerIndustry = $influencerProfile->primary_industry;
 
-        if (! $influencerNiche) {
+        if (! $influencerIndustry) {
             return 50.0;
         }
 
         // Get business industry from campaign
-        $businessProfile = $campaign->user->businessProfile;
-        if (! $businessProfile) {
+        $business = $campaign->business;
+        if (! $business) {
             return 50.0;
         }
 
-        $businessIndustry = $businessProfile->industry;
+        $businessIndustry = $business->industry;
 
-        // Exact niche match
-        if ($influencerNiche === $businessIndustry) {
+        // Exact industry match
+        if ($influencerIndustry === $businessIndustry) {
             return 100.0;
         }
 
-        // Related niches (you can expand this mapping)
-        $relatedNiches = [
-            Niche::FOOD->value => [Niche::LIFESTYLE, Niche::TRAVEL],
-            Niche::FASHION->value => [Niche::BEAUTY, Niche::LIFESTYLE],
-            Niche::BEAUTY->value => [Niche::FASHION, Niche::LIFESTYLE],
-            Niche::FITNESS->value => [Niche::HEALTH, Niche::LIFESTYLE],
-            Niche::HOME->value => [Niche::LIFESTYLE, Niche::FAMILY],
-            Niche::TRAVEL->value => [Niche::LIFESTYLE, Niche::LOCAL_EVENTS],
+        // Related industries (you can expand this mapping)
+        $relatedIndustries = [
+            BusinessIndustry::FOOD_BEVERAGE => [BusinessIndustry::FITNESS_WELLNESS, BusinessIndustry::TRAVEL_TOURISM],
+            BusinessIndustry::FASHION_APPAREL => [BusinessIndustry::BEAUTY_COSMETICS, BusinessIndustry::FITNESS_WELLNESS],
+            BusinessIndustry::BEAUTY_COSMETICS => [BusinessIndustry::FASHION_APPAREL, BusinessIndustry::FITNESS_WELLNESS],
+            BusinessIndustry::FITNESS_WELLNESS => [BusinessIndustry::HEALTHCARE, BusinessIndustry::FOOD_BEVERAGE],
+            BusinessIndustry::HOME_GARDEN => [BusinessIndustry::RETAIL, BusinessIndustry::BABY_KIDS],
+            BusinessIndustry::TRAVEL_TOURISM => [BusinessIndustry::FOOD_BEVERAGE, BusinessIndustry::ENTERTAINMENT],
+            BusinessIndustry::RETAIL => [BusinessIndustry::FASHION_APPAREL, BusinessIndustry::HOME_GARDEN],
         ];
 
-        if (isset($relatedNiches[$influencerNiche->value]) && in_array($businessIndustry, $relatedNiches[$influencerNiche->value])) {
+        if (isset($relatedIndustries[$influencerIndustry]) && in_array($businessIndustry, $relatedIndustries[$influencerIndustry])) {
             return 80.0;
         }
 
@@ -234,8 +235,8 @@ class InfluencerCampaigns extends BaseComponent
         }
 
         // Add variation based on business industry appeal
-        $businessProfile = $campaign->user->businessProfile;
-        if ($businessProfile) {
+        $business = $campaign->business;
+        if ($business) {
             $industryAppeal = [
                 'fashion' => 10,
                 'beauty' => 8,
@@ -247,7 +248,7 @@ class InfluencerCampaigns extends BaseComponent
                 'family' => 4,
             ];
 
-            $industry = $businessProfile->industry;
+            $industry = $business->industry;
             if (is_object($industry)) {
                 $industry = $industry->value;
             }
@@ -354,7 +355,7 @@ class InfluencerCampaigns extends BaseComponent
 
     public function getNicheOptions(): array
     {
-        return Niche::forInfluencers();
+        return BusinessIndustry::cases();
     }
 
     public function getCampaignTypeOptions(): array
@@ -415,17 +416,17 @@ class InfluencerCampaigns extends BaseComponent
     public function getDebugData(Campaign $campaign): array
     {
         $user = Auth::user();
-        $influencerProfile = $user->influencerProfile;
+        $influencerProfile = $user->influencer;
 
         // Calculate individual scores
         $locationScore = $this->calculateLocationScore($campaign, $influencerProfile);
-        $nicheScore = $this->calculateNicheScore($campaign, $influencerProfile);
+        $industryScore = $this->calculateIndustryScore($campaign, $influencerProfile);
         $campaignTypeScore = $this->calculateCampaignTypeScore($campaign, $influencerProfile);
         $compensationScore = $this->calculateCompensationScore($campaign, $influencerProfile);
 
         // Calculate weighted scores
         $locationWeighted = $locationScore * 0.35;
-        $nicheWeighted = $nicheScore * 0.35;
+        $industryWeighted = $industryScore * 0.35;
         $campaignTypeWeighted = $campaignTypeScore * 0.2;
         $compensationWeighted = $compensationScore * 0.1;
 
@@ -433,7 +434,7 @@ class InfluencerCampaigns extends BaseComponent
             'influencer' => [
                 'name' => $user->name,
                 'email' => $user->email,
-                'primary_niche' => $influencerProfile->primary_niche?->value ?? 'Not set',
+                'primary_industry' => $influencerProfile->primary_industry?->value ?? 'Not set',
                 'primary_zip_code' => $influencerProfile->primary_zip_code ?? 'Not set',
                 'follower_count' => $influencerProfile->follower_count ?? 'Not set',
             ],
@@ -444,8 +445,9 @@ class InfluencerCampaigns extends BaseComponent
                 'compensation_type' => $campaign->compensation_type?->value ?? 'Not set',
                 'compensation_amount' => $campaign->compensation_amount ?? 'Not set',
                 'target_zip_code' => $campaign->target_zip_code ?? 'Not set',
-                'business_industry' => $campaign->user->businessProfile->industry?->value ?? 'Not set',
-                'business_name' => $campaign->user->businessProfile->business_name ?? 'Not set',
+                'business_industry' => $campaign->business->industry?->value ?? 'Not set',
+                'business_name' => $campaign->business->name ?? 'Not set',
+                'name' => $campaign->business->name ?? 'Not set',
             ],
             'scores' => [
                 'location' => [
@@ -453,9 +455,9 @@ class InfluencerCampaigns extends BaseComponent
                     'weighted' => round($locationWeighted, 1),
                     'weight' => '35%',
                 ],
-                'niche' => [
-                    'raw' => round($nicheScore, 1),
-                    'weighted' => round($nicheWeighted, 1),
+                'industry' => [
+                    'raw' => round($industryScore, 1),
+                    'weighted' => round($industryWeighted, 1),
                     'weight' => '35%',
                 ],
                 'campaign_type' => [

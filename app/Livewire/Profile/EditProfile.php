@@ -179,6 +179,22 @@ class EditProfile extends BaseComponent
         $this->removeFromArray('preferred_brands', $index);
     }
 
+    public function resetOnboarding(): void
+    {
+        /** @var User $user */
+        $user = $this->getAuthenticatedUser();
+
+        if ($user->isBusinessAccount()) {
+            $user->currentBusiness->onboarding_complete = false;
+            $user->currentBusiness->save();
+        } elseif ($user->isInfluencerAccount()) {
+            $user->influencer->onboarding_complete = false;
+            $user->influencer->save();
+        }
+
+        $this->redirect(route('dashboard'));
+    }
+
     public function updateProfile()
     {
         /** @var User $user */
@@ -232,7 +248,7 @@ class EditProfile extends BaseComponent
     private function updateBusinessProfile(User $user)
     {
         $profileData = [
-            'business_name' => $this->business_name,
+            'name' => $this->name,
             'industry' => ! empty($this->industry) ? Niche::from($this->industry) : null,
             'websites' => $this->filterEmptyValues($this->websites),
             'primary_zip_code' => $this->primary_zip_code,
@@ -246,7 +262,7 @@ class EditProfile extends BaseComponent
             'team_members' => $this->filterEmptyValues($this->team_members),
         ];
 
-        $user->businessProfile()->updateOrCreate(['user_id' => $user->id], $profileData);
+        $user->currentBusiness()->updateOrCreate(['id' => $user->currentBusiness->id], $profileData);
     }
 
     private function updateInfluencerProfile(User $user)
@@ -262,7 +278,7 @@ class EditProfile extends BaseComponent
             'follower_count' => $this->follower_count,
         ];
 
-        $user->influencerProfile()->updateOrCreate(['user_id' => $user->id], $profileData);
+        $user->influencer()->updateOrCreate(['user_id' => $user->id], $profileData);
     }
 
     public function render()

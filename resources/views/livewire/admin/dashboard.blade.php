@@ -353,7 +353,7 @@
                                         {{ Str::limit($campaign->campaign_goal, 40) }}
                                     </h4>
                                     <p class="text-xs text-gray-500 dark:text-gray-400">
-                                        {{ $campaign->user->businessProfile?->business_name ?? $campaign->user->name }}
+                                        {{ $campaign->business->name ?? $campaign->user->name }}
                                     </p>
                                 </div>
                                 <a href="{{ route('admin.campaigns.show', $campaign) }}" class="ml-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
@@ -397,7 +397,7 @@
                                     <span class="text-sm font-medium text-gray-900 dark:text-white">{{ Str::limit($application->campaign->campaign_goal, 30) }}</span>
                                 </div>
                                 <p class="text-xs text-gray-600 dark:text-gray-400">
-                                    {{ $application->campaign->user->businessProfile?->business_name ?? $application->campaign->user->name }} • {{ $application->submitted_at->diffForHumans() }}
+                                    {{ $application->campaign->business->name ?? $application->campaign->user->name }} • {{ $application->submitted_at->diffForHumans() }}
                                 </p>
                             </div>
                             <div class="flex items-center space-x-2 ml-4">
