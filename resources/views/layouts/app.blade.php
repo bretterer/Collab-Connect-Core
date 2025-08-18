@@ -36,7 +36,7 @@
 
 <body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 transition-colors duration-300"
     x-cloak
-    x-data="{ sidebarOpen: false, sidebarExpanded: localStorage.getItem('sidebarExpanded') !== 'false' }"
+    x-data="{ sidebarOpen: false, sidebarExpanded: window.innerWidth >= 1400 ? (localStorage.getItem('sidebarExpanded') !== 'false') : false }"
     x-init="$watch('sidebarExpanded', value => localStorage.setItem('sidebarExpanded', value))">
 
     <!-- Off-canvas menu for mobile -->

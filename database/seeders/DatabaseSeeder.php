@@ -56,11 +56,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Import postal codes for proximity search
-        // $this->command->info('Importing postal codes...');
-        // Artisan::call('collabconnect:import-postal-codes', [
-        //     '--chunk' => 2000,
-        // ]);
-        // $this->command->info('Postal codes imported successfully.');
+        $this->call(PostalCodeSeeder::class);
 
         // Create additional test users using AccountSeeder
         $this->call(AccountSeeder::class);

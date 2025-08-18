@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\BusinessIndustry;
 use App\Enums\BusinessType;
 use App\Enums\CompensationType;
+use App\Models\PostalCode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -53,6 +54,11 @@ class Influencer extends Model
             ->withTimestamps();
     }
 
+    public function postalCodeInfo(): BelongsTo
+    {
+        return $this->belongsTo(PostalCode::class, 'postal_code', 'postal_code');
+    }
+
     public function socials(): HasMany
     {
         return $this->hasMany(InfluencerSocial::class);
@@ -61,6 +67,11 @@ class Influencer extends Model
     public function socialAccounts(): HasMany
     {
         return $this->hasMany(InfluencerSocial::class);
+    }
+
+    public function getTotalFollowersAttribute(): int
+    {
+        return $this->socialAccounts->sum('followers');
     }
 
     public function getContentTypesLabelsAttribute(): array
