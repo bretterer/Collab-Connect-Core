@@ -2,17 +2,26 @@
 
 namespace App\Livewire\Profile;
 
+use App\Enums\BusinessIndustry;
+use App\Enums\BusinessType;
+use App\Enums\CompanySize;
+use App\Enums\CompensationType;
+use App\Enums\ContactRole;
 use App\Enums\Niche;
+use App\Enums\SocialPlatform;
 use App\Enums\SubscriptionPlan;
+use App\Enums\YearsInBusiness;
 use App\Livewire\BaseComponent;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
+use Livewire\WithFileUploads;
 
 #[Layout('layouts.app')]
 class EditProfile extends BaseComponent
 {
+    use WithFileUploads;
     #[Validate('required|string|max:255')]
     public $name = '';
 
@@ -30,8 +39,51 @@ class EditProfile extends BaseComponent
 
     public $business_name = '';
 
+    public $business_email = '';
+
+    public $phone_number = '';
+
+    public $website = '';
+
+    public $contact_name = '';
+
+    public $contact_role = '';
+
+    public $years_in_business = '';
+
+    public $company_size = '';
+
+    public $business_type = '';
+
     public $industry = '';
 
+    public $business_description = '';
+
+    public $unique_value_proposition = '';
+
+    public $city = '';
+
+    public $state = '';
+
+    public $postal_code = '';
+
+    public $target_gender = [];
+
+    public $target_age_range = [];
+
+    public $business_goals = [];
+
+    public $platforms = [];
+
+    public $instagram_handle = '';
+
+    public $facebook_handle = '';
+
+    public $tiktok_handle = '';
+
+    public $linkedin_handle = '';
+
+    // Legacy fields for backwards compatibility
     public $websites = [''];
 
     public $primary_zip_code = '';
@@ -41,8 +93,6 @@ class EditProfile extends BaseComponent
     public $is_franchise = false;
 
     public $is_national_brand = false;
-
-    public $contact_name = '';
 
     public $contact_email = '';
 
@@ -54,7 +104,23 @@ class EditProfile extends BaseComponent
 
     public $creator_name = '';
 
+    public $bio = '';
+
     public $primary_niche = '';
+
+    public $content_types = [];
+
+    public $preferred_business_types = [];
+
+    public $address = '';
+
+    public $county = '';
+
+    public $compensation_types = [];
+
+    public $typical_lead_time_days = null;
+
+    public $social_accounts = [];
 
     public $media_kit_url = '';
 
@@ -66,57 +132,122 @@ class EditProfile extends BaseComponent
 
     public $follower_count = '';
 
-    public function mount()
-    {
-        /** @var User $user */
-        $user = $this->getAuthenticatedUser();
+    // Image upload properties
+    public $profile_image;
 
-        $this->name = $user->name;
-        $this->email = $user->email;
+    public $banner_image;
 
-        if ($user->isBusinessAccount()) {
-            $this->loadBusinessProfile($user);
-        } elseif ($user->isInfluencerAccount()) {
-            $this->loadInfluencerProfile($user);
-        }
-    }
+    public $business_logo;
+
+    public $business_banner;
+
+    // Current business selection for multi-business users
+    public $selected_business_id;
+
+    public $available_businesses = [];
+
 
     private function loadBusinessProfile(User $user)
     {
-        $profile = $user->businessProfile;
+        $profile = $user->currentBusiness;
         if (! $profile) {
             return;
         }
 
-        $this->business_name = $profile->business_name ?? '';
+        // Load all onboarding fields
+        $this->business_name = $profile->name ?? '';
+        $this->business_email = $profile->email ?? '';
+        $this->phone_number = $profile->phone ?? '';
+        $this->website = $profile->website ?? '';
+        $this->contact_name = $profile->primary_contact ?? '';
+        $this->contact_role = $profile->contact_role ?? '';
+        $this->years_in_business = $profile->maturity ?? '';
+        $this->company_size = $profile->size ?? '';
+        $this->business_type = $profile->type?->value ?? '';
         $this->industry = $profile->industry?->value ?? '';
-        $this->websites = $profile->websites ?? [''];
-        $this->primary_zip_code = $profile->primary_zip_code ?? '';
-        $this->location_count = $profile->location_count ?? 1;
-        $this->is_franchise = $profile->is_franchise ?? false;
-        $this->is_national_brand = $profile->is_national_brand ?? false;
-        $this->contact_name = $profile->contact_name ?? '';
-        $this->contact_email = $profile->contact_email ?? '';
-        $this->collaboration_goals = $profile->collaboration_goals ?? [''];
-        $this->campaign_types = $profile->campaign_types ?? [''];
-        $this->team_members = $profile->team_members ?? [''];
+        $this->business_description = $profile->description ?? '';
+        $this->unique_value_proposition = $profile->selling_points ?? '';
+        $this->city = $profile->city ?? '';
+        $this->state = $profile->state ?? '';
+        $this->postal_code = $profile->postal_code ?? '';
+        $this->target_gender = $profile->target_gender ?? [];
+        $this->target_age_range = $profile->target_age_range ?? [];
+        $this->business_goals = $profile->business_goals ?? [];
+        $this->platforms = $profile->platforms ?? [];
+        
+        // Load social handles
+        $socials = $profile->socials;
+        foreach ($socials as $social) {
+            switch ($social->platform->value) {
+                case 'instagram':
+                    $this->instagram_handle = $social->username ?? '';
+                    break;
+                case 'facebook':
+                    $this->facebook_handle = $social->username ?? '';
+                    break;
+                case 'tiktok':
+                    $this->tiktok_handle = $social->username ?? '';
+                    break;
+                case 'linkedin':
+                    $this->linkedin_handle = $social->username ?? '';
+                    break;
+            }
+        }
+        
+        // Legacy fields for backwards compatibility
+        $this->primary_zip_code = $this->postal_code;
+        $this->contact_email = $this->business_email;
+        $this->websites = !empty($this->website) ? [$this->website] : [''];
+        $this->collaboration_goals = [''];
+        $this->campaign_types = [''];
+        $this->team_members = [''];
     }
 
     private function loadInfluencerProfile(User $user)
     {
-        $profile = $user->influencerProfile;
+        $profile = $user->influencer;
         if (! $profile) {
             return;
         }
 
-        $this->creator_name = $profile->creator_name ?? '';
+        $this->creator_name = $user->name ?? '';
+        $this->bio = $profile->bio ?? '';
         $this->primary_niche = $profile->primary_niche?->value ?? '';
-        $this->primary_zip_code = $profile->primary_zip_code ?? '';
-        $this->media_kit_url = $profile->media_kit_url ?? '';
-        $this->has_media_kit = $profile->has_media_kit ?? false;
-        $this->collaboration_preferences = $profile->collaboration_preferences ?? [''];
-        $this->preferred_brands = $profile->preferred_brands ?? [''];
-        $this->follower_count = $profile->follower_count ?? '';
+        $this->content_types = $profile->content_types ?? [];
+        $this->preferred_business_types = $profile->preferred_business_types ?? [];
+        $this->address = $profile->address ?? '';
+        $this->city = $profile->city ?? '';
+        $this->state = $profile->state ?? '';
+        $this->county = $profile->county ?? '';
+        $this->primary_zip_code = $profile->postal_code ?? '';
+        $this->phone_number = $profile->phone_number ?? '';
+        $this->compensation_types = $profile->compensation_types ?? [];
+        $this->typical_lead_time_days = $profile->typical_lead_time_days;
+        $this->media_kit_url = '';
+        $this->has_media_kit = false;
+        $this->collaboration_preferences = [''];
+        $this->preferred_brands = [''];
+        $this->follower_count = '';
+        
+        // Load social accounts
+        $this->social_accounts = [];
+        foreach (SocialPlatform::cases() as $platform) {
+            $this->social_accounts[$platform->value] = [
+                'platform' => $platform->value,
+                'username' => '',
+                'followers' => null,
+            ];
+        }
+        
+        if ($profile->socialAccounts) {
+            foreach ($profile->socialAccounts as $account) {
+                $this->social_accounts[$account->platform->value] = [
+                    'platform' => $account->platform->value,
+                    'username' => $account->username,
+                    'followers' => $account->followers,
+                ];
+            }
+        }
     }
 
     public function addWebsite()
@@ -159,6 +290,58 @@ class EditProfile extends BaseComponent
         $this->removeFromArray('team_members', $index);
     }
 
+    public function addBusinessGoal()
+    {
+        $this->business_goals[] = '';
+    }
+
+    public function removeBusinessGoal($index)
+    {
+        if (count($this->business_goals) > 1) {
+            unset($this->business_goals[$index]);
+            $this->business_goals = array_values($this->business_goals);
+        }
+    }
+
+    public function addPlatform()
+    {
+        $this->platforms[] = '';
+    }
+
+    public function removePlatform($index)
+    {
+        if (count($this->platforms) > 1) {
+            unset($this->platforms[$index]);
+            $this->platforms = array_values($this->platforms);
+        }
+    }
+
+    public function addTargetAge()
+    {
+        $this->target_age_range[] = '';
+    }
+
+    public function removeTargetAge($index)
+    {
+        if (count($this->target_age_range) > 1) {
+            unset($this->target_age_range[$index]);
+            $this->target_age_range = array_values($this->target_age_range);
+        }
+    }
+
+    public function addTargetGender()
+    {
+        $this->target_gender[] = '';
+    }
+
+    public function removeTargetGender($index)
+    {
+        if (count($this->target_gender) > 1) {
+            unset($this->target_gender[$index]);
+            $this->target_gender = array_values($this->target_gender);
+        }
+    }
+
     public function addCollaborationPreference()
     {
         $this->addToArray('collaboration_preferences');
@@ -177,6 +360,51 @@ class EditProfile extends BaseComponent
     public function removePreferredBrand($index)
     {
         $this->removeFromArray('preferred_brands', $index);
+    }
+
+    public function addContentType()
+    {
+        if (count($this->content_types) < 3) {
+            $this->content_types[] = '';
+        }
+    }
+
+    public function removeContentType($index)
+    {
+        if (count($this->content_types) > 1) {
+            unset($this->content_types[$index]);
+            $this->content_types = array_values($this->content_types);
+        }
+    }
+
+    public function addBusinessType()
+    {
+        if (count($this->preferred_business_types) < 2) {
+            $this->preferred_business_types[] = '';
+        }
+    }
+
+    public function removeBusinessType($index)
+    {
+        if (count($this->preferred_business_types) > 1) {
+            unset($this->preferred_business_types[$index]);
+            $this->preferred_business_types = array_values($this->preferred_business_types);
+        }
+    }
+
+    public function addCompensationType()
+    {
+        if (count($this->compensation_types) < 3) {
+            $this->compensation_types[] = '';
+        }
+    }
+
+    public function removeCompensationType($index)
+    {
+        if (count($this->compensation_types) > 1) {
+            unset($this->compensation_types[$index]);
+            $this->compensation_types = array_values($this->compensation_types);
+        }
     }
 
     public function resetOnboarding(): void
@@ -209,6 +437,20 @@ class EditProfile extends BaseComponent
         if (! empty($this->password) || ! empty($this->current_password)) {
             $rules['current_password'] = 'required|string';
             $rules['password'] = 'required|string|min:8|confirmed';
+        }
+
+        // Add image validation rules
+        if ($this->profile_image) {
+            $rules['profile_image'] = 'image|max:5120'; // 5MB max
+        }
+        if ($this->banner_image) {
+            $rules['banner_image'] = 'image|max:5120'; // 5MB max
+        }
+        if ($this->business_logo) {
+            $rules['business_logo'] = 'image|max:5120'; // 5MB max
+        }
+        if ($this->business_banner) {
+            $rules['business_banner'] = 'image|max:5120'; // 5MB max
         }
 
         $this->validate($rules);
@@ -248,37 +490,157 @@ class EditProfile extends BaseComponent
     private function updateBusinessProfile(User $user)
     {
         $profileData = [
-            'name' => $this->name,
-            'industry' => ! empty($this->industry) ? Niche::from($this->industry) : null,
-            'websites' => $this->filterEmptyValues($this->websites),
-            'primary_zip_code' => $this->primary_zip_code,
-            'location_count' => $this->location_count,
-            'is_franchise' => $this->is_franchise,
-            'is_national_brand' => $this->is_national_brand,
-            'contact_name' => $this->contact_name,
-            'contact_email' => $this->contact_email,
-            'collaboration_goals' => $this->filterEmptyValues($this->collaboration_goals),
-            'campaign_types' => $this->filterEmptyValues($this->campaign_types),
-            'team_members' => $this->filterEmptyValues($this->team_members),
+            'name' => $this->business_name,
+            'email' => $this->business_email,
+            'phone' => $this->phone_number,
+            'website' => $this->website,
+            'primary_contact' => $this->contact_name,
+            'contact_role' => $this->contact_role,
+            'maturity' => $this->years_in_business,
+            'size' => $this->company_size,
+            'type' => !empty($this->business_type) ? BusinessType::from($this->business_type) : null,
+            'industry' => !empty($this->industry) ? BusinessIndustry::from($this->industry) : null,
+            'description' => $this->business_description,
+            'selling_points' => $this->unique_value_proposition,
+            'city' => $this->city,
+            'state' => $this->state,
+            'postal_code' => $this->postal_code,
+            'target_gender' => array_filter($this->target_gender),
+            'target_age_range' => array_filter($this->target_age_range),
+            'business_goals' => array_filter($this->business_goals),
+            'platforms' => array_filter($this->platforms),
         ];
 
-        $user->currentBusiness()->updateOrCreate(['id' => $user->currentBusiness->id], $profileData);
+        $business = $user->currentBusiness;
+        $business->update($profileData);
+        
+        // Update social handles
+        $business->socials()->delete();
+        
+        $socialHandles = [
+            'instagram' => $this->instagram_handle,
+            'facebook' => $this->facebook_handle,
+            'tiktok' => $this->tiktok_handle,
+            'linkedin' => $this->linkedin_handle,
+        ];
+        
+        foreach ($socialHandles as $platform => $handle) {
+            if (!empty($handle)) {
+                $business->socials()->create([
+                    'platform' => SocialPlatform::from($platform),
+                    'username' => $handle,
+                    'url' => SocialPlatform::from($platform)->generateUrl($handle),
+                ]);
+            }
+        }
+        
+        // Handle business image uploads
+        if ($this->business_logo) {
+            try {
+                $business->clearMediaCollection('logo');
+                
+                $business->addMedia($this->business_logo->getRealPath())
+                    ->usingName('Business Logo')
+                    ->usingFileName($this->business_logo->getClientOriginalName())
+                    ->toMediaCollection('logo');
+                
+                // Clear the uploaded file to prevent re-upload
+                $this->business_logo = null;
+            } catch (\Exception $e) {
+                $this->addError('business_logo', 'Failed to upload business logo: ' . $e->getMessage());
+            }
+        }
+        
+        if ($this->business_banner) {
+            try {
+                $business->clearMediaCollection('banner_image');
+                
+                $business->addMedia($this->business_banner->getRealPath())
+                    ->usingName('Business Banner')
+                    ->usingFileName($this->business_banner->getClientOriginalName())
+                    ->toMediaCollection('banner_image');
+                
+                // Clear the uploaded file to prevent re-upload
+                $this->business_banner = null;
+            } catch (\Exception $e) {
+                $this->addError('business_banner', 'Failed to upload business banner: ' . $e->getMessage());
+            }
+        }
     }
 
     private function updateInfluencerProfile(User $user)
     {
         $profileData = [
-            'creator_name' => $this->creator_name,
-            'primary_niche' => ! empty($this->primary_niche) ? Niche::from($this->primary_niche) : null,
-            'primary_zip_code' => $this->primary_zip_code,
-            'media_kit_url' => $this->media_kit_url,
-            'has_media_kit' => $this->has_media_kit,
-            'collaboration_preferences' => $this->filterEmptyValues($this->collaboration_preferences),
-            'preferred_brands' => $this->filterEmptyValues($this->preferred_brands),
-            'follower_count' => $this->follower_count,
+            'bio' => $this->bio,
+            'content_types' => array_filter($this->content_types),
+            'preferred_business_types' => array_filter($this->preferred_business_types),
+            'address' => $this->address,
+            'city' => $this->city,
+            'state' => $this->state,
+            'county' => $this->county,
+            'postal_code' => $this->primary_zip_code,
+            'phone_number' => $this->phone_number,
+            'compensation_types' => array_filter($this->compensation_types),
+            'typical_lead_time_days' => $this->typical_lead_time_days,
         ];
 
-        $user->influencer()->updateOrCreate(['user_id' => $user->id], $profileData);
+        $influencer = $user->influencer()->updateOrCreate(['user_id' => $user->id], $profileData);
+        
+        // Update social accounts
+        $influencer->socialAccounts()->delete();
+        
+        foreach ($this->social_accounts as $accountData) {
+            if (!empty($accountData['username'])) {
+                $influencer->socialAccounts()->create([
+                    'platform' => $accountData['platform'],
+                    'username' => $accountData['username'],
+                    'url' => SocialPlatform::from($accountData['platform'])->generateUrl($accountData['username']),
+                    'followers' => $accountData['followers'] ?: null,
+                ]);
+            }
+        }
+        
+        // Handle image uploads
+        if ($this->profile_image) {
+            try {
+                $influencer->clearMediaCollection('profile_image');
+                
+                $influencer->addMediaFromRequest('profile_image')
+                    ->usingName('Profile Image')
+                    ->toMediaCollection('profile_image');
+                
+                // Clear the uploaded file to prevent re-upload
+                $this->profile_image = null;
+            } catch (\Exception $e) {
+                // Try alternative approach with temporary file path
+                try {
+                    $influencer->addMedia($this->profile_image->getRealPath())
+                        ->usingName('Profile Image')
+                        ->usingFileName($this->profile_image->getClientOriginalName())
+                        ->toMediaCollection('profile_image');
+                    
+                    $this->profile_image = null;
+                } catch (\Exception $e2) {
+                    $this->addError('profile_image', 'Failed to upload profile image: ' . $e2->getMessage());
+                }
+            }
+        }
+        
+        if ($this->banner_image) {
+            try {
+                $influencer->clearMediaCollection('banner_image');
+                
+                $influencer->addMedia($this->banner_image->getRealPath())
+                    ->usingName('Banner Image')
+                    ->usingFileName($this->banner_image->getClientOriginalName())
+                    ->toMediaCollection('banner_image');
+                
+                // Clear the uploaded file to prevent re-upload
+                $this->banner_image = null;
+            } catch (\Exception $e) {
+                $this->addError('banner_image', 'Failed to upload banner image: ' . $e->getMessage());
+            }
+        }
     }
 
     public function render()
@@ -289,7 +651,84 @@ class EditProfile extends BaseComponent
         return view('livewire.profile.edit-profile', [
             'user' => $user,
             'nicheOptions' => Niche::toOptions(),
+            'businessIndustryOptions' => BusinessIndustry::toOptions(),
+            'businessTypeOptions' => BusinessType::toOptions(),
+            'companySizeOptions' => CompanySize::toOptions(),
+            'contactRoleOptions' => ContactRole::toOptions(),
+            'yearsInBusinessOptions' => YearsInBusiness::toOptions(),
+            'compensationTypeOptions' => CompensationType::toOptions(),
+            'socialPlatformOptions' => SocialPlatform::toOptions(),
             'subscriptionPlanOptions' => SubscriptionPlan::toOptions(),
         ]);
+    }
+
+    public function mount()
+    {
+        /** @var User $user */
+        $user = $this->getAuthenticatedUser();
+
+        $this->name = $user->name;
+        $this->email = $user->email;
+
+        if ($user->isBusinessAccount()) {
+            $this->loadAvailableBusinesses($user);
+            $this->loadBusinessProfile($user);
+        } elseif ($user->isInfluencerAccount()) {
+            $this->loadInfluencerProfile($user);
+            
+            // Initialize arrays if empty
+            if (empty($this->content_types)) {
+                $this->content_types = [''];
+            }
+            if (empty($this->preferred_business_types)) {
+                $this->preferred_business_types = [''];
+            }
+            if (empty($this->compensation_types)) {
+                $this->compensation_types = [''];
+            }
+        } else {
+            // Initialize business arrays if empty
+            if (empty($this->business_goals)) {
+                $this->business_goals = [''];
+            }
+            if (empty($this->platforms)) {
+                $this->platforms = [''];
+            }
+            if (empty($this->target_age_range)) {
+                $this->target_age_range = [''];
+            }
+            if (empty($this->target_gender)) {
+                $this->target_gender = [''];
+            }
+        }
+    }
+
+    private function loadAvailableBusinesses(User $user)
+    {
+        $this->available_businesses = $user->businesses()->get()->map(function ($business) {
+            return [
+                'id' => $business->id,
+                'name' => $business->name,
+                'role' => $business->pivot->role ?? 'member'
+            ];
+        })->toArray();
+        
+        // Set default selected business
+        if (!empty($this->available_businesses)) {
+            $this->selected_business_id = $user->currentBusiness?->id ?? $this->available_businesses[0]['id'];
+        }
+    }
+
+    public function switchBusiness()
+    {
+        $user = $this->getAuthenticatedUser();
+        $business = $user->businesses()->where('businesses.id', $this->selected_business_id)->first();
+        
+        if ($business) {
+            // Update current business and reload profile
+            $user->setCurrentBusiness($business);
+            $this->loadBusinessProfile($user);
+            $this->flashSuccess('Switched to ' . $business->name);
+        }
     }
 }

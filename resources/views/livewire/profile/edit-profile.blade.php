@@ -213,204 +213,532 @@
                     </div>
 
                     <div class="space-y-6">
-                        <!-- Business Name -->
-                        <flux:field>
-                            <flux:label>Business Name</flux:label>
-                            <flux:input
-                                type="text"
-                                wire:model="business_name"
-                                placeholder="Enter your business name" />
-                        </flux:field>
-
-                        <!-- Industry -->
-                        <flux:field>
-                            <flux:label>Primary Industry</flux:label>
-                            <flux:select
-                                wire:model="industry"
-                                variant="listbox"
-                                placeholder="Select your primary industry">
-                                @foreach ($nicheOptions as $niche)
-                                    <flux:select.option value="{{ $niche['value'] }}">{{ $niche['label'] }}</flux:select.option>
-                                @endforeach
-                            </flux:select>
-                        </flux:field>
-
-                        <!-- Websites -->
-                        <div>
-                            <flux:label>Business Websites (Optional)</flux:label>
-                            @foreach($websites as $index => $website)
-                                <div class="flex items-center space-x-2 mt-2">
-                                    <flux:input
-                                        type="url"
-                                        wire:model="websites.{{ $index }}"
-                                        placeholder="https://example.com"
-                                        class="flex-1" />
-                                    @if(count($websites) > 1)
-                                        <flux:button
-                                            type="button"
-                                            variant="danger"
-                                            size="sm"
-                                            wire:click="removeWebsite({{ $index }})">
-                                            Remove
-                                        </flux:button>
-                                    @endif
+                        <!-- Business Selection -->
+                        @if(count($available_businesses) > 1)
+                            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border-l-4 border-blue-400">
+                                <div class="flex items-center mb-3">
+                                    <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                    </svg>
+                                    <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-100">Select Business to Edit</h3>
                                 </div>
-                            @endforeach
-                            <flux:button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                wire:click="addWebsite"
-                                class="mt-2">
-                                + Add Another Website
-                            </flux:button>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Primary Zip Code -->
-                            <flux:field>
-                                <flux:label>Primary Zip Code</flux:label>
-                                <flux:input
-                                    type="text"
-                                    wire:model="primary_zip_code"
-                                    placeholder="Enter zip code" />
-                            </flux:field>
-
-                            <!-- Location Count -->
-                            <flux:field>
-                                <flux:label>Number of Locations</flux:label>
-                                <flux:input
-                                    type="number"
-                                    wire:model.live="location_count"
-                                    min="1" />
-                            </flux:field>
-                        </div>
-
-                        @if($location_count > 1)
-                            <div class="space-y-3">
-                                <flux:checkbox
-                                    wire:model="is_franchise"
-                                    label="This is a franchise" />
-
-                                @if($location_count >= 30)
-                                    <flux:checkbox
-                                        wire:model="is_national_brand"
-                                        label="This is a national brand (30+ locations)" />
-                                @endif
+                                <p class="text-sm text-blue-700 dark:text-blue-300 mb-4">You belong to multiple businesses. Select which business profile you want to edit.</p>
+                                
+                                <div class="flex items-center space-x-4">
+                                    <flux:select 
+                                        wire:model.live="selected_business_id" 
+                                        variant="listbox"
+                                        class="flex-1">
+                                        @foreach($available_businesses as $business)
+                                            <flux:select.option value="{{ $business['id'] }}">
+                                                {{ $business['name'] }} ({{ ucfirst($business['role']) }})
+                                            </flux:select.option>
+                                        @endforeach
+                                    </flux:select>
+                                    <flux:button 
+                                        type="button" 
+                                        wire:click="switchBusiness"
+                                        variant="primary"
+                                        size="sm">
+                                        Switch
+                                    </flux:button>
+                                </div>
                             </div>
                         @endif
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Contact Name -->
-                            <flux:field>
-                                <flux:label>Contact Name</flux:label>
+                        <!-- Business Images -->
+                        <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Business Images</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Business Logo -->
+                                <div>
+                                    <flux:label>Business Logo</flux:label>
+                                    <div class="mt-2">
+                                        @if($user->currentBusiness?->getLogoUrl())
+                                            <div class="mb-4">
+                                                <img src="{{ $user->currentBusiness->getLogoUrl() }}" alt="Current business logo" class="w-32 h-32 rounded-lg object-cover border-4 border-white shadow-lg">
+                                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Current business logo</p>
+                                            </div>
+                                        @endif
+                                        
+                                        <div class="flex items-center justify-center w-full">
+                                            <label for="business_logo" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+                                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                                    <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                                    </svg>
+                                                    <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload</span></p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, WebP (MAX. 5MB)</p>
+                                                </div>
+                                                <input id="business_logo" type="file" wire:model="business_logo" class="hidden" accept="image/*" />
+                                            </label>
+                                        </div>
+                                        
+                                        @if ($business_logo)
+                                            <div class="mt-4">
+                                                <img src="{{ $business_logo->temporaryUrl() }}" alt="Logo preview" class="w-32 h-32 rounded-lg object-cover border-4 border-white shadow-lg">
+                                                <p class="text-sm text-green-600 dark:text-green-400 mt-2">New logo ready to save</p>
+                                            </div>
+                                        @endif
+                                        
+                                        @error('business_logo') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+                                <!-- Business Banner -->
+                                <div>
+                                    <flux:label>Business Banner</flux:label>
+                                    <div class="mt-2">
+                                        @if($user->currentBusiness?->getBannerImageUrl())
+                                            <div class="mb-4">
+                                                <img src="{{ $user->currentBusiness->getBannerImageUrl() }}" alt="Current business banner" class="w-full h-24 rounded-lg object-cover border-4 border-white shadow-lg">
+                                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Current business banner</p>
+                                            </div>
+                                        @endif
+                                        
+                                        <div class="flex items-center justify-center w-full">
+                                            <label for="business_banner" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+                                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                                    <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                                    </svg>
+                                                    <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload</span></p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, WebP (MAX. 5MB)</p>
+                                                </div>
+                                                <input id="business_banner" type="file" wire:model="business_banner" class="hidden" accept="image/*" />
+                                            </label>
+                                        </div>
+                                        
+                                        @if ($business_banner)
+                                            <div class="mt-4">
+                                                <img src="{{ $business_banner->temporaryUrl() }}" alt="Banner preview" class="w-full h-24 rounded-lg object-cover border-4 border-white shadow-lg">
+                                                <p class="text-sm text-green-600 dark:text-green-400 mt-2">New banner ready to save</p>
+                                            </div>
+                                        @endif
+                                        
+                                        @error('business_banner') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Basic Business Information -->
+                        <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Basic Business Information</h3>
+                            
+                            <!-- Business Name -->
+                            <flux:field class="mb-4">
+                                <flux:label>Business Name *</flux:label>
                                 <flux:input
                                     type="text"
-                                    wire:model="contact_name"
-                                    placeholder="Primary contact name" />
+                                    wire:model="business_name"
+                                    placeholder="Enter your business name"
+                                    required />
+                                <flux:error name="business_name" />
                             </flux:field>
 
-                            <!-- Contact Email -->
-                            <flux:field>
-                                <flux:label>Contact Email</flux:label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <!-- Business Email -->
+                                <flux:field>
+                                    <flux:label>Business Email *</flux:label>
+                                    <flux:input
+                                        type="email"
+                                        wire:model="business_email"
+                                        placeholder="business@example.com"
+                                        required />
+                                    <flux:error name="business_email" />
+                                </flux:field>
+
+                                <!-- Phone Number -->
+                                <flux:field>
+                                    <flux:label>Phone Number *</flux:label>
+                                    <flux:input
+                                        type="tel"
+                                        wire:model="phone_number"
+                                        placeholder="(555) 123-4567"
+                                        required />
+                                    <flux:error name="phone_number" />
+                                </flux:field>
+                            </div>
+
+                            <!-- Website -->
+                            <flux:field class="mb-4">
+                                <flux:label>Website (Optional)</flux:label>
                                 <flux:input
-                                    type="email"
-                                    wire:model="contact_email"
-                                    placeholder="Primary contact email" />
+                                    type="url"
+                                    wire:model="website"
+                                    placeholder="https://example.com" />
+                            </flux:field>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Contact Name -->
+                                <flux:field>
+                                    <flux:label>Primary Contact Name *</flux:label>
+                                    <flux:input
+                                        type="text"
+                                        wire:model="contact_name"
+                                        placeholder="Primary contact person"
+                                        required />
+                                    <flux:error name="contact_name" />
+                                </flux:field>
+
+                                <!-- Contact Role -->
+                                <flux:field>
+                                    <flux:label>Contact Role *</flux:label>
+                                    <flux:select
+                                        wire:model="contact_role"
+                                        variant="listbox"
+                                        placeholder="Select your role"
+                                        required>
+                                        @foreach ($contactRoleOptions as $role)
+                                            <flux:select.option value="{{ $role['value'] }}">{{ $role['label'] }}</flux:select.option>
+                                        @endforeach
+                                    </flux:select>
+                                    <flux:error name="contact_role" />
+                                </flux:field>
+                            </div>
+                        </div>
+
+                        <!-- Business Profile & Identity -->
+                        <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Business Profile & Identity</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <!-- Years in Business -->
+                                <flux:field>
+                                    <flux:label>Years in Business *</flux:label>
+                                    <flux:select
+                                        wire:model="years_in_business"
+                                        variant="listbox"
+                                        placeholder="Select years in business"
+                                        required>
+                                        @foreach ($yearsInBusinessOptions as $years)
+                                            <flux:select.option value="{{ $years['value'] }}">{{ $years['label'] }}</flux:select.option>
+                                        @endforeach
+                                    </flux:select>
+                                    <flux:error name="years_in_business" />
+                                </flux:field>
+
+                                <!-- Company Size -->
+                                <flux:field>
+                                    <flux:label>Company Size *</flux:label>
+                                    <flux:select
+                                        wire:model="company_size"
+                                        variant="listbox"
+                                        placeholder="Select company size"
+                                        required>
+                                        @foreach ($companySizeOptions as $size)
+                                            <flux:select.option value="{{ $size['value'] }}">{{ $size['label'] }}</flux:select.option>
+                                        @endforeach
+                                    </flux:select>
+                                    <flux:error name="company_size" />
+                                </flux:field>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <!-- Business Type -->
+                                <flux:field>
+                                    <flux:label>Business Type *</flux:label>
+                                    <flux:select
+                                        wire:model="business_type"
+                                        variant="listbox"
+                                        placeholder="Select business type"
+                                        required>
+                                        @foreach ($businessTypeOptions as $type)
+                                            <flux:select.option value="{{ $type['value'] }}">{{ $type['label'] }}</flux:select.option>
+                                        @endforeach
+                                    </flux:select>
+                                    <flux:error name="business_type" />
+                                </flux:field>
+
+                                <!-- Industry -->
+                                <flux:field>
+                                    <flux:label>Primary Industry *</flux:label>
+                                    <flux:select
+                                        wire:model="industry"
+                                        variant="listbox"
+                                        placeholder="Select your primary industry"
+                                        required>
+                                        @foreach ($businessIndustryOptions as $industry)
+                                            <flux:select.option value="{{ $industry['value'] }}">{{ $industry['label'] }}</flux:select.option>
+                                        @endforeach
+                                    </flux:select>
+                                    <flux:error name="industry" />
+                                </flux:field>
+                            </div>
+
+                            <!-- Business Description -->
+                            <flux:field class="mb-4">
+                                <flux:label>Business Description *</flux:label>
+                                <flux:textarea
+                                    wire:model="business_description"
+                                    rows="4"
+                                    placeholder="Describe your business, what you do, and what makes you unique..."
+                                    required />
+                                <flux:error name="business_description" />
+                            </flux:field>
+
+                            <!-- Unique Value Proposition -->
+                            <flux:field>
+                                <flux:label>Unique Value Proposition (Optional)</flux:label>
+                                <flux:textarea
+                                    wire:model="unique_value_proposition"
+                                    rows="2"
+                                    placeholder="What sets your business apart from competitors?" />
                             </flux:field>
                         </div>
 
-                        <!-- Collaboration Goals -->
-                        <div>
-                            <flux:label>Collaboration Goals (Optional)</flux:label>
-                            @foreach($collaboration_goals as $index => $goal)
-                                <div class="flex items-center space-x-2 mt-2">
+                        <!-- Location & Target Demographics -->
+                        <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Location & Target Demographics</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <!-- City -->
+                                <flux:field>
+                                    <flux:label>City</flux:label>
                                     <flux:input
                                         type="text"
-                                        wire:model="collaboration_goals.{{ $index }}"
-                                        placeholder="e.g., Increase local awareness"
-                                        class="flex-1" />
-                                    @if(count($collaboration_goals) > 1)
-                                        <flux:button
-                                            type="button"
-                                            variant="danger"
-                                            size="sm"
-                                            wire:click="removeCollaborationGoal({{ $index }})">
-                                            Remove
-                                        </flux:button>
-                                    @endif
-                                </div>
-                            @endforeach
-                            <flux:button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                wire:click="addCollaborationGoal"
-                                class="mt-2">
-                                + Add Goal
-                            </flux:button>
+                                        wire:model="city"
+                                        placeholder="Your city" />
+                                </flux:field>
+
+                                <!-- State -->
+                                <flux:field>
+                                    <flux:label>State</flux:label>
+                                    <flux:input
+                                        type="text"
+                                        wire:model="state"
+                                        placeholder="Your state" />
+                                </flux:field>
+
+                                <!-- Postal Code -->
+                                <flux:field>
+                                    <flux:label>Postal Code</flux:label>
+                                    <flux:input
+                                        type="text"
+                                        wire:model="postal_code"
+                                        placeholder="12345" />
+                                </flux:field>
+                            </div>
+
+                            <!-- Target Gender -->
+                            <div class="mb-4">
+                                <flux:label>Target Gender (Optional)</flux:label>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Who is your target audience by gender?</p>
+                                @foreach($target_gender as $index => $gender)
+                                    <div class="flex items-center space-x-2 mt-2">
+                                        <flux:select
+                                            wire:model="target_gender.{{ $index }}"
+                                            variant="listbox"
+                                            placeholder="Select target gender"
+                                            class="flex-1">
+                                            <flux:select.option value="male">Male</flux:select.option>
+                                            <flux:select.option value="female">Female</flux:select.option>
+                                            <flux:select.option value="non-binary">Non-binary</flux:select.option>
+                                            <flux:select.option value="all">All Genders</flux:select.option>
+                                        </flux:select>
+                                        @if(count($target_gender) > 1)
+                                            <flux:button
+                                                type="button"
+                                                variant="danger"
+                                                size="sm"
+                                                wire:click="removeTargetGender({{ $index }})">
+                                                Remove
+                                            </flux:button>
+                                        @endif
+                                    </div>
+                                @endforeach
+                                <flux:button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    wire:click="addTargetGender"
+                                    class="mt-2">
+                                    + Add Target Gender
+                                </flux:button>
+                            </div>
+
+                            <!-- Target Age Range -->
+                            <div>
+                                <flux:label>Target Age Range (Optional)</flux:label>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">What age groups do you target?</p>
+                                @foreach($target_age_range as $index => $ageRange)
+                                    <div class="flex items-center space-x-2 mt-2">
+                                        <flux:select
+                                            wire:model="target_age_range.{{ $index }}"
+                                            variant="listbox"
+                                            placeholder="Select age range"
+                                            class="flex-1">
+                                            <flux:select.option value="13-17">13-17 (Gen Alpha/Late Gen Z)</flux:select.option>
+                                            <flux:select.option value="18-24">18-24 (Gen Z)</flux:select.option>
+                                            <flux:select.option value="25-34">25-34 (Millennials)</flux:select.option>
+                                            <flux:select.option value="35-44">35-44 (Millennials/Gen X)</flux:select.option>
+                                            <flux:select.option value="45-54">45-54 (Gen X)</flux:select.option>
+                                            <flux:select.option value="55-64">55-64 (Boomers)</flux:select.option>
+                                            <flux:select.option value="65+">65+ (Boomers+)</flux:select.option>
+                                        </flux:select>
+                                        @if(count($target_age_range) > 1)
+                                            <flux:button
+                                                type="button"
+                                                variant="danger"
+                                                size="sm"
+                                                wire:click="removeTargetAge({{ $index }})">
+                                                Remove
+                                            </flux:button>
+                                        @endif
+                                    </div>
+                                @endforeach
+                                <flux:button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    wire:click="addTargetAge"
+                                    class="mt-2">
+                                    + Add Age Range
+                                </flux:button>
+                            </div>
                         </div>
 
-                        <!-- Campaign Types -->
-                        <div>
-                            <flux:label>Preferred Campaign Types (Optional)</flux:label>
-                            @foreach($campaign_types as $index => $type)
-                                <div class="flex items-center space-x-2 mt-2">
-                                    <flux:input
-                                        type="text"
-                                        wire:model="campaign_types.{{ $index }}"
-                                        placeholder="e.g., Product reviews, event promotion"
-                                        class="flex-1" />
-                                    @if(count($campaign_types) > 1)
-                                        <flux:button
-                                            type="button"
-                                            variant="danger"
-                                            size="sm"
-                                            wire:click="removeCampaignType({{ $index }})">
-                                            Remove
-                                        </flux:button>
-                                    @endif
-                                </div>
-                            @endforeach
-                            <flux:button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                wire:click="addCampaignType"
-                                class="mt-2">
-                                + Add Type
-                            </flux:button>
+                        <!-- Social Media Accounts -->
+                        <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Social Media Accounts</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Add your social media handles to showcase your online presence</p>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Instagram Handle -->
+                                <flux:field>
+                                    <flux:label>Instagram Handle</flux:label>
+                                    <div class="flex items-center">
+                                        <span class="inline-flex items-center px-3 py-2 border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm rounded-l-md">@</span>
+                                        <flux:input
+                                            type="text"
+                                            wire:model="instagram_handle"
+                                            placeholder="username"
+                                            class="rounded-l-none" />
+                                    </div>
+                                </flux:field>
+
+                                <!-- Facebook Handle -->
+                                <flux:field>
+                                    <flux:label>Facebook Handle</flux:label>
+                                    <div class="flex items-center">
+                                        <span class="inline-flex items-center px-3 py-2 border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm rounded-l-md">@</span>
+                                        <flux:input
+                                            type="text"
+                                            wire:model="facebook_handle"
+                                            placeholder="username"
+                                            class="rounded-l-none" />
+                                    </div>
+                                </flux:field>
+
+                                <!-- TikTok Handle -->
+                                <flux:field>
+                                    <flux:label>TikTok Handle</flux:label>
+                                    <div class="flex items-center">
+                                        <span class="inline-flex items-center px-3 py-2 border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm rounded-l-md">@</span>
+                                        <flux:input
+                                            type="text"
+                                            wire:model="tiktok_handle"
+                                            placeholder="username"
+                                            class="rounded-l-none" />
+                                    </div>
+                                </flux:field>
+
+                                <!-- LinkedIn Handle -->
+                                <flux:field>
+                                    <flux:label>LinkedIn Handle</flux:label>
+                                    <div class="flex items-center">
+                                        <span class="inline-flex items-center px-3 py-2 border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm rounded-l-md">@</span>
+                                        <flux:input
+                                            type="text"
+                                            wire:model="linkedin_handle"
+                                            placeholder="username"
+                                            class="rounded-l-none" />
+                                    </div>
+                                </flux:field>
+                            </div>
                         </div>
 
-                        <!-- Team Members -->
-                        <div>
-                            <flux:label>Team Members (Optional)</flux:label>
-                            @foreach($team_members as $index => $member)
-                                <div class="flex items-center space-x-2 mt-2">
-                                    <flux:input
-                                        type="text"
-                                        wire:model="team_members.{{ $index }}"
-                                        placeholder="Team member name or role"
-                                        class="flex-1" />
-                                    @if(count($team_members) > 1)
-                                        <flux:button
-                                            type="button"
-                                            variant="danger"
-                                            size="sm"
-                                            wire:click="removeTeamMember({{ $index }})">
-                                            Remove
-                                        </flux:button>
-                                    @endif
-                                </div>
-                            @endforeach
-                            <flux:button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                wire:click="addTeamMember"
-                                class="mt-2">
-                                + Add Team Member
-                            </flux:button>
+                        <!-- Business Goals & Platform Preferences -->
+                        <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Business Goals & Platform Preferences</h3>
+                            
+                            <!-- Business Goals -->
+                            <div class="mb-4">
+                                <flux:label>Business Goals (Optional)</flux:label>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">What are your primary business goals for influencer marketing?</p>
+                                @foreach($business_goals as $index => $goal)
+                                    <div class="flex items-center space-x-2 mt-2">
+                                        <flux:select
+                                            wire:model="business_goals.{{ $index }}"
+                                            variant="listbox"
+                                            placeholder="Select a business goal"
+                                            class="flex-1">
+                                            <flux:select.option value="brand-awareness">Brand Awareness</flux:select.option>
+                                            <flux:select.option value="lead-generation">Lead Generation</flux:select.option>
+                                            <flux:select.option value="sales-conversion">Sales Conversion</flux:select.option>
+                                            <flux:select.option value="customer-acquisition">Customer Acquisition</flux:select.option>
+                                            <flux:select.option value="product-launch">Product Launch</flux:select.option>
+                                            <flux:select.option value="content-creation">Content Creation</flux:select.option>
+                                            <flux:select.option value="social-media-growth">Social Media Growth</flux:select.option>
+                                            <flux:select.option value="brand-partnership">Brand Partnership</flux:select.option>
+                                        </flux:select>
+                                        @if(count($business_goals) > 1)
+                                            <flux:button
+                                                type="button"
+                                                variant="danger"
+                                                size="sm"
+                                                wire:click="removeBusinessGoal({{ $index }})">
+                                                Remove
+                                            </flux:button>
+                                        @endif
+                                    </div>
+                                @endforeach
+                                <flux:button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    wire:click="addBusinessGoal"
+                                    class="mt-2">
+                                    + Add Goal
+                                </flux:button>
+                            </div>
+
+                            <!-- Preferred Platforms -->
+                            <div>
+                                <flux:label>Preferred Platforms (Optional)</flux:label>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Which social media platforms do you want to focus on?</p>
+                                @foreach($platforms as $index => $platform)
+                                    <div class="flex items-center space-x-2 mt-2">
+                                        <flux:select
+                                            wire:model="platforms.{{ $index }}"
+                                            variant="listbox"
+                                            placeholder="Select a platform"
+                                            class="flex-1">
+                                            @foreach ($socialPlatformOptions as $option)
+                                                <flux:select.option value="{{ $option['value'] }}">{{ $option['label'] }}</flux:select.option>
+                                            @endforeach
+                                        </flux:select>
+                                        @if(count($platforms) > 1)
+                                            <flux:button
+                                                type="button"
+                                                variant="danger"
+                                                size="sm"
+                                                wire:click="removePlatform({{ $index }})">
+                                                Remove
+                                            </flux:button>
+                                        @endif
+                                    </div>
+                                @endforeach
+                                <flux:button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    wire:click="addPlatform"
+                                    class="mt-2">
+                                    + Add Platform
+                                </flux:button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -428,12 +756,89 @@
                             </div>
                         </div>
                         <div class="ml-4">
-                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Creator Profile</h2>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Manage your creator information and collaboration preferences</p>
+                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Influencer Profile</h2>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Manage your influencer profile with all the information collected during onboarding</p>
                         </div>
                     </div>
 
                     <div class="space-y-6">
+                        <!-- Profile Images -->
+                        <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Profile Images</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Profile Image -->
+                                <div>
+                                    <flux:label>Profile Image</flux:label>
+                                    <div class="mt-2">
+                                        @if($user->influencer?->getProfileImageUrl())
+                                            <div class="mb-4">
+                                                <img src="{{ $user->influencer->getProfileImageUrl() }}" alt="Current profile image" class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg">
+                                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Current profile image</p>
+                                            </div>
+                                        @endif
+                                        
+                                        <div class="flex items-center justify-center w-full">
+                                            <label for="profile_image" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+                                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                                    <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                                    </svg>
+                                                    <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload</span></p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, WebP (MAX. 5MB)</p>
+                                                </div>
+                                                <input id="profile_image" type="file" wire:model="profile_image" class="hidden" accept="image/*" />
+                                            </label>
+                                        </div>
+                                        
+                                        @if ($profile_image)
+                                            <div class="mt-4">
+                                                <img src="{{ $profile_image->temporaryUrl() }}" alt="Profile preview" class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg">
+                                                <p class="text-sm text-green-600 dark:text-green-400 mt-2">New profile image ready to save</p>
+                                            </div>
+                                        @endif
+                                        
+                                        @error('profile_image') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+                                <!-- Banner Image -->
+                                <div>
+                                    <flux:label>Banner Image</flux:label>
+                                    <div class="mt-2">
+                                        @if($user->influencer?->getBannerImageUrl())
+                                            <div class="mb-4">
+                                                <img src="{{ $user->influencer->getBannerImageUrl() }}" alt="Current banner image" class="w-full h-24 rounded-lg object-cover border-4 border-white shadow-lg">
+                                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Current banner image</p>
+                                            </div>
+                                        @endif
+                                        
+                                        <div class="flex items-center justify-center w-full">
+                                            <label for="banner_image" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+                                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                                    <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                                    </svg>
+                                                    <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload</span></p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, WebP (MAX. 5MB)</p>
+                                                </div>
+                                                <input id="banner_image" type="file" wire:model="banner_image" class="hidden" accept="image/*" />
+                                            </label>
+                                        </div>
+                                        
+                                        @if ($banner_image)
+                                            <div class="mt-4">
+                                                <img src="{{ $banner_image->temporaryUrl() }}" alt="Banner preview" class="w-full h-24 rounded-lg object-cover border-4 border-white shadow-lg">
+                                                <p class="text-sm text-green-600 dark:text-green-400 mt-2">New banner image ready to save</p>
+                                            </div>
+                                        @endif
+                                        
+                                        @error('banner_image') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Creator Name -->
                         <flux:field>
                             <flux:label>Creator Name</flux:label>
@@ -441,6 +846,16 @@
                                 type="text"
                                 wire:model="creator_name"
                                 placeholder="Your preferred creator name" />
+                        </flux:field>
+
+                        <!-- Bio -->
+                        <flux:field>
+                            <flux:label>Bio</flux:label>
+                            <flux:textarea
+                                wire:model="bio"
+                                rows="3"
+                                placeholder="Tell us about yourself and your content..." />
+                            <flux:error name="bio" />
                         </flux:field>
 
                         <!-- Primary Niche -->
@@ -456,103 +871,325 @@
                             </flux:select>
                         </flux:field>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Primary Zip Code -->
-                            <flux:field>
-                                <flux:label>Primary Zip Code</flux:label>
-                                <flux:input
-                                    type="text"
-                                    wire:model="primary_zip_code"
-                                    placeholder="Enter zip code" />
-                            </flux:field>
-
-                            <!-- Follower Count -->
-                            <flux:field>
-                                <flux:label>Total Follower Count (Optional)</flux:label>
-                                <flux:input
-                                    type="text"
-                                    wire:model="follower_count"
-                                    placeholder="e.g., 10K, 50K, 100K+" />
-                            </flux:field>
-                        </div>
-
-                        <!-- Media Kit -->
-                        <div class="space-y-4">
-                            <flux:checkbox
-                                wire:model.live="has_media_kit"
-                                label="I have a media kit" />
-
-                            @if($has_media_kit)
-                                <flux:field>
-                                    <flux:label>Media Kit URL</flux:label>
-                                    <flux:input
-                                        type="url"
-                                        wire:model="media_kit_url"
-                                        placeholder="https://example.com/media-kit" />
-                                </flux:field>
+                        <!-- Content Types -->
+                        <div>
+                            <flux:label>Content Types (Select up to 3)</flux:label>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">What types of content do you create?</p>
+                            @foreach($content_types as $index => $contentType)
+                                <div class="flex items-center space-x-2 mt-2">
+                                    <flux:select
+                                        wire:model="content_types.{{ $index }}"
+                                        variant="listbox"
+                                        placeholder="Select content type"
+                                        class="flex-1">
+                                        @foreach ($businessIndustryOptions as $option)
+                                            <flux:select.option value="{{ $option['value'] }}">{{ $option['label'] }}</flux:select.option>
+                                        @endforeach
+                                    </flux:select>
+                                    @if(count($content_types) > 1)
+                                        <flux:button
+                                            type="button"
+                                            variant="danger"
+                                            size="sm"
+                                            wire:click="removeContentType({{ $index }})">
+                                            Remove
+                                        </flux:button>
+                                    @endif
+                                </div>
+                            @endforeach
+                            @if(count($content_types) < 3)
+                                <flux:button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    wire:click="addContentType"
+                                    class="mt-2">
+                                    + Add Content Type
+                                </flux:button>
                             @endif
+                            <flux:error name="content_types" />
                         </div>
 
-                        <!-- Collaboration Preferences -->
+                        <!-- Preferred Business Types -->
                         <div>
-                            <flux:label>Collaboration Preferences (Optional)</flux:label>
-                            @foreach($collaboration_preferences as $index => $preference)
+                            <flux:label>Preferred Business Types (Select up to 2)</flux:label>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">What types of businesses do you prefer to work with?</p>
+                            @foreach($preferred_business_types as $index => $businessType)
                                 <div class="flex items-center space-x-2 mt-2">
-                                    <flux:input
-                                        type="text"
-                                        wire:model="collaboration_preferences.{{ $index }}"
-                                        placeholder="e.g., Long-term partnerships, product trials"
-                                        class="flex-1" />
-                                    @if(count($collaboration_preferences) > 1)
+                                    <flux:select
+                                        wire:model="preferred_business_types.{{ $index }}"
+                                        variant="listbox"
+                                        placeholder="Select business type"
+                                        class="flex-1">
+                                        @foreach ($businessTypeOptions as $option)
+                                            <flux:select.option value="{{ $option['value'] }}">{{ $option['label'] }}</flux:select.option>
+                                        @endforeach
+                                    </flux:select>
+                                    @if(count($preferred_business_types) > 1)
                                         <flux:button
                                             type="button"
                                             variant="danger"
                                             size="sm"
-                                            wire:click="removeCollaborationPreference({{ $index }})">
+                                            wire:click="removeBusinessType({{ $index }})">
                                             Remove
                                         </flux:button>
                                     @endif
                                 </div>
                             @endforeach
-                            <flux:button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                wire:click="addCollaborationPreference"
-                                class="mt-2">
-                                + Add Preference
-                            </flux:button>
+                            @if(count($preferred_business_types) < 2)
+                                <flux:button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    wire:click="addBusinessType"
+                                    class="mt-2">
+                                    + Add Business Type
+                                </flux:button>
+                            @endif
+                            <flux:error name="preferred_business_types" />
                         </div>
 
-                        <!-- Preferred Brands -->
-                        <div>
-                            <flux:label>Preferred Brand Types (Optional)</flux:label>
-                            @foreach($preferred_brands as $index => $brand)
-                                <div class="flex items-center space-x-2 mt-2">
+                        <!-- Location Information -->
+                        <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Location & Contact Information</h3>
+                            
+                            <!-- Address -->
+                            <flux:field class="mb-4">
+                                <flux:label>Street Address (Optional)</flux:label>
+                                <flux:input
+                                    type="text"
+                                    wire:model="address"
+                                    placeholder="123 Main St" />
+                            </flux:field>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <!-- City -->
+                                <flux:field>
+                                    <flux:label>City *</flux:label>
                                     <flux:input
                                         type="text"
-                                        wire:model="preferred_brands.{{ $index }}"
-                                        placeholder="e.g., Local restaurants, fitness brands"
-                                        class="flex-1" />
-                                    @if(count($preferred_brands) > 1)
-                                        <flux:button
-                                            type="button"
-                                            variant="danger"
-                                            size="sm"
-                                            wire:click="removePreferredBrand({{ $index }})">
-                                            Remove
-                                        </flux:button>
-                                    @endif
+                                        wire:model="city"
+                                        placeholder="Your city"
+                                        required />
+                                    <flux:error name="city" />
+                                </flux:field>
+
+                                <!-- State -->
+                                <flux:field>
+                                    <flux:label>State *</flux:label>
+                                    <flux:input
+                                        type="text"
+                                        wire:model="state"
+                                        placeholder="Your state"
+                                        required />
+                                    <flux:error name="state" />
+                                </flux:field>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- County -->
+                                <flux:field>
+                                    <flux:label>County (Optional)</flux:label>
+                                    <flux:input
+                                        type="text"
+                                        wire:model="county"
+                                        placeholder="Your county" />
+                                </flux:field>
+
+                                <!-- Primary Zip Code -->
+                                <flux:field>
+                                    <flux:label>Postal Code *</flux:label>
+                                    <flux:input
+                                        type="text"
+                                        wire:model="primary_zip_code"
+                                        placeholder="12345"
+                                        required />
+                                    <flux:error name="primary_zip_code" />
+                                </flux:field>
+                            </div>
+                            
+                            <!-- Phone Number -->
+                            <flux:field class="mt-4">
+                                <flux:label>Phone Number *</flux:label>
+                                <flux:input
+                                    type="tel"
+                                    wire:model="phone_number"
+                                    placeholder="(555) 123-4567"
+                                    required />
+                                <flux:error name="phone_number" />
+                            </flux:field>
+                        </div>
+
+                        <!-- Social Media Accounts -->
+                        <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Social Media Accounts</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Add your social media accounts to showcase your reach</p>
+                            
+                            @foreach($social_accounts as $platform => $account)
+                                @php $platformEnum = \App\Enums\SocialPlatform::from($platform) @endphp
+                                <div class="flex items-center space-x-4 mb-4 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                    <div class="flex items-center space-x-2 flex-shrink-0">
+                                        <div class="w-8 h-8 rounded-full flex items-center justify-center {{ $platformEnum->getStyleClasses() }}">
+                                            {!! $platformEnum->svg('w-4 h-4') !!}
+                                        </div>
+                                        <span class="font-medium text-gray-900 dark:text-white">{{ $platformEnum->label() }}</span>
+                                    </div>
+                                    
+                                    <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <flux:input
+                                            type="text"
+                                            wire:model="social_accounts.{{ $platform }}.username"
+                                            placeholder="Username (without @)"
+                                            class="flex-1" />
+                                        <flux:input
+                                            type="number"
+                                            wire:model="social_accounts.{{ $platform }}.followers"
+                                            placeholder="Follower count"
+                                            class="flex-1" />
+                                    </div>
                                 </div>
                             @endforeach
-                            <flux:button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                wire:click="addPreferredBrand"
-                                class="mt-2">
-                                + Add Brand Type
-                            </flux:button>
+                        </div>
+
+                        <!-- Compensation & Timeline -->
+                        <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Compensation & Timeline Preferences</h3>
+                            
+                            <!-- Compensation Types -->
+                            <div class="mb-4">
+                                <flux:label>Preferred Compensation Types (Select up to 3)</flux:label>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">What types of compensation do you prefer?</p>
+                                @foreach($compensation_types as $index => $compensationType)
+                                    <div class="flex items-center space-x-2 mt-2">
+                                        <flux:select
+                                            wire:model="compensation_types.{{ $index }}"
+                                            variant="listbox"
+                                            placeholder="Select compensation type"
+                                            class="flex-1">
+                                            @foreach ($compensationTypeOptions as $option)
+                                                <flux:select.option value="{{ $option['value'] }}">{{ $option['label'] }}</flux:select.option>
+                                            @endforeach
+                                        </flux:select>
+                                        @if(count($compensation_types) > 1)
+                                            <flux:button
+                                                type="button"
+                                                variant="danger"
+                                                size="sm"
+                                                wire:click="removeCompensationType({{ $index }})">
+                                                Remove
+                                            </flux:button>
+                                        @endif
+                                    </div>
+                                @endforeach
+                                @if(count($compensation_types) < 3)
+                                    <flux:button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        wire:click="addCompensationType"
+                                        class="mt-2">
+                                        + Add Compensation Type
+                                    </flux:button>
+                                @endif
+                                <flux:error name="compensation_types" />
+                            </div>
+                            
+                            <!-- Typical Lead Time -->
+                            <flux:field>
+                                <flux:label>Typical Lead Time (Days) *</flux:label>
+                                <flux:input
+                                    type="number"
+                                    wire:model="typical_lead_time_days"
+                                    placeholder="How many days do you typically need?"
+                                    min="1"
+                                    max="365"
+                                    required />
+                                <flux:error name="typical_lead_time_days" />
+                            </flux:field>
+                        </div>
+
+                        <!-- Additional Information (Optional) -->
+                        <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Additional Information (Optional)</h3>
+                            
+                            <!-- Media Kit -->
+                            <div class="space-y-4 mb-6">
+                                <flux:checkbox
+                                    wire:model.live="has_media_kit"
+                                    label="I have a media kit" />
+
+                                @if($has_media_kit)
+                                    <flux:field>
+                                        <flux:label>Media Kit URL</flux:label>
+                                        <flux:input
+                                            type="url"
+                                            wire:model="media_kit_url"
+                                            placeholder="https://example.com/media-kit" />
+                                    </flux:field>
+                                @endif
+                            </div>
+
+                            <!-- Collaboration Preferences -->
+                            <div class="mb-6">
+                                <flux:label>Collaboration Preferences</flux:label>
+                                @foreach($collaboration_preferences as $index => $preference)
+                                    <div class="flex items-center space-x-2 mt-2">
+                                        <flux:input
+                                            type="text"
+                                            wire:model="collaboration_preferences.{{ $index }}"
+                                            placeholder="e.g., Long-term partnerships, product trials"
+                                            class="flex-1" />
+                                        @if(count($collaboration_preferences) > 1)
+                                            <flux:button
+                                                type="button"
+                                                variant="danger"
+                                                size="sm"
+                                                wire:click="removeCollaborationPreference({{ $index }})">
+                                                Remove
+                                            </flux:button>
+                                        @endif
+                                    </div>
+                                @endforeach
+                                <flux:button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    wire:click="addCollaborationPreference"
+                                    class="mt-2">
+                                    + Add Preference
+                                </flux:button>
+                            </div>
+
+                            <!-- Preferred Brands -->
+                            <div>
+                                <flux:label>Preferred Brand Types</flux:label>
+                                @foreach($preferred_brands as $index => $brand)
+                                    <div class="flex items-center space-x-2 mt-2">
+                                        <flux:input
+                                            type="text"
+                                            wire:model="preferred_brands.{{ $index }}"
+                                            placeholder="e.g., Local restaurants, fitness brands"
+                                            class="flex-1" />
+                                        @if(count($preferred_brands) > 1)
+                                            <flux:button
+                                                type="button"
+                                                variant="danger"
+                                                size="sm"
+                                                wire:click="removePreferredBrand({{ $index }})">
+                                                Remove
+                                            </flux:button>
+                                        @endif
+                                    </div>
+                                @endforeach
+                                <flux:button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    wire:click="addPreferredBrand"
+                                    class="mt-2">
+                                    + Add Brand Type
+                                </flux:button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -55,6 +55,10 @@ class Business extends Model implements HasMedia
         $this->addMediaCollection('logo')
             ->singleFile()
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+
+        $this->addMediaCollection('banner_image')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
     }
 
     public function registerMediaConversions(?Media $media = null): void
@@ -68,6 +72,11 @@ class Business extends Model implements HasMedia
             ->width(400)
             ->height(400)
             ->nonQueued();
+
+        $this->addMediaConversion('banner_preview')
+            ->width(1200)
+            ->height(400)
+            ->nonQueued();
     }
 
     public function getLogoUrl(): ?string
@@ -78,6 +87,16 @@ class Business extends Model implements HasMedia
     public function getLogoThumbUrl(): ?string
     {
         return $this->getFirstMediaUrl('logo', 'thumb') ?: null;
+    }
+
+    public function getBannerImageUrl(): ?string
+    {
+        return $this->getFirstMediaUrl('banner_image', 'banner_preview') ?: null;
+    }
+
+    public function getBannerImageThumbUrl(): ?string
+    {
+        return $this->getFirstMediaUrl('banner_image', 'thumb') ?: null;
     }
 
     public function users(): BelongsToMany
