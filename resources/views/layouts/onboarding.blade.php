@@ -38,7 +38,7 @@
                 defer
                 data-website-id="68953b233e0aad41246ad8b4"
                 data-domain="collabconnect.app"
-                src="/js/dfscript.js">
+                src="https://datafa.st/js/script.js">
             </script>
         @endif
 </head>
