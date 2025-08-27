@@ -45,7 +45,7 @@
                         <!-- Beta Badge -->
                         <div class="inline-flex items-center px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-800 dark:text-blue-300 text-sm font-semibold mb-8">
                             <span class="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></span>
-                            Now in Beta • Cincinnati & Dayton
+                            Now in Beta • Greater Dayton & Cincinnati Area
                         </div>
 
                         <!-- Main Headline -->
