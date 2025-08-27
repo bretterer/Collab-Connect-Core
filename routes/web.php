@@ -80,6 +80,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Profile routes
         Route::get('/profile', App\Livewire\Profile\EditProfile::class)->name('profile');
+        Route::post('/switch-business/{business}', function (\App\Models\Business $business) {
+            $user = auth()->user();
+            
+            // Verify user has access to this business
+            if (!$user->businesses()->where('businesses.id', $business->id)->exists()) {
+                abort(403);
+            }
+            
+            // Set current business
+            $user->setCurrentBusiness($business);
+            
+            return redirect()->back()->with('success', 'Switched to ' . $business->name);
+        })->name('switch-business');
 
         // Business routes
         Route::prefix('business')->name('business.')->group(function () {

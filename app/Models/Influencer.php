@@ -11,10 +11,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class Influencer extends Model
+class Influencer extends Model implements HasMedia
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
         'user_id',
@@ -93,5 +96,54 @@ class Influencer extends Model
         return collect($this->compensation_types ?? [])
             ->map(fn ($type) => CompensationType::from($type)->label())
             ->toArray();
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('profile_image')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+
+        $this->addMediaCollection('banner_image')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(150)
+            ->height(150)
+            ->sharpen(10);
+
+        $this->addMediaConversion('profile_preview')
+            ->width(400)
+            ->height(400)
+            ->nonQueued();
+
+        $this->addMediaConversion('banner_preview')
+            ->width(1200)
+            ->height(400)
+            ->nonQueued();
+    }
+
+    public function getProfileImageUrl(): ?string
+    {
+        return $this->getFirstMediaUrl('profile_image', 'profile_preview') ?: null;
+    }
+
+    public function getProfileImageThumbUrl(): ?string
+    {
+        return $this->getFirstMediaUrl('profile_image', 'thumb') ?: null;
+    }
+
+    public function getBannerImageUrl(): ?string
+    {
+        return $this->getFirstMediaUrl('banner_image', 'banner_preview') ?: null;
+    }
+
+    public function getBannerImageThumbUrl(): ?string
+    {
+        return $this->getFirstMediaUrl('banner_image', 'thumb') ?: null;
     }
 }

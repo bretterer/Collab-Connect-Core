@@ -28,7 +28,7 @@
     <div class="relative">
         <!-- Profile Avatar - positioned relative to content, not header -->
         <div class="absolute -top-8 left-4 z-10">
-            <div class="w-16 h-16 rounded-full border-4 border-white dark:border-gray-800 relative">
+            <div class="w-16 h-16 rounded-full border-4 border-white dark:border-gray-800 relative bg-white">
                 <img src="{{ $profileImageUrl }}" alt="Profile photo" class="w-full h-full object-cover rounded-full">
                 @if($isVerified)
                     <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white z-10">

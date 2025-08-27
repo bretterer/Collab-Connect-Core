@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
+use App\Enums\Traits\HasFormOptions;
+
 enum BusinessGoal: string
 {
+    use HasFormOptions;
+
     case BRAND_AWARENESS = 'brand_awareness';
     case PRODUCT_PROMOTION = 'product_promotion';
     case GROWTH_SCALING = 'growth_scaling';

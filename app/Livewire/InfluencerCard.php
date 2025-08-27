@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Vite;
 use Livewire\Component;
 
 class InfluencerCard extends Component
@@ -19,14 +20,24 @@ class InfluencerCard extends Component
 
     public string $profileImageUrl;
     public string $coverImageUrl;
-    public int $randomSeed;
 
     public function mount()
     {
-        // Generate random seed for consistent images per component instance
-        $this->randomSeed = rand(1, 799);
-        $this->profileImageUrl = "https://picsum.photos/seed/{$this->randomSeed}/150/150";
-        $this->coverImageUrl = "https://picsum.photos/seed/" . ($this->randomSeed + 1) . "/400/200";
+        // Use uploaded images from media library, with fallbacks
+        $this->profileImageUrl = $this->user->influencer?->getProfileImageUrl() 
+            ?: Vite::asset('resources/images/CollabConnectMark.png');
+            
+        $this->coverImageUrl = $this->user->influencer?->getBannerImageUrl() 
+            ?: 'data:image/svg+xml;base64,' . base64_encode('
+                <svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#0284c7;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grad)"/>
+                </svg>');
     }
 
     public function getRandomRating()
