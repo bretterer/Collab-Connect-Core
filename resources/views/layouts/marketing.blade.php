@@ -24,7 +24,7 @@
                 defer
                 data-website-id="68953b233e0aad41246ad8b4"
                 data-domain="collabconnect.app"
-                src="https://datafa.st/js/script.js">
+                src="/js/dfscript.js">
             </script>
         @endif
 

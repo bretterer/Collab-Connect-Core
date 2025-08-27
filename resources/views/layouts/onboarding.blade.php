@@ -32,6 +32,15 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @fluxAppearance
     @livewireStyles
+
+    @if(!app()->environment('local'))
+            <script
+                defer
+                data-website-id="68953b233e0aad41246ad8b4"
+                data-domain="collabconnect.app"
+                src="/js/dfscript.js">
+            </script>
+        @endif
 </head>
 
 <body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 transition-colors duration-300">

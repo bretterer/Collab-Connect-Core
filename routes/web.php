@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DataFastProxyController;
 use App\Http\Middleware\EnsureNeedsOnboarding;
 use App\Http\Middleware\EnsureOnboardingCompleted;
 use Illuminate\Support\Facades\Broadcast;
@@ -82,15 +83,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/profile', App\Livewire\Profile\EditProfile::class)->name('profile');
         Route::post('/switch-business/{business}', function (\App\Models\Business $business) {
             $user = auth()->user();
-            
+
             // Verify user has access to this business
             if (!$user->businesses()->where('businesses.id', $business->id)->exists()) {
                 abort(403);
             }
-            
+
             // Set current business
             $user->setCurrentBusiness($business);
-            
+
             return redirect()->back()->with('success', 'Switched to ' . $business->name);
         })->name('switch-business');
 
@@ -110,5 +111,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/help', App\Livewire\Contact::class)->name('help');
     });
 });
+
+Route::get('/js/dfscript.js', [DataFastProxyController::class, 'script']);
+Route::post('/api/events', [DataFastProxyController::class, 'events']);
 
 require __DIR__.'/auth.php';
