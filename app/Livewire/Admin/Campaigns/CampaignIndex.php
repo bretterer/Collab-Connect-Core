@@ -63,7 +63,7 @@ class CampaignIndex extends Component
     public function render()
     {
         $campaigns = Campaign::query()
-            ->with(['user.businessProfile', 'applications'])
+            ->with(['business', 'applications'])
             ->when($this->search, function (Builder $query) {
                 $query->where(function (Builder $q) {
                     $q->where('campaign_goal', 'like', '%'.$this->search.'%')

@@ -21,20 +21,12 @@ class ViewCampaignTest extends TestCase
     public function test_influencer_can_view_campaign_details()
     {
         // Create business user and campaign
-        $businessUser = User::factory()->create([
-            'account_type' => AccountType::BUSINESS,
-        ]);
-
-        $businessProfile = BusinessProfile::factory()->create([
-            'user_id' => $businessUser->id,
-            'industry' => Niche::FASHION,
-        ]);
+        $businessUser = User::factory()->business()->withProfile()->create();
 
         $campaign = Campaign::factory()->create([
-            'user_id' => $businessUser->id,
+            'business_id' => $businessUser->currentBusiness->id,
             'status' => CampaignStatus::PUBLISHED,
             'campaign_goal' => 'Promote our new fashion line',
-            'campaign_description' => 'We are looking for influencers to promote our latest fashion collection',
             'campaign_type' => CampaignType::SPONSORED_POSTS,
             'compensation_type' => CompensationType::MONETARY,
             'compensation_amount' => 500,
@@ -44,16 +36,7 @@ class ViewCampaignTest extends TestCase
 
         // Create influencer user
         /** @var User $influencerUser */
-        $influencerUser = User::factory()->create([
-            'account_type' => AccountType::INFLUENCER,
-        ]);
-
-        InfluencerProfile::factory()->create([
-            'user_id' => $influencerUser->id,
-            'primary_niche' => Niche::FASHION,
-            'primary_zip_code' => '12345',
-            'follower_count' => 50000,
-        ]);
+        $influencerUser = User::factory()->influencer()->withProfile()->create();
 
         $this->actingAs($influencerUser);
 
@@ -62,7 +45,6 @@ class ViewCampaignTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('Promote our new fashion line');
-        $response->assertSee('We are looking for influencers to promote our latest fashion collection');
         $response->assertSee('Apply Now');
     }
 
@@ -83,20 +65,16 @@ class ViewCampaignTest extends TestCase
     public function test_back_to_discover_button_works()
     {
         // Create business user and campaign
-        $businessUser = User::factory()->create([
-            'account_type' => AccountType::BUSINESS,
-        ]);
+        $businessUser = User::factory()->business()->withProfile()->create();
 
         $campaign = Campaign::factory()->create([
-            'user_id' => $businessUser->id,
+            'business_id' => $businessUser->currentBusiness->id,
             'status' => CampaignStatus::PUBLISHED,
         ]);
 
         // Create influencer user
         /** @var User $influencerUser */
-        $influencerUser = User::factory()->withProfile()->create([
-            'account_type' => AccountType::INFLUENCER,
-        ]);
+        $influencerUser = User::factory()->influencer()->withProfile()->create();
 
         $this->actingAs($influencerUser);
 

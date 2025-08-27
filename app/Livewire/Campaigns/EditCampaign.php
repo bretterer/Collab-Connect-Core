@@ -47,7 +47,7 @@ class EditCampaign extends BaseComponent
 
     public string $campaignCompletionDate = '';
 
-    public array $additionalRequirements = [];
+    public string $additionalRequirements = '';
 
     // Step 4: Review & Publish
     public string $publishAction = 'publish'; // 'publish' or 'schedule'

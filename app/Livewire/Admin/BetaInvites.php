@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Users;
+namespace App\Livewire\Admin;
 
 use App\Enums\AccountType;
 use App\Models\ReferralCode;
@@ -20,11 +20,6 @@ class BetaInvites extends Component
     public function mount()
     {
         $this->loadInvites();
-    }
-
-    public function render()
-    {
-        return view('livewire.admin.users.beta-invites');
     }
 
     public function loadInvites()

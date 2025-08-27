@@ -30,7 +30,7 @@ class CreateCampaignApplicationNotification implements ShouldQueue
 
         // Create notification for the business owner
         NotificationService::createCampaignApplicationNotification(
-            $campaign->user,
+            $campaign->business->owner->first(),
             $campaign->id,
             $campaign->campaign_goal,
             $applicant->name

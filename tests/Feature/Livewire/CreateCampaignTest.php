@@ -214,7 +214,7 @@ class CreateCampaignTest extends TestCase
 
         // Verify campaign was created and published
         $this->assertDatabaseHas('campaigns', [
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Promote our new coffee blend to local coffee enthusiasts',
             'status' => CampaignStatus::PUBLISHED->value,
         ]);
@@ -235,7 +235,7 @@ class CreateCampaignTest extends TestCase
 
         // Verify campaign was created and scheduled
         $this->assertDatabaseHas('campaigns', [
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Promote our new coffee blend to local coffee enthusiasts',
             'status' => CampaignStatus::SCHEDULED->value,
             'scheduled_date' => $scheduledDate.' 00:00:00',
@@ -254,7 +254,7 @@ class CreateCampaignTest extends TestCase
 
         // Verify draft was saved
         $this->assertDatabaseHas('campaigns', [
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Test campaign goal',
             'status' => CampaignStatus::DRAFT->value,
         ]);
@@ -286,7 +286,7 @@ class CreateCampaignTest extends TestCase
 
         // Verify data was auto-saved
         $this->assertDatabaseHas('campaigns', [
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Test campaign for auto-save',
             'status' => CampaignStatus::DRAFT->value,
         ]);
@@ -298,7 +298,7 @@ class CreateCampaignTest extends TestCase
 
         // Create an existing campaign
         $campaign = Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Original campaign goal',
             'campaign_type' => CampaignType::USER_GENERATED,
             'target_zip_code' => '49503',

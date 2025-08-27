@@ -81,14 +81,14 @@
                     </label>
                     <div class="mt-1 flex items-center space-x-3">
                         <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                            {{ $campaign->user->initials() }}
+                            {{ $campaign->business->owner->first()->initials() }}
                         </div>
                         <div>
                             <div class="text-sm font-medium text-gray-900 dark:text-white">
-                                {{ $campaign->user->businessProfile?->business_name ?? $campaign->user->name }}
+                                {{ $campaign->business->name }}
                             </div>
                             <div class="text-sm text-gray-500 dark:text-gray-400">
-                                {{ $campaign->user->email }}
+                                {{ $campaign->business->owner->first()->email }}
                             </div>
                         </div>
                     </div>

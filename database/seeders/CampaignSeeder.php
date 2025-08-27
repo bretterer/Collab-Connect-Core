@@ -23,14 +23,14 @@ class CampaignSeeder extends Seeder
         // Get the default business user first
         $defaultBusinessUser = User::where('email', env('INIT_BUSINESS_EMAIL'))
             ->where('account_type', AccountType::BUSINESS)
-            ->whereHas('businessProfile')
-            ->with('businessProfile')
+            ->whereHas('currentBusiness')
+            ->with('currentBusiness')
             ->first();
 
         // Get existing business users with profiles
         $businessUsers = User::where('account_type', AccountType::BUSINESS)
-            ->whereHas('businessProfile')
-            ->with('businessProfile')
+            ->whereHas('currentBusiness')
+            ->with('currentBusiness')
             ->get();
 
         if ($businessUsers->isEmpty()) {
@@ -220,8 +220,8 @@ class CampaignSeeder extends Seeder
                     'goal' => 'Seasonal Menu Launch',
                     'type' => CampaignType::SPONSORED_POSTS,
                     'description' => 'Help us introduce our new seasonal menu items through authentic food photography and reviews.',
-                    'compensation_range' => [200, 400],
-                    'influencers_range' => [2, 4],
+                    'compensation_range' => [25, 100],
+                    'influencers_range' => [1, 4],
                     'compensation_type' => CompensationType::FREE_PRODUCT,
                 ],
                 [
@@ -297,7 +297,7 @@ class CampaignSeeder extends Seeder
         ];
 
         foreach ($businessUsers as $businessUser) {
-            $industry = $businessUser->businessProfile->industry?->value ?? 'fashion';
+            $industry = $businessUser->currentBusiness->industry?->value ?? 'fashion';
 
             // Get templates for this industry, or use fashion as fallback
             $templates = $campaignTemplates[$industry] ?? $campaignTemplates['fashion'];
@@ -321,7 +321,7 @@ class CampaignSeeder extends Seeder
                 [$applicationDeadline, $campaignCompletion, $publishedAt, $scheduledDate, $currentStep] = $this->getDatesForStatus($campaignStatus);
 
                 // Random target zip code (using business zip or random)
-                $targetZip = $businessUser->businessProfile->primary_zip_code ?? '12345';
+                $targetZip = $businessUser->currentBusiness->primary_zip_code ?? '12345';
 
                 // Generate comprehensive campaign data
                 $influencerCount = rand($template['influencers_range'][0], $template['influencers_range'][1]);
@@ -330,7 +330,7 @@ class CampaignSeeder extends Seeder
                 $successMetrics = $this->getRandomSuccessMetrics();
 
                 Campaign::factory()->withFullDetails()->create([
-                    'user_id' => $businessUser->id,
+                    'business_id' => $businessUser->currentBusiness->id,
                     'status' => $campaignStatus,
                     'campaign_goal' => $template['goal'],
                     'campaign_type' => $template['type'],
@@ -348,9 +348,9 @@ class CampaignSeeder extends Seeder
                     'compensation_amount' => $compensationAmount,
                     'compensation_description' => $this->getCompensationDescription($compensationType, $compensationAmount),
                     'compensation_details' => $this->getCompensationDetails($compensationType, $compensationAmount),
-                    'brand_overview' => $this->getBrandOverview($businessUser->businessProfile),
+                    'brand_overview' => $this->getBrandOverview($businessUser->currentBusiness),
                     'current_advertising_campaign' => $this->getCurrentAdvertisingCampaign(),
-                    'brand_story' => $this->getBrandStory($businessUser->businessProfile),
+                    'brand_story' => $this->getBrandStory($businessUser->currentBusiness),
                     'campaign_objective' => $this->getCampaignObjective($template['type']),
                     'key_insights' => $this->getKeyInsights(),
                     'fan_motivator' => $this->getFanMotivator(),
@@ -399,7 +399,7 @@ class CampaignSeeder extends Seeder
                     [$applicationDeadline, $campaignCompletion, $publishedAt, $scheduledDate, $currentStep] = $this->getDatesForStatus($campaignStatus);
 
                     // Random target zip code (using business zip or random)
-                    $targetZip = $defaultBusinessUser->businessProfile->primary_zip_code ?? '12345';
+                    $targetZip = $defaultBusinessUser->currentBusiness->primary_zip_code ?? '12345';
 
                     // Generate comprehensive campaign data
                     $influencerCount = rand($template['influencers_range'][0], $template['influencers_range'][1]);
@@ -408,7 +408,7 @@ class CampaignSeeder extends Seeder
                     $successMetrics = $this->getRandomSuccessMetrics();
 
                     Campaign::factory()->withFullDetails()->create([
-                        'user_id' => $defaultBusinessUser->id,
+                        'business_id' => $defaultBusinessUser->currentBusiness->id,
                         'status' => $campaignStatus,
                         'campaign_goal' => $template['goal'],
                         'campaign_type' => $template['type'],
@@ -625,10 +625,10 @@ class CampaignSeeder extends Seeder
         };
     }
 
-    private function getBrandOverview($businessProfile): string
+    private function getBrandOverview($currentBusiness): string
     {
-        $businessName = $businessProfile->business_name ?? 'Our Company';
-        $industry = $businessProfile->industry?->label() ?? 'Business';
+        $businessName = $currentBusiness->business_name ?? 'Our Company';
+        $industry = $currentBusiness->industry?->label() ?? 'Business';
 
         return "At {$businessName}, we're a leading {$industry} company dedicated to delivering exceptional products and experiences to our customers. We've built a strong reputation for quality, innovation, and customer satisfaction in our industry.";
     }
@@ -646,9 +646,9 @@ class CampaignSeeder extends Seeder
         return $campaigns[array_rand($campaigns)];
     }
 
-    private function getBrandStory($businessProfile): string
+    private function getBrandStory($currentBusiness): string
     {
-        $businessName = $businessProfile->business_name ?? 'Our Company';
+        $businessName = $currentBusiness->business_name ?? 'Our Company';
 
         return "Founded with a passion for excellence, {$businessName} started as a vision to create products that make a difference in people's lives. Our journey has been driven by innovation, quality, and a commitment to our community. Today, we continue to grow while staying true to our core values and mission.";
     }
@@ -802,14 +802,9 @@ class CampaignSeeder extends Seeder
         ];
     }
 
-    private function getAdditionalRequirements(): array
+    private function getAdditionalRequirements(): string
     {
-        return [
-            'content_rights' => 'usage_rights_granted',
-            'exclusivity_period' => '30_days_same_category',
-            'reporting_required' => 'performance_metrics_within_48_hours',
-            'compliance' => 'ftc_guidelines_mandatory',
-        ];
+        return 'Content rights granted, exclusivity period of 30 days in the same category, performance metrics reporting within 48 hours, and compliance with FTC guidelines are mandatory.';
     }
 
     private function getGiftingCompensationDescription(string $industry, int $amount): string

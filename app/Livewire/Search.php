@@ -23,9 +23,15 @@ class Search extends BaseComponent
 
     public $location = '';
 
-    public $sortBy = 'name';
+    public $sortBy = 'relevance';
 
     public $searchRadius = 50; // Default search radius in miles
+
+    public $contentQuality = '';
+
+    public $responseTime = '';
+
+
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -34,8 +40,11 @@ class Search extends BaseComponent
         'minFollowers' => ['except' => ''],
         'maxFollowers' => ['except' => ''],
         'location' => ['except' => ''],
-        'sortBy' => ['except' => 'name'],
+        'sortBy' => ['except' => 'relevance'],
         'searchRadius' => ['except' => 50],
+        'viewMode' => ['except' => 'grid'],
+        'contentQuality' => ['except' => ''],
+        'responseTime' => ['except' => ''],
     ];
 
     public function updatingSearch()
@@ -78,6 +87,11 @@ class Search extends BaseComponent
         $this->resetPage();
     }
 
+    public function mount()
+    {
+        // Search component initialization
+    }
+
     public function clearFilters()
     {
         $this->search = '';
@@ -86,10 +100,13 @@ class Search extends BaseComponent
         $this->minFollowers = '';
         $this->maxFollowers = '';
         $this->location = '';
-        $this->sortBy = 'name';
+        $this->sortBy = 'relevance';
         $this->searchRadius = 50;
+        $this->contentQuality = '';
+        $this->responseTime = '';
         $this->resetPage();
     }
+
 
     public function render()
     {
@@ -104,10 +121,12 @@ class Search extends BaseComponent
             'location' => $this->location,
             'sortBy' => $this->sortBy,
             'searchRadius' => $this->searchRadius,
+            'contentQuality' => $this->contentQuality,
+            'responseTime' => $this->responseTime,
         ];
 
         // Auto-set distance sorting for proximity searches
-        if ($this->location && preg_match('/^\d{5}$/', $this->location) && $this->sortBy === 'name') {
+        if ($this->location && preg_match('/^\d{5}$/', $this->location) && $this->sortBy === 'relevance') {
             $this->sortBy = 'distance';
             $criteria['sortBy'] = 'distance';
         }
@@ -119,4 +138,6 @@ class Search extends BaseComponent
             'results' => $results,
         ], $metadata));
     }
+
+
 }

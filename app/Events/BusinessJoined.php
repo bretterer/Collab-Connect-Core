@@ -2,7 +2,7 @@
 
 namespace App\Events;
 
-use App\Models\BusinessProfile;
+use App\Models\Business;
 use App\Models\User;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -18,7 +18,7 @@ class BusinessJoined
      */
     public function __construct(
         public User $user,
-        public BusinessProfile $businessProfile
+        public Business $business
     ) {}
 
     /**

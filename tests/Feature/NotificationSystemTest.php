@@ -32,7 +32,7 @@ class NotificationSystemTest extends TestCase
         $this->influencerUser = User::factory()->influencer()->withProfile()->create();
 
         $this->campaign = Campaign::factory()->published()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Test campaign for notifications',
         ]);
     }

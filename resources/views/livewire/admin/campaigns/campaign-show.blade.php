@@ -18,7 +18,7 @@
                 </span>
             </div>
             <p class="text-gray-600 dark:text-gray-400 mt-2">
-                Created {{ $campaign->created_at->format('F j, Y') }} by {{ $campaign->user->businessProfile?->business_name ?? $campaign->user->name }}
+                Created {{ $campaign->created_at->format('F j, Y') }} by {{ $campaign->business->name }}
             </p>
         </div>
         <div class="flex items-center space-x-3">
@@ -125,24 +125,24 @@
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Business Owner</h3>
                     <div class="flex items-center space-x-4">
                         <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full flex items-center justify-center text-white text-lg font-medium">
-                            {{ $campaign->user->initials() }}
+                            {{ $campaign->business->owner->first()->initials() }}
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center space-x-2">
                                 <h4 class="text-lg font-medium text-gray-900 dark:text-white">
-                                    {{ $campaign->user->businessProfile?->business_name ?? $campaign->user->name }}
+                                    {{ $campaign->business->name }}
                                 </h4>
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
-                                    {{ $campaign->user->account_type->label() }}
+                                    {{ $campaign->business->owner->first()->account_type->label() }}
                                 </span>
                             </div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $campaign->user->email }}</p>
-                            @if($campaign->user->businessProfile)
-                                <p class="text-sm text-gray-600 dark:text-gray-300">{{ $campaign->user->businessProfile->industry ?? 'Industry not specified' }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $campaign->business->email }}</p>
+                            @if($campaign->business->industry)
+                                <p class="text-sm text-gray-600 dark:text-gray-300">{{ $campaign->business->industry ?? 'Industry not specified' }}</p>
                             @endif
                         </div>
                         <div class="flex items-center space-x-2">
-                            <a href="{{ route('admin.users.show', $campaign->user) }}" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium">
+                            <a href="{{ route('admin.users.show', $campaign->business->owner->first()->id) }}" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium">
                                 View Profile
                             </a>
                         </div>
@@ -195,7 +195,7 @@
                                 <flux:button variant="ghost" class="w-full">View Applications</flux:button>
                             </a>
                         @endif
-                        <a href="{{ route('admin.users.show', $campaign->user) }}" class="w-full">
+                        <a href="{{ route('admin.users.show', $campaign->business->owner->first()->id) }}" class="w-full">
                             <flux:button variant="ghost" class="w-full">View Business Owner</flux:button>
                         </a>
                     </div>

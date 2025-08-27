@@ -15,7 +15,7 @@ class Campaign extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
+        'business_id',
         'status',
         'campaign_goal',
         'campaign_type',
@@ -76,9 +76,9 @@ class Campaign extends Model
         'additional_requirements' => 'array',
     ];
 
-    public function user(): BelongsTo
+    public function business(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Business::class);
     }
 
     public function applications(): HasMany
@@ -152,7 +152,7 @@ class Campaign extends Model
     public function getCompensationDisplayAttribute(): string
     {
         // If we have compensation relationship data, use that
-        if ($this->compensation && method_exists($this->compensation, 'compensation_display')) {
+        if ($this->compensation) {
             return $this->compensation->compensation_display;
         }
 

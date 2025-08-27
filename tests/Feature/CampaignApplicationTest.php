@@ -9,6 +9,7 @@ use App\Models\CampaignApplication;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CampaignApplicationTest extends TestCase
@@ -29,11 +30,12 @@ class CampaignApplicationTest extends TestCase
         $this->influencerUser = User::factory()->influencer()->withProfile()->create();
 
         $this->campaign = Campaign::factory()->published()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
     }
 
-    public function test_influencer_can_apply_to_campaign()
+    #[Test]
+    public function influencer_can_apply_to_campaign()
     {
         $this->actingAs($this->influencerUser);
 
@@ -53,7 +55,8 @@ class CampaignApplicationTest extends TestCase
         ]);
     }
 
-    public function test_influencer_cannot_apply_twice_to_same_campaign()
+    #[Test]
+    public function influencer_cannot_apply_twice_to_same_campaign()
     {
         // Create an existing application
         CampaignApplication::factory()->create([
@@ -84,7 +87,8 @@ class CampaignApplicationTest extends TestCase
         ])->get());
     }
 
-    public function test_application_message_validation()
+    #[Test]
+    public function application_message_validation()
     {
         $this->actingAs($this->influencerUser);
 
@@ -108,7 +112,8 @@ class CampaignApplicationTest extends TestCase
             ->assertHasNoErrors();
     }
 
-    public function test_application_filtering_by_status()
+    #[Test]
+    public function application_filtering_by_status()
     {
         // Create applications with different statuses
         CampaignApplication::factory()->pending()->create(['campaign_id' => $this->campaign->id]);
@@ -117,36 +122,37 @@ class CampaignApplicationTest extends TestCase
 
         $this->actingAs($this->businessUser);
 
-        // Test filtering by pending
-        $component = Livewire::test('campaigns.campaign-applications', ['campaign' => $this->campaign])
-            ->set('statusFilter', 'pending');
+        $component = Livewire::test('campaigns.campaign-applications', ['campaign' => $this->campaign]);
 
-        $applications = $component->viewData('applications');
+        // Test filtering by pending
+        $component->set('statusFilter', 'pending');
+        $applications = $component->instance()->getApplications();
         $this->assertCount(1, $applications);
         $this->assertEquals(CampaignApplicationStatus::PENDING, $applications->first()->status);
 
         // Test filtering by accepted
         $component->set('statusFilter', 'accepted');
-        $applications = $component->viewData('applications');
+        $applications = $component->instance()->getApplications();
         $this->assertCount(1, $applications);
         $this->assertEquals(CampaignApplicationStatus::ACCEPTED, $applications->first()->status);
 
         // Test filtering by rejected
         $component->set('statusFilter', 'rejected');
-        $applications = $component->viewData('applications');
+        $applications = $component->instance()->getApplications();
         $this->assertCount(1, $applications);
         $this->assertEquals(CampaignApplicationStatus::REJECTED, $applications->first()->status);
 
         // Test showing all applications
         $component->set('statusFilter', 'all');
-        $applications = $component->viewData('applications');
+        $applications = $component->instance()->getApplications();
         $this->assertCount(3, $applications);
     }
 
-    public function test_cannot_apply_to_draft_campaign()
+    #[Test]
+    public function cannot_apply_to_draft_campaign()
     {
         $draftCampaign = Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::DRAFT,
         ]);
 
@@ -162,10 +168,11 @@ class CampaignApplicationTest extends TestCase
         $this->assertEquals(CampaignStatus::DRAFT, $application->campaign->status);
     }
 
-    public function test_cannot_apply_to_archived_campaign()
+    #[Test]
+    public function cannot_apply_to_archived_campaign()
     {
         $archivedCampaign = Campaign::factory()->archived()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
 
         $this->actingAs($this->influencerUser);
@@ -179,7 +186,8 @@ class CampaignApplicationTest extends TestCase
         $this->assertEquals(CampaignStatus::ARCHIVED, $application->campaign->status);
     }
 
-    public function test_application_count_methods()
+    #[Test]
+    public function application_count_methods()
     {
         CampaignApplication::factory()->pending()->count(2)->create(['campaign_id' => $this->campaign->id]);
         CampaignApplication::factory()->accepted()->create(['campaign_id' => $this->campaign->id]);

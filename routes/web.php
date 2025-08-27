@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureNeedsOnboarding;
 use App\Http\Middleware\EnsureOnboardingCompleted;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
@@ -22,7 +23,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{user}/edit', App\Livewire\Admin\Users\UserEdit::class)->name('edit');
         });
 
-        Route::get('/beta-invites', App\Livewire\Admin\Users\BetaInvites::class)->name('beta-invites');
+        Route::get('/beta-invites', App\Livewire\Admin\BetaInvites::class)->name('beta-invites');
 
         // Campaign management
         Route::prefix('campaigns')->name('campaigns.')->group(function () {
@@ -36,6 +37,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Analytics & Reports
         Route::get('/analytics', App\Livewire\Admin\Analytics::class)->name('analytics');
+
+        // Subscription & Payment Management
+        Route::get('/pricing', App\Livewire\Admin\Pricing::class)->name('pricing');
+
+    });
+
+    Route::middleware(['auth', EnsureNeedsOnboarding::class])->group(function () {
+        Route::get('/onboarding/business', App\Livewire\Onboarding\BusinessOnboarding::class)->name('onboarding.business');
+        Route::get('/onboarding/influencer', App\Livewire\Onboarding\InfluencerOnboarding::class)->name('onboarding.influencer');
     });
 
     // Main dashboard (protected by onboarding middleware)
@@ -70,6 +80,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Profile routes
         Route::get('/profile', App\Livewire\Profile\EditProfile::class)->name('profile');
+
+        // Business routes
+        Route::prefix('business')->name('business.')->group(function () {
+            Route::get('/{user}/profile', App\Livewire\Business\BusinessProfile::class)->name('profile');
+            Route::get('/{user}/campaigns', App\Livewire\Business\BusinessCampaigns::class)->name('campaigns');
+        });
 
         // Analytics route (business users only)
         Route::get('/analytics', App\Livewire\Analytics::class)->name('analytics');

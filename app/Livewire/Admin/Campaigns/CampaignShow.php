@@ -14,8 +14,6 @@ class CampaignShow extends Component
     public function mount(Campaign $campaign)
     {
         $this->campaign = $campaign->load([
-            'user.businessProfile',
-            'applications.user.influencerProfile',
             'compensation',
             'requirements',
             'brief',

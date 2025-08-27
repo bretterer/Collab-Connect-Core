@@ -71,7 +71,7 @@ class Dashboard extends Component
      */
     public function getRecentUsers()
     {
-        return User::with(['businessProfile', 'influencerProfile'])
+        return User::query()
             ->whereNot('account_type', AccountType::ADMIN)
             ->orderBy('created_at', 'desc')
             ->limit(5)
@@ -83,7 +83,8 @@ class Dashboard extends Component
      */
     public function getRecentCampaigns()
     {
-        return Campaign::with(['user.businessProfile'])
+        return Campaign::query()
+            ->with('business')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
@@ -94,7 +95,7 @@ class Dashboard extends Component
      */
     public function getPendingApplications()
     {
-        return CampaignApplication::with(['user.influencerProfile', 'campaign.user.businessProfile'])
+        return CampaignApplication::query()
             ->where('status', \App\Enums\CampaignApplicationStatus::PENDING)
             ->orderBy('submitted_at', 'desc')
             ->limit(5)

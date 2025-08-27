@@ -165,7 +165,7 @@ class ProfileService
     public static function hasCompletedOnboarding(User $user): bool
     {
         return match ($user->account_type) {
-            \App\Enums\AccountType::BUSINESS => $user->businessProfile?->onboarding_completed ?? false,
+            \App\Enums\AccountType::BUSINESS => $user->currentBusiness->onboarding_complete ?? false,
             \App\Enums\AccountType::INFLUENCER => $user->influencerProfile?->onboarding_completed ?? false,
             default => false,
         };

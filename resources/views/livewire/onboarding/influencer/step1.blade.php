@@ -1,40 +1,24 @@
-<!-- Step 1: Profile Information -->
-<div>
-    <h2 class="mb-6 text-xl font-semibold text-gray-900 dark:text-white">Profile Information</h2>
-
-    <div class="space-y-4">
-        <!-- Creator Name -->
-        <flux:field>
-            <flux:label>Full Name or Preferred Creator Name</flux:label>
-            <flux:input type="text"
-                    wire:model="creatorName"
-                    placeholder="Enter your name or creator name"
-                    required />
-            <flux:error name="creatorName" />
-        </flux:field>
-
-        <!-- Primary Niche -->
-        <flux:field>
-            <flux:label>Primary Content Niche/Interest</flux:label>
-            <flux:select wire:model="primaryNiche"
-                         variant="listbox"
-                         placeholder="Select your primary niche"
-                         required>
-                @foreach ($nicheOptions as $niche)
-                    <flux:select.option value="{{ $niche->value }}">{{ $niche->label() }}</flux:select.option>
-                @endforeach
-            </flux:select>
-            <flux:error name="primaryNiche" />
-        </flux:field>
-
-        <!-- Primary Zip Code -->
-        <flux:field>
-            <flux:label>Primary Zip Code</flux:label>
-            <flux:input type="text"
-                        wire:model="primaryZipCode"
-                        placeholder="45066"
-                        required />
-            <flux:error name="primaryZipCode" />
-        </flux:field>
+<!-- Step 1: Basic Information -->
+<div class="space-y-6">
+    <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+            <span class="text-white font-bold text-sm">1</span>
+        </div>
+        <flux:heading size="xl" class="text-gray-800 dark:text-gray-200">
+            Basic Information
+        </flux:heading>
     </div>
+
+    <flux:field>
+        <flux:label>Short Bio</flux:label>
+        <flux:textarea
+            wire:model="bio"
+            placeholder="Tell us about yourself, your content style, and what makes you unique as an influencer. Keep it engaging and authentic!"
+            rows="4"
+        />
+        <flux:error name="bio" />
+        <flux:description>
+            This bio will be shown to businesses when they view your profile. Make it compelling!
+        </flux:description>
+    </flux:field>
 </div>

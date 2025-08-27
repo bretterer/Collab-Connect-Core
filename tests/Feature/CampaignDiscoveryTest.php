@@ -6,7 +6,6 @@ use App\Enums\AccountType;
 use App\Enums\CampaignStatus;
 use App\Enums\CampaignType;
 use App\Enums\CompensationType;
-use App\Enums\Niche;
 use App\Models\Campaign;
 use App\Models\PostalCode;
 use App\Models\User;
@@ -41,7 +40,7 @@ class CampaignDiscoveryTest extends TestCase
         $this->influencerUser = User::factory()->influencer()->withProfile()->create();
 
         $this->campaign = Campaign::factory()->published()->withFullDetails()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'target_zip_code' => '49503',
             'campaign_goal' => 'Promote our new coffee blend to local coffee enthusiasts',
             'campaign_type' => CampaignType::USER_GENERATED,
@@ -74,17 +73,17 @@ class CampaignDiscoveryTest extends TestCase
 
         // Create multiple campaigns with different statuses
         $publishedCampaign1 = Campaign::factory()->published()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'First published campaign',
         ]);
 
         $publishedCampaign2 = Campaign::factory()->published()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Second published campaign',
         ]);
 
         $draftCampaign = Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::DRAFT,
             'campaign_goal' => 'Draft campaign',
         ]);
@@ -101,12 +100,12 @@ class CampaignDiscoveryTest extends TestCase
 
         // Create campaigns with different compensation types
         $monetaryCampaign = Campaign::factory()->published()->withFullDetails()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Paid collaboration',
         ]);
 
         $productCampaign = Campaign::factory()->published()->withFullDetails()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Product collaboration',
         ]);
 
@@ -133,13 +132,13 @@ class CampaignDiscoveryTest extends TestCase
         $this->actingAs($this->influencerUser);
 
         $ugcCampaign = Campaign::factory()->published()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_type' => CampaignType::USER_GENERATED,
             'campaign_goal' => 'User generated content campaign',
         ]);
 
         $reviewCampaign = Campaign::factory()->published()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_type' => CampaignType::PRODUCT_REVIEWS,
             'campaign_goal' => 'Product review campaign',
         ]);
@@ -190,26 +189,26 @@ class CampaignDiscoveryTest extends TestCase
 
         // Published campaign - should be visible
         $publishedCampaign = Campaign::factory()->published()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Published campaign',
         ]);
 
         // Draft campaign - should not be visible
         $draftCampaign = Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::DRAFT,
             'campaign_goal' => 'Draft campaign',
         ]);
 
         // Archived campaign - should not be visible
         $archivedCampaign = Campaign::factory()->archived()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Archived campaign',
         ]);
 
         // Scheduled campaign - should be visible
         $scheduledCampaign = Campaign::factory()->scheduled()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Scheduled campaign',
         ]);
 
@@ -236,15 +235,17 @@ class CampaignDiscoveryTest extends TestCase
             'name' => 'Tech Influencer',
         ]);
 
-        // Update profiles to have specific niches
-        $fashionInfluencer->influencerProfile->update([
-            'primary_niche' => Niche::FASHION->value,
-            'primary_zip_code' => '49503',
+        // Update profiles to have specific locations
+        $fashionInfluencer->influencer->update([
+            'postal_code' => '49503',
+            'city' => 'Grand Rapids',
+            'state' => 'MI',
         ]);
 
-        $techInfluencer->influencerProfile->update([
-            'primary_niche' => Niche::TECHNOLOGY->value,
-            'primary_zip_code' => '90210',
+        $techInfluencer->influencer->update([
+            'postal_code' => '90210',
+            'city' => 'Beverly Hills',
+            'state' => 'CA',
         ]);
 
         $this->actingAs($this->businessUser);
@@ -288,7 +289,7 @@ class CampaignDiscoveryTest extends TestCase
 
         // Create many campaigns to test pagination
         Campaign::factory()->published()->count(15)->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
 
         $component = Livewire::test('campaigns.influencer-campaigns');
@@ -303,7 +304,7 @@ class CampaignDiscoveryTest extends TestCase
         $this->actingAs($this->influencerUser);
 
         $detailedCampaign = Campaign::factory()->published()->withFullDetails()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Detailed campaign with all info',
             'target_zip_code' => '49503',
             'influencer_count' => 3,
@@ -322,7 +323,7 @@ class CampaignDiscoveryTest extends TestCase
         $hybridUser = User::factory()->business()->withProfile()->create();
 
         $campaign = Campaign::factory()->published()->create([
-            'user_id' => $hybridUser->id,
+            'business_id' => $hybridUser->currentBusiness->id,
         ]);
 
         $this->actingAs($hybridUser);
@@ -335,13 +336,13 @@ class CampaignDiscoveryTest extends TestCase
     public function test_campaign_application_deadline_enforcement()
     {
         $expiredCampaign = Campaign::factory()->published()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'application_deadline' => now()->subDays(1), // Past deadline
             'campaign_goal' => 'Expired campaign',
         ]);
 
         $activeCampaign = Campaign::factory()->published()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'application_deadline' => now()->addDays(7), // Future deadline
             'campaign_goal' => 'Active campaign',
         ]);
@@ -360,7 +361,7 @@ class CampaignDiscoveryTest extends TestCase
         $this->actingAs($this->influencerUser);
 
         $campaign = Campaign::factory()->published()->withFullDetails()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
 
         // Update compensation to specific values
@@ -383,7 +384,7 @@ class CampaignDiscoveryTest extends TestCase
         $this->actingAs($this->influencerUser);
 
         $campaign = Campaign::factory()->published()->withFullDetails()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
 
         // Verify campaign has requirements

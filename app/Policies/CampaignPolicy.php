@@ -30,7 +30,7 @@ class CampaignPolicy
             return true;
         }
 
-        if ($campaign->status !== CampaignStatus::PUBLISHED && $campaign->user_id !== $user->id) {
+        if ($campaign->status !== CampaignStatus::PUBLISHED && $campaign->business->owner->first()->id !== $user->id) {
             abort(404);
         }
 
@@ -39,7 +39,7 @@ class CampaignPolicy
         // 2. User is the owner (can view unpublished campaigns)
         // 3. User is an admin (can view all campaigns)
         return $campaign->status === CampaignStatus::PUBLISHED ||
-               $campaign->user_id === $user->id;
+               $campaign->business->owner->first()->id === $user->id;
     }
 
     /**
@@ -62,7 +62,7 @@ class CampaignPolicy
         }
 
         // Only the campaign owner can update
-        return $campaign->user_id === $user->id;
+        return $campaign->business->owner->first()->id === $user->id;
     }
 
     /**
@@ -71,7 +71,7 @@ class CampaignPolicy
     public function delete(User $user, Campaign $campaign): bool
     {
         // Only the campaign owner can delete
-        return $campaign->user_id === $user->id;
+        return $campaign->business->owner->first()->id === $user->id;
     }
 
     /**
@@ -80,7 +80,7 @@ class CampaignPolicy
     public function restore(User $user, Campaign $campaign): bool
     {
         // Only the campaign owner can restore
-        return $campaign->user_id === $user->id;
+        return $campaign->business->owner->first()->id === $user->id;
     }
 
     /**
@@ -89,7 +89,7 @@ class CampaignPolicy
     public function forceDelete(User $user, Campaign $campaign): bool
     {
         // Only the campaign owner can permanently delete
-        return $campaign->user_id === $user->id;
+        return $campaign->business->owner->first()->id === $user->id;
     }
 
     /**
@@ -98,7 +98,7 @@ class CampaignPolicy
     public function publish(User $user, Campaign $campaign): bool
     {
         // Only the campaign owner can publish
-        return $campaign->user_id === $user->id;
+        return $campaign->business->owner->first()->id === $user->id;
     }
 
     /**
@@ -107,7 +107,7 @@ class CampaignPolicy
     public function unpublish(User $user, Campaign $campaign): bool
     {
         // Only the campaign owner can unpublish
-        return $campaign->user_id === $user->id;
+        return $campaign->business->owner->first()->id === $user->id;
     }
 
     /**
@@ -116,7 +116,7 @@ class CampaignPolicy
     public function archive(User $user, Campaign $campaign): bool
     {
         // Only the campaign owner can archive
-        return $campaign->user_id === $user->id;
+        return $campaign->business->owner->first()->id === $user->id;
     }
 
     /**

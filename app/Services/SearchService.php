@@ -24,7 +24,10 @@ class SearchService
         $query = self::applyNicheFilter($query, $criteria['selectedNiches'] ?? [], $targetAccountType);
         $query = self::applyPlatformFilter($query, $criteria['selectedPlatforms'] ?? [], $targetAccountType);
         $query = self::applyFollowerFilter($query, $criteria, $targetAccountType);
-        $query = self::applySorting($query, $criteria['sortBy'] ?? 'name', $targetAccountType);
+        $query = self::applyEngagementFilter($query, $criteria, $targetAccountType);
+        $query = self::applyPriceFilter($query, $criteria, $targetAccountType);
+        $query = self::applyQualityFilter($query, $criteria, $targetAccountType);
+        $query = self::applySorting($query, $criteria['sortBy'] ?? 'relevance', $targetAccountType);
 
         // Load relationships
         $query = self::loadRelationships($query, $targetAccountType);
@@ -54,7 +57,7 @@ class SearchService
      */
     private static function buildBaseQuery(User $currentUser, AccountType $targetAccountType): Builder
     {
-        return User::where('account_type', $targetAccountType)
+        return User::query()->where('account_type', $targetAccountType)
             ->where('id', '!=', $currentUser->id);
     }
 
@@ -88,17 +91,19 @@ class SearchService
 
         if (! empty($nearbyZipCodes)) {
             // Use proximity search
-            $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencerProfile' : 'businessProfile';
+            $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencer' : 'currentBusiness';
+            $zipCodeColumn = 'postal_code';
 
-            return $query->whereHas($relationshipMethod, function ($q) use ($nearbyZipCodes) {
-                $q->whereIn('primary_zip_code', $nearbyZipCodes);
+            return $query->whereHas($relationshipMethod, function ($q) use ($nearbyZipCodes, $zipCodeColumn) {
+                $q->whereIn($zipCodeColumn, $nearbyZipCodes);
             });
         } else {
             // Fallback to text search
-            $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencerProfile' : 'businessProfile';
+            $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencer' : 'currentBusiness';
+            $zipCodeColumn = 'postal_code';
 
-            return $query->whereHas($relationshipMethod, function ($q) use ($location) {
-                $q->where('primary_zip_code', 'like', '%'.$location.'%');
+            return $query->whereHas($relationshipMethod, function ($q) use ($location, $zipCodeColumn) {
+                $q->where($zipCodeColumn, 'like', '%'.$location.'%');
             });
         }
     }
@@ -132,11 +137,17 @@ class SearchService
             return $query;
         }
 
-        $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencerProfile' : 'businessProfile';
-        $nicheColumn = $targetAccountType === AccountType::INFLUENCER ? 'primary_niche' : 'industry';
+        $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencer' : 'currentBusiness';
+        $nicheColumn = $targetAccountType === AccountType::INFLUENCER ? 'content_types' : 'industry';
 
         return $query->whereHas($relationshipMethod, function ($q) use ($selectedNiches, $nicheColumn) {
-            $q->whereIn($nicheColumn, $selectedNiches);
+            // Wrap the multiple `whereJsonContains` conditions in a closure
+            $q->where(function ($query) use ($selectedNiches, $nicheColumn) {
+                foreach ($selectedNiches as $niche) {
+                    // Use `orWhereJsonContains` for each niche to create an OR condition
+                    $query->orWhereJsonContains($nicheColumn, $niche);
+                }
+            });
         });
     }
 
@@ -183,6 +194,72 @@ class SearchService
     /**
      * Apply sorting
      */
+    /**
+     * Apply engagement rate filter (influencers only)
+     */
+    private static function applyEngagementFilter(Builder $query, array $criteria, AccountType $targetAccountType): Builder
+    {
+        if ($targetAccountType !== AccountType::INFLUENCER) {
+            return $query;
+        }
+
+        $minEngagement = $criteria['minEngagementRate'] ?? null;
+        $maxEngagement = $criteria['maxEngagementRate'] ?? null;
+
+        if (! $minEngagement && ! $maxEngagement) {
+            return $query;
+        }
+
+        return $query->whereHas('socialMediaAccounts', function ($q) use ($minEngagement, $maxEngagement) {
+            if ($minEngagement) {
+                $q->where('engagement_rate', '>=', $minEngagement);
+            }
+            if ($maxEngagement) {
+                $q->where('engagement_rate', '<=', $maxEngagement);
+            }
+        });
+    }
+
+    /**
+     * Apply price range filter (influencers only)
+     */
+    private static function applyPriceFilter(Builder $query, array $criteria, AccountType $targetAccountType): Builder
+    {
+        if ($targetAccountType !== AccountType::INFLUENCER) {
+            return $query;
+        }
+
+        $minPrice = $criteria['minPriceRange'] ?? null;
+        $maxPrice = $criteria['maxPriceRange'] ?? null;
+
+        if (! $minPrice && ! $maxPrice) {
+            return $query;
+        }
+
+        return $query->whereHas('influencer', function ($q) use ($minPrice, $maxPrice) {
+            if ($minPrice) {
+                $q->where('min_rate', '>=', $minPrice);
+            }
+            if ($maxPrice) {
+                $q->where('max_rate', '<=', $maxPrice);
+            }
+        });
+    }
+
+    /**
+     * Apply content quality filter (influencers only)
+     */
+    private static function applyQualityFilter(Builder $query, array $criteria, AccountType $targetAccountType): Builder
+    {
+        if ($targetAccountType !== AccountType::INFLUENCER || empty($criteria['contentQuality'])) {
+            return $query;
+        }
+
+        return $query->whereHas('influencer', function ($q) use ($criteria) {
+            $q->where('content_quality_score', '>=', $criteria['contentQuality']);
+        });
+    }
+
     private static function applySorting(Builder $query, string $sortBy, AccountType $targetAccountType): Builder
     {
         return match ($sortBy) {
@@ -194,8 +271,19 @@ class SearchService
                     ->orderBy('social_media_accounts.follower_count', 'desc')
                     ->select('users.*')
                 : $query->orderBy('id'),
+            'engagement' => $targetAccountType === AccountType::INFLUENCER
+                ? $query->leftJoin('social_media_accounts', 'users.id', '=', 'social_media_accounts.user_id')
+                    ->orderBy('social_media_accounts.engagement_rate', 'desc')
+                    ->select('users.*')
+                : $query->orderBy('id'),
+            'quality' => $targetAccountType === AccountType::INFLUENCER
+                ? $query->leftJoin('influencers', 'users.id', '=', 'influencers.user_id')
+                    ->orderBy('influencers.content_quality_score', 'desc')
+                    ->select('users.*')
+                : $query->orderBy('id'),
+            'relevance' => $query->orderBy('created_at', 'desc'), // Default relevance sorting
             'distance' => $query->orderBy('id'), // Will be handled after pagination
-            default => $query->orderBy('name'),
+            default => $query->orderBy('created_at', 'desc'),
         };
     }
 
@@ -205,9 +293,15 @@ class SearchService
     private static function loadRelationships(Builder $query, AccountType $targetAccountType): Builder
     {
         if ($targetAccountType === AccountType::INFLUENCER) {
-            return $query->with(['influencerProfile', 'socialMediaAccounts']);
+            return $query->with([
+                'influencer',
+                'socialMediaAccounts',
+                'influencer.postalCodeInfo' => function($query) {
+                    $query->select(['postal_code', 'place_name', 'admin_name1', 'admin_code1']);
+                }
+            ]);
         } else {
-            return $query->with(['businessProfile']);
+            return $query->with(['currentBusiness']);
         }
     }
 

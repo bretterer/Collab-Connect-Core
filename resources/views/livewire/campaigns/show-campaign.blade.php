@@ -419,11 +419,11 @@
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Business Information</h3>
                     <div class="flex items-center mb-4">
                         <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                            {{ substr($campaign->user->businessProfile?->business_name ?? $campaign->user->name, 0, 2) }}
+                            {{ substr($campaign->business->name ?? $campaign->user->name, 0, 2) }}
                         </div>
                         <div class="ml-4">
-                            <p class="font-medium text-gray-900 dark:text-white">{{ $campaign->user->businessProfile?->business_name ?? $campaign->user->name }}</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $campaign->user->businessProfile?->industry?->label() ?? 'Business' }}</p>
+                            <p class="font-medium text-gray-900 dark:text-white">{{ $campaign->business->name ?? $campaign->user->name }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $campaign->business->industry?->label() ?? 'Business' }}</p>
                         </div>
                     </div>
                 </div>

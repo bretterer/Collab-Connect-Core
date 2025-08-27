@@ -25,7 +25,7 @@ class CampaignApplications extends BaseComponent
         $this->campaign = $campaign;
 
         // Check if user owns this campaign
-        if ($this->campaign->user_id !== Auth::user()->id) {
+        if ($this->campaign->business_id !== Auth::user()->current_business) {
             abort(403, 'You can only view applications for your own campaigns.');
         }
     }
@@ -42,7 +42,7 @@ class CampaignApplications extends BaseComponent
     public function getApplications()
     {
         $query = $this->campaign->applications()
-            ->with(['user.influencerProfile', 'user.socialMediaAccounts'])
+            ->with(['user.influencer', 'user.socialMediaAccounts'])
             ->orderBy('submitted_at', 'desc');
 
         if ($this->statusFilter !== 'all') {
@@ -57,7 +57,7 @@ class CampaignApplications extends BaseComponent
         $application = CampaignApplication::findOrFail($applicationId);
 
         // Check if user owns the campaign
-        if ($application->campaign->user_id !== Auth::user()->id) {
+        if ($application->campaign->business_id !== Auth::user()->current_business) {
             abort(403, 'You can only update applications for your own campaigns.');
         }
 

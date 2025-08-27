@@ -4,7 +4,8 @@ namespace Database\Seeders;
 
 use App\Enums\AccountType;
 use App\Enums\SocialPlatform;
-use App\Models\SocialMediaAccount;
+use App\Models\BusinessSocial;
+use App\Models\InfluencerSocial;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -22,6 +23,7 @@ class AccountSeeder extends Seeder
             if ($accountType == AccountType::BUSINESS) {
                 /** @var User $user */
                 $user = User::factory()->business()->withProfile()->create();
+                $this->createSocialMediaAccounts($user);
             } else {
                 /** @var User $user */
                 $user = User::factory()->influencer()->withProfile()->create();
@@ -54,8 +56,6 @@ class AccountSeeder extends Seeder
         $numPlatforms = fake()->numberBetween(1, 4);
         $selectedPlatforms = fake()->randomElements($allPlatforms, $numPlatforms);
 
-        $isPrimarySet = false;
-
         foreach ($selectedPlatforms as $platform) {
             $username = $this->generateUsername($platform);
             $followerCount = fake()->numberBetween($minFollowers, $maxFollowers);
@@ -64,17 +64,27 @@ class AccountSeeder extends Seeder
             $variance = fake()->numberBetween(-20, 20); // ±20% variance
             $followerCount = max(100, $followerCount + ($followerCount * $variance / 100));
 
-            SocialMediaAccount::factory()->create([
-                'user_id' => $user->id,
-                'platform' => $platform->value,
-                'username' => $username,
-                'url' => $platform->generateUrl($username),
-                'follower_count' => $followerCount,
-                'is_primary' => ! $isPrimarySet, // First account is primary
-                'is_verified' => $this->shouldBeVerified($followerCount),
-            ]);
+            if ($user->isInfluencerAccount()) {
+                InfluencerSocial::create([
+                    'influencer_id' => $user->influencer->id,
+                    'platform' => $platform->value,
+                    'username' => $username,
+                    'url' => $platform->generateUrl($username),
+                    'followers' => round($followerCount),
+                    'is_verified' => $this->shouldBeVerified($followerCount),
+                ]);
+            }
 
-            $isPrimarySet = true;
+            if ($user->isBusinessAccount()) {
+                BusinessSocial::create([
+                    'business_id' => $user->current_business,
+                    'platform' => $platform->value,
+                    'username' => $username,
+                    'url' => $platform->generateUrl($username),
+                    'followers' => round($followerCount),
+                    'is_verified' => $this->shouldBeVerified($followerCount),
+                ]);
+            }
         }
     }
 

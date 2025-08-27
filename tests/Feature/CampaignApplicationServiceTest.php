@@ -29,7 +29,7 @@ class CampaignApplicationServiceTest extends TestCase
         $this->influencerUser = User::factory()->influencer()->withProfile()->create();
 
         $this->campaign = Campaign::factory()->published()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
     }
 
@@ -53,6 +53,10 @@ class CampaignApplicationServiceTest extends TestCase
         $this->assertNull($application->reviewed_at);
         $this->assertNull($application->accepted_at);
         $this->assertNull($application->rejected_at);
+
+        Event::assertDispatched(\App\Events\CampaignApplicationCreated::class, function ($event) use ($application) {
+            return $event->campaignApplication->id === $application->id;
+        });
     }
 
     public function test_application_status_helper_methods()
@@ -166,7 +170,7 @@ class CampaignApplicationServiceTest extends TestCase
     public function test_cannot_apply_to_draft_campaign()
     {
         $draftCampaign = Campaign::factory()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
             'status' => CampaignStatus::DRAFT,
         ]);
 
@@ -183,7 +187,7 @@ class CampaignApplicationServiceTest extends TestCase
     public function test_cannot_apply_to_archived_campaign()
     {
         $archivedCampaign = Campaign::factory()->archived()->create([
-            'user_id' => $this->businessUser->id,
+            'business_id' => $this->businessUser->currentBusiness->id,
         ]);
 
         // In a real application, this would be prevented by validation or middleware
@@ -206,7 +210,7 @@ class CampaignApplicationServiceTest extends TestCase
         ]);
 
         $this->assertEquals($this->businessUser->id, $application->user_id);
-        $this->assertEquals($this->businessUser->id, $application->campaign->user_id);
+        $this->assertEquals($this->businessUser->currentBusiness->id, $application->campaign->business_id);
     }
 
     public function test_application_factory_states_work_correctly()
@@ -281,9 +285,9 @@ class CampaignApplicationServiceTest extends TestCase
 
     public function test_user_can_apply_to_multiple_campaigns()
     {
-        $campaign1 = Campaign::factory()->published()->create(['user_id' => $this->businessUser->id]);
-        $campaign2 = Campaign::factory()->published()->create(['user_id' => $this->businessUser->id]);
-        $campaign3 = Campaign::factory()->published()->create(['user_id' => $this->businessUser->id]);
+        $campaign1 = Campaign::factory()->published()->create(['business_id' => $this->businessUser->currentBusiness->id]);
+        $campaign2 = Campaign::factory()->published()->create(['business_id' => $this->businessUser->currentBusiness->id]);
+        $campaign3 = Campaign::factory()->published()->create(['business_id' => $this->businessUser->currentBusiness->id]);
 
         CampaignApplication::factory()->create([
             'campaign_id' => $campaign1->id,

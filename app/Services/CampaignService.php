@@ -22,7 +22,7 @@ class CampaignService
         // Create or update the main campaign
         $campaign = Campaign::updateOrCreate(
             [
-                'user_id' => $user->id,
+                'business_id' => $user->currentBusiness->id,
                 'id' => $data['campaign_id'] ?? null,
             ],
             [
@@ -125,7 +125,7 @@ class CampaignService
     /**
      * Publish a campaign
      */
-    public static function publishCampaign(Campaign $campaign): Campaign
+    public static function publishCampaign(Campaign $campaign, ?User $publisher = null): Campaign
     {
         $campaign->update([
             'status' => CampaignStatus::PUBLISHED,
@@ -133,7 +133,9 @@ class CampaignService
         ]);
 
         // Fire the CampaignPublished event
-        event(new CampaignPublished($campaign, $campaign->user));
+        if ($publisher) {
+            event(new CampaignPublished($campaign, $publisher));
+        }
 
         return $campaign;
     }
@@ -141,7 +143,7 @@ class CampaignService
     /**
      * Schedule a campaign
      */
-    public static function scheduleCampaign(Campaign $campaign, string $scheduledDate): Campaign
+    public static function scheduleCampaign(Campaign $campaign, string $scheduledDate, ?User $scheduler = null): Campaign
     {
         $campaign->update([
             'status' => CampaignStatus::SCHEDULED,
@@ -149,7 +151,9 @@ class CampaignService
         ]);
 
         // Fire the CampaignScheduled event
-        event(new CampaignScheduled($campaign, $campaign->user, $scheduledDate));
+        if ($scheduler) {
+            event(new CampaignScheduled($campaign, $scheduler, $scheduledDate));
+        }
 
         return $campaign;
     }
@@ -157,19 +161,21 @@ class CampaignService
     /**
      * Archive a campaign
      */
-    public static function archiveCampaign(Campaign $campaign): Campaign
+    public static function archiveCampaign(Campaign $campaign, ?User $archiver = null): Campaign
     {
         $campaign->update([
             'status' => CampaignStatus::ARCHIVED,
         ]);
 
         // Fire the CampaignArchived event
-        event(new CampaignArchived($campaign, $campaign->user));
+        if ($archiver) {
+            event(new CampaignArchived($campaign, $archiver));
+        }
 
         return $campaign;
     }
 
-    public static function unpublishCampaign(Campaign $campaign): Campaign
+    public static function unpublishCampaign(Campaign $campaign, ?User $unpublisher = null): Campaign
     {
         $campaign->update([
             'status' => CampaignStatus::DRAFT,
@@ -177,7 +183,9 @@ class CampaignService
         ]);
 
         // Fire the CampaignUnpublished event
-        event(new CampaignUnpublished($campaign, $campaign->user));
+        if ($unpublisher) {
+            event(new CampaignUnpublished($campaign, $unpublisher));
+        }
 
         return $campaign;
     }
@@ -185,7 +193,7 @@ class CampaignService
     /**
      * Unschedule a campaign and convert it back to draft
      */
-    public static function unscheduleCampaign(Campaign $campaign): Campaign
+    public static function unscheduleCampaign(Campaign $campaign, ?User $unscheduler = null): Campaign
     {
         $campaign->update([
             'status' => CampaignStatus::DRAFT,
@@ -193,7 +201,9 @@ class CampaignService
         ]);
 
         // Fire the CampaignUnpublished event
-        event(new CampaignUnpublished($campaign, $campaign->user));
+        if ($unscheduler) {
+            event(new CampaignUnpublished($campaign, $unscheduler));
+        }
 
         return $campaign;
     }
@@ -201,7 +211,7 @@ class CampaignService
     /**
      * Update a campaign and fire edit event
      */
-    public static function updateCampaign(int $campaignId, array $data): Campaign
+    public static function updateCampaign(int $campaignId, array $data, ?User $editor = null): Campaign
     {
         $campaign = Campaign::findOrFail($campaignId);
 
@@ -224,7 +234,9 @@ class CampaignService
         $changes = self::arrayRecursiveDiff($campaign->fresh()->toArray(), $originalData);
 
         // Fire the CampaignEdited event
-        event(new CampaignEdited($campaign, $campaign->user, $changes));
+        if ($editor) {
+            event(new CampaignEdited($campaign, $editor, $changes));
+        }
 
         return $campaign;
     }
@@ -234,7 +246,7 @@ class CampaignService
      */
     public static function getUserDrafts(User $user)
     {
-        return $user->campaigns()->drafts()->orderBy('updated_at', 'desc')->get();
+        return $user->currentBusiness->campaigns()->drafts()->orderBy('updated_at', 'desc')->get();
     }
 
     /**
@@ -242,7 +254,7 @@ class CampaignService
      */
     public static function getUserPublished(User $user)
     {
-        return $user->campaigns()->published()->orderBy('published_at', 'desc')->get();
+        return $user->currentBusiness->campaigns()->published()->orderBy('published_at', 'desc')->get();
     }
 
     /**
@@ -250,7 +262,7 @@ class CampaignService
      */
     public static function getUserScheduled(User $user)
     {
-        return $user->campaigns()->scheduled()->orderBy('scheduled_date', 'asc')->get();
+        return $user->currentBusiness->campaigns()->scheduled()->orderBy('scheduled_date', 'asc')->get();
     }
 
     /**
@@ -258,7 +270,7 @@ class CampaignService
      */
     public static function getUserArchived(User $user)
     {
-        return $user->campaigns()->archived()->orderBy('updated_at', 'desc')->get();
+        return $user->currentBusiness->campaigns()->archived()->orderBy('updated_at', 'desc')->get();
     }
 
     private static function arrayRecursiveDiff($array1, $array2)

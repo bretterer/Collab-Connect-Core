@@ -5,8 +5,8 @@ namespace Database\Factories;
 use App\Enums\CampaignStatus;
 use App\Enums\CampaignType;
 use App\Enums\CompensationType;
+use App\Models\Business;
 use App\Models\Campaign;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -29,7 +29,7 @@ class CampaignFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
+            'business_id' => Business::factory(),
             'status' => CampaignStatus::DRAFT,
             'campaign_goal' => $this->faker->sentence(),
             'campaign_type' => $this->faker->randomElement(CampaignType::cases()),
