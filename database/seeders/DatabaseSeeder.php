@@ -36,25 +36,6 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
         ]);
 
-        // Create social media accounts for the influencer
-        \Database\Factories\SocialMediaAccountFactory::new()->instagram()->primary()->create([
-            'user_id' => $influencerUser->id,
-            'username' => 'foodiegram',
-            'follower_count' => 25000,
-        ]);
-
-        \Database\Factories\SocialMediaAccountFactory::new()->tiktok()->create([
-            'user_id' => $influencerUser->id,
-            'username' => 'foodiegram_alex',
-            'follower_count' => 18000,
-        ]);
-
-        \Database\Factories\SocialMediaAccountFactory::new()->youtube()->create([
-            'user_id' => $influencerUser->id,
-            'username' => 'AlexFoodieReviews',
-            'follower_count' => 5000,
-        ]);
-
         // Import postal codes for proximity search
         $this->call(PostalCodeSeeder::class);
 

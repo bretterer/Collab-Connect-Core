@@ -42,7 +42,7 @@
                     <flux:field>
                         <flux:label class="flex items-center gap-2">
                             <flux:icon.magnifying-glass class="w-4 h-4" />
-                            Search Influencers
+                            Search {{ ucfirst($searchingFor) }}
                         </flux:label>
                         <flux:input wire:model.live.debounce.300ms="search"
                                    placeholder="Search by name or email..." />
@@ -209,7 +209,11 @@
                     <!-- Grid View -->
                     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
                         @foreach($results as $user)
-                            <livewire:influencer-card :user="$user" wire:key="user-{{ $user->id }}" />
+                            @if($targetAccountType === App\Enums\AccountType::INFLUENCER)
+                                <livewire:influencer-card :user="$user" wire:key="user-{{ $user->id }}" />
+                            @else
+                                <livewire:business-card :user="$user" wire:key="user-{{ $user->id }}" />
+                            @endif
                         @endforeach
                     </div>
 
@@ -235,6 +239,7 @@
         </div>
     </div>
 
-
+    <!-- Invite Influencer Modal -->
+    <livewire:invite-influencer-modal />
 
 </div>

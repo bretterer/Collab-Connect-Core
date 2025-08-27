@@ -81,6 +81,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Profile routes
         Route::get('/profile', App\Livewire\Profile\EditProfile::class)->name('profile');
 
+        // Business routes
+        Route::prefix('business')->name('business.')->group(function () {
+            Route::get('/{user}/profile', App\Livewire\Business\BusinessProfile::class)->name('profile');
+            Route::get('/{user}/campaigns', App\Livewire\Business\BusinessCampaigns::class)->name('campaigns');
+        });
+
         // Analytics route (business users only)
         Route::get('/analytics', App\Livewire\Analytics::class)->name('analytics');
 

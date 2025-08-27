@@ -17,6 +17,7 @@ return new class extends Migration
             $table->timestamp('promoted_until')->nullable()->after('is_promoted');
             $table->boolean('is_verified')->default(false)->after('promoted_until');
             $table->timestamp('verified_at')->nullable()->after('is_verified');
+            $table->timestamp('verified_until')->nullable()->after('verified_at');
         });
 
         // is_verified field already exists in social_media_accounts table

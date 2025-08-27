@@ -45,4 +45,5 @@ class UserShow extends Component
 
         return [];
     }
+    
 }

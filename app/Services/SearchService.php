@@ -91,16 +91,16 @@ class SearchService
 
         if (! empty($nearbyZipCodes)) {
             // Use proximity search
-            $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencer' : 'businessProfile';
-            $zipCodeColumn = $targetAccountType === AccountType::INFLUENCER ? 'postal_code' : 'primary_zip_code';
+            $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencer' : 'currentBusiness';
+            $zipCodeColumn = 'postal_code';
 
             return $query->whereHas($relationshipMethod, function ($q) use ($nearbyZipCodes, $zipCodeColumn) {
                 $q->whereIn($zipCodeColumn, $nearbyZipCodes);
             });
         } else {
             // Fallback to text search
-            $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencer' : 'businessProfile';
-            $zipCodeColumn = $targetAccountType === AccountType::INFLUENCER ? 'postal_code' : 'primary_zip_code';
+            $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencer' : 'currentBusiness';
+            $zipCodeColumn = 'postal_code';
 
             return $query->whereHas($relationshipMethod, function ($q) use ($location, $zipCodeColumn) {
                 $q->where($zipCodeColumn, 'like', '%'.$location.'%');
@@ -137,7 +137,7 @@ class SearchService
             return $query;
         }
 
-        $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencer' : 'business';
+        $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencer' : 'currentBusiness';
         $nicheColumn = $targetAccountType === AccountType::INFLUENCER ? 'content_types' : 'industry';
 
         return $query->whereHas($relationshipMethod, function ($q) use ($selectedNiches, $nicheColumn) {
@@ -301,7 +301,7 @@ class SearchService
                 }
             ]);
         } else {
-            return $query->with(['businessProfile']);
+            return $query->with(['currentBusiness']);
         }
     }
 

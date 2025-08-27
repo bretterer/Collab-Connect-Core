@@ -70,7 +70,7 @@ class AccountSeeder extends Seeder
                     'platform' => $platform->value,
                     'username' => $username,
                     'url' => $platform->generateUrl($username),
-                    'followers' => $followerCount,
+                    'followers' => round($followerCount),
                     'is_verified' => $this->shouldBeVerified($followerCount),
                 ]);
             }
@@ -81,7 +81,7 @@ class AccountSeeder extends Seeder
                     'platform' => $platform->value,
                     'username' => $username,
                     'url' => $platform->generateUrl($username),
-                    'followers' => $followerCount,
+                    'followers' => round($followerCount),
                     'is_verified' => $this->shouldBeVerified($followerCount),
                 ]);
             }
