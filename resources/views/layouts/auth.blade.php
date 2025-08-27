@@ -26,6 +26,15 @@
 
     @turnstileScripts()
 
+    @if(!app()->environment('local'))
+            <script
+                defer
+                data-website-id="68953b233e0aad41246ad8b4"
+                data-domain="collabconnect.app"
+                src="/js/dfscript.js">
+            </script>
+        @endif
+
 </head>
 
 <body class="h-full bg-white dark:bg-gray-900">

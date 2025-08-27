@@ -32,6 +32,15 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @fluxAppearance
     @livewireStyles
+
+    @if(!app()->environment('local'))
+            <script
+                defer
+                data-website-id="68953b233e0aad41246ad8b4"
+                data-domain="collabconnect.app"
+                src="/js/dfscript.js">
+            </script>
+        @endif
 </head>
 
 <body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 transition-colors duration-300"
@@ -184,7 +193,7 @@
                         class="absolute right-0 z-10 mt-2.5 w-48 origin-top-right rounded-md bg-white dark:bg-gray-800 py-2 shadow-lg ring-1 ring-gray-900/5 dark:ring-gray-700 focus:outline-none"
                         style="display: none;">
                         <a href="{{ route('profile') }}" class="block px-3 py-1 text-sm leading-6 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">Your profile</a>
-                        
+
                         @if(auth()->user()->isBusinessAccount() && auth()->user()->businesses()->count() > 1)
                             <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
                             <div class="px-3 py-2">
@@ -206,7 +215,7 @@
                             </div>
                             <div class="border-t border-gray-100 dark:border-gray-700"></div>
                         @endif
-                        
+
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="block w-full text-left px-3 py-1 text-sm leading-6 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">Sign out</button>

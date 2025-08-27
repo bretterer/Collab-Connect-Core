@@ -100,7 +100,7 @@
         </div>
 
         <h3>Subject: {{ $subject }}</h3>
-        
+
         <div class="message-content">{{ $messageContent }}</div>
     </div>
 
