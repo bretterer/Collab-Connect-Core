@@ -213,15 +213,6 @@
         </style>
 
         @fluxAppearance()
-
-        @if (!app()->environment('local'))
-            <script
-                defer
-                data-website-id="68953b233e0aad41246ad8b4"
-                data-domain="collabconnect.app"
-                src="/js/dfscript.js">
-            </script>
-        @endif
     </head>
     <body class="font-inter bg-white dark:bg-gray-900 min-h-screen">
         <!-- Modern Professional Header -->
