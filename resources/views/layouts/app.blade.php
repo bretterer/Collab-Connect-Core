@@ -184,6 +184,29 @@
                         class="absolute right-0 z-10 mt-2.5 w-48 origin-top-right rounded-md bg-white dark:bg-gray-800 py-2 shadow-lg ring-1 ring-gray-900/5 dark:ring-gray-700 focus:outline-none"
                         style="display: none;">
                         <a href="{{ route('profile') }}" class="block px-3 py-1 text-sm leading-6 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">Your profile</a>
+                        
+                        @if(auth()->user()->isBusinessAccount() && auth()->user()->businesses()->count() > 1)
+                            <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+                            <div class="px-3 py-2">
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Switch Business</p>
+                                @foreach(auth()->user()->businesses as $business)
+                                    <form method="POST" action="{{ route('switch-business', $business->id) }}" class="mb-1">
+                                        @csrf
+                                        <button type="submit" class="block w-full text-left px-2 py-1 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded {{ auth()->user()->currentBusiness?->id == $business->id ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : '' }}">
+                                            <div class="flex items-center">
+                                                <div class="w-2 h-2 rounded-full {{ auth()->user()->currentBusiness?->id == $business->id ? 'bg-blue-500' : 'bg-gray-300' }} mr-2"></div>
+                                                <div>
+                                                    <div class="font-medium">{{ $business->name }}</div>
+                                                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ ucfirst($business->pivot->role) }}</div>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    </form>
+                                @endforeach
+                            </div>
+                            <div class="border-t border-gray-100 dark:border-gray-700"></div>
+                        @endif
+                        
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="block w-full text-left px-3 py-1 text-sm leading-6 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">Sign out</button>

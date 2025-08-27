@@ -142,9 +142,6 @@ class EditProfile extends BaseComponent
     public $business_banner;
 
     // Current business selection for multi-business users
-    public $selected_business_id;
-
-    public $available_businesses = [];
 
 
     private function loadBusinessProfile(User $user)
@@ -671,7 +668,6 @@ class EditProfile extends BaseComponent
         $this->email = $user->email;
 
         if ($user->isBusinessAccount()) {
-            $this->loadAvailableBusinesses($user);
             $this->loadBusinessProfile($user);
         } elseif ($user->isInfluencerAccount()) {
             $this->loadInfluencerProfile($user);
@@ -703,32 +699,4 @@ class EditProfile extends BaseComponent
         }
     }
 
-    private function loadAvailableBusinesses(User $user)
-    {
-        $this->available_businesses = $user->businesses()->get()->map(function ($business) {
-            return [
-                'id' => $business->id,
-                'name' => $business->name,
-                'role' => $business->pivot->role ?? 'member'
-            ];
-        })->toArray();
-        
-        // Set default selected business
-        if (!empty($this->available_businesses)) {
-            $this->selected_business_id = $user->currentBusiness?->id ?? $this->available_businesses[0]['id'];
-        }
-    }
-
-    public function switchBusiness()
-    {
-        $user = $this->getAuthenticatedUser();
-        $business = $user->businesses()->where('businesses.id', $this->selected_business_id)->first();
-        
-        if ($business) {
-            // Update current business and reload profile
-            $user->setCurrentBusiness($business);
-            $this->loadBusinessProfile($user);
-            $this->flashSuccess('Switched to ' . $business->name);
-        }
-    }
 }

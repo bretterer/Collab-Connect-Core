@@ -213,38 +213,6 @@
                     </div>
 
                     <div class="space-y-6">
-                        <!-- Business Selection -->
-                        @if(count($available_businesses) > 1)
-                            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border-l-4 border-blue-400">
-                                <div class="flex items-center mb-3">
-                                    <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                                    </svg>
-                                    <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-100">Select Business to Edit</h3>
-                                </div>
-                                <p class="text-sm text-blue-700 dark:text-blue-300 mb-4">You belong to multiple businesses. Select which business profile you want to edit.</p>
-                                
-                                <div class="flex items-center space-x-4">
-                                    <flux:select 
-                                        wire:model.live="selected_business_id" 
-                                        variant="listbox"
-                                        class="flex-1">
-                                        @foreach($available_businesses as $business)
-                                            <flux:select.option value="{{ $business['id'] }}">
-                                                {{ $business['name'] }} ({{ ucfirst($business['role']) }})
-                                            </flux:select.option>
-                                        @endforeach
-                                    </flux:select>
-                                    <flux:button 
-                                        type="button" 
-                                        wire:click="switchBusiness"
-                                        variant="primary"
-                                        size="sm">
-                                        Switch
-                                    </flux:button>
-                                </div>
-                            </div>
-                        @endif
 
                         <!-- Business Images -->
                         <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
@@ -674,14 +642,12 @@
                                             variant="listbox"
                                             placeholder="Select a business goal"
                                             class="flex-1">
-                                            <flux:select.option value="brand-awareness">Brand Awareness</flux:select.option>
-                                            <flux:select.option value="lead-generation">Lead Generation</flux:select.option>
-                                            <flux:select.option value="sales-conversion">Sales Conversion</flux:select.option>
-                                            <flux:select.option value="customer-acquisition">Customer Acquisition</flux:select.option>
-                                            <flux:select.option value="product-launch">Product Launch</flux:select.option>
-                                            <flux:select.option value="content-creation">Content Creation</flux:select.option>
-                                            <flux:select.option value="social-media-growth">Social Media Growth</flux:select.option>
-                                            <flux:select.option value="brand-partnership">Brand Partnership</flux:select.option>
+                                            <flux:select.option value="brand_awareness">Brand Awareness</flux:select.option>
+                                            <flux:select.option value="product_promotion">Product Promotion</flux:select.option>
+                                            <flux:select.option value="growth_scaling">Growth & Scaling</flux:select.option>
+                                            <flux:select.option value="new_market_entry">New Market Entry</flux:select.option>
+                                            <flux:select.option value="community_building">Community Building</flux:select.option>
+                                            <flux:select.option value="customer_retention">Customer Retention</flux:select.option>
                                         </flux:select>
                                         @if(count($business_goals) > 1)
                                             <flux:button
