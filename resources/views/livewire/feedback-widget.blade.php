@@ -161,4 +161,13 @@
         </div>
     </div>
 
+    <!-- JavaScript to capture current URL -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Capture the current URL when the feedback modal is opened
+            Livewire.on('open-feedback-modal', () => {
+                @this.set('currentUrl', window.location.href);
+            });
+        });
+    </script>
 </div>

@@ -20,6 +20,8 @@ class FeedbackWidget extends Component
     #[Validate('required|string|max:2000')]
     public string $message = '';
 
+    public string $currentUrl = '';
+
     public function mount()
     {
         // Set default type
@@ -29,12 +31,13 @@ class FeedbackWidget extends Component
     public function openModal()
     {
         $this->showModal = true;
+        $this->dispatch('open-feedback-modal');
     }
 
     public function closeModal()
     {
         $this->showModal = false;
-        $this->reset(['type', 'subject', 'message']);
+        $this->reset(['type', 'subject', 'message', 'currentUrl']);
     }
 
     public function submit()
@@ -62,7 +65,7 @@ class FeedbackWidget extends Component
                 'type' => $this->type,
                 'subject' => $this->subject,
                 'message' => $this->message,
-                'url' => url()->current(),
+                'url' => $this->currentUrl ?: url()->current(),
                 'browser_info' => $browserInfo,
                 'screenshot_path' => null,
                 'session_data' => $sessionData,
