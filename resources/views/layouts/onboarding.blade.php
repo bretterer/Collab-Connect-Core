@@ -30,7 +30,6 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @fluxAppearance
     @livewireStyles
 
     @if(!app()->environment('local'))
