@@ -26,12 +26,12 @@ class Banner extends Component
         session()->forget('banner');
 
         // Set up the beta banner
-        $betaDismissed = session('beta_banner_dismissed');
+        $betaDismissed = false; //session('beta_banner_dismissed');
         if (! $betaDismissed) {
             $this->betaBanner = [
                 'type' => 'info',
                 'message' => '🚀 Welcome to CollabConnect Public Beta! Help us improve by reporting bugs or suggesting features.',
-                'closable' => true,
+                'closable' => false,
             ];
         }
     }
