@@ -25,6 +25,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
         Route::get('/beta-invites', App\Livewire\Admin\BetaInvites::class)->name('beta-invites');
+        Route::get('/feedback', App\Livewire\Admin\Feedback::class)->name('feedback');
 
         // Campaign management
         Route::prefix('campaigns')->name('campaigns.')->group(function () {
@@ -85,14 +86,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             $user = auth()->user();
 
             // Verify user has access to this business
-            if (!$user->businesses()->where('businesses.id', $business->id)->exists()) {
+            if (! $user->businesses()->where('businesses.id', $business->id)->exists()) {
                 abort(403);
             }
 
             // Set current business
             $user->setCurrentBusiness($business);
 
-            return redirect()->back()->with('success', 'Switched to ' . $business->name);
+            return redirect()->back()->with('success', 'Switched to '.$business->name);
         })->name('switch-business');
 
         // Business routes

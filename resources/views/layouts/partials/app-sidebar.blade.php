@@ -163,6 +163,17 @@
                                 <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Beta Invites</span>
                             </a>
                         </li>
+
+                        <!-- Feedback -->
+                        <li>
+                            <a href="{{ route('admin.feedback') }}"
+                               class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('admin.feedback') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                                <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('admin.feedback') ? 'text-blue-700 dark:text-blue-400' : 'text-gray-400 group-hover:text-blue-700 dark:group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />
+                                </svg>
+                                <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Feedback</span>
+                            </a>
+                        </li>
                     @endif
 
 

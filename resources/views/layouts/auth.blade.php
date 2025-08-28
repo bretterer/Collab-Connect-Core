@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html class="h-full"
-      lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+      lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    x-data="{
+        darkMode: localStorage.getItem('darkMode') === 'true' || (localStorage.getItem('darkMode') === null && window.matchMedia('(prefers-color-scheme: dark)').matches)
+      }"
+    x-init="$watch('darkMode', value => localStorage.setItem('darkMode', value))"
+    x-bind:class="{ 'dark': darkMode }">
 
 <head>
     <meta charset="utf-8" />
@@ -20,9 +25,18 @@
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600"
           rel="stylesheet" />
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- Dark mode flash prevention -->
+    <script>
+        (function() {
+            const isDark = localStorage.getItem('darkMode') === 'true' ||
+                (localStorage.getItem('darkMode') === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
 
-    @fluxAppearance()
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     @turnstileScripts()
 

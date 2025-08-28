@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    x-data="{
+        darkMode: localStorage.getItem('darkMode') === 'true' || (localStorage.getItem('darkMode') === null && window.matchMedia('(prefers-color-scheme: dark)').matches)
+      }"
+    x-init="$watch('darkMode', value => localStorage.setItem('darkMode', value))"
+    x-bind:class="{ 'dark': darkMode }">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,6 +21,17 @@
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700&display=swap" rel="stylesheet" />
+
+        <!-- Dark mode flash prevention -->
+        <script>
+            (function() {
+                const isDark = localStorage.getItem('darkMode') === 'true' ||
+                    (localStorage.getItem('darkMode') === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                }
+            })();
+        </script>
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -211,8 +227,6 @@
                 color: var(--primary-600);
             }
         </style>
-
-        @fluxAppearance()
     </head>
     <body class="font-inter bg-white dark:bg-gray-900 min-h-screen">
         <!-- Modern Professional Header -->

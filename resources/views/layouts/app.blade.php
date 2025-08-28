@@ -30,7 +30,6 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @fluxAppearance
     @livewireStyles
 
     @if(!app()->environment('local'))
@@ -270,6 +269,9 @@
     @fluxScripts
     @livewireScripts
     <x-toaster-hub />
+    
+    <!-- Feedback Widget -->
+    <livewire:feedback-widget />
 </body>
 
 </html>
