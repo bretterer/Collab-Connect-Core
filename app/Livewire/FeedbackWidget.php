@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Enums\FeedbackType;
 use App\Models\Feedback;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
@@ -21,8 +20,6 @@ class FeedbackWidget extends Component
     #[Validate('required|string|max:2000')]
     public string $message = '';
 
-    public ?string $screenshotData = null;
-
     public function mount()
     {
         // Set default type
@@ -37,7 +34,7 @@ class FeedbackWidget extends Component
     public function closeModal()
     {
         $this->showModal = false;
-        $this->reset(['type', 'subject', 'message', 'screenshotData']);
+        $this->reset(['type', 'subject', 'message']);
     }
 
     public function submit()
@@ -45,12 +42,6 @@ class FeedbackWidget extends Component
         $this->validate();
 
         try {
-            $screenshotPath = null;
-
-            // Handle screenshot if provided
-            if ($this->screenshotData) {
-                $screenshotPath = $this->saveScreenshot($this->screenshotData);
-            }
 
             // Collect browser info
             $browserInfo = [
@@ -73,7 +64,7 @@ class FeedbackWidget extends Component
                 'message' => $this->message,
                 'url' => url()->current(),
                 'browser_info' => $browserInfo,
-                'screenshot_path' => $screenshotPath,
+                'screenshot_path' => null,
                 'session_data' => $sessionData,
             ]);
 
@@ -91,19 +82,6 @@ class FeedbackWidget extends Component
                 'closable' => true,
             ]);
         }
-    }
-
-    private function saveScreenshot(string $screenshotData): string
-    {
-        // Extract base64 data (remove data:image/png;base64, prefix)
-        $imageData = preg_replace('/^data:image\/\w+;base64,/', '', $screenshotData);
-        $imageData = base64_decode($imageData);
-
-        $filename = 'feedback/screenshots/'.auth()->id().'_'.time().'.png';
-
-        Storage::disk('local')->put($filename, $imageData);
-
-        return $filename;
     }
 
     public function getFeedbackTypes()
