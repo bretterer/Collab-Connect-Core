@@ -270,6 +270,9 @@
     @fluxScripts
     @livewireScripts
     <x-toaster-hub />
+    
+    <!-- Feedback Widget -->
+    <livewire:feedback-widget />
 </body>
 
 </html>

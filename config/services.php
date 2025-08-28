@@ -40,4 +40,9 @@ return [
         'secret' => env('TURNSTILE_SECRET_KEY'),
     ],
 
+    'github' => [
+        'token' => env('GITHUB_TOKEN'),
+        'repository' => env('GITHUB_REPOSITORY', 'bretterer/collabconnect'),
+    ],
+
 ];
