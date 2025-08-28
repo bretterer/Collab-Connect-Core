@@ -31,8 +31,13 @@ class Dashboard extends Component
     public function getDraftCampaigns()
     {
         if (Auth::user()->account_type === \App\Enums\AccountType::BUSINESS) {
+            $business = Auth::user()->currentBusiness;
+            if (!$business) {
+                return collect();
+            }
+            
             return Campaign::query()
-                ->where('user_id', Auth::user()->id)
+                ->where('business_id', $business->id)
                 ->where('status', \App\Enums\CampaignStatus::DRAFT)
                 ->orderBy('updated_at', 'desc')
                 ->get();
@@ -44,8 +49,13 @@ class Dashboard extends Component
     public function getPublishedCampaigns()
     {
         if (Auth::user()->account_type === \App\Enums\AccountType::BUSINESS) {
+            $business = Auth::user()->currentBusiness;
+            if (!$business) {
+                return collect();
+            }
+            
             return Campaign::query()
-                ->where('user_id', Auth::user()->id)
+                ->where('business_id', $business->id)
                 ->where('status', \App\Enums\CampaignStatus::PUBLISHED)
                 ->orderBy('published_at', 'desc')
                 ->get();
@@ -57,8 +67,13 @@ class Dashboard extends Component
     public function getScheduledCampaigns()
     {
         if (Auth::user()->account_type === \App\Enums\AccountType::BUSINESS) {
+            $business = Auth::user()->currentBusiness;
+            if (!$business) {
+                return collect();
+            }
+            
             return Campaign::query()
-                ->where('user_id', Auth::user()->id)
+                ->where('business_id', $business->id)
                 ->where('status', \App\Enums\CampaignStatus::SCHEDULED)
                 ->orderBy('scheduled_date', 'asc')
                 ->get();
@@ -86,9 +101,8 @@ class Dashboard extends Component
         // Get published campaigns
         $campaigns = Campaign::query()
             ->where('status', CampaignStatus::PUBLISHED)
-            ->where('user_id', '!=', $user->id)
             ->with([
-                'user.currentBusiness',
+                'business',
                 'compensation',
                 'requirements',
                 'brief',
@@ -198,7 +212,7 @@ class Dashboard extends Component
         // For now, we'll use some basic niche matching logic
         // This could be expanded to include campaign requirements or business industry
         $influencerNiche = $influencerProfile->primary_niche;
-        $currentBusiness = $campaign->user->currentBusiness;
+        $currentBusiness = $campaign->business;
 
         if (! $currentBusiness || ! $currentBusiness->industry) {
             return 50; // Neutral score if no business industry data
@@ -371,7 +385,7 @@ class Dashboard extends Component
     {
         $application = \App\Models\CampaignApplication::find($applicationId);
 
-        if (! $application || ! $application->campaign || $application->campaign->user_id !== Auth::user()->id) {
+        if (! $application || ! $application->campaign || $application->campaign->business_id !== Auth::user()->currentBusiness->id) {
             $this->flashError('Application not found or you do not have permission to accept it.');
 
             return;
@@ -392,7 +406,7 @@ class Dashboard extends Component
     {
         $application = \App\Models\CampaignApplication::find($applicationId);
 
-        if (! $application || ! $application->campaign || $application->campaign->user_id !== Auth::user()->id) {
+        if (! $application || ! $application->campaign || $application->campaign->business_id !== Auth::user()->currentBusiness->id) {
             $this->flashError('Application not found or you do not have permission to decline it.');
 
             return;
