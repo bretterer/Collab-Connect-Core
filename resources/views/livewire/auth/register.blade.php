@@ -57,6 +57,7 @@
                     viewable />
 
 
+                @unless($betaInvite && $betaInvite['business_invite'])
                 <flux:label>Account Type</flux:label>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Business Option -->
@@ -126,6 +127,7 @@
                     </div>
                     <flux:error name="accountType" />
                 </div>
+                @endunless
 
                 <div>
                     <x-turnstile data-size="flexible" wire:model="cf_turnstile_response" />

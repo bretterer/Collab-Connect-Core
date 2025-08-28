@@ -27,9 +27,23 @@ class EnsureOnboardingCompleted
             return $next($request);
         }
 
+        if ($user->hasBusinessInvitePending()) {
+            if($user->isInfluencerAccount()) {
+                $user->businessInvites()->get()->each(function($invite) {
+                    // $invite->delete();
+                });
+            }
+
+            $businessInvite = $user->businessInvites()->whereNull('joined_at')->latest()->first();
+            if ($businessInvite) {
+                return redirect()->signedRoute('accept-business-invite', ['token' => $businessInvite->token], 1000);
+            }
+        }
+
         if ($user->isInfluencerAccount() && ! $user->influencer->onboarding_complete) {
             return redirect()->route('onboarding.influencer');
         }
+
         if ($user->isBusinessAccount() && ! $user->currentBusiness->onboarding_complete) {
             return redirect()->route('onboarding.business');
         }

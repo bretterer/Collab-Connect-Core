@@ -30,6 +30,8 @@ if (config('collabconnect.registration_enabled')) {
     }
 }
 
+Route::get('accept-business-invite', Auth\AcceptInvite::class)->name('accept-business-invite')->middleware('signed');
+
 Route::post('logout', App\Livewire\Actions\Logout::class)
     ->name('logout');
 

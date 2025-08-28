@@ -105,6 +105,17 @@ class Business extends Model implements HasMedia
             ->withPivot('role');
     }
 
+    public function members(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'business_users')
+            ->withPivot('role');
+    }
+
+    public function pendingInvites(): HasMany
+    {
+        return $this->hasMany(BusinessMemberInvite::class)->whereNull('joined_at');
+    }
+
     public function socials(): HasMany
     {
         return $this->hasMany(BusinessSocial::class);

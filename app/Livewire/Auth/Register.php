@@ -3,6 +3,7 @@
 namespace App\Livewire\Auth;
 
 use App\Enums\AccountType;
+use App\Models\BusinessMemberInvite;
 use App\Models\Invite;
 use App\Models\User;
 use App\Models\Waitlist;
@@ -40,7 +41,7 @@ class Register extends Component
 
     public ?array $betaInvite = null;
 
-    public Invite|Waitlist $waitlistEntry;
+    public Invite|Waitlist|null $waitlistEntry = null;
 
     public function mount(?string $token = null)
     {
@@ -65,6 +66,10 @@ class Register extends Component
                 $this->email = $this->betaInvite['email'];
                 $this->name = $this->betaInvite['full_name'] ?? $this->betaInvite['name'];
                 $this->accountType = $this->betaInvite['user_type'] === 'business' ? AccountType::BUSINESS : AccountType::INFLUENCER;
+
+                if($this->betaInvite['business_invite'] ?? false) {
+                    $this->accountType = AccountType::BUSINESS;
+                }
             }
         }
     }
@@ -81,6 +86,19 @@ class Register extends Component
                 ->whereNotNull('invite_token')
                 ->where('invite_token', '!=', '')
                 ->first();
+        }
+
+        if (! $waitlistEntry) {
+            $waitlistEntry = BusinessMemberInvite::where('token', $token)
+                ->first();
+
+            return [
+                'full_name' => '',
+                'email' => $waitlistEntry->email,
+                'user_type' => 'business',
+                'business_invite' => true,
+                'business_id' => $waitlistEntry->business_id,
+            ];
         }
 
         if (! $waitlistEntry) {
@@ -106,6 +124,10 @@ class Register extends Component
 
     private function markInviteAsRegistered(string $token): void
     {
+        if ($this->waitlistEntry === null) {
+            return;
+        }
+
         $this->waitlistEntry->update([
                 'registered_at' => now(),
         ]);
@@ -123,6 +145,8 @@ class Register extends Component
     public function register(): void
     {
         $this->protectAgainstSpam();
+
+        $this->email = strtolower($this->email);
 
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -145,6 +169,20 @@ class Register extends Component
         // If this is a beta registration, mark the invite as used in CSV
         if ($this->betaInvite && $this->token) {
             $this->markInviteAsRegistered($this->token);
+        }
+
+        if ($this->betaInvite && $this->betaInvite['business_invite'] === true) {
+            // If this is a business invite, automatically accept the invite
+            $businessInvite = BusinessMemberInvite::where('email', $this->betaInvite['email'])
+                ->where('business_id', $this->betaInvite['business_id'])
+                ->first();
+
+            if ($businessInvite) {
+                $businessInvite->update(['joined_at' => now()]);
+                $user->businesses()->attach($businessInvite->business_id, ['role' => $businessInvite->role]);
+                $user->setCurrentBusiness($businessInvite->business);
+            }
+
         }
 
         Auth::login($user);

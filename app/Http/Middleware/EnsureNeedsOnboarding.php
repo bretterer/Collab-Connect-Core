@@ -17,7 +17,7 @@ class EnsureNeedsOnboarding
     {
         $user = $request->user();
 
-        if ($user->isBusinessAccount() && $user->currentBusiness->onboarding_complete) {
+        if ($user->isBusinessAccount() && ($user->currentBusiness && $user->currentBusiness->onboarding_complete)) {
             return redirect()->route('dashboard');
         }
 

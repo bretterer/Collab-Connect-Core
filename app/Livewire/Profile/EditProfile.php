@@ -11,12 +11,16 @@ use App\Enums\Niche;
 use App\Enums\SocialPlatform;
 use App\Enums\SubscriptionPlan;
 use App\Enums\YearsInBusiness;
+use App\Jobs\InviteMemberToBusiness;
 use App\Livewire\BaseComponent;
+use App\Models\BusinessMemberInvite;
+use App\Models\BusinessUser;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\WithFileUploads;
+use Masmerise\Toaster\Toaster;
 
 #[Layout('layouts.app')]
 class EditProfile extends BaseComponent
@@ -141,6 +145,8 @@ class EditProfile extends BaseComponent
 
     public $business_banner;
 
+    public string $invite_email = '';
+
     // Current business selection for multi-business users
 
 
@@ -171,7 +177,7 @@ class EditProfile extends BaseComponent
         $this->target_age_range = $profile->target_age_range ?? [];
         $this->business_goals = $profile->business_goals ?? [];
         $this->platforms = $profile->platforms ?? [];
-        
+
         // Load social handles
         $socials = $profile->socials;
         foreach ($socials as $social) {
@@ -190,7 +196,7 @@ class EditProfile extends BaseComponent
                     break;
             }
         }
-        
+
         // Legacy fields for backwards compatibility
         $this->primary_zip_code = $this->postal_code;
         $this->contact_email = $this->business_email;
@@ -225,7 +231,7 @@ class EditProfile extends BaseComponent
         $this->collaboration_preferences = [''];
         $this->preferred_brands = [''];
         $this->follower_count = '';
-        
+
         // Load social accounts
         $this->social_accounts = [];
         foreach (SocialPlatform::cases() as $platform) {
@@ -235,7 +241,7 @@ class EditProfile extends BaseComponent
                 'followers' => null,
             ];
         }
-        
+
         if ($profile->socialAccounts) {
             foreach ($profile->socialAccounts as $account) {
                 $this->social_accounts[$account->platform->value] = [
@@ -510,17 +516,17 @@ class EditProfile extends BaseComponent
 
         $business = $user->currentBusiness;
         $business->update($profileData);
-        
+
         // Update social handles
         $business->socials()->delete();
-        
+
         $socialHandles = [
             'instagram' => $this->instagram_handle,
             'facebook' => $this->facebook_handle,
             'tiktok' => $this->tiktok_handle,
             'linkedin' => $this->linkedin_handle,
         ];
-        
+
         foreach ($socialHandles as $platform => $handle) {
             if (!empty($handle)) {
                 $business->socials()->create([
@@ -530,33 +536,33 @@ class EditProfile extends BaseComponent
                 ]);
             }
         }
-        
+
         // Handle business image uploads
         if ($this->business_logo) {
             try {
                 $business->clearMediaCollection('logo');
-                
+
                 $business->addMedia($this->business_logo->getRealPath())
                     ->usingName('Business Logo')
                     ->usingFileName($this->business_logo->getClientOriginalName())
                     ->toMediaCollection('logo');
-                
+
                 // Clear the uploaded file to prevent re-upload
                 $this->business_logo = null;
             } catch (\Exception $e) {
                 $this->addError('business_logo', 'Failed to upload business logo: ' . $e->getMessage());
             }
         }
-        
+
         if ($this->business_banner) {
             try {
                 $business->clearMediaCollection('banner_image');
-                
+
                 $business->addMedia($this->business_banner->getRealPath())
                     ->usingName('Business Banner')
                     ->usingFileName($this->business_banner->getClientOriginalName())
                     ->toMediaCollection('banner_image');
-                
+
                 // Clear the uploaded file to prevent re-upload
                 $this->business_banner = null;
             } catch (\Exception $e) {
@@ -582,10 +588,10 @@ class EditProfile extends BaseComponent
         ];
 
         $influencer = $user->influencer()->updateOrCreate(['user_id' => $user->id], $profileData);
-        
+
         // Update social accounts
         $influencer->socialAccounts()->delete();
-        
+
         foreach ($this->social_accounts as $accountData) {
             if (!empty($accountData['username'])) {
                 $influencer->socialAccounts()->create([
@@ -596,16 +602,16 @@ class EditProfile extends BaseComponent
                 ]);
             }
         }
-        
+
         // Handle image uploads
         if ($this->profile_image) {
             try {
                 $influencer->clearMediaCollection('profile_image');
-                
+
                 $influencer->addMediaFromRequest('profile_image')
                     ->usingName('Profile Image')
                     ->toMediaCollection('profile_image');
-                
+
                 // Clear the uploaded file to prevent re-upload
                 $this->profile_image = null;
             } catch (\Exception $e) {
@@ -615,29 +621,152 @@ class EditProfile extends BaseComponent
                         ->usingName('Profile Image')
                         ->usingFileName($this->profile_image->getClientOriginalName())
                         ->toMediaCollection('profile_image');
-                    
+
                     $this->profile_image = null;
                 } catch (\Exception $e2) {
                     $this->addError('profile_image', 'Failed to upload profile image: ' . $e2->getMessage());
                 }
             }
         }
-        
+
         if ($this->banner_image) {
             try {
                 $influencer->clearMediaCollection('banner_image');
-                
+
                 $influencer->addMedia($this->banner_image->getRealPath())
                     ->usingName('Banner Image')
                     ->usingFileName($this->banner_image->getClientOriginalName())
                     ->toMediaCollection('banner_image');
-                
+
                 // Clear the uploaded file to prevent re-upload
                 $this->banner_image = null;
             } catch (\Exception $e) {
                 $this->addError('banner_image', 'Failed to upload banner image: ' . $e->getMessage());
             }
         }
+    }
+
+    public function sendInvite()
+    {
+        try {
+            $this->validate([
+                'invite_email' => [
+                    'required',
+                    'email',
+                    'max:255',
+                    'unique:business_member_invites,email,NULL,id,business_id,' . $this->getAuthenticatedUser()->current_business
+                ],
+            ], [
+                'invite_email.unique' => 'An invite has already been sent to this email for your business.',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Toaster::error('Failed to send invite. ' . $e->getMessage());
+            return;
+        }
+
+        /** @var User $user */
+        $user = $this->getAuthenticatedUser();
+
+        if (! $user->isBusinessAccount()) {
+            Toaster::error('Only business accounts can send invites.');
+            $this->addError('invite_email', 'Only business accounts can send invites.');
+
+            return;
+        }
+
+        $business = $user->currentBusiness;
+        if (! $business) {
+            Toaster::error('You must have a business profile to send invites.');
+            $this->addError('invite_email', 'You must have a business profile to send invites.');
+
+            return;
+        }
+
+        // Check if the user is already a member of the business
+        $existingMember = $business->members()->where('email', $this->invite_email)->first();
+        if ($existingMember) {
+            Toaster::error('This user is already a member of your business.');
+            $this->addError('invite_email', 'This user is already a member of your business.');
+
+            return;
+        }
+
+        InviteMemberToBusiness::dispatchSync($business, $this->invite_email, $user);
+
+        Toaster::success('Invitation sent to ' . $this->invite_email);
+        $this->invite_email = '';
+        
+        // Refresh the component to show the new invite
+        $this->dispatch('$refresh');
+    }
+
+    public function removeMember($memberId)
+    {
+        /** @var User $user */
+        $user = $this->getAuthenticatedUser();
+
+        if (! $user->isBusinessAccount()) {
+            Toaster::error('Only business accounts can remove members.');
+            return;
+        }
+
+        if (! $memberId === $user->id) {
+            Toaster::error('You cannot remove yourself from the business. Please contact another admin to remove your account.');
+            return;
+        }
+
+        $business = $user->currentBusiness;
+        if (! $business) {
+            Toaster::error('You must have a business profile to remove members.');
+            return;
+        }
+
+
+
+        $member = BusinessUser::query()->where('user_id', $memberId)->where('business_id', $user->currentBusiness->id)->first();
+
+        if (! $member) {
+            Toaster::error('Member not found.');
+            return;
+        }
+
+        $member->delete();
+
+        BusinessMemberInvite::query()
+            ->where('email', $member->user->email)
+            ->where('business_id', $business->id)
+            ->delete();
+
+
+        Toaster::success('Member removed successfully.');
+    }
+
+    public function rescindInvite($inviteId)
+    {
+        /** @var User $user */
+        $user = $this->getAuthenticatedUser();
+
+        if (! $user->isBusinessAccount()) {
+            Toaster::error('Only business accounts can remove members.');
+            return;
+        }
+
+        $business = $user->currentBusiness;
+        if (! $business) {
+            Toaster::error('You must have a business profile to remove members.');
+            return;
+        }
+
+        $invite = $business->pendingInvites()->where('id', $inviteId)->first();
+        if (! $invite) {
+            Toaster::error('Invite not found.');
+            return;
+        }
+
+        $invite->delete();
+
+
+        Toaster::success('Invite rescinded successfully.');
     }
 
     public function render()
@@ -671,7 +800,7 @@ class EditProfile extends BaseComponent
             $this->loadBusinessProfile($user);
         } elseif ($user->isInfluencerAccount()) {
             $this->loadInfluencerProfile($user);
-            
+
             // Initialize arrays if empty
             if (empty($this->content_types)) {
                 $this->content_types = [''];

@@ -69,6 +69,16 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->save();
     }
 
+    public function businessInvites(): HasMany
+    {
+        return $this->hasMany(BusinessMemberInvite::class, 'email', 'email');
+    }
+
+    public function hasBusinessInvitePending(): bool
+    {
+        return $this->businessInvites()->whereNull('joined_at')->exists();
+    }
+
     /**
      * Get the businesses this user belongs to
      */
