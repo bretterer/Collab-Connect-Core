@@ -18,7 +18,15 @@ class RegistrationTest extends TestCase
     {
         $response = $this->get('/register');
 
-        $response->assertStatus(200);
+        if(!config('collabconnect.registration_enabled')) {
+            $response->assertStatus(404);
+            return;
+        } else if(config('collabconnect.beta_registration_only')) {
+            $response->assertStatus(403);
+            return;
+        } else {
+            $response->assertStatus(200);
+        }
     }
 
     #[Test]
