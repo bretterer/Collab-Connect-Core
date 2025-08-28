@@ -20,7 +20,7 @@
     <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <div class="flex items-center justify-between">
-                <h2 class="text-lg font-medium text-gray-900 dark:text-white">Waitlist ({{ count($invites) }})</h2>
+                <h2 class="text-lg font-medium text-gray-900 dark:text-white">Waitlist ({{ count($waitlistItems) }})</h2>
                 <button wire:click="loadInvites" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -30,7 +30,7 @@
             </div>
         </div>
         <div class="overflow-x-auto">
-            @if(empty($invites))
+            @if(empty($waitlistItems))
                 <div class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                     <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
@@ -52,7 +52,7 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        @foreach($invites as $invite)
+                        @foreach($waitlistItems as $invite)
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900 dark:text-white">
@@ -154,6 +154,174 @@
                                                         <flux:icon.plus variant="micro" />
                                                         <span wire:loading.remove wire:target="addToReferralProgram({{ $invite['id'] }})">Add to Referral Program</span>
                                                         <span wire:loading wire:target="addToReferralProgram({{ $invite['id'] }})">Sending...</span>
+                                                    </flux:menu.item>
+                                                @endif
+                                            </flux:menu>
+                                        </flux:dropdown>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+        </div>
+    </div>
+
+
+    <!-- Custom Invites Link -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg mt-8">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-medium text-gray-900 dark:text-white">Personal Invites</h2>
+            </div>
+        </div>
+
+        <!-- Send a personal invite link to a specific email address -->
+        <div class="px-6 py-4">
+            <form wire:submit.prevent="sendPersonalInvite" class="flex items-center space-x-4">
+                <div class="flex-1 flex items-center space-x-2">
+                    <input type="text" placeholder="Full Name" id="invite.name" wire:model="invite.name" required
+                           class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-white" />
+                    @error('invite.name') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
+                    <input type="email" placeholder="Email" id="invite.email" wire:model="invite.email" required
+                           class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-white" />
+                    @error('invite.email') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
+                    <select id="invite.user_type" wire:model="invite.user_type" required
+                            class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-white">
+                        <option value="" disabled>Select User Type</option>
+                        <option value="influencer">Influencer</option>
+                        <option value="business">Business</option>
+                    </select>
+                    @error('invite.user_type') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <button type="submit"
+                            class="items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-25"
+                            wire:loading.attr="disabled"
+                            wire:target="sendPersonalInvite">
+                        <span wire:loading.remove wire:target="sendPersonalInvite">Send Personal Invite</span>
+                        <span wire:loading wire:target="sendPersonalInvite">Sending...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+
+        <div class="overflow-x-auto">
+            @if(empty($invites))
+                <div class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                    <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium">No invite entries found</h3>
+                </div>
+            @else
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Referral Code</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        @foreach($invites as $invite)
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                        {{ $invite['name'] }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 dark:text-gray-100">{{ $invite['email'] }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                        {{ $invite['user_type'] === 'influencer' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200' }}">
+                                        {{ ucfirst($invite['user_type']) }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if(!empty($invite['registered_at']))
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
+                                            Registered
+                                        </span>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            {{ \Carbon\Carbon::parse($invite['registered_at'])->format('M j, Y') }}
+                                        </div>
+                                    @elseif(!empty($invite['invited_at']))
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200">
+                                            Invited
+                                        </span>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            {{ \Carbon\Carbon::parse($invite['invited_at'])->format('M j, Y') }}
+                                        </div>
+                                    @else
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300">
+                                            Pending
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if($invite->referralCode)
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
+                                            {{ $invite->referralCode->code }}
+                                        </span>
+                                    @else
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300">
+                                            No Code
+                                        </span>
+                                    @endif
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    @if(!empty($invite['registered_at']))
+                                        <span class="text-gray-400 dark:text-gray-500">Completed</span>
+                                    @else
+                                        <flux:dropdown align="right">
+                                            <flux:button variant="ghost" size="sm">
+                                                Actions
+                                                <flux:icon.chevron-down variant="micro" />
+                                            </flux:button>
+
+                                            <flux:menu>
+                                                @if(!empty($invite['invited_at']))
+                                                    <flux:menu.item wire:click="resendInvite({{ $invite['id'] }}, 'personal')"
+                                                                    wire:loading.attr="disabled"
+                                                                    wire:target="resendInvite({{ $invite['id'] }}, 'personal')">
+                                                        <flux:icon.arrow-path-rounded-square variant="micro" />
+                                                        <span wire:loading.remove wire:target="resendInvite({{ $invite['id'] }}, 'personal')">Resend Invite</span>
+                                                        <span wire:loading wire:target="resendInvite({{ $invite['id'] }}, 'personal')">Sending...</span>
+                                                    </flux:menu.item>
+                                                @else
+                                                    <flux:menu.item wire:click="sendInvite({{ $invite['id'] }}, 'personal')"
+                                                                    wire:loading.attr="disabled"
+                                                                    wire:target="sendInvite({{ $invite['id'] }}, 'personal')">
+                                                        <flux:icon.envelope variant="micro" />
+                                                        <span wire:loading.remove wire:target="sendInvite({{ $invite['id'] }}, 'personal')">Send Invite</span>
+                                                        <span wire:loading wire:target="sendInvite({{ $invite['id'] }}, 'personal')">Sending...</span>
+                                                    </flux:menu.item>
+                                                @endif
+
+                                                <flux:menu.separator />
+
+                                                @if(!empty($invite['referralCode']))
+                                                    <flux:menu.item wire:click="resendReferralCode({{ $invite['id'] }}, 'personal')"
+                                                                    wire:loading.attr="disabled"
+                                                                    wire:target="resendReferralCode({{ $invite['id'] }}, 'personal')">
+                                                        <flux:icon.gift variant="micro" />
+                                                        <span wire:loading.remove wire:target="resendReferralCode({{ $invite['id'] }}, 'personal')">Resend Code ({{ $invite->referralCode?->code }})</span>
+                                                        <span wire:loading wire:target="resendReferralCode({{ $invite['id'] }}, 'personal')">Sending...</span>
+                                                    </flux:menu.item>
+                                                @else
+                                                    <flux:menu.item wire:click="addToReferralProgram({{ $invite['id'] }}, 'personal')"
+                                                                    wire:loading.attr="disabled"
+                                                                    wire:target="addToReferralProgram({{ $invite['id'] }}, 'personal')">
+                                                        <flux:icon.plus variant="micro" />
+                                                        <span wire:loading.remove wire:target="addToReferralProgram({{ $invite['id'] }}, 'personal')">Add to Referral Program</span>
+                                                        <span wire:loading wire:target="addToReferralProgram({{ $invite['id'] }}, 'personal')">Sending...</span>
                                                     </flux:menu.item>
                                                 @endif
                                             </flux:menu>

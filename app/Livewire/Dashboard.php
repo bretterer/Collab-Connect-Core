@@ -18,7 +18,7 @@ class Dashboard extends Component
     public function mount()
     {
         // Redirect admin users to their dedicated dashboard
-        if (Auth::user()->isAdmin()) {
+        if (Auth::user()->account_type === AccountType::ADMIN) {
             return redirect()->route('admin.dashboard');
         }
     }

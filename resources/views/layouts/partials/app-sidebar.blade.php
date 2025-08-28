@@ -20,19 +20,22 @@
             <li>
                 <!-- Main Navigation -->
                 <ul role="list" class="-mx-2 space-y-1">
-                    <!-- Dashboard -->
-                    <li>
-                        <a href="{{ route('dashboard') }}"
-                           class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('dashboard') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
-                            <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('dashboard') ? 'text-blue-700 dark:text-blue-400' : 'text-gray-400 group-hover:text-blue-700 dark:group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                            </svg>
-                            <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Dashboard</span>
-                        </a>
-                    </li>
 
-                    @if(auth()->user()->account_type === App\Enums\AccountType::BUSINESS)
+
+                    @if(auth()->user()->account_type === App\Enums\AccountType::BUSINESS && request()->routeIs('admin.*') === false)
                         <!-- Business Navigation -->
+
+                        <!-- Dashboard -->
+                        <li>
+                            <a href="{{ route('dashboard') }}"
+                            class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('dashboard') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                                <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('dashboard') ? 'text-blue-700 dark:text-blue-400' : 'text-gray-400 group-hover:text-blue-700 dark:group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                                </svg>
+                                <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Dashboard</span>
+                            </a>
+                        </li>
+
                         <!-- Campaigns -->
                         <li>
                             <a href="{{ route('campaigns.index') }}"
@@ -66,8 +69,20 @@
                             </a>
                         </li>
 
-                    @elseif(auth()->user()->account_type === App\Enums\AccountType::INFLUENCER)
+                    @elseif(auth()->user()->account_type === App\Enums\AccountType::INFLUENCER && request()->routeIs('admin.*') === false)
                         <!-- Influencer Navigation -->
+
+                        <!-- Dashboard -->
+                        <li>
+                            <a href="{{ route('dashboard') }}"
+                            class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('dashboard') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                                <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('dashboard') ? 'text-blue-700 dark:text-blue-400' : 'text-gray-400 group-hover:text-blue-700 dark:group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                                </svg>
+                                <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Dashboard</span>
+                            </a>
+                        </li>
+
                         <!-- Discover -->
                         <li>
                             <a href="{{ route('discover') }}"
@@ -101,8 +116,32 @@
                             </a>
                         </li>
 
-                    @elseif(auth()->user()->account_type === App\Enums\AccountType::ADMIN)
+                    @elseif(auth()->user()->isAdmin())
                         <!-- Admin Navigation -->
+
+                        @if(auth()->user()->account_type !== App\Enums\AccountType::ADMIN)
+                        <li>
+                            <a href="{{ route('dashboard') }}"
+                            class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('dashboard') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                                <!-- Back Arrow Icon -->
+                                <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('dashboard') ? 'text-blue-700 dark:text-blue-400' : 'text-gray-400 group-hover:text-blue-700 dark:group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                </svg>
+                                <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Back to App</span>
+                            </a>
+                        </li>
+                    @endif
+
+                        <!-- Dashboard -->
+                        <li>
+                            <a href="{{ route('admin.dashboard') }}"
+                            class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('admin.dashboard') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                                <svg class="h-6 w-6 shrink-0 {{ request()->routeIs('dashboard') ? 'text-blue-700 dark:text-blue-400' : 'text-gray-400 group-hover:text-blue-700 dark:group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                                </svg>
+                                <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Admin Dashboard</span>
+                            </a>
+                        </li>
                         <!-- Users -->
                         <li>
                             <a href="{{ route('admin.users.index') }}"
@@ -140,6 +179,9 @@
                             <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Messages</span>
                         </a>
                     </li>
+
+
+
                 </ul>
             </li>
 

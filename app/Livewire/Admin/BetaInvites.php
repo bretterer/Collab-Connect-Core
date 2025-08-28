@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Enums\AccountType;
+use App\Models\Invite;
 use App\Models\ReferralCode;
 use App\Models\Waitlist;
 use Illuminate\Support\Facades\Mail;
@@ -15,19 +16,102 @@ use Masmerise\Toaster\Toaster;
 #[Layout('layouts.app')]
 class BetaInvites extends Component
 {
+    public $waitlistItems = [];
+
     public $invites = [];
+
+    public $invite = [
+        'name' => '',
+        'email' => '',
+        'user_type' => '',
+    ];
 
     public function mount()
     {
+        $this->loadWaitlist();
         $this->loadInvites();
     }
 
     public function loadInvites()
     {
         try {
+            $invites = Invite::latest()->with('referralCode')->get();
+            $this->invites = $invites;
+        } catch (\Exception $e) {
+            $this->invites = [];
+            session()->flash('error', 'Error loading invites: ' . $e->getMessage());
+        }
+    }
+
+    public function sendPersonalInvite()
+    {
+        $this->validate([
+            'invite.email' => 'required|email|unique:invites,email',
+            'invite.name' => 'required|string|max:255',
+            'invite.user_type' => 'required|in:business,influencer',
+        ],[
+            'invite.email.unique' => 'This email has already been invited.',
+            'invite.email.required' => 'Email is required.',
+            'invite.email.email' => 'Please enter a valid email address.',
+            'invite.name.required' => 'Name is required.',
+            'invite.user_type.required' => 'User type is required.',
+            'invite.user_type.in' => 'User type must be either business or influencer.',
+        ]);
+
+        // Generate secure token
+        $token = Str::random(64);
+
+        // Create signed URL that expires in 7 days
+        $signedUrl = URL::temporarySignedRoute(
+            'register',
+            now()->addDays(7),
+            ['token' => $token]
+        );
+
+        // Create invite object for email
+        $inviteData = (object) [
+            'first_name' => explode(' ', $this->invite['name'])[0] ?? '',
+            'last_name' => explode(' ', $this->invite['name'])[1] ?? '',
+            'email' => $this->invite['email'],
+            'account_type_interest' => $this->invite['user_type'] === 'business' ? AccountType::BUSINESS : AccountType::INFLUENCER,
+        ];
+
+        // Send email based on user type
+        $emailClass = match($this->invite['user_type']) {
+            'business' => \App\Mail\BetaInviteBusiness::class,
+            'influencer' => \App\Mail\BetaInviteInfluencer::class,
+            default => \App\Mail\BetaInviteGeneric::class,
+        };
+
+        Mail::to($this->invite['email'])->send(new $emailClass($inviteData, $signedUrl));
+
+        // Save invite to database
+        Invite::create([
+            'name' => $this->invite['name'],
+            'email' => $this->invite['email'],
+            'user_type' => $this->invite['user_type'],
+            'invited_at' => now(),
+            'invite_token' => $token,
+            'invited_by' => auth()->id(),
+        ]);
+
+        // Reset form
+        $this->invite = [
+            'name' => '',
+            'email' => '',
+            'user_type' => '',
+        ];
+
+        $this->loadInvites();
+        session()->flash('message', "Personal invite sent to {$inviteData->email}");
+    }
+
+    public function loadWaitlist()
+    {
+        try {
             $waitlistEntries = Waitlist::latest()->with('referralCode')->get();
 
-            $this->invites = $waitlistEntries->map(function ($entry) {
+            $this->waitlistItems = $waitlistEntries->map(function ($entry) {
                 // Parse the name field
                 $nameParts = explode(' ', trim($entry->name), 2);
                 $firstName = $nameParts[0] ?? '';
@@ -49,7 +133,7 @@ class BetaInvites extends Component
                 ];
             })->toArray();
         } catch (\Exception $e) {
-            $this->invites = [];
+            $this->waitlistItems = [];
             session()->flash('error', 'Error loading waitlist: ' . $e->getMessage());
         }
     }
@@ -96,13 +180,17 @@ class BetaInvites extends Component
 
         Mail::to($waitlistEntry->email)->send(new $emailClass($inviteData, $signedUrl));
 
-        $this->loadInvites();
+        $this->loadWaitlist();
         session()->flash('message', "Beta invite sent to {$waitlistEntry->email}");
     }
 
-    public function resendInvite($inviteId)
+    public function resendInvite($inviteId, $type = null)
     {
-        $waitlistEntry = Waitlist::find($inviteId);
+        if($type === 'personal') {
+            $waitlistEntry = Invite::find($inviteId);
+        } else {
+            $waitlistEntry = Waitlist::find($inviteId);
+        }
 
         if (!$waitlistEntry) {
             session()->flash('error', 'Invite not found.');
@@ -114,7 +202,6 @@ class BetaInvites extends Component
 
         // Update database with new invitation data
         $waitlistEntry->update([
-            'invited_at' => now(),
             'invite_token' => $token,
         ]);
 
@@ -142,13 +229,17 @@ class BetaInvites extends Component
 
         Mail::to($waitlistEntry->email)->send(new $emailClass($inviteData, $signedUrl));
 
-        $this->loadInvites();
+        $this->loadWaitlist();
         session()->flash('message', "Beta invite resent to {$waitlistEntry->email}");
     }
 
-    public function addToReferralProgram($inviteId)
+    public function addToReferralProgram($inviteId, $type = null)
     {
-        $waitlistEntry = Waitlist::find($inviteId);
+        if($type === 'personal') {
+            $waitlistEntry = Invite::find($inviteId);
+        } else {
+            $waitlistEntry = Waitlist::find($inviteId);
+        }
 
         if (!$waitlistEntry) {
             session()->flash('error', 'Invite not found.');
@@ -162,7 +253,7 @@ class BetaInvites extends Component
 
         Mail::to($waitlistEntry->email)->send(new \App\Mail\ReferralProgramInvite($waitlistEntry->email, $waitlistEntry->name, $referralCode->code));
 
-        $this->loadInvites();
+        $this->loadWaitlist();
         Toaster::success("Referral program added for {$waitlistEntry->email}");
     }
 

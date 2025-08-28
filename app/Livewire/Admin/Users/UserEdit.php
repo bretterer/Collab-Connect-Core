@@ -16,14 +16,17 @@ class UserEdit extends Component
 
     public string $email;
 
-    public AccountType $accountType;
+    public int $accountType;
+
+    public bool $allowAdminAccess = false;
 
     public function mount(User $user)
     {
         $this->user = $user;
         $this->name = $user->name;
         $this->email = $user->email;
-        $this->accountType = $user->account_type;
+        $this->accountType = $user->account_type->value;
+        $this->allowAdminAccess = $user->access_admin;
     }
 
     public function rules()
@@ -31,7 +34,7 @@ class UserEdit extends Component
         return [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,'.$this->user->id,
-            'accountType' => 'required|in:'.implode(',', array_map(fn ($case) => $case->value, AccountType::cases())),
+            'accountType' => 'required|'.AccountType::validationRule(),
         ];
     }
 
@@ -42,7 +45,8 @@ class UserEdit extends Component
         $this->user->update([
             'name' => $this->name,
             'email' => $this->email,
-            'account_type' => $this->accountType,
+            'account_type' => AccountType::from($this->accountType),
+            'access_admin' => $this->allowAdminAccess,
         ]);
 
         session()->flash('message', 'User updated successfully.');

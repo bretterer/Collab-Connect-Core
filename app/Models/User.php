@@ -152,7 +152,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isAdmin(): bool
     {
-        return $this->account_type === AccountType::ADMIN;
+        return $this->account_type === AccountType::ADMIN || $this->access_admin;
     }
 
     /**

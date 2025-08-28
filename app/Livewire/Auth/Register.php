@@ -3,6 +3,7 @@
 namespace App\Livewire\Auth;
 
 use App\Enums\AccountType;
+use App\Models\Invite;
 use App\Models\User;
 use App\Models\Waitlist;
 use Illuminate\Auth\Events\Registered;
@@ -39,11 +40,13 @@ class Register extends Component
 
     public ?array $betaInvite = null;
 
+    public Invite|Waitlist $waitlistEntry;
+
     public function mount(?string $token = null)
     {
         $this->extraFields = new HoneypotData;
 
-        if (config('collabconnect.beta_invite_registration')) {
+        if (config('collabconnect.beta_registration_only')) {
             $this->token = request()->query('token', $token);
 
             // If we have a beta invitation token, load the invitation from CSV
@@ -60,7 +63,7 @@ class Register extends Component
 
                 // Pre-fill form with invitation data
                 $this->email = $this->betaInvite['email'];
-                $this->name = $this->betaInvite['full_name'];
+                $this->name = $this->betaInvite['full_name'] ?? $this->betaInvite['name'];
                 $this->accountType = $this->betaInvite['user_type'] === 'business' ? AccountType::BUSINESS : AccountType::INFLUENCER;
             }
         }
@@ -74,8 +77,17 @@ class Register extends Component
             ->first();
 
         if (! $waitlistEntry) {
+            $waitlistEntry = Invite::where('invite_token', $token)
+                ->whereNotNull('invite_token')
+                ->where('invite_token', '!=', '')
+                ->first();
+        }
+
+        if (! $waitlistEntry) {
             return null;
         }
+
+        $this->waitlistEntry = $waitlistEntry;
 
         $nameParts = explode(' ', trim($waitlistEntry->name), 2);
 
@@ -94,16 +106,10 @@ class Register extends Component
 
     private function markInviteAsRegistered(string $token): void
     {
-        $waitlistEntry = Waitlist::where('invite_token', $token)
-            ->whereNotNull('invite_token')
-            ->where('invite_token', '!=', '')
-            ->first();
-
-        if ($waitlistEntry) {
-            $waitlistEntry->update([
+        $this->waitlistEntry->update([
                 'registered_at' => now(),
-            ]);
-        }
+        ]);
+
     }
 
     public function setAccountType(AccountType $accountType): void

@@ -72,6 +72,22 @@
                     </p>
                 </div>
 
+                <!-- Access Admin Panel -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Access Admin Panel
+                    </label>
+                    <div class="mt-1 flex items-center">
+                        <input type="checkbox"
+                               wire:model="allowAdminAccess"
+                               id="allowAdminAccess"
+                               class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded" />
+                        <label for="allowAdminAccess" class="ml-2 block text-sm text-gray-900 dark:text-white">
+                            Allow this user to access the admin panel
+                        </label>
+                    </div>
+                </div>
+
                 <!-- Current Profile Status -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
