@@ -33,14 +33,19 @@
                     Drafts ({{ $this->getDrafts()->count() }})
                 </button>
                 <button
+                    wire:click="setActiveTab('scheduled')"
+                    class="px-3 py-2 font-medium text-sm rounded-md {{ $activeTab === 'scheduled' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}">
+                    Scheduled ({{ $this->getScheduled()->count() }})
+                </button>
+                <button
                     wire:click="setActiveTab('published')"
                     class="px-3 py-2 font-medium text-sm rounded-md {{ $activeTab === 'published' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}">
                     Published ({{ $this->getPublished()->count() }})
                 </button>
                 <button
-                    wire:click="setActiveTab('scheduled')"
-                    class="px-3 py-2 font-medium text-sm rounded-md {{ $activeTab === 'scheduled' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}">
-                    Scheduled ({{ $this->getScheduled()->count() }})
+                    wire:click="setActiveTab('in_progress')"
+                    class="px-3 py-2 font-medium text-sm rounded-md {{ $activeTab === 'in_progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}">
+                    In Progress ({{ $this->getInProgress()->count() }})
                 </button>
                 <button
                     wire:click="setActiveTab('archived')"
@@ -56,7 +61,7 @@
                 @if($this->getDrafts()->count() > 0)
                     <div class="divide-y divide-gray-200 dark:divide-gray-700">
                         @foreach($this->getDrafts() as $campaign)
-                            <div class="p-6">
+                            <div class="p-6" wire:key="campaign-{{ $campaign->id }}">
                                 <div class="flex items-center justify-between">
                                     <div class="flex-1">
                                         <div class="flex items-center space-x-3">
@@ -111,7 +116,7 @@
                 @if($this->getPublished()->count() > 0)
                     <div class="divide-y divide-gray-200 dark:divide-gray-700">
                         @foreach($this->getPublished() as $campaign)
-                            <div class="p-6">
+                            <div class="p-6" wire:key="campaign-{{ $campaign->id }}">
                                 <div class="flex items-center justify-between">
                                     <div class="flex-1">
                                         <div class="flex items-center space-x-3">
@@ -135,6 +140,11 @@
                                         <a href="{{ route('campaigns.show', $campaign) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
                                             View Details
                                         </a>
+                                        <button
+                                            wire:click="startCampaign({{ $campaign->id }})"
+                                            class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300">
+                                            Start Campaign
+                                        </button>
                                         <button
                                             wire:click="archiveCampaign({{ $campaign->id }})"
                                             wire:confirm="Are you sure you want to archive this campaign?"
@@ -160,7 +170,7 @@
                 @if($this->getScheduled()->count() > 0)
                     <div class="divide-y divide-gray-200 dark:divide-gray-700">
                         @foreach($this->getScheduled() as $campaign)
-                            <div class="p-6">
+                            <div class="p-6" wire:key="campaign-{{ $campaign->id }}">
                                 <div class="flex items-center justify-between">
                                     <div class="flex-1">
                                         <div class="flex items-center space-x-3">
@@ -205,11 +215,59 @@
                     </div>
                 @endif
 
+            @elseif($activeTab === 'in_progress')
+                @if($this->getInProgress()->count() > 0)
+                    <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                        @foreach($this->getInProgress() as $campaign)
+                            <div class="p-6" wire:key="campaign-{{ $campaign->id }}">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-3">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                                In Progress
+                                            </span>
+                                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                                                {{ Str::limit($campaign->campaign_goal, 60) }}
+                                            </h3>
+                                        </div>
+                                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                            {{ Str::limit($campaign->campaign_description, 120) }}
+                                        </p>
+                                        <div class="mt-3 flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
+                                            <span>Compensation: {{ $campaign->compensation_display }}</span>
+                                            <span>Influencers: {{ $campaign->influencer_count }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-3">
+                                        <a href="{{ route('campaigns.show', $campaign) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                                            View Details
+                                        </a>
+                                        <button
+                                            wire:click="archiveCampaign({{ $campaign->id }})"
+                                            wire:confirm="Are you sure you want to archive this campaign?"
+                                            class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                                            Archive
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="p-12 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No In Progress campaigns</h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Start a campaign with influencers to see it here.</p>
+                    </div>
+                @endif
+
             @elseif($activeTab === 'archived')
                 @if($this->getArchived()->count() > 0)
                     <div class="divide-y divide-gray-200 dark:divide-gray-700">
                         @foreach($this->getArchived() as $campaign)
-                            <div class="p-6">
+                            <div class="p-6" wire:key="campaign-{{ $campaign->id }}">
                                 <div class="flex items-center justify-between">
                                     <div class="flex-1">
                                         <div class="flex items-center space-x-3">

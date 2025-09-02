@@ -3,8 +3,10 @@
 namespace App\Livewire\Campaigns;
 
 use App\Livewire\BaseComponent;
+use App\Models\Campaign;
 use App\Services\CampaignService;
 use Livewire\Attributes\Layout;
+use Masmerise\Toaster\Toaster;
 
 #[Layout('layouts.app')]
 class Index extends BaseComponent
@@ -39,6 +41,11 @@ class Index extends BaseComponent
         return CampaignService::getUserScheduled($this->getAuthenticatedUser());
     }
 
+    public function getInProgress()
+    {
+        return CampaignService::getUserInProgress($this->getAuthenticatedUser());
+    }
+
     public function getArchived()
     {
         return CampaignService::getUserArchived($this->getAuthenticatedUser());
@@ -51,6 +58,21 @@ class Index extends BaseComponent
         if ($campaign) {
             CampaignService::archiveCampaign($campaign);
             session()->flash('message', 'Campaign archived successfully!');
+        }
+    }
+
+    public function startCampaign($campaignId)
+    {
+        $campaign = Campaign::query()->find($campaignId);
+
+        if($campaign->applications->isEmpty()) {
+            Toaster::error('You must have at least one influencer application to start this campaign.');
+            return;
+        }
+
+        if ($campaign) {
+            CampaignService::startCampaign($campaign);
+            session()->flash('message', 'Campaign started successfully!');
         }
     }
 

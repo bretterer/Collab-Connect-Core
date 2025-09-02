@@ -31,6 +31,7 @@ class Influencer extends Model implements HasMedia
         'content_types',
         'preferred_business_types',
         'compensation_types',
+        'primary_industry',
         'typical_lead_time_days',
         'onboarding_complete',
     ];
@@ -41,6 +42,7 @@ class Influencer extends Model implements HasMedia
             'content_types' => 'array',
             'preferred_business_types' => 'array',
             'compensation_types' => 'array',
+            'primary_industry' => BusinessIndustry::class,
             'onboarding_complete' => 'boolean',
         ];
     }

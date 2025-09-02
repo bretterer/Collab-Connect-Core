@@ -134,14 +134,6 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the user's notifications
-     */
-    public function notifications(): HasMany
-    {
-        return $this->hasMany(Notification::class);
-    }
-
-    /**
      * Check if the user has completed onboarding
      */
     public function hasCompletedOnboarding(): bool

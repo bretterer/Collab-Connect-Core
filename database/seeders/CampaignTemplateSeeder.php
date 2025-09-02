@@ -107,7 +107,5 @@ class CampaignTemplateSeeder extends Seeder
             'published_at' => now(),
         ]);
 
-        $this->command->info('Collab Coffee Campaign Template created successfully!');
-        $this->command->info('This demonstrates how a comprehensive campaign brief like the Collab Coffee template can be created in the system.');
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Livewire\Campaigns;
 
 use App\Enums\CampaignApplicationStatus;
+use App\Events\CampaignApplicationSubmitted;
 use App\Livewire\BaseComponent;
 use App\Models\Campaign;
 use App\Models\CampaignApplication;
@@ -66,14 +67,16 @@ class ApplyToCampaign extends BaseComponent
             'submitted_at' => now(),
         ]);
 
+        CampaignApplicationSubmitted::dispatch($this->campaign, $user, $application);
+
+        $this->campaign->business->owner->each(fn($owner) => $owner->notify(new \App\Notifications\CampaignApplicationSubmittedNotification($application)));
+
         // Update the existing application property
         $this->existingApplication = $application;
 
         $this->flashSuccess('Your application has been submitted successfully!');
         $this->closeModal();
 
-        // Redirect to campaign or discovery page
-        $this->safeRedirect('discover');
     }
 
     public function getMatchScore()

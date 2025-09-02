@@ -15,17 +15,18 @@ use App\Models\User;
 class CampaignService
 {
     /**
-     * Save or update a campaign draft with normalized structure
+     * Save or update a campaign draft with all fields
      */
     public static function saveDraft(User $user, array $data): Campaign
     {
-        // Create or update the main campaign
+        // Create or update the main campaign with all fields
         $campaign = Campaign::updateOrCreate(
             [
                 'business_id' => $user->currentBusiness->id,
                 'id' => $data['campaign_id'] ?? null,
             ],
             [
+                // Basic campaign fields
                 'status' => CampaignStatus::DRAFT,
                 'campaign_goal' => $data['campaign_goal'] ?? '',
                 'campaign_type' => ! empty($data['campaign_type']) ? $data['campaign_type'] : null,
@@ -38,89 +39,46 @@ class CampaignService
                 'publish_action' => $data['publish_action'] ?? 'publish',
                 'scheduled_date' => $data['scheduled_date'] ?? null,
                 'current_step' => $data['current_step'] ?? 1,
+
+                // Brief fields
+                'project_name' => $data['project_name'] ?? null,
+                'main_contact' => $data['main_contact'] ?? null,
+                'campaign_objective' => $data['campaign_objective'] ?? null,
+                'key_insights' => $data['key_insights'] ?? null,
+                'fan_motivator' => $data['fan_motivator'] ?? null,
+                'creative_connection' => $data['creative_connection'] ?? null,
+                'target_audience' => $data['target_audience'] ?? null,
+                'timing_details' => $data['timing_details'] ?? null,
+                'additional_requirements' => $data['additional_requirements'] ?? null,
+
+                // Brand fields
+                'brand_overview' => $data['brand_overview'] ?? null,
+                'current_advertising_campaign' => $data['current_advertising_campaign'] ?? null,
+                'brand_story' => $data['brand_story'] ?? null,
+                'brand_guidelines' => $data['brand_guidelines'] ?? null,
+
+                // Requirements fields
+                'social_requirements' => $data['social_requirements'] ?? null,
+                'placement_requirements' => $data['placement_requirements'] ?? null,
+                'target_platforms' => $data['target_platforms'] ?? null,
+                'deliverables' => $data['deliverables'] ?? null,
+                'success_metrics' => $data['success_metrics'] ?? null,
+                'content_guidelines' => $data['content_guidelines'] ?? null,
+                'posting_restrictions' => $data['posting_restrictions'] ?? null,
+                'specific_products' => $data['specific_products'] ?? null,
+                'additional_considerations' => $data['additional_considerations'] ?? null,
+
+                // Compensation fields
+                'compensation_type' => $data['compensation_type'] ?? \App\Enums\CompensationType::MONETARY,
+                'compensation_amount' => $data['compensation_amount'] ?? 0,
+                'compensation_description' => $data['compensation_description'] ?? null,
+                'compensation_details' => $data['compensation_details'] ?? null,
             ]
         );
-
-        // Create or update related models
-        self::saveCampaignBrief($campaign, $data);
-        self::saveCampaignBrand($campaign, $data);
-        self::saveCampaignRequirements($campaign, $data);
-        self::saveCampaignCompensation($campaign, $data);
 
         return $campaign;
     }
 
-    /**
-     * Save campaign brief information
-     */
-    private static function saveCampaignBrief(Campaign $campaign, array $data): void
-    {
-        $briefData = [
-            'project_name' => $data['project_name'] ?? null,
-            'main_contact' => $data['main_contact'] ?? null,
-            'campaign_objective' => $data['campaign_objective'] ?? null,
-            'key_insights' => $data['key_insights'] ?? null,
-            'fan_motivator' => $data['fan_motivator'] ?? null,
-            'creative_connection' => $data['creative_connection'] ?? null,
-            'target_audience' => $data['target_audience'] ?? null,
-            'timing_details' => $data['timing_details'] ?? null,
-            'additional_requirements' => $data['additional_requirements'] ?? null,
-        ];
-
-        $campaign->brief()->updateOrCreate(['campaign_id' => $campaign->id], $briefData);
-    }
-
-    /**
-     * Save campaign brand information
-     */
-    private static function saveCampaignBrand(Campaign $campaign, array $data): void
-    {
-        $brandData = [
-            'brand_overview' => $data['brand_overview'] ?? null,
-            'brand_essence' => $data['brand_essence'] ?? null,
-            'brand_pillars' => $data['brand_pillars'] ?? null,
-            'current_advertising_campaign' => $data['current_advertising_campaign'] ?? null,
-            'brand_story' => $data['brand_story'] ?? null,
-            'brand_guidelines' => $data['brand_guidelines'] ?? null,
-        ];
-
-        $campaign->brand()->updateOrCreate(['campaign_id' => $campaign->id], $brandData);
-    }
-
-    /**
-     * Save campaign requirements information
-     */
-    private static function saveCampaignRequirements(Campaign $campaign, array $data): void
-    {
-        $requirementsData = [
-            'social_requirements' => $data['social_requirements'] ?? null,
-            'placement_requirements' => $data['placement_requirements'] ?? null,
-            'target_platforms' => $data['target_platforms'] ?? null,
-            'deliverables' => $data['deliverables'] ?? null,
-            'success_metrics' => $data['success_metrics'] ?? null,
-            'content_guidelines' => $data['content_guidelines'] ?? null,
-            'posting_restrictions' => $data['posting_restrictions'] ?? null,
-            'specific_products' => $data['specific_products'] ?? null,
-            'additional_considerations' => $data['additional_considerations'] ?? null,
-        ];
-
-        $campaign->requirements()->updateOrCreate(['campaign_id' => $campaign->id], $requirementsData);
-    }
-
-    /**
-     * Save campaign compensation information
-     */
-    private static function saveCampaignCompensation(Campaign $campaign, array $data): void
-    {
-        $compensationData = [
-            'compensation_type' => $data['compensation_type'] ?? CompensationType::MONETARY,
-            'compensation_amount' => $data['compensation_amount'] ?? null,
-            'compensation_description' => $data['compensation_description'] ?? null,
-            'compensation_details' => $data['compensation_details'] ?? null,
-        ];
-
-        $campaign->compensation()->updateOrCreate(['campaign_id' => $campaign->id], $compensationData);
-    }
 
     /**
      * Publish a campaign
@@ -175,6 +133,15 @@ class CampaignService
         return $campaign;
     }
 
+    public static function startCampaign(Campaign $campaign): Campaign
+    {
+        $campaign->update([
+            'status' => CampaignStatus::IN_PROGRESS,
+        ]);
+
+        return $campaign;
+    }
+
     public static function unpublishCampaign(Campaign $campaign, ?User $unpublisher = null): Campaign
     {
         $campaign->update([
@@ -220,7 +187,7 @@ class CampaignService
 
         // Handle array fields to prevent conversion errors
         $updateData = $data;
-        $arrayFields = ['target_platforms', 'deliverables', 'success_metrics', 'social_requirements', 'placement_requirements', 'compensation_details'];
+        $arrayFields = ['target_platforms', 'deliverables', 'success_metrics', 'social_requirements', 'placement_requirements', 'compensation_details', 'additional_requirements'];
 
         foreach ($arrayFields as $field) {
             if (isset($updateData[$field])) {
@@ -263,6 +230,11 @@ class CampaignService
     public static function getUserScheduled(User $user)
     {
         return $user->currentBusiness->campaigns()->scheduled()->orderBy('scheduled_date', 'asc')->get();
+    }
+
+    public static function getUserInProgress(User $user)
+    {
+        return $user->currentBusiness->campaigns()->inProgress()->orderBy('updated_at', 'desc')->get();
     }
 
     /**

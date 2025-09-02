@@ -92,7 +92,7 @@
                                                     <div class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></div>
                                                     Active
                                                 </span>
-                                                <span class="text-xs text-gray-500 dark:text-gray-400">{{ $campaign->published_at->diffForHumans() }}</span>
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">{{ $campaign->published_at?->diffForHumans() }}</span>
                                             </div>
                                             <h4 class="text-base font-medium text-gray-900 dark:text-white mb-1 truncate">
                                                 {{ $campaign->campaign_goal }}
