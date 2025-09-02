@@ -27,6 +27,7 @@ class ViewCampaignTest extends TestCase
             'business_id' => $businessUser->currentBusiness->id,
             'status' => CampaignStatus::PUBLISHED,
             'campaign_goal' => 'Promote our new fashion line',
+            'project_name' => 'Promote our new fashion line',
             'campaign_type' => CampaignType::SPONSORED_POSTS,
             'compensation_type' => CompensationType::MONETARY,
             'compensation_amount' => 500,

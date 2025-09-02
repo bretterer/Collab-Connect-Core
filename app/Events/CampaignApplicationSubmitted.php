@@ -3,6 +3,7 @@
 namespace App\Events;
 
 use App\Models\Campaign;
+use App\Models\CampaignApplication;
 use App\Models\User;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -19,7 +20,7 @@ class CampaignApplicationSubmitted
     public function __construct(
         public Campaign $campaign,
         public User $applicant,
-        public array $applicationData
+        public CampaignApplication $application
     ) {}
 
     /**

@@ -51,7 +51,7 @@
             <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
                 <div class="flex items-start justify-between">
                     <div class="flex-1">
-                        <h1 class="text-4xl font-bold mb-4">{{ $campaign->campaign_goal }}</h1>
+                        <h1 class="text-4xl font-bold mb-4">{{ $campaign->project_name }}</h1>
                         @if($campaign->campaign_objective)
                             <p class="text-xl opacity-90 mb-6">{{ $campaign->campaign_objective }}</p>
                         @endif
@@ -304,7 +304,7 @@
                 @if($campaign->additional_requirements)
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Additional Requirements</h2>
-                        <div class="prose dark:prose-invert max-w-none">
+                        <div class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300">
                             @if(is_array($campaign->additional_requirements))
                                 <div class="space-y-3">
                                     @foreach($campaign->additional_requirements as $key => $value)
@@ -364,7 +364,7 @@
 
                         @if($this->getApplicationsCount() > 0)
                             <div class="space-y-4">
-                                @foreach($campaign->applications()->with(['user.influencerProfile'])->latest('submitted_at')->take(3)->get() as $application)
+                                @foreach($campaign->applications()->with(['user.influencer'])->latest('submitted_at')->take(3)->get() as $application)
                                     <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                                         <div class="flex items-center justify-between mb-2">
                                             <div class="flex items-center space-x-3">

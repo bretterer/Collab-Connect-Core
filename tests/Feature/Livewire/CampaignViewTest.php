@@ -24,6 +24,7 @@ class CampaignViewTest extends TestCase
             'business_id' => $businessUser->currentBusiness->id,
             'status' => CampaignStatus::PUBLISHED,
             'campaign_goal' => 'Test Campaign Goal',
+            'project_name' => 'Test Campaign Goal',
         ]);
 
         // Create influencer user with completed onboarding

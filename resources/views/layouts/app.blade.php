@@ -120,27 +120,9 @@
 
             <!-- Right side -->
             <div class="flex items-center gap-x-4 lg:gap-x-6">
-                <!-- Search -->
-                <div class="hidden sm:flex">
-                    <div class="relative">
-                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                            <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                            </svg>
-                        </div>
-                        <input type="text"
-                            class="block w-full rounded-lg border-0 py-2 pl-9 pr-3 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 bg-gray-100 dark:bg-gray-800 focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-blue-600 sm:text-sm sm:leading-6 transition-colors"
-                            placeholder="Search campaigns, influencers...">
-                    </div>
-                </div>
 
                 <!-- Notifications -->
-                <button class="relative -m-2.5 p-2.5 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                    </svg>
-                    <span class="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-400"></span>
-                </button>
+                <livewire:notification-button />
 
                 <!-- Dark mode toggle -->
                 <button x-on:click="darkMode = !darkMode"
@@ -269,7 +251,7 @@
     @fluxScripts
     @livewireScripts
     <x-toaster-hub />
-    
+
     <!-- Feedback Widget -->
     <livewire:feedback-widget />
 </body>
