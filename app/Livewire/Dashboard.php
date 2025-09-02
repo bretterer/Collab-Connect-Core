@@ -6,11 +6,15 @@ use App\Enums\AccountType;
 use App\Enums\CampaignApplicationStatus;
 use App\Enums\CampaignStatus;
 use App\Models\Campaign;
+use App\Models\Chat;
 use App\Models\PostalCode;
+use App\Notifications\CampaignApplicationAcceptedNotification;
+use App\Notifications\CampaignApplicationDeclinedNotification;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Masmerise\Toaster\Toaster;
 
 #[Layout('layouts.app')]
 class Dashboard extends Component
@@ -35,7 +39,7 @@ class Dashboard extends Component
             if (!$business) {
                 return collect();
             }
-            
+
             return Campaign::query()
                 ->where('business_id', $business->id)
                 ->where('status', \App\Enums\CampaignStatus::DRAFT)
@@ -53,7 +57,7 @@ class Dashboard extends Component
             if (!$business) {
                 return collect();
             }
-            
+
             return Campaign::query()
                 ->where('business_id', $business->id)
                 ->where('status', \App\Enums\CampaignStatus::PUBLISHED)
@@ -71,7 +75,7 @@ class Dashboard extends Component
             if (!$business) {
                 return collect();
             }
-            
+
             return Campaign::query()
                 ->where('business_id', $business->id)
                 ->where('status', \App\Enums\CampaignStatus::SCHEDULED)
@@ -386,7 +390,7 @@ class Dashboard extends Component
         $application = \App\Models\CampaignApplication::find($applicationId);
 
         if (! $application || ! $application->campaign || $application->campaign->business_id !== Auth::user()->currentBusiness->id) {
-            $this->flashError('Application not found or you do not have permission to accept it.');
+            Toaster::error('Application not found or you do not have permission to accept it.');
 
             return;
         }
@@ -396,7 +400,11 @@ class Dashboard extends Component
             'accepted_at' => now(),
         ]);
 
-        $this->flashSuccess('Application accepted successfully!');
+
+        $application->user->notify(new CampaignApplicationAcceptedNotification($application->fresh()));
+        Chat::findOrCreateBetweenUsers($application->campaign->business->owner->first(), $application->user);
+
+        Toaster::success('Application accepted successfully!');
     }
 
     /**
@@ -407,7 +415,7 @@ class Dashboard extends Component
         $application = \App\Models\CampaignApplication::find($applicationId);
 
         if (! $application || ! $application->campaign || $application->campaign->business_id !== Auth::user()->currentBusiness->id) {
-            $this->flashError('Application not found or you do not have permission to decline it.');
+            Toaster::error('Application not found or you do not have permission to decline it.');
 
             return;
         }
@@ -417,6 +425,7 @@ class Dashboard extends Component
             'rejected_at' => now(),
         ]);
 
-        $this->flashSuccess('Application declined.');
+        $application->user->notify(new CampaignApplicationDeclinedNotification($application->fresh()));
+        Toaster::success('Application declined.');
     }
 }
