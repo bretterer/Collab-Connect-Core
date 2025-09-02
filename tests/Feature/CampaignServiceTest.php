@@ -120,24 +120,24 @@ class CampaignServiceTest extends TestCase
 
         $campaign = CampaignService::saveDraft($this->businessUser, $campaignData);
 
-        // Check that all relationships were created
-        $this->assertNotNull($campaign->brand);
-        $this->assertEquals('We are a local business focused on quality', $campaign->brand->brand_overview);
-        $this->assertEquals('Founded in 2020 with a passion for excellence', $campaign->brand->brand_story);
+        // Check that all fields were saved directly on the campaign
+        // Brand fields
+        $this->assertEquals('We are a local business focused on quality', $campaign->brand_overview);
+        $this->assertEquals('Founded in 2020 with a passion for excellence', $campaign->brand_story);
 
-        $this->assertNotNull($campaign->brief);
-        $this->assertEquals('Summer Campaign 2024', $campaign->brief->project_name);
-        $this->assertEquals('John Doe', $campaign->brief->main_contact);
-        $this->assertEquals('Increase brand awareness in local market', $campaign->brief->campaign_objective);
+        // Brief fields
+        $this->assertEquals('Summer Campaign 2024', $campaign->project_name);
+        $this->assertEquals('John Doe', $campaign->main_contact);
+        $this->assertEquals('Increase brand awareness in local market', $campaign->campaign_objective);
 
-        $this->assertNotNull($campaign->requirements);
-        $this->assertEquals(['instagram_posts' => 2, 'stories' => 3], $campaign->requirements->social_requirements);
-        $this->assertEquals(['instagram', 'tiktok'], $campaign->requirements->target_platforms);
+        // Requirements fields
+        $this->assertEquals(['instagram_posts' => 2, 'stories' => 3], $campaign->social_requirements);
+        $this->assertEquals(['instagram', 'tiktok'], $campaign->target_platforms);
 
-        $this->assertNotNull($campaign->compensation);
-        $this->assertEquals(CompensationType::MONETARY, $campaign->compensation->compensation_type);
-        $this->assertEquals(500, $campaign->compensation->compensation_amount);
-        $this->assertEquals('$500 payment for completed campaign', $campaign->compensation->compensation_description);
+        // Compensation fields
+        $this->assertEquals(CompensationType::MONETARY, $campaign->compensation_type);
+        $this->assertEquals(500, $campaign->compensation_amount);
+        $this->assertEquals('$500 payment for completed campaign', $campaign->compensation_description);
     }
 
     public function test_publish_campaign_updates_status_and_fires_event()

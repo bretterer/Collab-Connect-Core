@@ -24,7 +24,7 @@ class HighMatchScoreTest extends TestCase
     {
         // Create postal codes for exact location match
         PostalCode::factory()->create(['postal_code' => '49503']);
-        
+
         // Create business user with profile
         $businessUser = User::factory()->business()->withProfile([
             'industry' => BusinessIndustry::FITNESS_WELLNESS,
@@ -50,9 +50,6 @@ class HighMatchScoreTest extends TestCase
         $score = MatchScore::calculateMatchScore($campaign, $influencerUser->influencer);
         $breakdown = MatchScore::getDetailedScoreBreakdown($campaign, $influencerUser->influencer);
 
-        dump('Perfect Match Score: ' . $score);
-        dump('Breakdown:', $breakdown);
-
         $this->assertGreaterThan(90, $score);
     }
 
@@ -64,9 +61,9 @@ class HighMatchScoreTest extends TestCase
             'latitude' => 42.9634,
             'longitude' => -85.6681,
         ]);
-        
+
         PostalCode::factory()->create([
-            'postal_code' => '49504', 
+            'postal_code' => '49504',
             'latitude' => 42.9734, // About 1-2 miles difference
             'longitude' => -85.6581,
         ]);
@@ -96,8 +93,6 @@ class HighMatchScoreTest extends TestCase
         $score = MatchScore::calculateMatchScore($campaign, $influencerUser->influencer, 50);
         $breakdown = MatchScore::getDetailedScoreBreakdown($campaign, $influencerUser->influencer, 50);
 
-        dump('High Match Score: ' . $score);
-        dump('Breakdown:', $breakdown);
 
         $this->assertGreaterThan(80, $score);
         $this->assertLessThan(95, $score);
@@ -130,8 +125,6 @@ class HighMatchScoreTest extends TestCase
         $score = MatchScore::calculateMatchScore($campaign, $influencerUser->influencer);
         $breakdown = MatchScore::getDetailedScoreBreakdown($campaign, $influencerUser->influencer);
 
-        dump('Good Match Score: ' . $score);
-        dump('Breakdown:', $breakdown);
 
         $this->assertGreaterThan(75, $score);
         $this->assertLessThan(90, $score);
@@ -151,7 +144,7 @@ class HighMatchScoreTest extends TestCase
             'latitude' => 42.9634,
             'longitude' => -85.6681,
         ]);
-        
+
         PostalCode::factory()->create([
             'postal_code' => '49505',
             'latitude' => 42.9834, // Close but not exact
@@ -182,7 +175,6 @@ class HighMatchScoreTest extends TestCase
 
         $score = MatchScore::calculateMatchScore($campaign, $influencerUser->influencer, 50);
 
-        dump('Target Score Result: ' . $score);
 
         $this->assertGreaterThan(90, $score);
         $this->assertLessThan(100, $score);
