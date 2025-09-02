@@ -5,8 +5,12 @@ namespace App\Livewire\Applications;
 use App\Enums\CampaignApplicationStatus;
 use App\Livewire\BaseComponent;
 use App\Models\CampaignApplication;
+use App\Models\Chat;
+use App\Notifications\CampaignApplicationAcceptedNotification;
+use App\Notifications\CampaignApplicationDeclinedNotification;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Masmerise\Toaster\Toaster;
 
 #[Layout('layouts.app')]
 class ViewApplication extends BaseComponent
@@ -31,7 +35,7 @@ class ViewApplication extends BaseComponent
     public function acceptApplication()
     {
         if ($this->application->status !== CampaignApplicationStatus::PENDING) {
-            $this->flashError('This application has already been processed.');
+            Toaster::error('This application has already been processed.');
 
             return;
         }
@@ -41,13 +45,16 @@ class ViewApplication extends BaseComponent
             'accepted_at' => now(),
         ]);
 
-        $this->flashSuccess('Application accepted successfully! The influencer has been notified.');
+        $this->application->user->notify(new CampaignApplicationAcceptedNotification($this->application->fresh()));
+        Chat::findOrCreateBetweenUsers($this->application->campaign->business->owner->first(), $this->application->user);
+
+        Toaster::success('Application accepted successfully! The influencer has been notified.');
     }
 
     public function declineApplication()
     {
         if ($this->application->status !== CampaignApplicationStatus::PENDING) {
-            $this->flashError('This application has already been processed.');
+            Toaster::error('This application has already been processed.');
 
             return;
         }
@@ -57,7 +64,8 @@ class ViewApplication extends BaseComponent
             'rejected_at' => now(),
         ]);
 
-        $this->flashSuccess('Application declined. The influencer has been notified.');
+        $this->application->user->notify(new CampaignApplicationDeclinedNotification($this->application->fresh()));
+        Toaster::success('Application declined successfully! The influencer has been notified.');
     }
 
     public function render()

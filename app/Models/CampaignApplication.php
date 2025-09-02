@@ -48,6 +48,11 @@ class CampaignApplication extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function business(): BelongsTo
+    {
+        return $this->belongsTo(Business::class);
+    }
+
     public function isPending(): bool
     {
         return $this->status === CampaignApplicationStatus::PENDING;
