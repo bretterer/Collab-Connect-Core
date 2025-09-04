@@ -365,7 +365,6 @@ class CampaignServiceTest extends TestCase
         $campaign = Campaign::factory()->withFullDetails()->create();
 
         $this->assertIsString($campaign->getCompensationDisplayAttribute());
-        $this->assertIsBool($campaign->isMonetaryCompensation());
     }
 
     public function test_campaign_scopes_work_correctly()

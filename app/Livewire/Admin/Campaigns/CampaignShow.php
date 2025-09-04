@@ -13,11 +13,7 @@ class CampaignShow extends Component
 
     public function mount(Campaign $campaign)
     {
-        $this->campaign = $campaign->load([
-            'compensation',
-            'requirements',
-            'brief',
-        ]);
+        $this->campaign = $campaign;
     }
 
     public function render()

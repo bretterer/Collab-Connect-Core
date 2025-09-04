@@ -160,7 +160,7 @@
                                 </div>
 
                                 <!-- Target Location -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <flux:input
                                         type="text"
                                         wire:model="targetZipCode"
@@ -168,21 +168,6 @@
                                         placeholder="45066"
                                         required />
                                     @error('targetZipCode') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-
-                                    <flux:input
-                                        type="text"
-                                        wire:model="targetArea"
-                                        label="Target Area (Optional)"
-                                        placeholder="Downtown Cincinnati" />
-                                </div>
-
-                                <!-- Main Contact -->
-                                <div>
-                                    <flux:input
-                                        type="text"
-                                        wire:model="mainContact"
-                                        label="Main Contact"
-                                        placeholder="Your name or contact person" />
                                 </div>
                             </div>
                         </div>

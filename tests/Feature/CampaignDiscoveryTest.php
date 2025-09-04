@@ -94,38 +94,6 @@ class CampaignDiscoveryTest extends TestCase
             ->assertDontSee('Draft campaign');
     }
 
-    public function test_campaign_search_by_compensation_type()
-    {
-        $this->actingAs($this->influencerUser);
-
-        // Create campaigns with different compensation types
-        $monetaryCampaign = Campaign::factory()->published()->withFullDetails()->create([
-            'business_id' => $this->businessUser->currentBusiness->id,
-            'campaign_goal' => 'Paid collaboration',
-        ]);
-
-        $productCampaign = Campaign::factory()->published()->withFullDetails()->create([
-            'business_id' => $this->businessUser->currentBusiness->id,
-            'campaign_goal' => 'Product collaboration',
-        ]);
-
-        // Set the compensation types through the relationships
-        $monetaryCampaign->compensation()->update([
-            'compensation_type' => CompensationType::MONETARY,
-            'compensation_amount' => 500,
-        ]);
-
-        $productCampaign->compensation()->update([
-            'compensation_type' => CompensationType::FREE_PRODUCT,
-            'compensation_description' => 'Free products worth $200',
-        ]);
-
-        $component = Livewire::test('campaigns.influencer-campaigns');
-
-        // Should see both campaigns
-        $component->assertSee('Paid collaboration')
-            ->assertSee('Product collaboration');
-    }
 
     public function test_campaign_filtering_by_type()
     {
@@ -356,41 +324,4 @@ class CampaignDiscoveryTest extends TestCase
             ->assertSee('Active campaign');
     }
 
-    public function test_campaign_compensation_display()
-    {
-        $this->actingAs($this->influencerUser);
-
-        $campaign = Campaign::factory()->published()->withFullDetails()->create([
-            'business_id' => $this->businessUser->currentBusiness->id,
-        ]);
-
-        // Update compensation to specific values
-        $campaign->compensation()->update([
-            'compensation_type' => CompensationType::MONETARY,
-            'compensation_amount' => 750,
-            'compensation_description' => '$750 for completed campaign',
-        ]);
-
-        $component = Livewire::test('campaigns.apply-to-campaign', ['campaign' => $campaign]);
-
-        // Should display compensation information
-        $compensationDisplay = $campaign->fresh()->getCompensationDisplayAttribute();
-        $this->assertIsString($compensationDisplay);
-        $this->assertNotEquals('Not set', $compensationDisplay);
-    }
-
-    public function test_campaign_requirements_display()
-    {
-        $this->actingAs($this->influencerUser);
-
-        $campaign = Campaign::factory()->published()->withFullDetails()->create([
-            'business_id' => $this->businessUser->currentBusiness->id,
-        ]);
-
-        // Verify campaign has requirements
-        $this->assertNotNull($campaign->requirements);
-        $this->assertNotNull($campaign->requirements->target_platforms);
-        $this->assertNotNull($campaign->requirements->deliverables);
-        $this->assertNotNull($campaign->requirements->success_metrics);
-    }
 }

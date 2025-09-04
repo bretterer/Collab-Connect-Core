@@ -108,26 +108,6 @@ class Campaign extends Model
         return $this->hasMany(CampaignApplication::class);
     }
 
-    public function brief(): HasOne
-    {
-        return $this->hasOne(CampaignBrief::class);
-    }
-
-    public function brand(): HasOne
-    {
-        return $this->hasOne(CampaignBrand::class);
-    }
-
-    public function requirements(): HasOne
-    {
-        return $this->hasOne(CampaignRequirements::class);
-    }
-
-    public function compensation(): HasOne
-    {
-        return $this->hasOne(CampaignCompensation::class);
-    }
-
     public function isDraft(): bool
     {
         return $this->status === CampaignStatus::DRAFT;
@@ -183,12 +163,7 @@ class Campaign extends Model
      */
     public function getCompensationDisplayAttribute(): string
     {
-        // If we have compensation relationship data, use that
-        if ($this->compensation) {
-            return $this->compensation->compensation_display;
-        }
-
-        // Otherwise, build display from direct fields
+        // Build display from direct fields
         if ($this->compensation_type && $this->compensation_amount) {
             return match ($this->compensation_type) {
                 \App\Enums\CompensationType::MONETARY => '$'.number_format($this->compensation_amount),
@@ -205,13 +180,6 @@ class Campaign extends Model
         return 'Not set';
     }
 
-    /**
-     * Check if campaign has monetary compensation through relationship
-     */
-    public function isMonetaryCompensation(): bool
-    {
-        return $this->compensation?->isMonetaryCompensation() ?? false;
-    }
 
     /**
      * Find influencers that match this campaign based on threshold score.

@@ -107,9 +107,6 @@ class Dashboard extends Component
             ->where('status', CampaignStatus::PUBLISHED)
             ->with([
                 'business',
-                'compensation',
-                'requirements',
-                'brief',
             ])
             ->get();
 
