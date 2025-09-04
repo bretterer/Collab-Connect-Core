@@ -37,7 +37,7 @@ class ShowCampaign extends Component
         }
 
         // Check if current user is the owner
-        $this->isOwner = $this->campaign->business->owner->first()->id === Auth::user()->id;
+        $this->isOwner = $this->campaign->business->members->pluck('id')->contains(Auth::user()->id);
 
         // Use the policy to authorize viewing
         $this->authorize('view', $campaign);

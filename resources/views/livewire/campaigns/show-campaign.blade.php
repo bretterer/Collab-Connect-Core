@@ -11,7 +11,7 @@
                             </svg>
                             Back to Campaigns
                         </a>
-                    @else
+                    @elseif(auth()->check() && auth()->user()->isInfluencerAccount())
                         <a href="{{ route('discover') }}" class="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-200">
                             <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -92,7 +92,7 @@
                                     </div>
                                 @endif
                             </div>
-                        @else
+                        @elseif(auth()->check() && auth()->user()->isInfluencerAccount())
                             @livewire('campaigns.apply-to-campaign', ['campaign' => $campaign])
                         @endif
                     </div>
@@ -459,12 +459,16 @@
                             <a href="{{ route('dashboard') }}" class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-4 rounded-lg transition-colors duration-200 text-center block">
                                 Back to Dashboard
                             </a>
-                        @else
+                        @elseif(auth()->check() && auth()->user()->isInfluencerAccount())
                             <button wire:click="applyToCampaign" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
                                 Apply to Campaign
                             </button>
                             <a href="{{ route('discover') }}" class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-4 rounded-lg transition-colors duration-200 text-center block">
                                 Back to Discover
+                            </a>
+                        @else
+                            <a href="{{ route('campaigns.index') }}" class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-4 rounded-lg transition-colors duration-200 text-center block">
+                                Campaigns
                             </a>
                         @endif
                     </div>
