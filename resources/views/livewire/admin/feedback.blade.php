@@ -15,8 +15,8 @@
             <!-- Search -->
             <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search</label>
-                <input 
-                    wire:model.live.debounce.300ms="search" 
+                <input
+                    wire:model.live.debounce.300ms="search"
                     placeholder="Search by subject, message, or user..."
                     class="block w-full px-3 py-2 text-base rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:text-white dark:placeholder-gray-400"
                 >
@@ -73,7 +73,7 @@
                                 <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $feedback->type->icon() }}" />
                                 </svg>
-                                <span class="text-sm">{{ $feedback->type->label() }}</span>
+                                <span class="text-sm text-gray-900 dark:text-gray-100">{{ $feedback->type->label() }}</span>
                             </div>
                         </td>
                         <td class="px-6 py-4">
@@ -109,7 +109,7 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <button 
+                            <button
                                 wire:click="viewFeedback({{ $feedback->id }})"
                                 class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                             >
@@ -135,7 +135,7 @@
 
     <!-- Feedback Detail Modal -->
     @if($selectedFeedback)
-        <div 
+        <div
             x-data="{ show: @entangle('showModal') }"
             x-show="show"
             x-transition:enter="transition ease-out duration-300"
@@ -152,7 +152,7 @@
 
             <!-- Modal content -->
             <div class="flex min-h-full items-center justify-center p-4">
-                <div 
+                <div
                     x-show="show"
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -179,7 +179,7 @@
                                     @endif
                                 </div>
                             </div>
-                            <button 
+                            <button
                                 wire:click="closeModal"
                                 class="rounded-md bg-white dark:bg-gray-800 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
@@ -205,9 +205,9 @@
                             <div>
                                 <h4 class="text-base font-medium text-gray-900 dark:text-white mb-2">Screenshot</h4>
                                 <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                                    <img 
-                                        src="{{ $this->getScreenshotUrl($selectedFeedback->screenshot_path) }}" 
-                                        alt="Feedback Screenshot" 
+                                    <img
+                                        src="{{ $this->getScreenshotUrl($selectedFeedback->screenshot_path) }}"
+                                        alt="Feedback Screenshot"
                                         class="max-w-full h-auto rounded-lg"
                                     >
                                 </div>
@@ -220,7 +220,7 @@
                             @if($selectedFeedback->browser_info)
                                 <div>
                                     <h4 class="text-base font-medium text-gray-900 dark:text-white mb-2">Browser Info</h4>
-                                    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 text-sm">
+                                    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 text-sm text-gray-700 dark:text-gray-300">
                                         <div><strong>URL:</strong> {{ $selectedFeedback->url }}</div>
                                         @if($selectedFeedback->browser_info['user_agent'] ?? null)
                                             <div class="mt-1"><strong>User Agent:</strong> {{ Str::limit($selectedFeedback->browser_info['user_agent'], 80) }}</div>
@@ -236,7 +236,7 @@
                             @if($selectedFeedback->session_data)
                                 <div>
                                     <h4 class="text-base font-medium text-gray-900 dark:text-white mb-2">Session Info</h4>
-                                    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 text-sm">
+                                    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 text-sm text-gray-700 dark:text-gray-300">
                                         @if($selectedFeedback->session_data['timestamp'] ?? null)
                                             <div><strong>Timestamp:</strong> {{ $selectedFeedback->session_data['timestamp'] }}</div>
                                         @endif
@@ -253,9 +253,9 @@
                             <div>
                                 <h4 class="text-base font-medium text-gray-900 dark:text-white mb-2">GitHub Issue</h4>
                                 <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
-                                    <a 
-                                        href="{{ $selectedFeedback->github_issue_url }}" 
-                                        target="_blank" 
+                                    <a
+                                        href="{{ $selectedFeedback->github_issue_url }}"
+                                        target="_blank"
                                         class="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center space-x-2"
                                     >
                                         <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
@@ -270,14 +270,14 @@
                         <!-- Admin Notes -->
                         <div>
                             <h4 class="text-base font-medium text-gray-900 dark:text-white mb-2">Admin Notes</h4>
-                            <textarea 
-                                wire:model="adminNotes" 
+                            <textarea
+                                wire:model="adminNotes"
                                 rows="4"
                                 placeholder="Add internal notes about this feedback..."
                                 class="block w-full px-3 py-3 text-base rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:text-white dark:placeholder-gray-400 resize-vertical"
                             ></textarea>
                             <div class="mt-2">
-                                <button 
+                                <button
                                     wire:click="saveNotes"
                                     class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                 >
@@ -290,7 +290,7 @@
                     <!-- Modal Footer -->
                     <div class="mt-6 flex items-center justify-end space-x-3">
                         @if($selectedFeedback->github_issue_url)
-                            <button 
+                            <button
                                 onclick="window.open('{{ $selectedFeedback->github_issue_url }}', '_blank')"
                                 class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                             >
@@ -298,7 +298,7 @@
                             </button>
                         @else
                             @if($this->isGitHubConfigured())
-                                <button 
+                                <button
                                     wire:click="createGitHubIssue"
                                     wire:loading.attr="disabled"
                                     class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -314,14 +314,14 @@
                         @endif
 
                         @if($selectedFeedback->resolved)
-                            <button 
+                            <button
                                 wire:click="markAsUnresolved"
                                 class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                             >
                                 Mark as Unresolved
                             </button>
                         @else
-                            <button 
+                            <button
                                 wire:click="markAsResolved"
                                 class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                             >
@@ -329,7 +329,7 @@
                             </button>
                         @endif
 
-                        <button 
+                        <button
                             wire:click="closeModal"
                             class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         >
