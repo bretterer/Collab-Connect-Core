@@ -267,7 +267,13 @@
                         <div class="space-y-2 mb-4">
                             <div class="flex items-center justify-between text-sm">
                                 <span class="text-gray-500 dark:text-gray-400">Campaign Type:</span>
-                                <span class="font-medium text-gray-900 dark:text-white">{{ $campaign->campaign_type?->label() ?? 'N/A' }}</span>
+                                <span class="font-medium text-gray-900 dark:text-white">
+                                    @if(is_array($campaign->campaign_type) && count($campaign->campaign_type) > 0)
+                                        {{ collect($campaign->campaign_type)->map(fn($type) => \App\Enums\CampaignType::from($type)->label())->take(2)->join(', ') }}{{ count($campaign->campaign_type) > 2 ? ' +' . (count($campaign->campaign_type) - 2) . ' more' : '' }}
+                                    @else
+                                        N/A
+                                    @endif
+                                </span>
                             </div>
                             <div class="flex items-center justify-between text-sm">
                                 <span class="text-gray-500 dark:text-gray-400">Compensation:</span>

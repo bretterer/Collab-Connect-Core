@@ -32,7 +32,10 @@ class CampaignFactory extends Factory
             'business_id' => Business::factory(),
             'status' => CampaignStatus::DRAFT,
             'campaign_goal' => $this->faker->sentence(),
-            'campaign_type' => $this->faker->randomElement(CampaignType::cases()),
+            'campaign_type' => $this->faker->randomElements(
+                array_map(fn($case) => $case->value, CampaignType::cases()), 
+                $this->faker->numberBetween(1, 3)
+            ),
             'target_zip_code' => $this->faker->numerify('#####'),
             'target_area' => $this->faker->city(),
             'campaign_description' => $this->faker->paragraph(),

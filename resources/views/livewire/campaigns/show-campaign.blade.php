@@ -35,7 +35,13 @@
                             </svg>
                         </div>
                         <h2 class="text-2xl font-bold mb-2">{{ $campaign->project_name ?: 'Campaign Opportunity' }}</h2>
-                        <p class="text-lg opacity-90">{{ $campaign->campaign_type->label() }}</p>
+                        <p class="text-lg opacity-90">
+                            @if(is_array($campaign->campaign_type) && count($campaign->campaign_type) > 0)
+                                {{ collect($campaign->campaign_type)->map(fn($type) => \App\Enums\CampaignType::from($type)->label())->join(', ') }}
+                            @else
+                                Multiple Campaign Types
+                            @endif
+                        </p>
                     </div>
                 </div>
                 <div class="absolute top-4 right-4">
@@ -63,7 +69,13 @@
                                 <div class="text-sm opacity-75">Influencers</div>
                             </div>
                             <div class="text-center">
-                                <div class="text-2xl font-bold">{{ $campaign->campaign_type->label() }}</div>
+                                <div class="text-2xl font-bold">
+                                    @if(is_array($campaign->campaign_type) && count($campaign->campaign_type) > 0)
+                                        {{ count($campaign->campaign_type) }} Type{{ count($campaign->campaign_type) > 1 ? 's' : '' }}
+                                    @else
+                                        Multiple
+                                    @endif
+                                </div>
                                 <div class="text-sm opacity-75">Type</div>
                             </div>
                             <div class="text-center">
@@ -262,7 +274,17 @@
                         <div class="space-y-4">
                             <div>
                                 <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Campaign Type</h3>
-                                <p class="text-lg font-medium text-gray-900 dark:text-white">{{ ucwords(str_replace('_', ' ', $campaign->campaign_type->value)) }}</p>
+                                <div class="text-lg font-medium text-gray-900 dark:text-white">
+                                    @if(is_array($campaign->campaign_type) && count($campaign->campaign_type) > 0)
+                                        @foreach($campaign->campaign_type as $type)
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 mr-2 mb-1">
+                                                {{ \App\Enums\CampaignType::from($type)->label() }}
+                                            </span>
+                                        @endforeach
+                                    @else
+                                        <span class="text-gray-400">No types selected</span>
+                                    @endif
+                                </div>
                             </div>
                             <div>
                                 <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Compensation</h3>

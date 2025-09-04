@@ -70,7 +70,7 @@ class Campaign extends Model
         'current_step' => 'integer',
         'published_at' => 'datetime',
         'status' => CampaignStatus::class,
-        'campaign_type' => \App\Enums\CampaignType::class,
+        'campaign_type' => 'array',
         'compensation_type' => \App\Enums\CompensationType::class,
         'compensation_details' => 'array',
         'social_requirements' => 'array',

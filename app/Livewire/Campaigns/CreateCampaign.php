@@ -17,7 +17,7 @@ class CreateCampaign extends BaseComponent
     // Step 1: Campaign Goal & Type
     public string $campaignGoal = '';
 
-    public string $campaignType = '';
+    public array $campaignType = [];
 
     public string $targetZipCode = '';
 
@@ -224,7 +224,7 @@ class CreateCampaign extends BaseComponent
         $this->authorize('update', $campaign);
 
         $this->campaignGoal = $campaign->campaign_goal;
-        $this->campaignType = $campaign->campaign_type->value;
+        $this->campaignType = $campaign->campaign_type ?? [];
         $this->targetZipCode = $campaign->target_zip_code ?? '';
         $this->targetArea = $campaign->target_area ?? '';
         $this->campaignDescription = $campaign->campaign_description;
@@ -305,7 +305,8 @@ class CreateCampaign extends BaseComponent
             case 1:
                 $this->validate([
                     'campaignGoal' => 'required|min:10',
-                    'campaignType' => 'required|in:sponsored_posts,product_reviews,event_coverage,giveaways,brand_partnerships,seasonal_content,behind_scenes,user_generated',
+                    'campaignType' => 'required|array|min:1',
+                    'campaignType.*' => 'required|in:sponsored_posts,product_reviews,event_coverage,giveaways,brand_partnerships,seasonal_content,behind_scenes,user_generated',
                     'targetZipCode' => 'required|regex:/^\d{5}$/',
                 ]);
                 break;

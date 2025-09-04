@@ -17,7 +17,7 @@ class EditCampaign extends BaseComponent
     // Step 1: Campaign Goal & Type
     public string $campaignGoal = '';
 
-    public string $campaignType = '';
+    public array $campaignType = [];
 
     public string $targetZipCode = '';
 
@@ -161,7 +161,7 @@ class EditCampaign extends BaseComponent
         }
 
         $this->campaignGoal = $campaign->campaign_goal;
-        $this->campaignType = $campaign->campaign_type->value;
+        $this->campaignType = $campaign->campaign_type ?? [];
         $this->targetZipCode = $campaign->target_zip_code ?? '';
         $this->targetArea = $campaign->target_area ?? '';
         $this->campaignDescription = $campaign->campaign_description;
@@ -212,7 +212,8 @@ class EditCampaign extends BaseComponent
             case 1:
                 $this->validate([
                     'campaignGoal' => 'required|string|max:255',
-                    'campaignType' => 'required|string',
+                    'campaignType' => 'required|array|min:1',
+                    'campaignType.*' => 'required|in:sponsored_posts,product_reviews,event_coverage,giveaways,brand_partnerships,seasonal_content,behind_scenes,user_generated',
                     'targetZipCode' => 'nullable|string|max:10',
                     'targetArea' => 'nullable|string|max:255',
                 ]);
@@ -323,7 +324,8 @@ class EditCampaign extends BaseComponent
     {
         $this->validate([
             'campaignGoal' => 'required|string|max:255',
-            'campaignType' => 'required|string',
+            'campaignType' => 'required|array|min:1',
+            'campaignType.*' => 'required|in:sponsored_posts,product_reviews,event_coverage,giveaways,brand_partnerships,seasonal_content,behind_scenes,user_generated',
             'compensationType' => 'required|string',
             'compensationAmount' => 'required_if:compensationType,monetary|integer|min:0',
             'influencerCount' => 'required|integer|min:1',

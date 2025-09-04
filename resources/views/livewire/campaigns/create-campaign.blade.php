@@ -130,24 +130,34 @@
 
                                 <!-- Campaign Type Selection -->
                                 <div>
-                                    <flux:label>Campaign Type</flux:label>
+                                    <flux:label>Campaign Type (Select all that apply)</flux:label>
                                     <div class="mt-3 space-y-2">
                                         @foreach($this->getCampaignTypeOptions() as $type)
-                                            <label class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 {{ $campaignType === $type['value'] ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700' }}">
+                                            <label class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 {{ in_array($type['value'], $campaignType) ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700' }}">
                                                 <input
-                                                    type="radio"
+                                                    type="checkbox"
                                                     wire:model="campaignType"
                                                     value="{{ $type['value'] }}"
-                                                    class="text-blue-600" />
+                                                    class="text-blue-600 rounded" />
                                                 <div class="flex-1">
                                                     <span class="text-gray-900 dark:text-white font-medium">{{ $type['label'] }}</span>
                                                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                                                        @if($type['value'] == 'user_generated')
-                                                            Influencers create original content featuring your brand
-                                                        @elseif($type['value'] == 'social_post')
-                                                            Dedicated social media posts about your business
-                                                        @elseif($type['value'] == 'product_placement')
-                                                            Natural integration of your products into their content
+                                                        @if($type['value'] == 'sponsored_posts')
+                                                            Sponsored social media posts featuring your brand
+                                                        @elseif($type['value'] == 'product_reviews')
+                                                            Product or service reviews and testimonials
+                                                        @elseif($type['value'] == 'event_coverage')
+                                                            Live event coverage and real-time posting
+                                                        @elseif($type['value'] == 'giveaways')
+                                                            Contests and giveaway campaigns
+                                                        @elseif($type['value'] == 'brand_partnerships')
+                                                            Long-term brand partnership collaborations
+                                                        @elseif($type['value'] == 'seasonal_content')
+                                                            Seasonal and holiday themed content
+                                                        @elseif($type['value'] == 'behind_scenes')
+                                                            Behind-the-scenes content creation
+                                                        @elseif($type['value'] == 'user_generated')
+                                                            User-generated content campaigns
                                                         @else
                                                             Custom collaboration with flexible requirements
                                                         @endif
