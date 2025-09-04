@@ -61,8 +61,9 @@ class CampaignPolicy
             return true;
         }
 
-        // Only the campaign owner can update
-        return $campaign->business->owner->first()->id === $user->id;
+        // Only the campaign owner or member can update
+        return $campaign->business->owner->first()->id === $user->id ||
+               $campaign->business->members->contains($user->id);
     }
 
     /**
@@ -70,8 +71,9 @@ class CampaignPolicy
      */
     public function delete(User $user, Campaign $campaign): bool
     {
-        // Only the campaign owner can delete
-        return $campaign->business->owner->first()->id === $user->id;
+        // Only the campaign owner or member can delete
+        return $campaign->business->owner->first()->id === $user->id ||
+               $campaign->business->members->contains($user->id);
     }
 
     /**
@@ -97,8 +99,9 @@ class CampaignPolicy
      */
     public function publish(User $user, Campaign $campaign): bool
     {
-        // Only the campaign owner can publish
-        return $campaign->business->owner->first()->id === $user->id;
+        // Only the campaign owner or member can publish
+        return $campaign->business->owner->first()->id === $user->id ||
+               $campaign->business->members->contains($user->id);
     }
 
     /**
@@ -106,8 +109,9 @@ class CampaignPolicy
      */
     public function unpublish(User $user, Campaign $campaign): bool
     {
-        // Only the campaign owner can unpublish
-        return $campaign->business->owner->first()->id === $user->id;
+        // Only the campaign owner or member can unpublish
+        return $campaign->business->owner->first()->id === $user->id ||
+               $campaign->business->members->contains($user->id);
     }
 
     /**
@@ -115,8 +119,9 @@ class CampaignPolicy
      */
     public function archive(User $user, Campaign $campaign): bool
     {
-        // Only the campaign owner can archive
-        return $campaign->business->owner->first()->id === $user->id;
+        // Only the campaign owner or member can archive
+        return $campaign->business->owner->first()->id === $user->id ||
+               $campaign->business->members->contains($user->id);
     }
 
     /**

@@ -297,21 +297,6 @@ class AnalyticsService
     }
 
     /**
-     * Calculate campaign budget
-     */
-    private function getCampaignBudget(Campaign $campaign): float
-    {
-        if (! $campaign->compensation || ! $campaign->compensation->isMonetaryCompensation()) {
-            return 0;
-        }
-
-        $amount = $campaign->compensation->compensation_amount ?? 0;
-        $influencerCount = $campaign->influencer_count ?? 1;
-
-        return $amount * $influencerCount;
-    }
-
-    /**
      * Get average response time to applications
      */
     private function getAverageResponseTime(): float

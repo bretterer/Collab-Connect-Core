@@ -25,10 +25,6 @@ class ShowCampaign extends Component
     {
         // Load the campaign with all relationships
         $this->campaign = $campaign->load([
-            'brief',
-            'brand',
-            'requirements',
-            'compensation',
             'applications.user.influencer',
         ]);
 

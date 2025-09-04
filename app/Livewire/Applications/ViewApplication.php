@@ -26,9 +26,6 @@ class ViewApplication extends BaseComponent
 
         $this->application = $application->load([
             'user.socialMediaAccounts',
-            'campaign.compensation',
-            'campaign.requirements',
-            'campaign.brief',
         ]);
     }
 

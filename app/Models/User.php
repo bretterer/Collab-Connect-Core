@@ -65,8 +65,10 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function setCurrentBusiness(Business $business): void
     {
-        $this->current_business = $business->id;
-        $this->save();
+        if($this->isBusinessAccount()) {
+            $this->current_business = $business->id;
+            $this->save();
+        }
     }
 
     public function businessInvites(): HasMany

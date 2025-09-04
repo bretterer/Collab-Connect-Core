@@ -245,11 +245,7 @@ class CampaignStatusTransitionTest extends TestCase
             'target_zip_code' => '49503',
         ]);
 
-        // Ensure all relationships exist
-        $this->assertNotNull($campaign->brief);
-        $this->assertNotNull($campaign->brand);
-        $this->assertNotNull($campaign->requirements);
-        $this->assertNotNull($campaign->compensation);
+
 
         // Publish the campaign
         $publishedCampaign = CampaignService::publishCampaign($campaign, $this->businessUser);
@@ -259,12 +255,6 @@ class CampaignStatusTransitionTest extends TestCase
         $this->assertEquals('Original goal', $publishedCampaign->campaign_goal);
         $this->assertEquals('49503', $publishedCampaign->target_zip_code);
         $this->assertNotNull($publishedCampaign->published_at);
-
-        // Verify relationships still exist
-        $this->assertNotNull($publishedCampaign->brief);
-        $this->assertNotNull($publishedCampaign->brand);
-        $this->assertNotNull($publishedCampaign->requirements);
-        $this->assertNotNull($publishedCampaign->compensation);
     }
 
     #[Test]
