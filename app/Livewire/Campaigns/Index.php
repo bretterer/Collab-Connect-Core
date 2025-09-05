@@ -13,6 +13,9 @@ class Index extends BaseComponent
 {
     public string $activeTab = 'drafts';
 
+    public bool $showArchiveModal = false;
+    public ?int $campaignToArchive = null;
+
     public function mount()
     {
         // Ensure user is authenticated and is a business account
@@ -51,14 +54,32 @@ class Index extends BaseComponent
         return CampaignService::getUserArchived($this->getAuthenticatedUser());
     }
 
-    public function archiveCampaign($campaignId)
+    public function confirmArchive($campaignId)
     {
-        $campaign = $this->getAuthenticatedUser()->campaigns()->find($campaignId);
+        $this->campaignToArchive = $campaignId;
+        $this->showArchiveModal = true;
+    }
+
+    public function archiveCampaign()
+    {
+        if (!$this->campaignToArchive) {
+            return;
+        }
+
+        $campaign = $this->getAuthenticatedUser()->campaigns()->find($this->campaignToArchive);
 
         if ($campaign) {
             CampaignService::archiveCampaign($campaign);
             session()->flash('message', 'Campaign archived successfully!');
         }
+
+        $this->closeArchiveModal();
+    }
+
+    public function closeArchiveModal()
+    {
+        $this->showArchiveModal = false;
+        $this->campaignToArchive = null;
     }
 
     public function startCampaign($campaignId)

@@ -87,8 +87,7 @@
                                             Continue Editing
                                         </a>
                                         <button
-                                            wire:click="archiveCampaign({{ $campaign->id }})"
-                                            wire:confirm="Are you sure you want to archive this campaign?"
+                                            wire:click="confirmArchive({{ $campaign->id }})"
                                             class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
                                             Archive
                                         </button>
@@ -146,8 +145,7 @@
                                             Start Campaign
                                         </button>
                                         <button
-                                            wire:click="archiveCampaign({{ $campaign->id }})"
-                                            wire:confirm="Are you sure you want to archive this campaign?"
+                                            wire:click="confirmArchive({{ $campaign->id }})"
                                             class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
                                             Archive
                                         </button>
@@ -195,8 +193,7 @@
                                             View Details
                                         </a>
                                         <button
-                                            wire:click="archiveCampaign({{ $campaign->id }})"
-                                            wire:confirm="Are you sure you want to archive this campaign?"
+                                            wire:click="confirmArchive({{ $campaign->id }})"
                                             class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
                                             Archive
                                         </button>
@@ -243,8 +240,7 @@
                                             View Details
                                         </a>
                                         <button
-                                            wire:click="archiveCampaign({{ $campaign->id }})"
-                                            wire:confirm="Are you sure you want to archive this campaign?"
+                                            wire:click="confirmArchive({{ $campaign->id }})"
                                             class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
                                             Archive
                                         </button>
@@ -308,4 +304,21 @@
             @endif
         </div>
     </div>
+
+    <!-- Archive Confirmation Modal -->
+    <flux:modal wire:model="showArchiveModal" class="space-y-6">
+        <div class="flex items-center gap-3">
+            <flux:icon.exclamation-triangle class="size-6 text-red-500" />
+            <flux:heading size="lg">Archive Campaign</flux:heading>
+        </div>
+
+        <flux:text>
+            Are you sure you want to archive this campaign? This action will remove it from active campaigns but you can still view it in the archived section.
+        </flux:text>
+
+        <div class="flex gap-2 justify-end">
+            <flux:button variant="ghost" wire:click="closeArchiveModal">Cancel</flux:button>
+            <flux:button variant="danger" wire:click="archiveCampaign">Archive Campaign</flux:button>
+        </div>
+    </flux:modal>
 </div>
