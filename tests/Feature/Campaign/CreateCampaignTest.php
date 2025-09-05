@@ -8,6 +8,7 @@ use App\Enums\DeliverableType;
 use App\Enums\SuccessMetric;
 use App\Enums\TargetPlatform;
 use App\Livewire\Campaigns\CreateCampaign;
+use App\Models\Campaign;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -30,7 +31,7 @@ class CreateCampaignTest extends TestCase
             ->assertSet('currentStep', 1)
             ->set('projectName', 'New Campaign')
             ->set('campaignGoal', 'Increase Awareness')
-            ->set('campaignType', CampaignType::BRAND_PARTNERSHIPS)
+            ->set('campaignType', [CampaignType::BRAND_PARTNERSHIPS])
             ->set('targetZipCode', '45066')
             ->call('nextStep')
             ->assertSet('currentStep', 2)
@@ -79,7 +80,7 @@ class CreateCampaignTest extends TestCase
             'business_id' => $business->id,
             'project_name' => 'New Campaign',
             'campaign_goal' => 'Increase Awareness',
-            'campaign_type' => CampaignType::BRAND_PARTNERSHIPS,
+            'campaign_type' => '["brand_partnerships"]',
             'target_zip_code' => '45066',
             'brand_overview' => 'This is a great brand.',
             'current_advertising_campaign' => 'We advertise on social media.',
@@ -120,7 +121,7 @@ class CreateCampaignTest extends TestCase
             ->assertSet('currentStep', 1)
             ->set('projectName', 'New Campaign')
             ->set('campaignGoal', 'Increase Awareness')
-            ->set('campaignType', CampaignType::BRAND_PARTNERSHIPS)
+            ->set('campaignType', [CampaignType::BRAND_PARTNERSHIPS])
             ->set('targetZipCode', '45066')
             ->call('nextStep')
             ->assertSet('currentStep', 2)
@@ -169,7 +170,7 @@ class CreateCampaignTest extends TestCase
             'business_id' => $business->id,
             'project_name' => 'New Campaign',
             'campaign_goal' => 'Increase Awareness',
-            'campaign_type' => CampaignType::BRAND_PARTNERSHIPS,
+            'campaign_type' => '["brand_partnerships"]',
             'target_zip_code' => '45066',
             'brand_overview' => 'This is a great brand.',
             'current_advertising_campaign' => 'We advertise on social media.',

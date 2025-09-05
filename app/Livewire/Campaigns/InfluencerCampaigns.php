@@ -188,7 +188,7 @@ class InfluencerCampaigns extends BaseComponent
             'campaign' => [
                 'goal' => $campaign->campaign_goal,
                 'description' => $campaign->campaign_description,
-                'campaign_type' => $campaign->campaign_type?->value ?? 'Not set',
+                'campaign_type' => $campaign->campaign_type ? $campaign->campaign_type->pluck('value')->join(', ') : 'Not set',
                 'compensation_type' => $campaign->compensation_type?->value ?? 'Not set',
                 'compensation_amount' => $campaign->compensation_amount ?? 'Not set',
                 'target_zip_code' => $campaign->target_zip_code ?? 'Not set',

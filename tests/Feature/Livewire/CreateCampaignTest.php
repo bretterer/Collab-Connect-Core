@@ -79,7 +79,7 @@ class CreateCampaignTest extends TestCase
 
         Livewire::test('campaigns.create-campaign')
             ->set('campaignGoal', 'Promote our new coffee blend to local coffee enthusiasts')
-            ->set('campaignType', 'user_generated')
+            ->set('campaignType', ['user_generated'])
             ->set('targetZipCode', '49503')
             ->set('targetArea', 'Grand Rapids, MI')
             ->call('nextStep')
@@ -93,7 +93,7 @@ class CreateCampaignTest extends TestCase
 
         $component = Livewire::test('campaigns.create-campaign')
             ->set('campaignGoal', 'Promote our new coffee blend to local coffee enthusiasts')
-            ->set('campaignType', 'user_generated')
+            ->set('campaignType', ['user_generated'])
             ->set('targetZipCode', '49503')
             ->call('nextStep');
 
@@ -107,7 +107,7 @@ class CreateCampaignTest extends TestCase
 
         Livewire::test('campaigns.create-campaign')
             ->set('campaignGoal', 'Promote our new coffee blend to local coffee enthusiasts')
-            ->set('campaignType', 'user_generated')
+            ->set('campaignType', ['user_generated'])
             ->set('targetZipCode', '49503')
             ->set('currentStep', 2) // Skip autoSave by directly setting step
             ->set('brandOverview', 'We are a local coffee roaster with over 15 years of experience in the Grand Rapids area. Our mission is to bring exceptional coffee experiences to our community while supporting sustainable farming practices.')
@@ -248,7 +248,7 @@ class CreateCampaignTest extends TestCase
 
         Livewire::test('campaigns.create-campaign')
             ->set('campaignGoal', 'Test campaign goal')
-            ->set('campaignType', 'user_generated')
+            ->set('campaignType', ['user_generated'])
             ->set('targetZipCode', '49503')
             ->call('saveDraft');
 
@@ -266,7 +266,7 @@ class CreateCampaignTest extends TestCase
 
         Livewire::test('campaigns.create-campaign')
             ->set('campaignGoal', 'Test campaign goal')
-            ->set('campaignType', 'user_generated')
+            ->set('campaignType', ['user_generated'])
             ->set('targetZipCode', '49503')
             ->call('saveAndExit')
             ->assertRedirect(route('campaigns.index'));
@@ -278,7 +278,7 @@ class CreateCampaignTest extends TestCase
 
         $component = Livewire::test('campaigns.create-campaign')
             ->set('campaignGoal', 'Test campaign for auto-save')
-            ->set('campaignType', 'user_generated')
+            ->set('campaignType', ['user_generated'])
             ->set('targetZipCode', '49503');
 
         // Trigger auto-save by calling it directly
@@ -300,7 +300,7 @@ class CreateCampaignTest extends TestCase
         $campaign = Campaign::factory()->create([
             'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Original campaign goal',
-            'campaign_type' => CampaignType::USER_GENERATED,
+            'campaign_type' => ['user_generated'],
             'target_zip_code' => '49503',
             'status' => CampaignStatus::DRAFT,
         ]);
@@ -309,7 +309,7 @@ class CreateCampaignTest extends TestCase
         Livewire::test('campaigns.create-campaign', ['campaignId' => $campaign->id])
             ->assertSet('campaignId', $campaign->id)
             ->assertSet('campaignGoal', 'Original campaign goal')
-            ->assertSet('campaignType', 'user_generated')
+            ->assertSet('campaignType', [CampaignType::USER_GENERATED->value])
             ->assertSet('targetZipCode', '49503')
             ->set('campaignGoal', 'Updated campaign goal')
             ->call('autoSave');
@@ -327,7 +327,7 @@ class CreateCampaignTest extends TestCase
 
         $component = Livewire::test('campaigns.create-campaign')
             ->set('campaignGoal', 'Test navigation')
-            ->set('campaignType', 'user_generated')
+            ->set('campaignType', ['user_generated'])
             ->set('targetZipCode', '49503')
             ->set('currentStep', 2) // Skip autoSave by directly setting step
             ->assertSet('currentStep', 2);
@@ -361,7 +361,7 @@ class CreateCampaignTest extends TestCase
     {
         return Livewire::test('campaigns.create-campaign')
             ->set('campaignGoal', 'Promote our new coffee blend to local coffee enthusiasts')
-            ->set('campaignType', 'user_generated')
+            ->set('campaignType', ['user_generated'])
             ->set('targetZipCode', '49503')
             ->set('currentStep', 2) // Skip autoSave by directly setting step
             ->set('brandOverview', 'We are a local coffee roaster with over 15 years of experience in the Grand Rapids area.')

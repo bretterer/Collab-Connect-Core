@@ -133,7 +133,7 @@
                                     <flux:label>Campaign Type (Select all that apply)</flux:label>
                                     <div class="mt-3 space-y-2">
                                         @foreach($this->getCampaignTypeOptions() as $type)
-                                            <label class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 {{ in_array($type['value'], $campaignType) ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700' }}">
+                                            <label class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 {{ collect($campaignType ?? [])->contains(function($item) use ($type) { return is_object($item) ? $item->value === $type['value'] : $item === $type['value']; }) ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700' }}">
                                                 <input
                                                     type="checkbox"
                                                     wire:model="campaignType"
@@ -487,13 +487,17 @@
                                         </div>
                                         <div>
                                             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Campaign Type:</span>
-                                            <p class="text-gray-900 dark:text-white">
-                                                @php
-                                                    $campaignTypeOptions = collect($this->getCampaignTypeOptions())->keyBy('value');
-                                                    $campaignTypeLabel = $campaignTypeOptions->get($campaignType)['label'] ?? '';
-                                                @endphp
-                                                {{ $campaignTypeLabel }}
-                                            </p>
+                                            <div class="text-gray-900 dark:text-white">
+                                                @if(is_array($campaignType) && count($campaignType) > 0)
+                                                    @foreach($campaignType as $type)
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 mr-2 mb-1">
+                                                            {{ is_object($type) ? $type->label() : \App\Enums\CampaignType::from($type)->label() }}
+                                                        </span>
+                                                    @endforeach
+                                                @else
+                                                    <span class="text-gray-400">No types selected</span>
+                                                @endif
+                                            </div>
                                         </div>
                                         <div>
                                             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Target Location:</span>

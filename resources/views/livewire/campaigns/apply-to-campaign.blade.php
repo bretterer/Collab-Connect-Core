@@ -55,7 +55,13 @@
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-500 dark:text-gray-400">Campaign Type:</span>
-                                <span class="font-medium text-gray-900 dark:text-white">{{ $campaign->campaign_type?->label() }}</span>
+                                <span class="font-medium text-gray-900 dark:text-white">
+                                    @if($campaign->campaign_type && count($campaign->campaign_type) > 0)
+                                        {{ $campaign->campaign_type->take(2)->map(fn($type) => $type->label())->join(', ') }}{{ count($campaign->campaign_type) > 2 ? ' +' . (count($campaign->campaign_type) - 2) . ' more' : '' }}
+                                    @else
+                                        N/A
+                                    @endif
+                                </span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-500 dark:text-gray-400">Compensation:</span>

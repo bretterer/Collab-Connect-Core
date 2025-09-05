@@ -43,7 +43,7 @@ class CampaignDiscoveryTest extends TestCase
             'business_id' => $this->businessUser->currentBusiness->id,
             'target_zip_code' => '49503',
             'campaign_goal' => 'Promote our new coffee blend to local coffee enthusiasts',
-            'campaign_type' => CampaignType::USER_GENERATED,
+            'campaign_type' => [CampaignType::USER_GENERATED->value],
         ]);
     }
 
@@ -101,13 +101,13 @@ class CampaignDiscoveryTest extends TestCase
 
         $ugcCampaign = Campaign::factory()->published()->create([
             'business_id' => $this->businessUser->currentBusiness->id,
-            'campaign_type' => CampaignType::USER_GENERATED,
+            'campaign_type' => [CampaignType::USER_GENERATED->value],
             'campaign_goal' => 'User generated content campaign',
         ]);
 
         $reviewCampaign = Campaign::factory()->published()->create([
             'business_id' => $this->businessUser->currentBusiness->id,
-            'campaign_type' => CampaignType::PRODUCT_REVIEWS,
+            'campaign_type' => [CampaignType::PRODUCT_REVIEWS->value],
             'campaign_goal' => 'Product review campaign',
         ]);
 

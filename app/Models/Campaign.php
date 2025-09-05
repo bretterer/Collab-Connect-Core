@@ -4,14 +4,15 @@ namespace App\Models;
 
 use App\Enums\BusinessIndustry;
 use App\Enums\CampaignStatus;
+use App\Enums\CampaignType;
 use App\Facades\MatchScore;
 use App\Jobs\SendCampaignNotifications;
 use App\Models\Influencer;
+use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 
 class Campaign extends Model
@@ -62,24 +63,27 @@ class Campaign extends Model
         'additional_requirements',
     ];
 
-    protected $casts = [
-        'influencer_count' => 'integer',
-        'application_deadline' => 'date',
-        'campaign_completion_date' => 'date',
-        'scheduled_date' => 'date',
-        'current_step' => 'integer',
-        'published_at' => 'datetime',
-        'status' => CampaignStatus::class,
-        'campaign_type' => 'array',
-        'compensation_type' => \App\Enums\CompensationType::class,
-        'compensation_details' => 'array',
-        'social_requirements' => 'array',
-        'placement_requirements' => 'array',
-        'target_platforms' => 'array',
-        'deliverables' => 'array',
-        'success_metrics' => 'array',
-        'additional_requirements' => 'array',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'influencer_count' => 'integer',
+            'application_deadline' => 'date',
+            'campaign_completion_date' => 'date',
+            'scheduled_date' => 'date',
+            'current_step' => 'integer',
+            'published_at' => 'datetime',
+            'status' => CampaignStatus::class,
+            'campaign_type' => AsEnumCollection::of(CampaignType::class),
+            'compensation_type' => \App\Enums\CompensationType::class,
+            'compensation_details' => 'array',
+            'social_requirements' => 'array',
+            'placement_requirements' => 'array',
+            'target_platforms' => 'array',
+            'deliverables' => 'array',
+            'success_metrics' => 'array',
+            'additional_requirements' => 'array',
+        ];
+    }
 
     protected static function booted()
     {

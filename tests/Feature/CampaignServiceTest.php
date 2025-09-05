@@ -35,7 +35,7 @@ class CampaignServiceTest extends TestCase
     {
         $campaignData = [
             'campaign_goal' => 'Promote our new product line',
-            'campaign_type' => CampaignType::USER_GENERATED->value,
+            'campaign_type' => [CampaignType::USER_GENERATED],
             'target_zip_code' => '49503',
             'target_area' => 'Grand Rapids, MI',
             'campaign_description' => 'A comprehensive campaign to showcase our new products',
@@ -51,7 +51,7 @@ class CampaignServiceTest extends TestCase
         $this->assertEquals(CampaignStatus::DRAFT, $campaign->status);
         $this->assertEquals($this->businessUser->currentBusiness->id, $campaign->business_id);
         $this->assertEquals('Promote our new product line', $campaign->campaign_goal);
-        $this->assertEquals(CampaignType::USER_GENERATED, $campaign->campaign_type);
+        $this->assertEquals([CampaignType::USER_GENERATED], $campaign->campaign_type->toArray());
         $this->assertEquals('49503', $campaign->target_zip_code);
         $this->assertEquals(5, $campaign->influencer_count);
         $this->assertEquals(3, $campaign->current_step);
@@ -68,7 +68,7 @@ class CampaignServiceTest extends TestCase
         $campaignData = [
             'campaign_id' => $campaign->id,
             'campaign_goal' => 'Updated goal',
-            'campaign_type' => CampaignType::PRODUCT_REVIEWS->value,
+            'campaign_type' => [CampaignType::PRODUCT_REVIEWS],
             'target_zip_code' => '49504',
             'application_deadline' => Carbon::now()->addDays(14)->toDateString(),
             'campaign_completion_date' => Carbon::now()->addDays(30)->toDateString(),
@@ -79,7 +79,7 @@ class CampaignServiceTest extends TestCase
 
         $this->assertEquals($campaign->id, $updatedCampaign->id);
         $this->assertEquals('Updated goal', $updatedCampaign->campaign_goal);
-        $this->assertEquals(CampaignType::PRODUCT_REVIEWS, $updatedCampaign->campaign_type);
+        $this->assertEquals([CampaignType::PRODUCT_REVIEWS], $updatedCampaign->campaign_type->toArray());
         $this->assertEquals('49504', $updatedCampaign->target_zip_code);
         $this->assertEquals(2, $updatedCampaign->current_step);
     }
@@ -88,7 +88,7 @@ class CampaignServiceTest extends TestCase
     {
         $campaignData = [
             'campaign_goal' => 'Test campaign',
-            'campaign_type' => CampaignType::USER_GENERATED->value,
+            'campaign_type' => [CampaignType::USER_GENERATED->value],
             'target_zip_code' => '49503',
             'application_deadline' => Carbon::now()->addDays(14)->toDateString(),
             'campaign_completion_date' => Carbon::now()->addDays(30)->toDateString(),

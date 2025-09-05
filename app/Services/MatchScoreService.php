@@ -152,28 +152,35 @@ class MatchScoreService
     public function calculateCampaignTypeScore(Campaign $campaign, $influencerProfile): float
     {
         $baseScore = 70.0;
-        $campaignType = $campaign->campaign_type;
-        $variation = 0;
+        $campaignTypes = $campaign->campaign_type ?: collect();
+        $maxVariation = 0;
 
-        switch ($campaignType) {
-            case CampaignType::PRODUCT_REVIEWS:
-                $variation = 10;
-                break;
-            case CampaignType::SPONSORED_POSTS:
-                $variation = 5;
-                break;
-            case CampaignType::EVENT_COVERAGE:
-                $variation = -5;
-                break;
-            case CampaignType::BRAND_PARTNERSHIPS:
-                $variation = 15;
-                break;
-            default:
-                $variation = 0;
+        // Calculate the best variation from all campaign types
+        foreach ($campaignTypes as $typeEnum) {
+            $variation = 0;
+
+            switch ($typeEnum) {
+                case CampaignType::PRODUCT_REVIEWS:
+                    $variation = 10;
+                    break;
+                case CampaignType::SPONSORED_POSTS:
+                    $variation = 5;
+                    break;
+                case CampaignType::EVENT_COVERAGE:
+                    $variation = -5;
+                    break;
+                case CampaignType::BRAND_PARTNERSHIPS:
+                    $variation = 15;
+                    break;
+                default:
+                    $variation = 0;
+            }
+
+            $maxVariation = max($maxVariation, $variation);
         }
 
         $randomFactor = (ord(substr($campaign->campaign_goal, -1)) % 20) - 10;
-        $finalScore = max(50.0, min(90.0, $baseScore + $variation + $randomFactor));
+        $finalScore = max(50.0, min(90.0, $baseScore + $maxVariation + $randomFactor));
 
         return $finalScore;
     }
