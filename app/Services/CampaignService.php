@@ -34,10 +34,10 @@ class CampaignService
                 'target_area' => $data['target_area'] ?? '',
                 'campaign_description' => $data['campaign_description'] ?? '',
                 'influencer_count' => $data['influencer_count'] ?? 1,
-                'application_deadline' => $data['application_deadline'] ?? null,
-                'campaign_completion_date' => $data['campaign_completion_date'] ?? null,
+                'application_deadline' => !empty($data['application_deadline']) ? $data['application_deadline'] : null,
+                'campaign_completion_date' => !empty($data['campaign_completion_date']) ? $data['campaign_completion_date'] : null,
                 'publish_action' => $data['publish_action'] ?? 'publish',
-                'scheduled_date' => $data['scheduled_date'] ?? null,
+                'scheduled_date' => !empty($data['scheduled_date']) ? $data['scheduled_date'] : null,
                 'current_step' => $data['current_step'] ?? 1,
 
                 // Brief fields
