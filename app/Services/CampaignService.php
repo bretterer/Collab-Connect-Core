@@ -195,6 +195,15 @@ class CampaignService
             }
         }
 
+        // Handle date fields to prevent datetime format errors
+        $dateFields = ['application_deadline', 'campaign_completion_date', 'scheduled_date'];
+        
+        foreach ($dateFields as $field) {
+            if (isset($updateData[$field])) {
+                $updateData[$field] = ! empty($updateData[$field]) ? $updateData[$field] : null;
+            }
+        }
+
         $campaign->update($updateData);
 
         // Determine what changed

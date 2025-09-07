@@ -103,4 +103,39 @@ class CampaignServiceDatetimeErrorTest extends TestCase
         $this->assertNull($campaign->scheduled_date);
         $this->assertEquals('CollabConnect Sign up Initiative', $campaign->project_name);
     }
+
+    /** @test */
+    public function it_handles_empty_strings_in_update_campaign_method()
+    {
+        // Create a business user and initial campaign
+        $user = User::factory()->business()->withProfile()->create();
+        $campaign = CampaignService::saveDraft($user, [
+            'campaign_goal' => 'Initial goal',
+            'campaign_type' => ['user_generated'],
+            'target_zip_code' => '45066',
+            'influencer_count' => 1,
+            'compensation_type' => 'monetary',
+            'compensation_amount' => 100,
+        ]);
+
+        // Update data with empty date strings that would cause the error
+        $updateData = [
+            'current_advertising_campaign' => 'Updated campaign description',
+            'application_deadline' => '', // Empty string that should be null
+            'campaign_completion_date' => '', // Empty string that should be null
+            'scheduled_date' => '', // Empty string that should be null
+            'additional_requirements' => [],
+            'publish_action' => 'draft',
+        ];
+
+        // This should now work without throwing an exception
+        $updatedCampaign = CampaignService::updateCampaign($campaign->id, $updateData, $user);
+        
+        // Verify the campaign was updated successfully and date fields are null
+        $this->assertInstanceOf(\App\Models\Campaign::class, $updatedCampaign);
+        $this->assertNull($updatedCampaign->application_deadline);
+        $this->assertNull($updatedCampaign->campaign_completion_date);
+        $this->assertNull($updatedCampaign->scheduled_date);
+        $this->assertEquals('Updated campaign description', $updatedCampaign->current_advertising_campaign);
+    }
 }
