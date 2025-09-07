@@ -53,6 +53,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Main dashboard (protected by onboarding middleware)
     Route::middleware(EnsureOnboardingCompleted::class)->group(function () {
         Route::get('/dashboard', App\Livewire\Dashboard::class)->name('dashboard');
+        
+        // Separate dashboard routes for different user types
+        Route::get('/dashboard/business', App\Livewire\BusinessDashboard::class)->name('business.dashboard');
+        Route::get('/dashboard/influencer', App\Livewire\InfluencerDashboard::class)->name('influencer.dashboard');
 
         Route::get('/search', App\Livewire\Search::class)->name('search');
 
