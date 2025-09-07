@@ -214,8 +214,8 @@ class NewCampaignCreateNotificationTest extends TestCase
 
         // Verify that NO notification was sent to the low-match influencer
         $this->assertDatabaseMissing('notifications', [
-            'user_id' => $lowMatchInfluencer->id,
-            'type' => 'App\\Notifications\\NewCampaignNotification',
+            'notifiable_id' => $lowMatchInfluencer->id,
+            'notifiable_type' => 'App\\Models\\User',
         ]);
     }
 
