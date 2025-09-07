@@ -187,7 +187,7 @@ class CampaignService
 
         // Handle array fields to prevent conversion errors
         $updateData = $data;
-        $arrayFields = ['target_platforms', 'deliverables', 'success_metrics', 'social_requirements', 'placement_requirements', 'compensation_details', 'additional_requirements'];
+        $arrayFields = ['target_platforms', 'deliverables', 'success_metrics', 'social_requirements', 'placement_requirements', 'compensation_details'];
 
         foreach ($arrayFields as $field) {
             if (isset($updateData[$field])) {

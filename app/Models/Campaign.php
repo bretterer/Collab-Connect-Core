@@ -81,7 +81,6 @@ class Campaign extends Model
             'target_platforms' => 'array',
             'deliverables' => 'array',
             'success_metrics' => 'array',
-            'additional_requirements' => 'array',
         ];
     }
 
