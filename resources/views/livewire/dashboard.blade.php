@@ -95,7 +95,7 @@
                                                 <span class="text-xs text-gray-500 dark:text-gray-400">{{ $campaign->published_at?->diffForHumans() }}</span>
                                             </div>
                                             <h4 class="text-base font-medium text-gray-900 dark:text-white mb-1 truncate">
-                                                {{ $campaign->campaign_goal }}
+                                                {{ $campaign->project_name }}
                                             </h4>
                                             <div class="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
                                                 <span class="flex items-center">
@@ -141,7 +141,7 @@
                                                 <span class="text-xs text-gray-500 dark:text-gray-400">Step {{ $campaign->current_step }} of 4</span>
                                             </div>
                                             <h4 class="text-base font-medium text-gray-900 dark:text-white mb-1 truncate">
-                                                {{ $campaign->campaign_goal ?: 'Untitled Campaign' }}
+                                                {{ $campaign->project_name ?: 'Untitled Campaign' }}
                                             </h4>
                                             <p class="text-xs text-gray-500 dark:text-gray-400">Last edited {{ $campaign->updated_at->diffForHumans() }}</p>
                                         </div>
@@ -573,7 +573,7 @@
                                         <span class="text-xs text-gray-500 dark:text-gray-400">Due {{ $application->campaign->campaign_completion_date?->format('M j') ?? 'TBD' }}</span>
                                     </div>
                                     <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                                        {{ Str::limit($application->campaign->campaign_goal, 40) }}
+                                        {{ Str::limit($application->campaign->project_name, 40) }}
                                     </h4>
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
                                         {{ $application->campaign->business->name ?? $application->campaign->user->name }}
