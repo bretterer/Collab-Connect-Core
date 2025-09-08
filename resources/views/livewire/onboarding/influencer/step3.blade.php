@@ -28,7 +28,7 @@
             @endforeach
         </flux:checkbox.group>
         <flux:error name="contentTypes" />
-        
+
         @if(count($contentTypes) >= 3)
             <flux:description class="text-amber-600 dark:text-amber-400">
                 You've selected the maximum of 3 content types. Uncheck one to select another.
@@ -49,14 +49,14 @@
             @foreach(\App\Enums\BusinessType::cases() as $businessType)
                 <flux:checkbox
                     value="{{ $businessType->value }}"
-                    label="{{ $businessType->label() }}"
-                    description="{{ $businessType->description() }}"
+                    label="{!! $businessType->label() !!}"
+                    description="{!! $businessType->description() !!}"
                     class="w-full"
                 />
             @endforeach
         </flux:checkbox.group>
         <flux:error name="preferredBusinessTypes" />
-        
+
         @if(count($preferredBusinessTypes) >= 2)
             <flux:description class="text-amber-600 dark:text-amber-400">
                 You've selected the maximum of 2 business types. Uncheck one to select another.

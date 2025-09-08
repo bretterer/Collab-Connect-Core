@@ -217,7 +217,7 @@ class InfluencerOnboarding extends Component
             3 => [
                 'contentTypes' => 'required|array|max:3',
                 'contentTypes.*' => [BusinessIndustry::validationRule()],
-                'preferredBusinessTypes' => 'required|array|max:2',
+                'preferredBusinessTypes' => 'required|array',
                 'preferredBusinessTypes.*' => [BusinessType::validationRule()],
             ],
             4 => [
@@ -229,7 +229,7 @@ class InfluencerOnboarding extends Component
                 'phoneNumber' => 'required|string|max:20',
             ],
             5 => [
-                'compensationTypes' => 'required|array|max:3',
+                'compensationTypes' => 'required|array',
                 'compensationTypes.*' => [CompensationType::validationRule()],
                 'typicalLeadTimeDays' => 'required|integer|min:1|max:365',
             ],
