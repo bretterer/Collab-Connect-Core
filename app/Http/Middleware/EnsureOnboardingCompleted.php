@@ -40,7 +40,7 @@ class EnsureOnboardingCompleted
             }
         }
 
-        if ($user->isInfluencerAccount() && ! $user->influencer->onboarding_complete) {
+        if ($user->isInfluencerAccount() && ($user->influencer == null || ! $user->influencer->onboarding_complete)) {
             return redirect()->route('onboarding.influencer');
         }
 
