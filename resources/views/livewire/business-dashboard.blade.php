@@ -159,11 +159,12 @@
                                     </flux:button>
                                 </div>
                             </div>
-                            
+
                             <div class="p-6">
                                 <div class="space-y-3">
                                     @foreach($this->getPublishedCampaigns()->take(3) as $campaign)
-                                        <div class="group relative bg-gradient-to-r from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300">
+                                    <div class="group relative bg-gradient-to-r from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300">
+                                            <a href="{{ route('campaigns.show', $campaign) }}" class="absolute inset-0 z-0"></a>
                                             <div class="p-4">
                                                 <div class="flex items-start justify-between mb-3">
                                                     <div class="flex items-center gap-2">
@@ -175,16 +176,14 @@
                                                             {{ $campaign->published_at?->diffForHumans() }}
                                                         </flux:text>
                                                     </div>
-                                                    <flux:button href="{{ route('campaigns.show', $campaign) }}" variant="ghost" size="sm" icon="arrow-top-right-on-square" class="opacity-0 group-hover:opacity-100 transition-all text-blue-600 dark:text-blue-400">
-                                                    </flux:button>
                                                 </div>
-                                                
+
                                                 <div class="mb-3">
                                                     <flux:heading size="sm" class="text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                                         {{ $campaign->project_name }}
                                                     </flux:heading>
                                                 </div>
-                                                
+
                                                 <div class="flex items-center justify-between">
                                                     <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                                                         <div class="flex items-center gap-1">
@@ -196,13 +195,9 @@
                                                             <span>{{ $campaign->influencer_count }}</span>
                                                         </div>
                                                     </div>
-                                                    <div class="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-medium opacity-0 group-hover:opacity-100 transition-all">
-                                                        <span>View Campaign</span>
-                                                        <flux:icon name="arrow-right" class="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                                                    </div>
                                                 </div>
                                             </div>
-                                            
+
                                             <!-- Subtle accent line -->
                                             <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-green-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                         </div>
@@ -225,11 +220,13 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="p-6">
                                 <div class="space-y-3">
                                     @foreach($this->getDraftCampaigns()->take(3) as $campaign)
                                         <div class="group relative bg-gradient-to-r from-white to-amber-50/30 dark:from-gray-800 dark:to-amber-900/10 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-amber-300 dark:hover:border-amber-600 transition-all duration-300">
+                                            <a href="{{ route('campaigns.edit', $campaign) }}" class="absolute inset-0 z-0"></a>
+
                                             <div class="p-4">
                                                 <div class="flex items-start justify-between mb-3">
                                                     <div class="flex items-center gap-3">
@@ -246,11 +243,8 @@
                                                             </flux:text>
                                                         </div>
                                                     </div>
-                                                    <flux:button href="{{ route('campaigns.edit', $campaign) }}" variant="primary" size="xs" class="shadow-sm px-3">
-                                                        Continue
-                                                    </flux:button>
                                                 </div>
-                                                
+
                                                 <div class="mb-2">
                                                     <flux:heading size="sm" class="text-gray-900 dark:text-white mb-1">
                                                         {{ $campaign->project_name ?: 'Untitled Campaign' }}
@@ -259,7 +253,7 @@
                                                         Last edited {{ $campaign->updated_at->diffForHumans() }}
                                                     </flux:text>
                                                 </div>
-                                                
+
                                                 <div class="flex items-center justify-between">
                                                     <div class="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
                                                         <flux:icon name="clock" class="w-3 h-3" />
@@ -267,7 +261,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            
+
                                             <!-- Subtle accent line -->
                                             <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                         </div>
@@ -343,11 +337,11 @@
                                             <flux:text size="xs" class="font-medium text-amber-700 dark:text-amber-300">Pending</flux:text>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="p-4">
                                         <div class="flex items-start gap-3 mb-4">
-                                            <flux:avatar 
-                                                name="{{ $application->user->name }}" 
+                                            <flux:avatar
+                                                name="{{ $application->user->name }}"
                                                 size="sm"
                                                 class="flex-shrink-0 shadow-sm"
                                             />
@@ -364,27 +358,27 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="flex items-center gap-2">
-                                            <flux:button 
-                                                href="{{ route('applications.show', $application->id) }}" 
-                                                variant="ghost" 
+                                            <flux:button
+                                                href="{{ route('applications.show', $application->id) }}"
+                                                variant="ghost"
                                                 size="xs"
                                                 class="flex-1 text-center bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium"
                                             >
                                                 Review Application
                                             </flux:button>
-                                            <flux:button 
-                                                wire:click="acceptApplication({{ $application->id }})" 
-                                                variant="ghost" 
+                                            <flux:button
+                                                wire:click="acceptApplication({{ $application->id }})"
+                                                variant="ghost"
                                                 size="xs"
                                                 class="w-8 h-8 p-0 bg-green-50 hover:bg-green-100 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 rounded-lg"
                                                 icon="check"
                                             >
                                             </flux:button>
-                                            <flux:button 
-                                                wire:click="declineApplication({{ $application->id }})" 
-                                                variant="ghost" 
+                                            <flux:button
+                                                wire:click="declineApplication({{ $application->id }})"
+                                                variant="ghost"
                                                 size="xs"
                                                 class="w-8 h-8 p-0 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 rounded-lg"
                                                 icon="x-mark"
@@ -392,7 +386,7 @@
                                             </flux:button>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Subtle accent line -->
                                     <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 </div>
@@ -418,7 +412,7 @@
                     <flux:heading size="lg" class="text-gray-900 dark:text-white">Quick Actions</flux:heading>
                     <flux:text size="sm" class="text-gray-600 dark:text-gray-400">Streamline your workflow</flux:text>
                 </div>
-                
+
                 <div class="p-6">
                     <div class="space-y-3">
                         <flux:button href="{{ route('search') }}" variant="ghost" icon="magnifying-glass" class="w-full justify-start p-4 text-left hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-200 dark:hover:border-blue-700 group transition-all">
@@ -433,7 +427,7 @@
                                 <flux:icon name="arrow-right" class="w-4 h-4 text-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
                             </div>
                         </flux:button>
-                        
+
                         <flux:button href="{{ route('analytics') }}" variant="ghost" icon="chart-bar" class="w-full justify-start p-4 text-left hover:bg-green-50 dark:hover:bg-green-900/20 hover:border-green-200 dark:hover:border-green-700 group transition-all">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center group-hover:bg-green-200 dark:group-hover:bg-green-800/50 transition-colors">
@@ -446,7 +440,7 @@
                                 <flux:icon name="arrow-right" class="w-4 h-4 text-gray-400 group-hover:text-green-500 group-hover:translate-x-1 transition-all" />
                             </div>
                         </flux:button>
-                        
+
                         <flux:button href="{{ route('campaigns.index') }}" variant="ghost" icon="cog-6-tooth" class="w-full justify-start p-4 text-left hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-200 dark:hover:border-purple-700 group transition-all">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center group-hover:bg-purple-200 dark:group-hover:bg-purple-800/50 transition-colors">
