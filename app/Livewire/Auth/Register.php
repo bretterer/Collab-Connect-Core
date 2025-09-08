@@ -67,7 +67,7 @@ class Register extends Component
                 $this->name = $this->betaInvite['full_name'] ?? $this->betaInvite['name'];
                 $this->accountType = $this->betaInvite['user_type'] === 'business' ? AccountType::BUSINESS : AccountType::INFLUENCER;
 
-                if($this->betaInvite['business_invite'] ?? false) {
+                if($this->betaInvite['business_invite']) {
                     $this->accountType = AccountType::BUSINESS;
                 }
             }
@@ -119,6 +119,7 @@ class Register extends Component
             'follower_count' => $waitlistEntry->follower_count,
             'invited_at' => $waitlistEntry->invited_at,
             'invite_token' => $waitlistEntry->invite_token,
+            'business_invite' => false,
         ];
     }
 
@@ -154,6 +155,9 @@ class Register extends Component
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
             'cf_turnstile_response' => ['required', app(Turnstile::class)],
             'accountType' => ['required', Rule::enum(AccountType::class)],
+        ], [
+            'cf_turnstile_response.required' => 'Please complete the CAPTCHA to verify you are not a robot.',
+            'cf_turnstile_response.turnstile' => 'CAPTCHA verification failed. Please try again.',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);

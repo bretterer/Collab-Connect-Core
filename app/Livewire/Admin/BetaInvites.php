@@ -158,7 +158,7 @@ class BetaInvites extends Component
 
         // Create signed URL that expires in 7 days
         $signedUrl = URL::temporarySignedRoute(
-            'register',
+            route('register'),
             now()->addDays(7),
             ['token' => $token]
         );

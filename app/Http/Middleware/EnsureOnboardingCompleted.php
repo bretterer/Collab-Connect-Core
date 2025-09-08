@@ -44,7 +44,7 @@ class EnsureOnboardingCompleted
             return redirect()->route('onboarding.influencer');
         }
 
-        if ($user->isBusinessAccount() && ! $user->currentBusiness->onboarding_complete) {
+        if ($user->isBusinessAccount() && ($user->currentBusiness == null ||! $user->currentBusiness->onboarding_complete)) {
             return redirect()->route('onboarding.business');
         }
 
