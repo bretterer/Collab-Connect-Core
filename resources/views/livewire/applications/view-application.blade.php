@@ -24,8 +24,8 @@
                 </div>
                 <div class="flex items-center space-x-3">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                        {{ $application->status === \App\Enums\CampaignApplicationStatus::PENDING ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' : 
-                           ($application->status === \App\Enums\CampaignApplicationStatus::ACCEPTED ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 
+                        {{ $application->status === \App\Enums\CampaignApplicationStatus::PENDING ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
+                           ($application->status === \App\Enums\CampaignApplicationStatus::ACCEPTED ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
                             'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400') }}">
                         {{ $application->status->label() }}
                     </span>
@@ -58,7 +58,11 @@
                     </div>
                     <div>
                         <span class="text-gray-500 dark:text-gray-400">Type:</span>
-                        <span class="font-medium text-gray-900 dark:text-white ml-1">{{ $application->campaign->campaign_type?->label() }}</span>
+                        @foreach($application->campaign->campaign_type as $type)
+                            <span class="inline-block px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400 mr-1">
+                                {{ $type->label() }}
+                            </span>
+                        @endforeach
                     </div>
                     <div>
                         <span class="text-gray-500 dark:text-gray-400">Location:</span>
