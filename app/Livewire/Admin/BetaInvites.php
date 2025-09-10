@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Enums\AccountType;
 use App\Models\Invite;
 use App\Models\ReferralCode;
+use App\Models\User;
 use App\Models\Waitlist;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
@@ -117,6 +118,12 @@ class BetaInvites extends Component
                 $firstName = $nameParts[0] ?? '';
                 $lastName = $nameParts[1] ?? '';
 
+                $registeredAt = null;
+
+                if (User::where('email', $entry->email)->exists()) {
+                    $registeredAt = User::where('email', $entry->email)->value('created_at');
+                }
+
                 return [
                     'id' => $entry->id,
                     'first_name' => $firstName,
@@ -127,7 +134,7 @@ class BetaInvites extends Component
                     'business_name' => $entry->business_name,
                     'follower_count' => $entry->follower_count,
                     'invited_at' => $entry->invited_at,
-                    'registered_at' => null, // Will be handled by user registration
+                    'registered_at' => $registeredAt, // Will be handled by user registration
                     'invite_token' => $entry->invite_token,
                     'referralCode' => $entry->referralCode ? $entry->referralCode->code : null,
                 ];

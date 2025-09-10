@@ -16,7 +16,7 @@ We've received your message regarding "{{ $subject }}" and wanted to confirm tha
 
 If you have any urgent questions or need immediate assistance, please don't hesitate to reach out to us directly.
 
-<x-mail::button :url="'https://collabconnect.test'">
+<x-mail::button :url="'https://collabconnect.app'">
 Visit CollabConnect
 </x-mail::button>
 
