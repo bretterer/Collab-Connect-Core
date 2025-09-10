@@ -209,7 +209,10 @@
                     <!-- Grid View -->
                     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
                         @foreach($results as $user)
-                            @if($targetAccountType === App\Enums\AccountType::INFLUENCER)
+                            @if($user->profile == null)
+                                @continue
+                            @endif
+                            @if($targetAccountType === App\Enums\AccountType::INFLUENCER )
                                 <livewire:influencer-card :user="$user" wire:key="user-{{ $user->id }}" />
                             @else
                                 <livewire:business-card :user="$user" wire:key="user-{{ $user->id }}" />

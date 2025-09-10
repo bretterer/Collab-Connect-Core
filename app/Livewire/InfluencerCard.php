@@ -50,8 +50,8 @@ class InfluencerCard extends Component
     public function render()
     {
         return view('livewire.influencer-card', [
-            'socialAccounts' => $this->user->influencer->socialAccounts,
-            'totalFollowers' => $this->user->influencer->socialAccounts->sum('followers')
+            'socialAccounts' => $this->user->socialMediaAccounts,
+            'totalFollowers' => $this->user->socialMediaAccounts->sum('followers')
         ]);
     }
 }

@@ -39,7 +39,7 @@ With your {{ $followerCount }} followers, you're exactly the kind of creator we'
 ## Stay Connected
 Follow our progress and connect with other beta members:
 
-<x-mail::button :url="'https://collabconnect.test'">
+<x-mail::button :url="'https://collabconnect.app'">
 Visit CollabConnect
 </x-mail::button>
 
