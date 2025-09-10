@@ -22,7 +22,7 @@
             @foreach(\App\Enums\BusinessIndustry::cases() as $industry)
                 <flux:checkbox
                     value="{{ $industry->value }}"
-                    label="{{ $industry->label() }}"
+                    label="{!! $industry->label() !!}"
                     class="w-full"
                 />
             @endforeach
