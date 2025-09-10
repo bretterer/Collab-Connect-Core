@@ -119,6 +119,7 @@ class ApplicationsIndex extends BaseComponent
             'accepted_at' => now(),
         ]);
 
+        $application->user->notify(new \App\Notifications\CampaignApplicationAcceptedNotification($application->fresh()));
         $this->flashSuccess('Application accepted successfully!');
     }
 
@@ -137,6 +138,7 @@ class ApplicationsIndex extends BaseComponent
             'rejected_at' => now(),
         ]);
 
+        $application->user->notify(new \App\Notifications\CampaignApplicationDeclinedNotification($application->fresh()));
         $this->flashSuccess('Application declined.');
     }
 

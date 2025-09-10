@@ -27,7 +27,30 @@ class CampaignApplicationDeclinedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     */
+    public function toMail(object $notifiable): MailMessage
+    {
+        $campaign = $this->application->campaign;
+        $business = $campaign->business;
+        
+        return (new MailMessage)
+            ->subject('Update on Your Campaign Application')
+            ->greeting("Hi {$notifiable->first_name},")
+            ->line("Thank you for your interest in the campaign **{$campaign->project_name}** from {$business->name}.")
+            ->line("After careful consideration, we regret to inform you that your application was not selected for this particular campaign.")
+            ->line("**This doesn't reflect on your capabilities as a creator.** Businesses often have very specific requirements or may have limited spots available.")
+            ->line("**We encourage you to:**")
+            ->line("• Continue applying to other campaigns that match your skills and interests")
+            ->line("• Keep creating amazing content and growing your audience")
+            ->line("• Check out our platform regularly for new opportunities")
+            ->action('Browse New Campaigns', url('/discover'))
+            ->line('Thank you for being part of the CollabConnect community. We appreciate your interest and look forward to seeing you match with the perfect campaign soon!')
+            ->salutation('Best regards, The CollabConnect Team');
     }
 
     /**
