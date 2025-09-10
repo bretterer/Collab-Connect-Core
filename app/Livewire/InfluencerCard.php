@@ -24,10 +24,10 @@ class InfluencerCard extends Component
     public function mount()
     {
         // Use uploaded images from media library, with fallbacks
-        $this->profileImageUrl = $this->user->influencer?->getProfileImageUrl() 
+        $this->profileImageUrl = $this->user->influencer?->getProfileImageUrl()
             ?: Vite::asset('resources/images/CollabConnectMark.png');
-            
-        $this->coverImageUrl = $this->user->influencer?->getBannerImageUrl() 
+
+        $this->coverImageUrl = $this->user->influencer?->getBannerImageUrl()
             ?: 'data:image/svg+xml;base64,' . base64_encode('
                 <svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
                     <defs>
@@ -50,8 +50,8 @@ class InfluencerCard extends Component
     public function render()
     {
         return view('livewire.influencer-card', [
-            'socialAccounts' => $this->user->socialMediaAccounts,
-            'totalFollowers' => $this->user->socialMediaAccounts->sum('followers')
+            'socialAccounts' => $this->user->profile->socialAccounts,
+            'totalFollowers' => $this->user->profile->totalFollowers
         ]);
     }
 }

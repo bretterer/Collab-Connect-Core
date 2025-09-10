@@ -109,6 +109,7 @@
                     <div class="text-xs text-gray-500 dark:text-gray-400">Total Followers</div>
                 </div>
                 <div>
+                    @if(false === true)
                     <div class="flex items-center justify-center gap-0.5 mb-1">
                         @php
                             $rating = $this->getRandomRating();
@@ -127,6 +128,7 @@
                         {{ $rating }}/5
                     </div>
                     <div class="text-xs text-gray-500 dark:text-gray-400">Rating</div>
+                    @endif
                 </div>
             </div>
 
@@ -135,9 +137,9 @@
                 <flux:button variant="outline" size="sm" class="flex-1">
                     View Profile
                 </flux:button>
-                <flux:button 
-                    variant="primary" 
-                    size="sm" 
+                <flux:button
+                    variant="primary"
+                    size="sm"
                     class="flex-1"
                     wire:click="$dispatch('open-invite-modal', { influencerId: {{ $user->id }}, influencerName: '{{ $user->name }}' })"
                 >
