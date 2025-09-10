@@ -25,6 +25,17 @@ Join CollabConnect Beta Now
 
 **Important:** This secure invitation link expires in 7 days. Register now to secure your exclusive beta access!
 
+## Your Role as a Beta Tester
+
+**CollabConnect is currently in beta**, which means you're getting exclusive early access while we continue to develop and refine the platform. We encourage you to:
+
+- 🧪 **Test all features** - explore every aspect of the platform
+- 🐛 **Report any bugs or issues** using the feedback widget in the lower right corner of the screen
+- 💡 **Share your ideas** for improvements and new features
+- 📝 **Provide feedback** on your experience - your input drives our development priorities
+
+Your participation as a beta user is essential in helping us build the best possible platform for connecting businesses and influencers.
+
 We're excited to have you be part of this journey as we reshape the world of brand collaborations.
 
 Best regards,<br>

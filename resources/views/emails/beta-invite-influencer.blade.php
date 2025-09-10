@@ -28,6 +28,17 @@ Join CollabConnect Beta Now
 
 **Important:** This invitation link is secure and expires in 7 days. Don't miss out on this exclusive opportunity to be part of the future of influencer marketing!
 
+## Help Us Perfect Your Experience
+
+**CollabConnect is currently in beta**, which means you're getting an exclusive first look at our platform while we continue to enhance and perfect it. We encourage you to:
+
+- 🧪 **Explore everything** - try out all features and tools
+- 🐛 **Report any issues** you encounter using the feedback widget in the lower right corner of the screen
+- 💡 **Share your suggestions** for new features and improvements
+- 📝 **Give us your honest feedback** - your experience helps us build a better platform
+
+As a beta influencer, your input is crucial in helping us create the ultimate platform for influencer-brand collaborations.
+
 Ready to discover your next amazing brand partnership? Let's make some magic happen!
 
 Best regards,<br>

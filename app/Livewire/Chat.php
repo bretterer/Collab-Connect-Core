@@ -102,8 +102,8 @@ class Chat extends BaseComponent
             'body' => trim($this->messageBody),
         ]);
 
-        // Manually dispatch the MessageSent event to ensure it's broadcast
-        $message = MessageSent::dispatch($message);
+        // Broadcast the message
+        MessageSent::dispatch($message);
 
         // Update chat timestamp
         $chat->touch();
