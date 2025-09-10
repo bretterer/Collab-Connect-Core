@@ -3,9 +3,12 @@
 namespace App\Livewire;
 
 use App\Models\Campaign;
+use App\Models\User;
+use App\Notifications\CampaignInviteNotification;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Masmerise\Toaster\Toaster;
 
 class InviteInfluencerModal extends Component
 {
@@ -68,14 +71,24 @@ class InviteInfluencerModal extends Component
             'message' => 'required|min:10|max:1000',
         ]);
 
-        // Placeholder for sending invite logic
+        $campaign = Campaign::findOrFail($this->selectedCampaign);
+        $influencer = User::findOrFail($this->influencerId);
+        $invitingUser = auth()->user();
+
+        // Send the invitation notification
+        $influencer->notify(new CampaignInviteNotification(
+            campaign: $campaign,
+            invitingBusiness: $invitingUser,
+            personalMessage: $this->message
+        ));
+
         $this->dispatch('invite-sent', [
             'influencerId' => $this->influencerId,
             'campaignId' => $this->selectedCampaign,
             'message' => $this->message
         ]);
 
-        session()->flash('message', 'Invitation sent successfully to ' . $this->influencerName);
+        Toaster::success('Invitation sent successfully to ' . $this->influencerName . '! They will receive both an email and in-app notification.');
         $this->closeModal();
     }
 
