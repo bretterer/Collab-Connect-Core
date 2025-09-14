@@ -4,7 +4,7 @@
 @section('description', 'The first platform designed specifically for local businesses to collaborate with micro-influencers in their community.')
 
 @section('nav-cta')
-@if (Route::has('login') && app()->environment('local'))
+@if (Route::has('login'))
     @auth
         <a href="{{ url('/dashboard') }}" class="btn-secondary">
             Dashboard

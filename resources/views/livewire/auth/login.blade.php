@@ -10,7 +10,7 @@
         @if (Route::has('register'))
         <p class="mt-2 text-sm/6 text-gray-500 dark:text-gray-400">
             Not a member?
-            <flux:link :href="route('register')"> Start a 14 day free trial</flux:link>
+            <flux:link :href="route('register')"> Signup Today!</flux:link>
         </p>
         @endif
     </div>

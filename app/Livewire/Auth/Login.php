@@ -43,7 +43,18 @@ class Login extends Component
         RateLimiter::clear($this->throttleKey());
         Session::regenerate();
 
-        $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+        Session::put('login_success', true);
+
+        // Redirect directly to the appropriate dashboard based on account type
+        $user = Auth::user();
+        $defaultRoute = match($user->account_type) {
+            \App\Enums\AccountType::ADMIN => route('admin.dashboard', absolute: false),
+            \App\Enums\AccountType::BUSINESS => route('business.dashboard', absolute: false),
+            \App\Enums\AccountType::INFLUENCER => route('influencer.dashboard', absolute: false),
+            default => abort(503, 'Invalid account type'),
+        };
+
+        $this->redirectIntended(default: $defaultRoute, navigate: true);
     }
 
     /**

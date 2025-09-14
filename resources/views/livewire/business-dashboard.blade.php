@@ -1,5 +1,7 @@
-<!-- Professional Business Dashboard -->
+
 <div class="space-y-8">
+    <!-- Professional Business Dashboard -->
+<livewire:components.beta-notification />
     <!-- Enhanced Header -->
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">

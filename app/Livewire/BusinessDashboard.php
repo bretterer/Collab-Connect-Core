@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Masmerise\Toaster\Toaster;
+use Illuminate\Support\Facades\Session;
 
 #[Layout('layouts.app')]
 class BusinessDashboard extends Component
