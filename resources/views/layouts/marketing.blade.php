@@ -304,12 +304,15 @@
 
                         <!-- Mobile CTA Buttons -->
                         <div class="px-4 space-y-3">
+                            @if(true === false)
                             <a href="/#beta-signup" @click="mobileMenuOpen = false" class="block w-full text-center bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
                                 Join the Beta Crew
                             </a>
+                            @endif
                             @hasSection('mobile-nav-cta')
                                 @yield('mobile-nav-cta')
                             @else
+                                <a href="{{ route('register') }}" @click="mobileMenuOpen = false" class="button-primary block w-full text-center border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-semibold">Sign up</a>
                                 <a href="/login" @click="mobileMenuOpen = false" class="block w-full text-center border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-semibold">Sign In</a>
                             @endif
                         </div>
@@ -387,7 +390,7 @@
                             <ul class="space-y-4">
                                 <li><a href="/#features" class="hover:text-blue-400 transition-colors">Features</a></li>
                                 <li><a href="/#how-it-works" class="hover:text-blue-400 transition-colors">How it Works</a></li>
-                                <li><a href="/#beta-signup" class="hover:text-blue-400 transition-colors">Join the Beta</a></li>
+                                <li><a href="{{ route('register') }}" class="hover:text-blue-400 transition-colors">Register</a></li>
                             </ul>
                         </div>
 

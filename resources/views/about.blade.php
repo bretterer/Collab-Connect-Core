@@ -309,7 +309,7 @@
             Join us in building the future of authentic, community-driven marketing.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <a href="/#beta-signup" class="btn-primary bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 rounded-xl font-bold text-lg">
+            <a href="{{ route('register') }}" class="btn-primary bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 rounded-xl font-bold text-lg">
                 Join the Beta
             </a>
             <a href="/careers" class="border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-blue-600 transition-colors">
