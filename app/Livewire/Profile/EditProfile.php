@@ -16,6 +16,7 @@ use App\Livewire\BaseComponent;
 use App\Models\BusinessMemberInvite;
 use App\Models\BusinessUser;
 use App\Models\User;
+use App\Rules\UniqueUsername;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
@@ -31,6 +32,8 @@ class EditProfile extends BaseComponent
 
     #[Validate('required|email|max:255')]
     public $email = '';
+
+    public $username = '';
 
     #[Validate('nullable|string')]
     public $current_password = '';
@@ -158,6 +161,7 @@ class EditProfile extends BaseComponent
         }
 
         // Load all onboarding fields
+        $this->username = $profile->username ?? '';
         $this->business_name = $profile->name ?? '';
         $this->business_email = $profile->email ?? '';
         $this->phone_number = $profile->phone ?? '';
@@ -213,6 +217,7 @@ class EditProfile extends BaseComponent
             return;
         }
 
+        $this->username = $profile->username ?? '';
         $this->creator_name = $user->name ?? '';
         $this->bio = $profile->bio ?? '';
         $this->primary_niche = $profile->primary_niche?->value ?? '';
@@ -410,6 +415,24 @@ class EditProfile extends BaseComponent
         }
     }
 
+    public function updatedUsername($value)
+    {
+        /** @var User $user */
+        $user = $this->getAuthenticatedUser();
+
+        if ($user->isBusinessAccount()) {
+            $business = $user->currentBusiness;
+            $this->validateOnly('username', [
+                'username' => ['nullable', 'string', 'max:255', 'alpha_dash', new UniqueUsername($business?->id, null)],
+            ]);
+        } elseif ($user->isInfluencerAccount()) {
+            $influencer = $user->influencer;
+            $this->validateOnly('username', [
+                'username' => ['nullable', 'string', 'max:255', 'alpha_dash', new UniqueUsername(null, $influencer?->id)],
+            ]);
+        }
+    }
+
     public function resetOnboarding(): void
     {
         /** @var User $user */
@@ -435,6 +458,15 @@ class EditProfile extends BaseComponent
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,'.$user->id,
         ];
+
+        // Add username validation based on account type
+        if ($user->isBusinessAccount()) {
+            $business = $user->currentBusiness;
+            $rules['username'] = ['nullable', 'string', 'max:255', 'alpha_dash', new UniqueUsername($business?->id, null)];
+        } elseif ($user->isInfluencerAccount()) {
+            $influencer = $user->influencer;
+            $rules['username'] = ['nullable', 'string', 'max:255', 'alpha_dash', new UniqueUsername(null, $influencer?->id)];
+        }
 
         // Add password validation rules if password change is requested
         if (! empty($this->password) || ! empty($this->current_password)) {
@@ -493,6 +525,7 @@ class EditProfile extends BaseComponent
     private function updateBusinessProfile(User $user)
     {
         $profileData = [
+            'username' => $this->username,
             'name' => $this->business_name,
             'email' => $this->business_email,
             'phone' => $this->phone_number,
@@ -574,6 +607,7 @@ class EditProfile extends BaseComponent
     private function updateInfluencerProfile(User $user)
     {
         $profileData = [
+            'username' => $this->username,
             'bio' => $this->bio,
             'content_types' => array_filter($this->content_types),
             'preferred_business_types' => array_filter($this->preferred_business_types),

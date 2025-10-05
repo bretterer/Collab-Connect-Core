@@ -143,6 +143,28 @@
                         <flux:error name="email" />
                     </flux:field>
                 </div>
+
+                @if($user->isInfluencerAccount())
+                    <!-- Username (Influencer Only) -->
+                    <flux:field>
+                        <flux:label>Username</flux:label>
+                        <flux:input
+                            type="text"
+                            wire:model.live.debounce.500ms="username"
+                            placeholder="yourusername" />
+                        <flux:error name="username" />
+                        @if($username && !$errors->has('username'))
+                            <div class="flex items-center gap-2 mt-2 text-sm text-green-600 dark:text-green-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span>{{ config('app.url') }}/@{{ $username }} is available!</span>
+                            </div>
+                        @else
+                            <flux:description class="mt-2">Your unique public profile URL will be: <span class="font-mono">{{ config('app.url') }}/{{ '@' . ($username ?: 'your-username') }}</span></flux:description>
+                        @endif
+                    </flux:field>
+                @endif
             </div>
 
             <!-- Password Section -->
@@ -213,6 +235,26 @@
                 </div>
 
                 <div class="space-y-6">
+
+                    <!-- Username (Business Only) -->
+                    <flux:field>
+                        <flux:label>Business Username</flux:label>
+                        <flux:input
+                            type="text"
+                            wire:model.live.debounce.500ms="username"
+                            placeholder="mybusiness" />
+                        <flux:error name="username" />
+                        @if($username && !$errors->has('username'))
+                            <div class="flex items-center gap-2 mt-2 text-sm text-green-600 dark:text-green-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span>{{ config('app.url') }}/{{ '@' . $username }} is available!</span>
+                            </div>
+                        @else
+                            <flux:description class="mt-2">Your unique public profile URL will be: <span class="font-mono">{{ config('app.url') }}/{{ '@' . ($username ?: 'your-username') }}</span></flux:description>
+                        @endif
+                    </flux:field>
 
                     <!-- Business Images -->
                     <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
