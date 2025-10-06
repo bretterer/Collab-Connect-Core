@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,6 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // First, clean up any orphaned chat records where users don't have profiles
+        DB::statement('
+            DELETE FROM chats
+            WHERE business_user_id NOT IN (SELECT user_id FROM businesses)
+               OR influencer_user_id NOT IN (SELECT user_id FROM influencers)
+        ');
+
         Schema::table('chats', function (Blueprint $table) {
             // Drop existing foreign keys first
             $table->dropForeign(['business_user_id']);
@@ -21,10 +29,38 @@ return new class extends Migration
 
             // Add campaign_id column
             $table->foreignId('campaign_id')->after('id')->nullable()->constrained()->onDelete('cascade');
+        });
 
-            // Rename columns
-            $table->renameColumn('business_user_id', 'business_id');
-            $table->renameColumn('influencer_user_id', 'influencer_id');
+        // Add temporary columns for the new IDs
+        Schema::table('chats', function (Blueprint $table) {
+            $table->unsignedBigInteger('temp_business_id')->nullable()->after('business_user_id');
+            $table->unsignedBigInteger('temp_influencer_id')->nullable()->after('influencer_user_id');
+        });
+
+        // Convert user IDs to profile IDs
+        DB::statement('
+            UPDATE chats c
+            INNER JOIN businesses b ON c.business_user_id = b.user_id
+            SET c.temp_business_id = b.id
+        ');
+
+        DB::statement('
+            UPDATE chats c
+            INNER JOIN influencers i ON c.influencer_user_id = i.user_id
+            SET c.temp_influencer_id = i.id
+        ');
+
+        // Drop old columns and rename new ones
+        Schema::table('chats', function (Blueprint $table) {
+            $table->dropColumn(['business_user_id', 'influencer_user_id']);
+            $table->renameColumn('temp_business_id', 'business_id');
+            $table->renameColumn('temp_influencer_id', 'influencer_id');
+        });
+
+        // Make columns non-nullable
+        Schema::table('chats', function (Blueprint $table) {
+            $table->unsignedBigInteger('business_id')->nullable(false)->change();
+            $table->unsignedBigInteger('influencer_id')->nullable(false)->change();
         });
 
         // Now add foreign keys with correct table references
