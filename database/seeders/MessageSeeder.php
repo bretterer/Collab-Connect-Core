@@ -2,11 +2,13 @@
 
 namespace Database\Seeders;
 
-use App\Enums\AccountType;
+use App\Enums\CampaignApplicationStatus;
+use App\Models\CampaignApplication;
 use App\Models\Chat;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Event;
 
 class MessageSeeder extends Seeder
 {
@@ -15,56 +17,66 @@ class MessageSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get the specific business and influencer users created in DatabaseSeeder
-        $mainBusinessUser = User::where('email', env('INIT_BUSINESS_EMAIL', 'business@example.com'))->first();
-        $mainInfluencerUser = User::where('email', env('INIT_INFLUENCER_EMAIL', 'influencer@example.com'))->first();
+        // Disable broadcasting during seeding
+        Event::fake();
 
-        if (! $mainBusinessUser || ! $mainInfluencerUser) {
-            $this->command->warn('Main business or influencer user not found. Skipping message seeding.');
+        // Get accepted applications to create chats for
+        $acceptedApplications = CampaignApplication::with([
+            'campaign.business',
+            'user.influencer',
+        ])
+            ->where('status', CampaignApplicationStatus::ACCEPTED)
+            ->get();
+
+        if ($acceptedApplications->isEmpty()) {
+            $this->command->info('No accepted applications found. Skipping message seeding.');
 
             return;
         }
 
-        // 1. Create conversation between the main business and main influencer
-        $mainChat = Chat::findOrCreateBetweenUsers($mainBusinessUser, $mainInfluencerUser);
-        $this->createConversation($mainChat, $mainBusinessUser, $mainInfluencerUser);
+        // Prioritize Business 1's accepted applications first
+        $business1Apps = $acceptedApplications->filter(fn($app) => $app->campaign->business_id === 1);
+        $otherApps = $acceptedApplications->filter(fn($app) => $app->campaign->business_id !== 1);
 
-        // Get additional business and influencer users from AccountSeeder
-        $additionalBusinessUsers = User::where('account_type', AccountType::BUSINESS)
-            ->where('id', '!=', $mainBusinessUser->id)
-            ->limit(5)
-            ->get();
+        // Combine: Business 1 apps first, then fill with others up to 10 total
+        $applicationsToSeed = $business1Apps->concat($otherApps)->take(10);
 
-        $additionalInfluencerUsers = User::where('account_type', AccountType::INFLUENCER)
-            ->where('id', '!=', $mainInfluencerUser->id)
-            ->limit(10)
-            ->get();
+        $chatsCreated = 0;
+        $messagesCreated = 0;
 
-        // 2. Create 5-10 other conversations from the main business to other influencers
-        $conversationCount = 0;
-        foreach ($additionalInfluencerUsers->take(8) as $influencer) {
-            $chat = Chat::findOrCreateBetweenUsers($mainBusinessUser, $influencer);
-            $this->createConversation($chat, $mainBusinessUser, $influencer);
-            $conversationCount++;
+        foreach ($applicationsToSeed as $application) {
+            // Skip if influencer or business is missing
+            if (! $application->user->influencer || ! $application->campaign->business) {
+                continue;
+            }
+
+            // Create chat for this campaign
+            $chat = Chat::findOrCreateForCampaign(
+                $application->campaign->business,
+                $application->user->influencer,
+                $application->campaign
+            );
+
+            // Get a random business member to be the main contact
+            $businessMember = $application->campaign->business->users()->inRandomOrder()->first();
+
+            if (! $businessMember) {
+                continue;
+            }
+
+            // Create conversation
+            $messageCount = $this->createConversation($chat, $businessMember, $application->user);
+            $chatsCreated++;
+            $messagesCreated += $messageCount;
         }
 
-        // 3. Create 5-10 other conversations from the main influencer to other businesses
-        foreach ($additionalBusinessUsers as $business) {
-            if ($conversationCount >= 16) {
-                break;
-            } // Limit total conversations
-            $chat = Chat::findOrCreateBetweenUsers($business, $mainInfluencerUser);
-            $this->createConversation($chat, $business, $mainInfluencerUser);
-            $conversationCount++;
-        }
-
-        $this->command->info("Created {$conversationCount} conversations with messages.");
+        $this->command->info("Created {$chatsCreated} chats with {$messagesCreated} messages.");
     }
 
     /**
      * Create a realistic conversation between two users
      */
-    private function createConversation(Chat $chat, User $businessUser, User $influencerUser): void
+    private function createConversation(Chat $chat, User $businessUser, User $influencerUser): int
     {
         $conversations = [
             [
@@ -105,6 +117,8 @@ class MessageSeeder extends Seeder
         $baseTime = now()->subDays(fake()->numberBetween(1, 30));
         $currentTime = $baseTime;
 
+        $messageCount = 0;
+
         foreach ($conversation as $index => $messageData) {
             // Add realistic delays between messages (5 minutes to 2 hours)
             if ($index > 0) {
@@ -122,6 +136,10 @@ class MessageSeeder extends Seeder
                 'read_by_user_id' => fake()->boolean(70) ?
                     ($messageData['user']->id === $businessUser->id ? $influencerUser->id : $businessUser->id) : null,
             ]);
+
+            $messageCount++;
         }
+
+        return $messageCount;
     }
 }

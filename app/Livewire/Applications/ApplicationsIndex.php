@@ -6,6 +6,7 @@ use App\Enums\CampaignApplicationStatus;
 use App\Livewire\BaseComponent;
 use App\Models\Campaign;
 use App\Models\CampaignApplication;
+use App\Models\Chat;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\WithPagination;
@@ -120,6 +121,17 @@ class ApplicationsIndex extends BaseComponent
         ]);
 
         $application->user->notify(new \App\Notifications\CampaignApplicationAcceptedNotification($application->fresh()));
+
+        // Create chat between business and influencer for this campaign
+        $influencer = $application->user->influencer;
+        if ($influencer) {
+            Chat::findOrCreateForCampaign(
+                $application->campaign->business,
+                $influencer,
+                $application->campaign
+            );
+        }
+
         $this->flashSuccess('Application accepted successfully!');
     }
 

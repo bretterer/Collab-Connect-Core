@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Masmerise\Toaster\Toaster;
-use Illuminate\Support\Facades\Session;
 
 #[Layout('layouts.app')]
 class BusinessDashboard extends Component
@@ -35,7 +34,7 @@ class BusinessDashboard extends Component
     public function getDraftCampaigns(): Collection
     {
         $business = Auth::user()->currentBusiness;
-        if (!$business) {
+        if (! $business) {
             return collect();
         }
 
@@ -49,7 +48,7 @@ class BusinessDashboard extends Component
     public function getPublishedCampaigns(): Collection
     {
         $business = Auth::user()->currentBusiness;
-        if (!$business) {
+        if (! $business) {
             return collect();
         }
 
@@ -63,7 +62,7 @@ class BusinessDashboard extends Component
     public function getScheduledCampaigns(): Collection
     {
         $business = Auth::user()->currentBusiness;
-        if (!$business) {
+        if (! $business) {
             return collect();
         }
 
@@ -131,6 +130,7 @@ class BusinessDashboard extends Component
 
         if (! $application || ! $application->campaign || $application->campaign->business_id !== Auth::user()->currentBusiness->id) {
             Toaster::error('Application not found or you do not have permission to accept it.');
+
             return;
         }
 
@@ -140,7 +140,16 @@ class BusinessDashboard extends Component
         ]);
 
         $application->user->notify(new CampaignApplicationAcceptedNotification($application->fresh()));
-        Chat::findOrCreateBetweenUsers($application->campaign->business->owner->first(), $application->user);
+
+        // Create chat between business and influencer for this campaign
+        $influencer = $application->user->influencer;
+        if ($influencer) {
+            Chat::findOrCreateForCampaign(
+                $application->campaign->business,
+                $influencer,
+                $application->campaign
+            );
+        }
 
         Toaster::success('Application accepted successfully!');
     }
@@ -154,6 +163,7 @@ class BusinessDashboard extends Component
 
         if (! $application || ! $application->campaign || $application->campaign->business_id !== Auth::user()->currentBusiness->id) {
             Toaster::error('Application not found or you do not have permission to decline it.');
+
             return;
         }
 

@@ -4,13 +4,11 @@ namespace App\Models;
 
 use App\Enums\AccountType;
 use App\Events\AccountTypeSelected;
-use App\Models\Business;
 use App\Services\ProfileService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -65,7 +63,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function setCurrentBusiness(Business $business): void
     {
-        if($this->isBusinessAccount()) {
+        if ($this->isBusinessAccount()) {
             $this->current_business = $business->id;
             $this->save();
         }
@@ -100,12 +98,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function profile(): HasOne
     {
-        if($this->isInfluencerAccount()) {
+        if ($this->isInfluencerAccount()) {
             return $this->hasOne(Influencer::class);
         }
 
-        if($this->isBusinessAccount()) {
-            return $this->hasOne(Business::class, 'id', 'current_business');;
+        if ($this->isBusinessAccount()) {
+            return $this->hasOne(Business::class, 'id', 'current_business');
         }
 
         throw new \Exception('User profile type not defined for this user.');
@@ -219,28 +217,12 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get chats where this user is the business user
-     */
-    public function businessChats(): HasMany
-    {
-        return $this->hasMany(Chat::class, 'business_user_id');
-    }
-
-    /**
-     * Get chats where this user is the influencer user
-     */
-    public function influencerChats(): HasMany
-    {
-        return $this->hasMany(Chat::class, 'influencer_user_id');
-    }
-
-    /**
-     * Get all chats for this user (both as business and influencer)
+     * Get all chats for this user (both as business member and influencer)
+     * This uses the Chat::forUser scope which handles the new business-influencer-campaign structure
      */
     public function chats()
     {
-        return Chat::where('business_user_id', $this->id)
-            ->orWhere('influencer_user_id', $this->id);
+        return Chat::forUser($this);
     }
 
     /**
