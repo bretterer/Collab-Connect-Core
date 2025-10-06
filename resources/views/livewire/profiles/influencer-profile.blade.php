@@ -48,12 +48,14 @@
                         </div>
 
                         {{-- Action Buttons --}}
+                        {{-- Hidden for now
                         <div class="flex gap-3">
                             <flux:button variant="primary">Contact</flux:button>
                             <flux:button variant="ghost">
                                 <flux:icon.heart />
                             </flux:button>
                         </div>
+                        --}}
                     </div>
 
                     {{-- Bio --}}
@@ -100,7 +102,7 @@
 
                                     @if($account->url)
                                         <div class="mt-2">
-                                            <a href="{{ $account->url }}" target="_blank" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                                            <a href="{{ $account->normalized_url }}" target="_blank" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
                                                 View Profile →
                                             </a>
                                         </div>
