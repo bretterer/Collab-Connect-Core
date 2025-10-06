@@ -16,6 +16,9 @@ class ApplicationSeeder extends Seeder
      */
     public function run(): void
     {
+        // Ensure Business 1 (primary test business) has accepted and rejected applications
+        $this->ensureBusiness1HasApplications();
+
         // Get all published campaigns
         $campaigns = Campaign::where('status', 'published')->get();
 
@@ -183,5 +186,124 @@ class ApplicationSeeder extends Seeder
             $random <= 80 => CampaignApplicationStatus::ACCEPTED,  // 20% accepted
             default => CampaignApplicationStatus::REJECTED,        // 20% rejected
         };
+    }
+
+    /**
+     * Ensure Business 1 (primary test business) has accepted and rejected applications
+     */
+    private function ensureBusiness1HasApplications(): void
+    {
+        // Get Business 1's published campaigns
+        $business1Campaigns = Campaign::where('business_id', 1)
+            ->where('status', 'published')
+            ->get();
+
+        if ($business1Campaigns->isEmpty()) {
+            return;
+        }
+
+        // Get influencers
+        $influencers = User::where('account_type', AccountType::INFLUENCER)
+            ->whereHas('influencer')
+            ->with('influencer')
+            ->get();
+
+        if ($influencers->isEmpty()) {
+            return;
+        }
+
+        // Ensure at least 3 accepted and 2 rejected applications for Business 1
+        $acceptedCount = 0;
+        $rejectedCount = 0;
+        $targetAccepted = 3;
+        $targetRejected = 2;
+
+        foreach ($business1Campaigns as $campaign) {
+            // Skip if we've met our targets
+            if ($acceptedCount >= $targetAccepted && $rejectedCount >= $targetRejected) {
+                break;
+            }
+
+            // Get influencers who haven't applied yet
+            $availableInfluencers = $influencers->filter(function ($influencer) use ($campaign) {
+                return ! CampaignApplication::where('campaign_id', $campaign->id)
+                    ->where('user_id', $influencer->id)
+                    ->exists();
+            });
+
+            if ($availableInfluencers->isEmpty()) {
+                continue;
+            }
+
+            // Create accepted applications
+            while ($acceptedCount < $targetAccepted && $availableInfluencers->isNotEmpty()) {
+                $influencer = $availableInfluencers->shift();
+                $this->createApplication($campaign, $influencer, CampaignApplicationStatus::ACCEPTED);
+                $acceptedCount++;
+            }
+
+            // Create rejected applications
+            while ($rejectedCount < $targetRejected && $availableInfluencers->isNotEmpty()) {
+                $influencer = $availableInfluencers->shift();
+                $this->createApplication($campaign, $influencer, CampaignApplicationStatus::REJECTED);
+                $rejectedCount++;
+            }
+        }
+
+        $this->command->info("Ensured Business 1 has {$acceptedCount} accepted and {$rejectedCount} rejected applications.");
+    }
+
+    /**
+     * Create a single application with the specified status
+     */
+    private function createApplication(Campaign $campaign, User $influencer, CampaignApplicationStatus $status): void
+    {
+        $message = $this->generateApplicationMessage($campaign, $influencer);
+
+        $startDate = $campaign->published_at ?? now()->subDays(30);
+        $endDate = $campaign->application_deadline ?? now();
+
+        if ($endDate <= $startDate) {
+            $endDate = $startDate->copy()->addDays(7);
+        }
+
+        $submittedAt = fake()->dateTimeBetween($startDate, $endDate);
+
+        $applicationData = [
+            'campaign_id' => $campaign->id,
+            'user_id' => $influencer->id,
+            'message' => $message,
+            'status' => $status,
+            'submitted_at' => $submittedAt,
+        ];
+
+        // Add review data for accepted/rejected applications
+        if ($status !== CampaignApplicationStatus::PENDING) {
+            $reviewDate = now();
+            if ($submittedAt < now()) {
+                $reviewDate = fake()->dateTimeBetween($submittedAt, 'now');
+            }
+            $applicationData['reviewed_at'] = $reviewDate;
+
+            if ($status === CampaignApplicationStatus::REJECTED) {
+                $applicationData['review_notes'] = fake()->randomElement([
+                    'Thank you for your application. We decided to go with influencers who have a different audience demographic.',
+                    'Your content style doesn\'t align with our brand aesthetic for this particular campaign.',
+                    'We received many qualified applications and had to make some difficult decisions.',
+                    'Looking for influencers with higher engagement rates for this campaign.',
+                    'We need influencers in a different geographic location for this campaign.',
+                ]);
+                $applicationData['rejected_at'] = $applicationData['reviewed_at'];
+            } else {
+                $applicationData['review_notes'] = fake()->optional(0.3)->randomElement([
+                    'Great portfolio! Looking forward to working together.',
+                    'Your content style is perfect for our brand.',
+                    'Excited to collaborate on this campaign!',
+                ]);
+                $applicationData['accepted_at'] = $applicationData['reviewed_at'];
+            }
+        }
+
+        CampaignApplication::create($applicationData);
     }
 }

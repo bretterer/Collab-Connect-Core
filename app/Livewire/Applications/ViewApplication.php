@@ -43,7 +43,16 @@ class ViewApplication extends BaseComponent
         ]);
 
         $this->application->user->notify(new CampaignApplicationAcceptedNotification($this->application->fresh()));
-        Chat::findOrCreateBetweenUsers($this->application->campaign->business->owner->first(), $this->application->user);
+
+        // Create chat between business and influencer for this campaign
+        $influencer = $this->application->user->influencer;
+        if ($influencer) {
+            Chat::findOrCreateForCampaign(
+                $this->application->campaign->business,
+                $influencer,
+                $this->application->campaign
+            );
+        }
 
         Toaster::success('Application accepted successfully! The influencer has been notified.');
     }

@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Enums\BusinessIndustry;
 use App\Enums\BusinessType;
 use App\Enums\CompensationType;
-use App\Models\PostalCode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -147,5 +146,13 @@ class Influencer extends Model implements HasMedia
     public function getBannerImageThumbUrl(): ?string
     {
         return $this->getFirstMediaUrl('banner_image', 'thumb') ?: null;
+    }
+
+    /**
+     * Get all chats for this influencer.
+     */
+    public function chats(): HasMany
+    {
+        return $this->hasMany(Chat::class);
     }
 }

@@ -127,6 +127,14 @@ class Business extends Model implements HasMedia
     }
 
     /**
+     * Get all chats for this business.
+     */
+    public function chats(): HasMany
+    {
+        return $this->hasMany(Chat::class);
+    }
+
+    /**
      * Get the owner of the business based on the users where role is `owner`
      */
     public function owner(): BelongsToMany

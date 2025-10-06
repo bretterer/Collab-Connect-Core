@@ -71,6 +71,9 @@ class CampaignDiscoveryTest extends TestCase
     {
         $this->actingAs($this->influencerUser);
 
+        // Delete any existing campaigns from setUp to ensure clean state
+        Campaign::query()->delete();
+
         // Create multiple campaigns with different statuses
         $publishedCampaign1 = Campaign::factory()->published()->create([
             'business_id' => $this->businessUser->currentBusiness->id,

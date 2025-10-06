@@ -29,8 +29,14 @@ class Chat extends BaseComponent
         $user = $this->getAuthenticatedUser();
 
         // Get all chats for the current user with latest messages
+        // Eager load business, influencer, campaign, and the influencer's user
         $chats = ChatModel::forUser($user)
-            ->with(['businessUser', 'influencerUser', 'latestMessage'])
+            ->with([
+                'business',
+                'influencer.user',
+                'campaign',
+                'latestMessage.user',
+            ])
             ->orderByDesc('updated_at')
             ->get();
 
@@ -39,7 +45,11 @@ class Chat extends BaseComponent
         $selectedChat = null;
 
         if ($this->selectedChatId) {
-            $selectedChat = ChatModel::find($this->selectedChatId);
+            $selectedChat = ChatModel::with([
+                'business',
+                'influencer.user',
+                'campaign',
+            ])->find($this->selectedChatId);
 
             // Ensure user has access to this chat
             if ($selectedChat && $selectedChat->hasParticipant($user)) {
