@@ -44,6 +44,10 @@ enum SocialPlatform: string
 
     public function generateUrl(string $username): string
     {
+        // strip baseurl from username if present
+        $username = preg_replace('#^https?://(www\.)?([a-zA-Z0-9.-]+/)?#', '', rtrim($username, '/'));
+        $username = ltrim($username, '@'); // remove leading @ if present
+
         return $this->baseUrl().$username;
     }
 

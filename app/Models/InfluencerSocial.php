@@ -37,4 +37,14 @@ class InfluencerSocial extends Model
     {
         return $this->platform->getIcon();
     }
+
+    public function getNormalizedUrlAttribute(): ?string
+    {
+        if (! $this->username || ! $this->platform) {
+            return $this->url;
+        }
+
+        // Use the platform's generateUrl method with the username
+        return $this->platform->generateUrl($this->username);
+    }
 }

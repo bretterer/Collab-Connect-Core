@@ -89,24 +89,22 @@
                                 <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                                     <div class="flex items-center justify-between mb-3">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
-                                                {{ strtoupper(substr($account->platform->value, 0, 1)) }}
+                                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold {{ $account->platform->getStyleClasses() }}">
+                                                {!! $account->platform->svg() !!}
                                             </div>
                                             <div>
-                                                <flux:heading size="sm">{{ $account->platform->value }}</flux:heading>
+                                                <flux:heading size="sm">{{ $account->platform->label() }}</flux:heading>
                                                 <flux:text class="text-sm text-gray-600 dark:text-gray-400">{{ '@' . $account->username }}</flux:text>
                                             </div>
                                         </div>
                                         <flux:badge variant="primary">{{ number_format($account->followers) }} followers</flux:badge>
                                     </div>
 
-                                    @if($account->url)
-                                        <div class="mt-2">
-                                            <a href="{{ $account->normalized_url }}" target="_blank" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-                                                View Profile →
-                                            </a>
-                                        </div>
-                                    @endif
+                                    <div class="mt-2">
+                                        <a href="{{ $account->normalized_url }}" target="_blank" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                                            View Profile →
+                                        </a>
+                                    </div>
                                 </div>
                             @endforeach
                         </div>
