@@ -12,47 +12,68 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // First, clean up any orphaned chat records where users don't have profiles
+        // Check if columns have already been renamed (partially applied migration)
+        $columns = Schema::getColumnListing('chats');
+        $alreadyRenamed = in_array('business_id', $columns) && in_array('influencer_id', $columns);
+
+        if (! $alreadyRenamed) {
+            Schema::table('chats', function (Blueprint $table) {
+                // Drop existing foreign keys first
+                $table->dropForeign(['business_user_id']);
+                $table->dropForeign(['influencer_user_id']);
+
+                // Now drop unique constraint
+                $table->dropUnique(['business_user_id', 'influencer_user_id']);
+
+                // Add campaign_id column
+                $table->foreignId('campaign_id')->after('id')->nullable()->constrained()->onDelete('cascade');
+
+                // Rename columns
+                $table->renameColumn('business_user_id', 'business_id');
+                $table->renameColumn('influencer_user_id', 'influencer_id');
+            });
+        } else {
+            // Columns already renamed, just add campaign_id if it doesn't exist
+            if (! in_array('campaign_id', $columns)) {
+                Schema::table('chats', function (Blueprint $table) {
+                    $table->foreignId('campaign_id')->after('id')->nullable()->constrained()->onDelete('cascade');
+                });
+            }
+        }
+
+        // Clean up orphaned chats where user IDs don't have corresponding profiles
+        // At this point, business_id and influencer_id contain user IDs, not profile IDs
+        // Note: businesses use business_users pivot table, influencers have direct user_id
         DB::statement('
             DELETE FROM chats
-            WHERE business_user_id NOT IN (SELECT user_id FROM businesses)
-               OR influencer_user_id NOT IN (SELECT user_id FROM influencers)
+            WHERE business_id NOT IN (SELECT user_id FROM business_users)
+               OR influencer_id NOT IN (SELECT user_id FROM influencers)
         ');
 
+        // Add temporary columns for the new profile IDs
         Schema::table('chats', function (Blueprint $table) {
-            // Drop existing foreign keys first
-            $table->dropForeign(['business_user_id']);
-            $table->dropForeign(['influencer_user_id']);
-
-            // Now drop unique constraint
-            $table->dropUnique(['business_user_id', 'influencer_user_id']);
-
-            // Add campaign_id column
-            $table->foreignId('campaign_id')->after('id')->nullable()->constrained()->onDelete('cascade');
-        });
-
-        // Add temporary columns for the new IDs
-        Schema::table('chats', function (Blueprint $table) {
-            $table->unsignedBigInteger('temp_business_id')->nullable()->after('business_user_id');
-            $table->unsignedBigInteger('temp_influencer_id')->nullable()->after('influencer_user_id');
+            $table->unsignedBigInteger('temp_business_id')->nullable()->after('business_id');
+            $table->unsignedBigInteger('temp_influencer_id')->nullable()->after('influencer_id');
         });
 
         // Convert user IDs to profile IDs
+        // For businesses: chat.business_id (user_id) -> business_users.business_id
         DB::statement('
             UPDATE chats c
-            INNER JOIN businesses b ON c.business_user_id = b.user_id
-            SET c.temp_business_id = b.id
+            INNER JOIN business_users bu ON c.business_id = bu.user_id
+            SET c.temp_business_id = bu.business_id
         ');
 
+        // For influencers: chat.influencer_id (user_id) -> influencers.id
         DB::statement('
             UPDATE chats c
-            INNER JOIN influencers i ON c.influencer_user_id = i.user_id
+            INNER JOIN influencers i ON c.influencer_id = i.user_id
             SET c.temp_influencer_id = i.id
         ');
 
-        // Drop old columns and rename new ones
+        // Drop old columns and rename temp columns
         Schema::table('chats', function (Blueprint $table) {
-            $table->dropColumn(['business_user_id', 'influencer_user_id']);
+            $table->dropColumn(['business_id', 'influencer_id']);
             $table->renameColumn('temp_business_id', 'business_id');
             $table->renameColumn('temp_influencer_id', 'influencer_id');
         });
