@@ -38,24 +38,16 @@ class SocialMediaAccount extends Model
 
     /**
      * Get the normalized URL for the social media account.
-     * Removes duplicate domain portions from URLs like:
-     * https://instagram.com/https://www.instagram.com/username/
+     * Extracts the username from any URL format and generates the proper platform URL.
      */
     public function getNormalizedUrlAttribute(): ?string
     {
-        if (! $this->url) {
-            return null;
+        if (! $this->username || ! $this->platform) {
+            return $this->url;
         }
 
-        // Pattern to match duplicated URLs (e.g., https://domain.com/https://www.domain.com/path)
-        $pattern = '/^(https?:\/\/[^\/]+\/)https?:\/\/[^\/]+\/(.*)$/i';
-
-        if (preg_match($pattern, $this->url, $matches)) {
-            // Return the cleaned URL: first domain + remaining path
-            return $matches[1].$matches[2];
-        }
-
-        return $this->url;
+        // Use the platform's generateUrl method with the username
+        return $this->platform->generateUrl($this->username);
     }
 
     /**
