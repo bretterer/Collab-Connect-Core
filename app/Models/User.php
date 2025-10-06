@@ -176,6 +176,23 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get the username for the user's profile URL
+     * Returns the username if available, otherwise returns the user ID
+     */
+    public function username(): string
+    {
+        if ($this->isBusinessAccount()) {
+            return $this->currentBusiness?->username ?? (string) $this->id;
+        }
+
+        if ($this->isInfluencerAccount()) {
+            return $this->influencer?->username ?? (string) $this->id;
+        }
+
+        return (string) $this->id;
+    }
+
+    /**
      * Get the user's postal code information
      */
     public function getPostalCodeInfo(): ?PostalCode

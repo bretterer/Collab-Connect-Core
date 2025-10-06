@@ -85,7 +85,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
         // Profile routes
-        Route::get('/profile', App\Livewire\Profile\EditProfile::class)->name('profile');
+        Route::get('/profile', App\Livewire\Profile\EditProfile::class)->name('profile.edit');
         Route::post('/switch-business/{business}', function (\App\Models\Business $business) {
             $user = auth()->user();
 
@@ -100,9 +100,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             return redirect()->back()->with('success', 'Switched to '.$business->name);
         })->name('switch-business');
 
+        // Public profile route (supports both @username and ID)
+        Route::get('/@{username}', App\Livewire\ViewProfile::class)->name('profile');
+
         // Business routes
         Route::prefix('business')->name('business.')->group(function () {
-            Route::get('/{user}/profile', App\Livewire\Business\BusinessProfile::class)->name('profile');
             Route::get('/{user}/campaigns', App\Livewire\Business\BusinessCampaigns::class)->name('campaigns');
         });
 

@@ -173,7 +173,7 @@
                         x-transition:leave-end="transform opacity-0 scale-95"
                         class="absolute right-0 z-10 mt-2.5 w-48 origin-top-right rounded-md bg-white dark:bg-gray-800 py-2 shadow-lg ring-1 ring-gray-900/5 dark:ring-gray-700 focus:outline-none"
                         style="display: none;">
-                        <a href="{{ route('profile') }}" class="block px-3 py-1 text-sm leading-6 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">Your profile</a>
+                        <a href="{{ route('profile.edit') }}" class="block px-3 py-1 text-sm leading-6 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">Your profile</a>
 
                         @if(auth()->user()->isBusinessAccount() && auth()->user()->businesses()->count() > 1)
                             <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>

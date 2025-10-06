@@ -140,14 +140,18 @@ class SearchService
         $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencer' : 'currentBusiness';
         $nicheColumn = $targetAccountType === AccountType::INFLUENCER ? 'content_types' : 'industry';
 
-        return $query->whereHas($relationshipMethod, function ($q) use ($selectedNiches, $nicheColumn) {
-            // Wrap the multiple `whereJsonContains` conditions in a closure
-            $q->where(function ($query) use ($selectedNiches, $nicheColumn) {
-                foreach ($selectedNiches as $niche) {
-                    // Use `orWhereJsonContains` for each niche to create an OR condition
-                    $query->orWhereJsonContains($nicheColumn, $niche);
-                }
-            });
+        return $query->whereHas($relationshipMethod, function ($q) use ($selectedNiches, $nicheColumn, $targetAccountType) {
+            if ($targetAccountType === AccountType::INFLUENCER) {
+                // Searching for influencers - content_types is JSON array - use JSON contains
+                $q->where(function ($query) use ($selectedNiches, $nicheColumn) {
+                    foreach ($selectedNiches as $niche) {
+                        $query->orWhereJsonContains($nicheColumn, $niche);
+                    }
+                });
+            } else {
+                // Searching for businesses - industry is a single string value - use whereIn
+                $q->whereIn($nicheColumn, $selectedNiches);
+            }
         });
     }
 
