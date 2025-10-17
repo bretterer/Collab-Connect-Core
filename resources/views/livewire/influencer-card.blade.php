@@ -134,7 +134,7 @@
 
             <!-- Action Buttons -->
             <div class="flex space-x-2 pt-2">
-                <flux:button variant="outline" size="sm" class="flex-1" href="{{ route('profile', $user->username()) }}" wire:navigate>
+                <flux:button variant="outline" size="sm" class="flex-1" href="{{ route('profile', ['username' => $this->getUsername()]) }}" wire:navigate>
                     View Profile
                 </flux:button>
                 <flux:button

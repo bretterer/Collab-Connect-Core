@@ -20,6 +20,7 @@ class Influencer extends Model implements HasMedia
 
     protected $fillable = [
         'user_id',
+        'username',
         'bio',
         'address',
         'city',

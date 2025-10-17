@@ -11,14 +11,13 @@ class InfluencerCard extends Component
     public User $user;
 
     public bool $isPromoted = false;
+
     public bool $isVerified = false;
+
     public bool $showFavorites = true;
 
-
-
-
-
     public string $profileImageUrl;
+
     public string $coverImageUrl;
 
     public function mount()
@@ -28,7 +27,7 @@ class InfluencerCard extends Component
             ?: Vite::asset('resources/images/CollabConnectMark.png');
 
         $this->coverImageUrl = $this->user->influencer?->getBannerImageUrl()
-            ?: 'data:image/svg+xml;base64,' . base64_encode('
+            ?: 'data:image/svg+xml;base64,'.base64_encode('
                 <svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -46,12 +45,16 @@ class InfluencerCard extends Component
         return round(rand(30, 50) / 10, 1);
     }
 
+    public function getUsername(): string
+    {
+        return $this->user->username();
+    }
 
     public function render()
     {
         return view('livewire.influencer-card', [
             'socialAccounts' => $this->user->profile->socialAccounts,
-            'totalFollowers' => $this->user->profile->totalFollowers
+            'totalFollowers' => $this->user->profile->totalFollowers,
         ]);
     }
 }
