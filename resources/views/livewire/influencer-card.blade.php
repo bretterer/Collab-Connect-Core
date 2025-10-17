@@ -141,7 +141,7 @@
                     variant="primary"
                     size="sm"
                     class="flex-1"
-                    wire:click="$dispatch('open-invite-modal', { influencerId: {{ $user->id }}, influencerName: '{{ $user->name }}' })"
+                    wire:click="$dispatch('open-invite-modal', { influencerId: {{ $user->id }}, influencerName: {{ json_encode($user->name) }} })"
                 >
                     Invite to Campaign
                 </flux:button>

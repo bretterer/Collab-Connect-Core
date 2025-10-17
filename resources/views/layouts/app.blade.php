@@ -26,6 +26,18 @@
                 document.documentElement.classList.add('dark');
             }
         })();
+
+        // Fix dark mode on Livewire navigation
+        document.addEventListener('livewire:navigated', () => {
+            const isDark = localStorage.getItem('darkMode') === 'true' ||
+                (localStorage.getItem('darkMode') === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
     </script>
 
     <!-- Scripts -->
