@@ -102,6 +102,9 @@ class CampaignDiscoveryTest extends TestCase
     {
         $this->actingAs($this->influencerUser);
 
+        // Delete the campaign created in setUp to avoid confusion
+        Campaign::query()->delete();
+
         $ugcCampaign = Campaign::factory()->published()->create([
             'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_type' => [CampaignType::USER_GENERATED->value],
@@ -116,6 +119,7 @@ class CampaignDiscoveryTest extends TestCase
 
         $component = Livewire::test('campaigns.influencer-campaigns');
 
+        // Both campaigns should be visible regardless of order
         $component->assertSee('User generated content campaign')
             ->assertSee('Product review campaign');
     }
