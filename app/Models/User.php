@@ -180,11 +180,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function username(): string
     {
         if ($this->isBusinessAccount()) {
-            return $this->currentBusiness?->username ?? (string) $this->id;
+            return empty($this->currentBusiness?->username) ? (string) $this->id : $this->currentBusiness->username;
         }
 
         if ($this->isInfluencerAccount()) {
-            return $this->influencer?->username ?? (string) $this->id;
+            return empty($this->influencer?->username) ? (string) $this->id : $this->influencer->username;
         }
 
         return (string) $this->id;
