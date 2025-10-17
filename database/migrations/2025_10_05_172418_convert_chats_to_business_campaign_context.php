@@ -58,18 +58,39 @@ return new class extends Migration
 
         // Convert user IDs to profile IDs
         // For businesses: chat.business_id (user_id) -> business_users.business_id
-        DB::statement('
-            UPDATE chats c
-            INNER JOIN business_users bu ON c.business_id = bu.user_id
-            SET c.temp_business_id = bu.business_id
-        ');
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            DB::statement('
+                UPDATE chats
+                SET temp_business_id = (
+                    SELECT business_id
+                    FROM business_users
+                    WHERE business_users.user_id = chats.business_id
+                )
+            ');
 
-        // For influencers: chat.influencer_id (user_id) -> influencers.id
-        DB::statement('
-            UPDATE chats c
-            INNER JOIN influencers i ON c.influencer_id = i.user_id
-            SET c.temp_influencer_id = i.id
-        ');
+            // For influencers: chat.influencer_id (user_id) -> influencers.id
+            DB::statement('
+                UPDATE chats
+                SET temp_influencer_id = (
+                    SELECT id
+                    FROM influencers
+                    WHERE influencers.user_id = chats.influencer_id
+                )
+            ');
+        } else {
+            // MySQL/PostgreSQL syntax
+            DB::statement('
+                UPDATE chats c
+                INNER JOIN business_users bu ON c.business_id = bu.user_id
+                SET c.temp_business_id = bu.business_id
+            ');
+
+            DB::statement('
+                UPDATE chats c
+                INNER JOIN influencers i ON c.influencer_id = i.user_id
+                SET c.temp_influencer_id = i.id
+            ');
+        }
 
         // Drop old columns and rename temp columns
         Schema::table('chats', function (Blueprint $table) {
