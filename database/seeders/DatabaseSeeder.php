@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
         // Create business user with complete profile
         $businessUser = User::factory()->business()->withProfile()->create([
             'name' => 'Sarah Johnson',
-            'email' => env('INIT_BUSINESS_EMAIL', 'business@example.com'),
+            'email' => config('collabconnect.init_business_email', 'business@example.com'),
             'password' => Hash::make('password'),
         ]);
 

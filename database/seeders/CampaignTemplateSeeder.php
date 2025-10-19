@@ -20,11 +20,11 @@ class CampaignTemplateSeeder extends Seeder
     public function run(): void
     {
         // Find or create a business user
-        $businessUser = User::where('email', 'business@example.com')->first();
+        $businessUser = User::where('email', config('collabconnect.init_business_email'))->first();
 
         if (! $businessUser) {
             $businessUser = User::factory()->business()->create([
-                'email' => 'business@example.com',
+                'email' => config('collabconnect.init_business_email'),
                 'name' => 'Collab Coffee',
             ]);
         }
