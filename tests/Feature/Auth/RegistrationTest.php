@@ -33,10 +33,7 @@ class RegistrationTest extends TestCase
     public function new_users_can_register(): void
     {
         $this->withoutExceptionHandling();
-        // Mock Turnstile Rules
-        $this->mock(Turnstile::class, function ($mock) {
-            $mock->shouldReceive('passes')->andReturn(true);
-        });
+
 
         // Disable Honeypot
         config(['honeypot.enabled' => false]);
@@ -46,7 +43,6 @@ class RegistrationTest extends TestCase
             ->set('email', 'test@example.com')
             ->set('password', 'password')
             ->set('password_confirmation', 'password')
-            ->set('cf_turnstile_response', 'test-token')
             ->call('register');
 
         $response
