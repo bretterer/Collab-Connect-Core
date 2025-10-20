@@ -38,8 +38,6 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    @turnstileScripts()
-
     @if(!app()->environment('local'))
             <script
                 defer

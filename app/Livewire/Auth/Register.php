@@ -14,7 +14,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use RyanChandler\LaravelCloudflareTurnstile\Rules\Turnstile;
 use Spatie\Honeypot\Http\Livewire\Concerns\HoneypotData;
 use Spatie\Honeypot\Http\Livewire\Concerns\UsesSpamProtection;
 
@@ -32,8 +31,6 @@ class Register extends Component
     public string $password_confirmation = '';
 
     public AccountType $accountType = AccountType::INFLUENCER;
-
-    public string $cf_turnstile_response = '';
 
     public HoneypotData $extraFields;
 
@@ -153,18 +150,12 @@ class Register extends Component
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
-            'cf_turnstile_response' => ['required', app(Turnstile::class)],
             'accountType' => ['required', Rule::enum(AccountType::class)],
-        ], [
-            'cf_turnstile_response.required' => 'Please complete the CAPTCHA to verify you are not a robot.',
-            'cf_turnstile_response.turnstile' => 'CAPTCHA verification failed. Please try again.',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
         $validated['account_type'] = $validated['accountType'];
 
-        // Remove cf_turnstile_response from validated data as it's not a user field
-        unset($validated['cf_turnstile_response']);
         // Remove accountType from validated data as it's not a user field
         unset($validated['accountType']);
 
