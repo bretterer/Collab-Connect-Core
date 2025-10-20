@@ -128,12 +128,6 @@
                     <flux:error name="accountType" />
                 </div>
                 @endunless
-
-                <div>
-                    <x-turnstile data-size="flexible" wire:model="cf_turnstile_response" />
-                    <flux:error name="cf_turnstile_response" />
-                </div>
-
                 <div>
                     <flux:button class="w-full"
                         type="submit"
