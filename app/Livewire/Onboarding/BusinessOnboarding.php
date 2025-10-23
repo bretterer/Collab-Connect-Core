@@ -9,9 +9,12 @@ use App\Enums\ContactRole;
 use App\Enums\YearsInBusiness;
 use App\Models\Business;
 use App\Models\BusinessUser;
+use App\Models\StripeProduct;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -23,6 +26,8 @@ class BusinessOnboarding extends Component
     public int $step = 1;
 
     public ?Business $business = null;
+
+    public bool $isNavigationDisabled = false;
 
     // Form data properties
     public string $businessName = '';
@@ -75,6 +80,8 @@ class BusinessOnboarding extends Component
 
     public bool $marketingEmails = false;
 
+    public ?int $selectedPriceId = null;
+
     // Add this method for debugging
     public function updatedBusinessGoals()
     {
@@ -120,8 +127,18 @@ class BusinessOnboarding extends Component
             ],
         ],
         4 => [
-            'title' => 'Welcome to CollabConnect',
+            'title' => 'Subscription Plan',
             'component' => 'step4',
+            'fields' => [],
+            'tips' => [
+                'Select a plan that fits your business needs and budget',
+                'Consider starting with a basic plan and upgrading later',
+                'Take advantage of free trials to explore features',
+            ],
+        ],
+        5 => [
+            'title' => 'Welcome to CollabConnect',
+            'component' => 'step5',
             'fields' => [],
             'tips' => [
                 'Your profile is complete and ready to attract influencers',
@@ -144,6 +161,8 @@ class BusinessOnboarding extends Component
 
         // Ensure step is valid
         $this->step = max(1, min($this->step, $this->getMaxSteps()));
+
+        $this->selectedPriceId = $this->getSubscriptionProducts()->first()?->prices->first()?->id ?? null;
 
     }
 
@@ -201,7 +220,6 @@ class BusinessOnboarding extends Component
     {
         return count($this->stepConfiguration);
     }
-
 
     public function validateCurrentStep()
     {
@@ -280,6 +298,19 @@ class BusinessOnboarding extends Component
 
     public function nextStep()
     {
+        // If on step 4 (subscription), handle Stripe payment first
+        if ($this->step === 4) {
+            if(!empty($this->selectedPriceId)) {
+                // Dispatch event to create Stripe payment method
+                $this->dispatch('createStripePaymentMethod');
+                $this->isNavigationDisabled = true;
+
+                // The JS will handle creating the payment method and dispatch back
+                return;
+            }
+            // If no price selected, skip to next step
+        }
+
         $this->validateCurrentStep();
         $this->saveStepData();
 
@@ -287,6 +318,49 @@ class BusinessOnboarding extends Component
             $this->step++;
             $this->setOnboardingStep($this->step);
         }
+    }
+
+    #[On('stripePaymentMethodCreated')]
+    public function handleStripePaymentMethod($paymentMethodId)
+    {
+        try {
+            // Create the subscription using Laravel Cashier
+            $user = Auth::user();
+            $business = $user->currentBusiness;
+            $business->deletePaymentMethods();
+
+            // Get the selected price
+            $price = \App\Models\StripePrice::find($this->selectedPriceId);
+
+            if (! $price) {
+                $this->dispatch('stripePaymentMethodError', message: 'Invalid subscription plan selected.');
+
+                return;
+            }
+
+            // Create subscription with Cashier
+            $subscription = $business->newSubscription('default', $price->stripe_id)
+                ->trialUntil(Carbon::parse(config('collabconnect.stripe.subscriptions.start_date')))
+                ->create($paymentMethodId);
+
+
+            if ($this->step < $this->getMaxSteps()) {
+                $this->step++;
+                $this->setOnboardingStep($this->step);
+            }
+        } catch (\Exception $e) {
+            $this->dispatch('stripePaymentMethodError', message: $e->getMessage());
+        }
+    }
+
+    #[On('stripePaymentMethodError')]
+    public function handleStripeError($message)
+    {
+
+                $this->isNavigationDisabled = false;
+        // Error is already displayed in the Stripe form
+        // Just log it or handle additional error logic if needed
+        logger()->error('Stripe payment error: '.$message);
     }
 
     public function previousStep()
@@ -358,7 +432,6 @@ class BusinessOnboarding extends Component
         ]);
     }
 
-
     private function createBusiness(): Business
     {
         if (! $this->business) {
@@ -401,6 +474,23 @@ class BusinessOnboarding extends Component
         return redirect()->route('dashboard');
     }
 
+    public function getSubscriptionProducts()
+    {
+        return StripeProduct::query()
+            ->where('active', true)
+            ->where('billable_type', 'App\Models\Business')
+            ->with(['prices' => function ($query) {
+                $query->where('active', true)
+                    ->orderBy('unit_amount');
+            }])
+            ->get();
+    }
+
+    public function selectPrice(int $priceId)
+    {
+        $this->selectedPriceId = $priceId;
+    }
+
     public function render()
     {
         return view('livewire.onboarding.business-onboarding', [
@@ -408,6 +498,7 @@ class BusinessOnboarding extends Component
             'steps' => $this->stepConfiguration,
             'currentStep' => $this->step,
             'maxSteps' => $this->getMaxSteps(),
+            'subscriptionProducts' => $this->getSubscriptionProducts(),
         ]);
     }
 }

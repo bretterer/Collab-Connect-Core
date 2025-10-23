@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->web(append: [
             \App\Http\Middleware\HandleToastMessages::class,
+            \App\Http\Middleware\SetCashierModel::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [

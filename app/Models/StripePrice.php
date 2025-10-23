@@ -16,7 +16,7 @@ class StripePrice extends Model
         'recurring' => 'json',
     ];
 
-    public function stripeProduct(): BelongsTo
+    public function product(): BelongsTo
     {
         return $this->belongsTo(StripeProduct::class);
     }

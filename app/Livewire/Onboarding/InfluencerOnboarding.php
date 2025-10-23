@@ -101,8 +101,18 @@ class InfluencerOnboarding extends Component
             ],
         ],
         6 => [
-            'title' => 'Welcome to CollabConnect',
+            'title' => 'Subscription Plan',
             'component' => 'step6',
+            'fields' => [],
+            'tips' => [
+                'Choose a plan that fits your collaboration needs',
+                'Consider the features offered in each subscription tier',
+                'Upgrading your plan can unlock more opportunities',
+            ],
+        ],
+        7 => [
+            'title' => 'Welcome to CollabConnect',
+            'component' => 'step7',
             'fields' => [],
             'tips' => [
                 'Your profile is complete and ready to attract brands',

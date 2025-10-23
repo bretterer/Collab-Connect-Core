@@ -128,4 +128,17 @@ return [
 
     'logger' => env('CASHIER_LOGGER'),
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cashier Model
+    |--------------------------------------------------------------------------
+    |
+    | This is the model that Cashier will use to represent customers. You
+    | are free to change this model to any model you wish; however, it
+    | must implement the Billable contract provided by Cashier.
+    |
+    */
+    'model' => env('CASHIER_MODEL', App\Models\Influencer::class),
+
 ];

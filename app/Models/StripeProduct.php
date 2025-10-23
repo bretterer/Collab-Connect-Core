@@ -15,7 +15,7 @@ class StripeProduct extends Model
         'metadata' => 'json',
     ];
 
-    public function stripePrices(): HasMany
+    public function prices(): HasMany
     {
         return $this->hasMany(StripePrice::class);
     }

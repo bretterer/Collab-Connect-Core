@@ -52,4 +52,19 @@ return [
     'init_user_email' => env('INIT_USER_EMAIL'),
     'init_business_email' => env('INIT_BUSINESS_EMAIL'),
     'init_influencer_email' => env('INIT_INFLUENCER_EMAIL'),
+
+    'stripe' => [
+        'products' => [
+            'influencer' => env('STRIPE_PRODUCT_INFLUENCER'),
+            'business' => env('STRIPE_PRODUCT_BUSINESS'),
+        ],
+        'prices' => [
+            'influencer_basic' => env('STRIPE_PRICE_INFLUENCER_BASIC'),
+            'business_basic' => env('STRIPE_PRICE_BUSINESS_BASIC'),
+            'business_pro' => env('STRIPE_PRICE_BUSINESS_PRO'),
+        ],
+        'subscriptions' => [
+            'start_date' => env('SUBSCRIPTIONS_START_DATE', now()->toDateString()),
+        ],
+    ],
 ];
