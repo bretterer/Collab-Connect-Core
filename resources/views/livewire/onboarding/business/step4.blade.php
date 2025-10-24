@@ -23,6 +23,12 @@
                     No subscription plans are currently available. Please contact support.
                 </flux:text>
             </div>
+        @elseif($this->business !== null && $this->business->subscribed('default'))
+            <div class="text-center py-12">
+                <flux:text class="text-green-600 dark:text-green-400 text-lg">
+                    You are already subscribed to a plan. You will need to manage your subscription from your business settings.
+                </flux:text>
+            </div>
         @else
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 @foreach($subscriptionProducts as $product)

@@ -299,7 +299,7 @@ class BusinessOnboarding extends Component
     public function nextStep()
     {
         // If on step 4 (subscription), handle Stripe payment first
-        if ($this->step === 4) {
+        if ($this->business !== null && !$this->business->subscribed('default') && $this->step === 4) {
             if(!empty($this->selectedPriceId)) {
                 // Dispatch event to create Stripe payment method
                 $this->dispatch('createStripePaymentMethod');
@@ -356,8 +356,7 @@ class BusinessOnboarding extends Component
     #[On('stripePaymentMethodError')]
     public function handleStripeError($message)
     {
-
-                $this->isNavigationDisabled = false;
+        $this->isNavigationDisabled = false;
         // Error is already displayed in the Stripe form
         // Just log it or handle additional error logic if needed
         logger()->error('Stripe payment error: '.$message);
