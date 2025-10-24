@@ -9,6 +9,7 @@ use App\Enums\SocialPlatform;
 use App\Models\Influencer;
 use App\Models\InfluencerSocial;
 use App\Models\StripeProduct;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Layout;
@@ -21,6 +22,8 @@ class InfluencerOnboarding extends Component
     public int $step = 1;
 
     public ?Influencer $influencer = null;
+
+    public bool $isNavigationDisabled = false;
 
     // Step 1: Basic Info
     public string $bio = '';
@@ -151,6 +154,8 @@ class InfluencerOnboarding extends Component
 
         // Ensure step is valid
         $this->step = max(1, min($this->step, $this->getMaxSteps()));
+
+        $this->selectedPriceId = $this->getSubscriptionProducts()->first()?->prices->first()?->id ?? null;
     }
 
     private function fillInfluencerData(): void
@@ -284,18 +289,20 @@ class InfluencerOnboarding extends Component
 
     public function nextStep()
     {
+
         // If on step 6 (subscription), handle Stripe payment first
-        if ($this->step === 6) {
+        if ($this->influencer !== null && ! $this->influencer->subscribed('default') && $this->step === 6) {
             if ($this->selectedPriceId) {
                 // Dispatch event to create Stripe payment method
                 $this->dispatch('createStripePaymentMethod');
+                $this->isNavigationDisabled = true;
 
                 // The JS will handle creating the payment method and dispatch back
                 return;
             }
             // If no price selected, skip to next step
         }
-
+        $this->dispatch('reloadStripeFromLivewire');
         $this->validateCurrentStep();
         $this->saveStepData();
 
@@ -446,6 +453,8 @@ class InfluencerOnboarding extends Component
         try {
             // Create the subscription using Laravel Cashier
             $user = Auth::user();
+            $influencer = $user->influencer;
+            $influencer->deletePaymentMethods();
 
             // Get the selected price
             $price = \App\Models\StripePrice::find($this->selectedPriceId);
@@ -457,12 +466,13 @@ class InfluencerOnboarding extends Component
             }
 
             // Create subscription with Cashier
-            $user->newSubscription('default', $price->stripe_id)
-                ->create($paymentMethodId);
+            $influencer->newSubscription('default', $price->stripe_id)
+                ->trialUntil(Carbon::parse(config('collabconnect.stripe.subscriptions.start_date')))
+                ->create($paymentMethodId, [
+                    'email' => $user->email,
+                    'name' => $user->name,
 
-            // Move to next step after successful subscription
-            $this->validateCurrentStep();
-            $this->saveStepData();
+                ]);
 
             if ($this->step < $this->getMaxSteps()) {
                 $this->step++;
@@ -476,6 +486,7 @@ class InfluencerOnboarding extends Component
     #[On('stripePaymentMethodError')]
     public function handleStripeError($message)
     {
+        $this->isNavigationDisabled = false;
         // Error is already displayed in the Stripe form
         // Just log it or handle additional error logic if needed
         logger()->error('Stripe payment error: '.$message);

@@ -298,9 +298,10 @@ class BusinessOnboarding extends Component
 
     public function nextStep()
     {
+
         // If on step 4 (subscription), handle Stripe payment first
-        if ($this->business !== null && !$this->business->subscribed('default') && $this->step === 4) {
-            if(!empty($this->selectedPriceId)) {
+        if ($this->business !== null && ! $this->business->subscribed('default') && $this->step === 4) {
+            if (! empty($this->selectedPriceId)) {
                 // Dispatch event to create Stripe payment method
                 $this->dispatch('createStripePaymentMethod');
                 $this->isNavigationDisabled = true;
@@ -310,7 +311,7 @@ class BusinessOnboarding extends Component
             }
             // If no price selected, skip to next step
         }
-
+        $this->dispatch('reloadStripeFromLivewire');
         $this->validateCurrentStep();
         $this->saveStepData();
 
@@ -342,7 +343,6 @@ class BusinessOnboarding extends Component
             $subscription = $business->newSubscription('default', $price->stripe_id)
                 ->trialUntil(Carbon::parse(config('collabconnect.stripe.subscriptions.start_date')))
                 ->create($paymentMethodId);
-
 
             if ($this->step < $this->getMaxSteps()) {
                 $this->step++;

@@ -116,8 +116,11 @@
 
     @push('scripts')
     <script>
+        let paymentformInitialized = false;
+
         (function() {
             let timeoutId;
+            let stripeElementsInstance = null;
             let isInitialized = false;
 
             const hideLoadingOverlay = () => {
@@ -138,10 +141,30 @@
 
             const paymentProcessing = () => {
                 const overlay = document.getElementById('stripe-processing-overlay');
-                overlay.classList.remove('hidden');
+                if (overlay) overlay.classList.remove('hidden');
+            };
+
+            const cleanupStripeElements = () => {
+                console.log('Cleaning up Stripe Elements');
+
+                if (window.stripeElements) {
+                    try {
+                        window.stripeElements.cardNumber?.unmount();
+                        window.stripeElements.cardExpiry?.unmount();
+                        window.stripeElements.cardCvc?.unmount();
+                    } catch (e) {
+                        console.log('Stripe elements already unmounted');
+                    }
+                    window.stripeElements = null;
+                }
+                stripeElementsInstance = null;
+                isInitialized = false;
             };
 
             const initializeStripeElements = () => {
+                if (paymentformInitialized) {
+                    hideLoadingOverlay();
+                }
                 if (isInitialized) return;
                 isInitialized = true;
 
@@ -193,7 +216,9 @@
                     } else {
                         displayError.textContent = '';
                         errorContainer.classList.add('hidden');
-                        processingOverlay.classList.add('hidden');
+                        if (processingOverlay) {
+                            processingOverlay.classList.add('hidden');
+                        }
                     }
                 }
 
@@ -201,22 +226,7 @@
                 cardExpiry.on('change', displayError);
                 cardCvc.on('change', displayError);
 
-                Livewire.on('createStripePaymentMethod', async () => {
-                    paymentProcessing();
-
-                    const { paymentMethod, error } = await stripe.createPaymentMethod({
-                        type: 'card',
-                        card: cardNumber,
-                    });
-
-                    if (error) {
-                        Livewire.dispatch('stripePaymentMethodError', { message: error.message });
-                    } else {
-                        Livewire.dispatch('stripePaymentMethodCreated', { paymentMethodId: paymentMethod.id });
-                    }
-                });
-
-                // Store references globally if needed
+                // Store references globally
                 window.stripeElements = {
                     stripe: stripe,
                     cardNumber: cardNumber,
@@ -228,6 +238,9 @@
 
                 // Hide loading overlay
                 hideLoadingOverlay();
+
+
+                paymentformInitialized = true;
             };
 
             // Set timeout for 10 seconds
@@ -245,19 +258,58 @@
                 document.addEventListener('stripe:loaded', initializeStripeElements, { once: true });
             }
 
+            Livewire.on('reloadStripeFromLivewire', async () => {
+                cleanupStripeElements();
+                console.log('Re-initializing Stripe Elements from Livewire event');
+                setTimeout(() => initializeStripeElements(), 100);
+            });
+
+            // Register a single persistent listener that uses current elements
+            Livewire.on('createStripePaymentMethod', async () => {
+                paymentProcessing();
+
+                // Use the current elements from the global reference
+                const currentStripe = window.stripeElements?.stripe;
+                const currentCardNumber = window.stripeElements?.cardNumber;
+
+                if (!currentStripe || !currentCardNumber) {
+                    console.error('Stripe elements not available');
+                    Livewire.dispatch('stripePaymentMethodError', { message: 'Payment form is not ready. Please refresh the page.' });
+                    return;
+                }
+
+                try {
+                    const { paymentMethod, error } = await currentStripe.createPaymentMethod({
+                        type: 'card',
+                        card: currentCardNumber,
+                    });
+
+                    if (error) {
+                        Livewire.dispatch('stripePaymentMethodError', { message: error.message });
+                    } else {
+                        Livewire.dispatch('stripePaymentMethodCreated', { paymentMethodId: paymentMethod.id });
+                    }
+                } catch (e) {
+                    console.error('Error creating payment method:', e);
+                    Livewire.dispatch('stripePaymentMethodError', { message: 'An error occurred processing your payment. Please try again.' });
+                }
+            });
+
+            // Cleanup when Livewire navigates away or component is removed
+            document.addEventListener('livewire:navigate', cleanupStripeElements);
 
             Livewire.on('stripePaymentMethodError', ({ message }) => {
                 const displayError = document.getElementById('stripe-errors');
                 const errorContainer = document.getElementById('stripe-error-container');
 
-                displayError.textContent = message;
-                errorContainer.classList.remove('hidden');
+                if (displayError) displayError.textContent = message;
+                if (errorContainer) errorContainer.classList.remove('hidden');
 
                 // Hide processing overlay
                 const processingOverlay = document.getElementById('stripe-processing-overlay');
                 if (processingOverlay) {
                     processingOverlay.style.opacity = '0';
-                    setTimeout(() => processingOverlay.remove(), 300);
+                    setTimeout(() => processingOverlay.classList.add('hidden'), 300);
                 }
             });
         })();
