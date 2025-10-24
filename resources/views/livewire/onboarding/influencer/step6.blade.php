@@ -1,25 +1,94 @@
-    <!-- Step 6: Welcome to CollabConnect -->
-    <div class="text-center space-y-8">
-    <div class="flex items-center justify-center space-x-3">
-        <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
+<!-- Step 6: Subscription Plan -->
+<div class="space-y-8">
+    <!-- Success Header -->
+    <div class="text-center space-y-4">
+        <div class="flex justify-center">
+            <div class="w-20 h-20 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full flex items-center justify-center">
+                <flux:icon name="credit-card" class="w-10 h-10 text-white" />
+            </div>
         </div>
-        <flux:heading size="xl" class="text-gray-800 dark:text-gray-200">
+        <flux:heading size="2xl" class="text-gray-800 dark:text-gray-200">
             Subscription Plans
         </flux:heading>
+        <flux:subheading class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Choose a subscription plan that fits your collaboration needs.
+        </flux:subheading>
     </div>
 
-    <div class="max-w-2xl mx-auto">
-        <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg p-8 mb-8">
-            <div class="text-6xl mb-4">🎉</div>
-            <flux:heading size="lg" class="text-white mb-4">
-                Choose Your Subscription Plan
-            </flux:heading>
-            <p class="text-purple-100 text-lg">
-                Select the subscription plan that best fits your needs and start collaborating with brands today!
-            </p>
-        </div>
+    <!-- Pricing Cards -->
+    <div class="max-w-5xl mx-auto">
+        @if($subscriptionProducts->isEmpty())
+            <div class="text-center py-12">
+                <flux:text class="text-gray-500 dark:text-gray-400">
+                    No subscription plans are currently available. Please contact support.
+                </flux:text>
+            </div>
+        @elseif($this->influencer !== null && $this->influencer->subscribed('default'))
+            <div class="text-center py-12">
+                <flux:text class="text-green-600 dark:text-green-400 text-lg">
+                    You are already subscribed to a plan. You will need to manage your subscription from your profile settings.
+                </flux:text>
+            </div>
+        @else
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                @foreach($subscriptionProducts as $product)
+                    @foreach($product->prices as $price)
+                        <flux:card class="relative flex flex-col {{ $selectedPriceId === $price->id ? 'ring-2 ring-purple-500 dark:ring-purple-400' : '' }}">
+                            <!-- Selected Badge -->
+                            @if($selectedPriceId === $price->id)
+                                <div class="absolute top-4 right-4">
+                                    <flux:badge color="purple" size="sm">Selected</flux:badge>
+                                </div>
+                            @endif
+
+                            <!-- Product Name -->
+                            <div class="mb-4">
+                                <flux:heading size="lg" class="text-gray-900 dark:text-gray-100">
+                                    {{ $product->name }}
+                                </flux:heading>
+                                @if($product->description)
+                                    <flux:text class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                        {{ $product->description }}
+                                    </flux:text>
+                                @endif
+                            </div>
+
+                            <!-- Price -->
+                            <div class="mb-6">
+                                <div class="flex items-baseline">
+                                    <flux:heading size="2xl" class="text-gray-900 dark:text-gray-100">
+                                        ${{ number_format($price->unit_amount / 100, 2) }}
+                                    </flux:heading>
+                                    <flux:text class="ml-2 text-gray-600 dark:text-gray-400">
+                                        / {{ $price->recurring['interval'] ?? 'month' }}
+                                    </flux:text>
+                                </div>
+                            </div>
+
+                            <!-- Billing Details -->
+                            <div class="mb-6 flex-grow">
+                                <flux:text class="text-xs text-gray-500 dark:text-gray-400">
+                                    Billed {{ $price->recurring['interval'] ?? 'monthly' }}
+                                </flux:text>
+                            </div>
+
+                            <!-- Select Button -->
+                            <flux:button
+                                wire:click="selectPrice({{ $price->id }})"
+                                variant="{{ $selectedPriceId === $price->id ? 'primary' : 'filled' }}"
+                                class="w-full"
+                            >
+                                {{ $selectedPriceId === $price->id ? 'Selected' : 'Select Plan' }}
+                            </flux:button>
+                        </flux:card>
+                    @endforeach
+                @endforeach
+            </div>
+
+            <div class="mt-8">
+                @livewire('components.stripe-payment-form')
+            </div>
+
+        @endif
     </div>
 </div>

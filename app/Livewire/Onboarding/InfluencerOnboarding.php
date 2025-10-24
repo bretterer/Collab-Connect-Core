@@ -8,9 +8,11 @@ use App\Enums\CompensationType;
 use App\Enums\SocialPlatform;
 use App\Models\Influencer;
 use App\Models\InfluencerSocial;
+use App\Models\StripeProduct;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 #[Layout('layouts.onboarding')]
@@ -48,6 +50,9 @@ class InfluencerOnboarding extends Component
     public array $compensationTypes = [];
 
     public ?int $typicalLeadTimeDays = null;
+
+    // Step 6: Subscription
+    public ?int $selectedPriceId = null;
 
     protected array $stepConfiguration = [
         1 => [
@@ -279,6 +284,18 @@ class InfluencerOnboarding extends Component
 
     public function nextStep()
     {
+        // If on step 6 (subscription), handle Stripe payment first
+        if ($this->step === 6) {
+            if ($this->selectedPriceId) {
+                // Dispatch event to create Stripe payment method
+                $this->dispatch('createStripePaymentMethod');
+
+                // The JS will handle creating the payment method and dispatch back
+                return;
+            }
+            // If no price selected, skip to next step
+        }
+
         $this->validateCurrentStep();
         $this->saveStepData();
 
@@ -406,6 +423,64 @@ class InfluencerOnboarding extends Component
         return redirect()->route('dashboard');
     }
 
+    public function getSubscriptionProducts()
+    {
+        return StripeProduct::query()
+            ->where('active', true)
+            ->where('billable_type', 'App\Models\Influencer')
+            ->with(['prices' => function ($query) {
+                $query->where('active', true)
+                    ->orderBy('unit_amount');
+            }])
+            ->get();
+    }
+
+    public function selectPrice(int $priceId)
+    {
+        $this->selectedPriceId = $priceId;
+    }
+
+    #[On('stripePaymentMethodCreated')]
+    public function handleStripePaymentMethod($paymentMethodId)
+    {
+        try {
+            // Create the subscription using Laravel Cashier
+            $user = Auth::user();
+
+            // Get the selected price
+            $price = \App\Models\StripePrice::find($this->selectedPriceId);
+
+            if (! $price) {
+                $this->dispatch('stripePaymentMethodError', message: 'Invalid subscription plan selected.');
+
+                return;
+            }
+
+            // Create subscription with Cashier
+            $user->newSubscription('default', $price->stripe_id)
+                ->create($paymentMethodId);
+
+            // Move to next step after successful subscription
+            $this->validateCurrentStep();
+            $this->saveStepData();
+
+            if ($this->step < $this->getMaxSteps()) {
+                $this->step++;
+                $this->setOnboardingStep($this->step);
+            }
+        } catch (\Exception $e) {
+            $this->dispatch('stripePaymentMethodError', message: $e->getMessage());
+        }
+    }
+
+    #[On('stripePaymentMethodError')]
+    public function handleStripeError($message)
+    {
+        // Error is already displayed in the Stripe form
+        // Just log it or handle additional error logic if needed
+        logger()->error('Stripe payment error: '.$message);
+    }
+
     public function render()
     {
         return view('livewire.onboarding.influencer-onboarding', [
@@ -413,6 +488,7 @@ class InfluencerOnboarding extends Component
             'steps' => $this->stepConfiguration,
             'currentStep' => $this->step,
             'maxSteps' => $this->getMaxSteps(),
+            'subscriptionProducts' => $this->getSubscriptionProducts(),
         ]);
     }
 }
