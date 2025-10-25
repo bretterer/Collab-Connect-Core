@@ -23,7 +23,7 @@
                     No subscription plans are currently available. Please contact support.
                 </flux:text>
             </div>
-        @elseif($this->business !== null && $this->business->subscribed('default'))
+        @elseif($this->business !== null && ($this->business->subscribed('default') || $this->business->onTrial('default')))
             <div class="text-center py-12">
                 <flux:text class="text-green-600 dark:text-green-400 text-lg">
                     You are already subscribed to a plan. You will need to manage your subscription from your business settings.
@@ -85,7 +85,20 @@
                 @endforeach
             </div>
 
-            <div class="mt-8">
+            <!-- Billing Notice -->
+            <flux:callout variant="info" class="mt-8">
+                <div class="flex items-start gap-3">
+                    <flux:icon name="information-circle" class="w-5 h-5 flex-shrink-0 mt-0.5" />
+                    <div>
+                        <flux:text class="font-medium mb-1">No charges until {{ \Carbon\Carbon::parse(config('collabconnect.stripe.subscriptions.start_date'))->format('F j, Y') }}</flux:text>
+                        <flux:text class="text-sm">
+                            Your card will be securely stored but won't be charged until {{ \Carbon\Carbon::parse(config('collabconnect.stripe.subscriptions.start_date'))->format('F j, Y') }}. You'll have full access to all features during this period.
+                        </flux:text>
+                    </div>
+                </div>
+            </flux:callout>
+
+            <div class="mt-6">
                 @livewire('components.stripe-payment-form')
             </div>
 

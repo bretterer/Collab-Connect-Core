@@ -84,8 +84,11 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
                             </svg>
                             <flux:heading size="base" class="mt-4 mb-2">No Active Subscription</flux:heading>
-                            <flux:text class="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                            <flux:text class="text-sm text-gray-600 dark:text-gray-400 mb-2">
                                 Subscribe to a plan to access all features
+                            </flux:text>
+                            <flux:text class="text-xs text-blue-600 dark:text-blue-400 mb-6">
+                                No charges until {{ \Carbon\Carbon::parse(config('collabconnect.stripe.subscriptions.start_date'))->format('F j, Y') }}
                             </flux:text>
                             <flux:button wire:click="openChangePlanModal" variant="primary">
                                 Choose a Plan
@@ -289,8 +292,22 @@
         </div>
 
         @if(!$this->currentSubscription)
+            <flux:separator class="mb-6" />
+
+            <!-- Billing Notice for New Subscriptions -->
+            <flux:callout variant="info" class="mb-6">
+                <div class="flex items-start gap-3">
+                    <flux:icon name="information-circle" class="w-5 h-5 flex-shrink-0 mt-0.5" />
+                    <div>
+                        <flux:text class="font-medium mb-1">No charges until {{ \Carbon\Carbon::parse(config('collabconnect.stripe.subscriptions.start_date'))->format('F j, Y') }}</flux:text>
+                        <flux:text class="text-sm">
+                            Your card will be securely stored but won't be charged until {{ \Carbon\Carbon::parse(config('collabconnect.stripe.subscriptions.start_date'))->format('F j, Y') }}. You'll have full access to all features during this period.
+                        </flux:text>
+                    </div>
+                </div>
+            </flux:callout>
+
             <div class="mb-6">
-                <flux:separator class="mb-6" />
                 <livewire:components.stripe-payment-form />
             </div>
         @endif

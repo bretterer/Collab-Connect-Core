@@ -342,7 +342,12 @@ class BusinessOnboarding extends Component
             // Create subscription with Cashier
             $subscription = $business->newSubscription('default', $price->stripe_id)
                 ->trialUntil(Carbon::parse(config('collabconnect.stripe.subscriptions.start_date')))
-                ->create($paymentMethodId);
+                ->create($paymentMethodId,[
+                    'email' => $business->email,
+                    'name' => $business->name,
+                    'business_name' => $business->name,
+                    'individual_name' => $user->name,
+                ]);
 
             if ($this->step < $this->getMaxSteps()) {
                 $this->step++;
