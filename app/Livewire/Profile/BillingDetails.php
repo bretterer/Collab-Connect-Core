@@ -55,7 +55,14 @@ class BillingDetails extends Component
 
     public function getCurrentSubscriptionProperty()
     {
-        return $this->billableModel->subscription('default');
+        $subscription = $this->billableModel->subscription('default');
+
+        // Don't return subscriptions that have ended (canceled and past ends_at date)
+        if ($subscription && $subscription->ended()) {
+            return null;
+        }
+
+        return $subscription;
     }
 
     public function getInvoicesProperty()
@@ -135,12 +142,27 @@ class BillingDetails extends Component
 
             // Create subscription
             $user = Auth::user();
-            $this->billableModel->newSubscription('default', $price->stripe_id)
-                ->trialUntil(Carbon::parse(config('collabconnect.stripe.subscriptions.start_date')))
-                ->create($paymentMethodId, [
+
+            $customerInfo = [];
+
+            match (get_class($this->billableModel)) {
+                \App\Models\Business::class => $customerInfo = [
+                    'email' => $this->billableModel->email,
+                    'name' => $this->billableModel->name,
+                    'business_name' => $this->billableModel->name,
+                    'individual_name' => $user->name,
+                ],
+                \App\Models\Influencer::class => $customerInfo = [
                     'email' => $user->email,
                     'name' => $user->name,
-                ]);
+                ],
+                default => [],
+            };
+
+
+            $this->billableModel->newSubscription('default', $price->stripe_id)
+                ->trialUntil(Carbon::parse(config('collabconnect.stripe.subscriptions.start_date')))
+                ->create($paymentMethodId, $customerInfo);
 
             session()->flash('success', 'Your subscription has been created successfully!');
 
@@ -185,7 +207,16 @@ class BillingDetails extends Component
     public function resumeSubscription()
     {
         try {
-            $this->billableModel->subscription('default')->resume();
+            $subscription = $this->billableModel->subscription('default');
+
+            // If subscription has ended, we can't resume - user needs to create a new subscription
+            if (! $subscription || $subscription->ended()) {
+                session()->flash('error', 'This subscription has ended. Please create a new subscription instead.');
+
+                return;
+            }
+
+            $subscription->resume();
 
             session()->flash('success', 'Your subscription has been resumed successfully!');
         } catch (\Exception $e) {

@@ -65,6 +65,9 @@ class User extends Authenticatable implements MustVerifyEmail
         if ($this->isBusinessAccount()) {
             $this->current_business = $business->id;
             $this->save();
+
+            // Clear the cached profile relationship since it depends on current_business
+            unset($this->profile);
         }
     }
 
