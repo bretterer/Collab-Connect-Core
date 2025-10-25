@@ -16,7 +16,7 @@ class CampaignViewTest extends TestCase
     public function test_influencer_can_view_campaign_they_dont_own()
     {
         // Create business user and campaign
-        $businessUser = User::factory()->withProfile()->create([
+        $businessUser = User::factory()->withProfile()->subscribed()->create([
             'account_type' => AccountType::BUSINESS,
         ]);
 
@@ -28,7 +28,7 @@ class CampaignViewTest extends TestCase
         ]);
 
         // Create influencer user with completed onboarding
-        $influencerUser = User::factory()->withProfile()->create([
+        $influencerUser = User::factory()->withProfile()->subscribed()->create([
             'account_type' => AccountType::INFLUENCER,
         ]);
 

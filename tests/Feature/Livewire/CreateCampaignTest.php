@@ -21,8 +21,8 @@ class CreateCampaignTest extends TestCase
     {
         parent::setUp();
 
-        // Create a business user with completed profile
-        $this->businessUser = User::factory()->business()->withProfile()->create();
+        // Create a business user with completed profile and active subscription
+        $this->businessUser = User::factory()->business()->withProfile()->subscribed()->create();
     }
 
     public function test_business_user_can_access_create_campaign_page()

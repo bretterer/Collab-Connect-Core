@@ -21,7 +21,7 @@ class CreateCampaignTest extends TestCase
     #[Test]
     public function a_business_owner_can_create_a_campaign(): void
     {
-        $businessOwner = User::factory()->business()->withProfile()->create();
+        $businessOwner = User::factory()->business()->withProfile()->subscribed()->create();
         $business = $businessOwner->businesses()->first();
         $this->actingAs($businessOwner);
 
@@ -100,7 +100,7 @@ class CreateCampaignTest extends TestCase
     public function a_business_member_can_create_a_campaign_for_the_business(): void
     {
         $this->withoutExceptionHandling();
-        $businessOwner = User::factory()->business()->withProfile()->create();
+        $businessOwner = User::factory()->business()->withProfile()->subscribed()->create();
         $businessMember = User::factory()->business()->withProfile()->create();
         $business = $businessOwner->businesses()->first();
 

@@ -139,8 +139,8 @@ class PricingIntegrationTest extends TestCase
         ]);
 
         // Test relationships work correctly
-        $this->assertEquals($product->id, $price->stripeProduct->id);
-        $this->assertTrue($product->stripePrices->contains($price));
+        $this->assertEquals($product->id, $price->product->id);
+        $this->assertTrue($product->prices->contains($price));
 
         // Test metadata is properly cast
         $this->assertIsArray($product->metadata);
@@ -233,12 +233,12 @@ class PricingIntegrationTest extends TestCase
         $this->assertEquals(10, StripePrice::count());
 
         // Test eager loading
-        $productsWithPrices = StripeProduct::with('stripePrices')->get();
+        $productsWithPrices = StripeProduct::with('prices')->get();
 
         foreach ($productsWithPrices as $product) {
-            $this->assertEquals(2, $product->stripePrices->count());
+            $this->assertEquals(2, $product->prices->count());
             // Ensure no N+1 queries by accessing related data
-            foreach ($product->stripePrices as $price) {
+            foreach ($product->prices as $price) {
                 $this->assertNotNull($price->unit_amount);
             }
         }

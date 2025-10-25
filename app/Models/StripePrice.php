@@ -18,6 +18,6 @@ class StripePrice extends Model
 
     public function product(): BelongsTo
     {
-        return $this->belongsTo(StripeProduct::class);
+        return $this->belongsTo(StripeProduct::class, 'stripe_product_id');
     }
 }
