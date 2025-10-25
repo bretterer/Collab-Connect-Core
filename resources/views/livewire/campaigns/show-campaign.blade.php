@@ -24,6 +24,7 @@
         </div>
 
         @if(!auth()->user()->profile->subscribed('default'))
+        @if(auth()->user()->account_type === App\Enums\AccountType::INFLUENCER)
         <!-- Subscription Prompt -->
         <livewire:components.subscription-prompt
             variant="purple"
@@ -36,6 +37,20 @@
                 'Priority support'
             ]"
         />
+        @elseif(auth()->user()->account_type === App\Enums\AccountType::BUSINESS)
+        <!-- Subscription Prompt -->
+        <livewire:components.subscription-prompt
+            variant="blue"
+            heading="Subscribe to Create Campaigns"
+            description="Unlock the full potential of your brand by subscribing. Create and manage campaigns, connect with top influencers, and drive impactful collaborations."
+            :features="[
+                'Create unlimited campaigns',
+                'Access to influencer applications',
+                'Advanced analytics & reporting',
+                'Priority support'
+            ]"
+        />
+        @endif
         @else
         <!-- Hero Card -->
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg mb-8 overflow-hidden">

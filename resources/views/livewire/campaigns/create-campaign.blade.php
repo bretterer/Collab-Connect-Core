@@ -1,4 +1,17 @@
 <div>
+    @if(!auth()->user()->profile->subscribed('default'))
+    <livewire:components.subscription-prompt
+        variant="blue"
+        heading="Create Campaigns with CollabConnect"
+        description="Subscribe to a plan to unlock powerful campaign management features."
+        :features="[
+            'Create and manage unlimited campaigns',
+            'Track campaign performance and analytics',
+            'Collaborate with influencers seamlessly',
+            'Access premium support and resources'
+        ]"
+    />
+    @else
     <!-- Auto-save indicator -->
     @if($hasUnsavedChanges)
         <div class="fixed bottom-4 right-4 z-50">
@@ -837,7 +850,7 @@
             </div>
         </div>
     </div>
-
+                                                    @endif
     <!-- Beforeunload warning -->
     <script>
         window.addEventListener('beforeunload', function (e) {

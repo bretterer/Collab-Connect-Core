@@ -1,4 +1,17 @@
 <div>
+    @if(!auth()->user()->profile->subscribed('default'))
+    <livewire:components.subscription-prompt
+        variant="blue"
+        heading="Create Campaigns with CollabConnect"
+        description="Subscribe to a plan to unlock powerful campaign management features."
+        :features="[
+            'Create and manage unlimited campaigns',
+            'Track campaign performance and analytics',
+            'Collaborate with influencers seamlessly',
+            'Access premium support and resources'
+        ]"
+    />
+    @endif
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Header -->
         <div class="mb-8">
@@ -13,12 +26,14 @@
                                 Manage your campaigns and track their performance
                             </p>
                         </div>
+                        @if(auth()->user()->profile->subscribed('default'))
                         <a href="{{ route('campaigns.create') }}" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
                             <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
                             Create Campaign
                         </a>
+                        @endif
                     </div>
                 </div>
             </div>
