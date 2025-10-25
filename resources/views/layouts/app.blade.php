@@ -264,6 +264,7 @@
     @livewireScripts
     <x-toaster-hub />
 
+    @stack('scripts')
     <!-- Feedback Widget -->
     <livewire:feedback-widget />
 </body>

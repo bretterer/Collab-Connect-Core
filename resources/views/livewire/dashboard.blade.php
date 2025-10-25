@@ -1,4 +1,5 @@
 <div class="space-y-8">
+
     @includewhen(auth()->user()->account_type === App\Enums\AccountType::BUSINESS, 'livewire.dashboard.business')
 
     @includewhen(auth()->user()->account_type === App\Enums\AccountType::INFLUENCER, 'livewire.dashboard.influencer')

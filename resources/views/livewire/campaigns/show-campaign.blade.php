@@ -23,7 +23,20 @@
             </div>
         </div>
 
-
+        @if(!auth()->user()->profile->subscribed('default'))
+        <!-- Subscription Prompt -->
+        <livewire:components.subscription-prompt
+            variant="purple"
+            heading="Subscribe to Apply"
+            description="Ready to collaborate? Subscribe to unlock the ability to apply for campaigns and start building meaningful partnerships with brands."
+            :features="[
+                'Apply to unlimited campaigns',
+                'Direct messaging with brands',
+                'Advanced search & filters',
+                'Priority support'
+            ]"
+        />
+        @else
         <!-- Hero Card -->
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg mb-8 overflow-hidden">
             <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
@@ -474,5 +487,6 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
 </div>

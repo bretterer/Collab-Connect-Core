@@ -162,6 +162,7 @@
             };
 
             const initializeStripeElements = () => {
+                console.log('Stripe.js loaded, initializing elements');
                 if (paymentformInitialized) {
                     hideLoadingOverlay();
                 }
@@ -259,6 +260,7 @@
             }
 
             Livewire.on('reloadStripeFromLivewire', async () => {
+                console.log('Received Livewire event to reload Stripe Elements');
                 cleanupStripeElements();
                 console.log('Re-initializing Stripe Elements from Livewire event');
                 setTimeout(() => initializeStripeElements(), 100);
