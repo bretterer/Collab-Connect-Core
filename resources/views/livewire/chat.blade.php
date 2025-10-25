@@ -1,4 +1,17 @@
 <div>
+    @if(!auth()->user()->profile->subscribed('default'))
+        <livewire:components.subscription-prompt
+            variant="green"
+            heading="Subscribe to Message"
+            description="Subscribe to unlock direct messaging and start communicating with your matches."
+            :features="[
+                'Unlimited messaging',
+                'Real-time notifications',
+                'File sharing',
+                'Message history'
+            ]"
+        />
+    @else
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="chatInterface()">
         @if(session('message'))
             <div class="mb-6 rounded-md bg-green-50 dark:bg-green-900/20 p-4">
@@ -182,7 +195,7 @@
                                 </div>
                             </div>
                         @endforelse
-                        
+
                         <!-- Typing Indicator -->
                         <div x-show="typingUsers.length > 0" class="flex justify-start">
                             <div class="max-w-sm lg:max-w-md">
@@ -399,7 +412,7 @@
                         const container = document.getElementById('messages-container');
                         if (container) {
                             container.scrollTop = container.scrollHeight;
-                            
+
                             // Force scroll if needed
                             setTimeout(() => {
                                 container.scrollTop = container.scrollHeight;
@@ -410,4 +423,5 @@
             }
         </script>
     </div>
+    @endif
 </div>

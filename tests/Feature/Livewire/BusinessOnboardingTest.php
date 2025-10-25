@@ -307,7 +307,7 @@ class BusinessOnboardingTest extends TestCase
         $component = Livewire::test(BusinessOnboarding::class);
         $maxSteps = $component->instance()->getMaxSteps();
 
-        $this->assertEquals(4, $maxSteps);
+        $this->assertEquals(5, $maxSteps);
     }
 
     #[Test]

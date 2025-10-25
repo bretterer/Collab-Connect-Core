@@ -79,7 +79,7 @@
                                             View in Stripe
                                         </a>
                                         <span class="text-gray-500 dark:text-gray-400">•</span>
-                                        <span class="text-gray-500 dark:text-gray-400">{{ $product->stripePrices->count() }} price{{ $product->stripePrices->count() !== 1 ? 's' : '' }}</span>
+                                        <span class="text-gray-500 dark:text-gray-400">{{ $product->prices->count() }} price{{ $product->prices->count() !== 1 ? 's' : '' }}</span>
                                         <span class="text-gray-500 dark:text-gray-400">•</span>
                                         <span class="text-gray-500 dark:text-gray-400">
                                             @if($product->metadata && count($product->metadata) > 0)
@@ -103,7 +103,7 @@
 
                     <!-- Prices List -->
                     <div class="divide-y divide-gray-200 dark:divide-gray-600">
-                        @foreach ($product->stripePrices as $price)
+                        @foreach ($product->prices as $price)
                             <div class="px-6 py-4">
                                 <div class="flex items-center justify-between">
                                     <div class="flex-1 grid grid-cols-4 gap-4">

@@ -45,6 +45,9 @@
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Account Type</dt>
                             <dd class="text-lg font-medium text-gray-900 dark:text-white">{{ $user->account_type->label() }}</dd>
+                            <dd class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                <flux:link href="{{ route('billing') }}" wire:navigate class="text-blue-600 dark:text-blue-400">Billing Details</flux:link>
+                            </dd>
                         </dl>
                     </div>
                 </div>

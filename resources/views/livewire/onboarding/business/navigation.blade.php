@@ -16,7 +16,7 @@
 
     <div class="flex items-center space-x-4">
         @if($currentStep < count($steps))
-            <flux:button class="px-8 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700" wire:click="nextStep">
+            <flux:button class="px-8 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700" wire:click="nextStep" :disabled="$isNavigationDisabled">
                 <span class="flex items-center space-x-2">
                     <span>Continue</span>
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

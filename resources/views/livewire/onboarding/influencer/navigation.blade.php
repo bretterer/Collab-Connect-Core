@@ -16,7 +16,7 @@
 
     <div class="flex items-center space-x-4">
         @if($currentStep < count($steps))
-            <flux:button class="px-8 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700" wire:click="nextStep">
+            <flux:button class="px-8 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700" wire:click="nextStep" wire:navigate :disabled="$isNavigationDisabled">
                 <span class="flex items-center space-x-2">
                     <span>Continue</span>
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -25,7 +25,7 @@
                 </span>
             </flux:button>
         @else
-            <flux:button class="px-8 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700" wire:click="completeOnboarding">
+            <flux:button class="px-8 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700" wire:navigate wire:click="completeOnboarding">
                 <span class="flex items-center space-x-2">
                     <span>Complete Setup</span>
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

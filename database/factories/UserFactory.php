@@ -106,4 +106,35 @@ class UserFactory extends Factory
             }
         });
     }
+
+    /**
+     * Create a user with an active subscription.
+     * This method should be chained after business() or influencer() and withProfile().
+     */
+    public function subscribed(): static
+    {
+        return $this->afterCreating(function ($user) {
+            // Determine the billable model
+            $billable = null;
+            if ($user->account_type === AccountType::BUSINESS) {
+                $billable = $user->currentBusiness;
+            } elseif ($user->account_type === AccountType::INFLUENCER) {
+                $billable = $user->influencer;
+            }
+
+            if ($billable) {
+                // Create a subscription record directly in the database
+                // This bypasses Stripe for testing purposes
+                $billable->subscriptions()->create([
+                    'type' => 'default',
+                    'stripe_id' => 'sub_test_' . Str::random(14),
+                    'stripe_status' => 'active',
+                    'stripe_price' => 'price_test_' . Str::random(14),
+                    'quantity' => 1,
+                    'trial_ends_at' => null,
+                    'ends_at' => null,
+                ]);
+            }
+        });
+    }
 }

@@ -8,9 +8,12 @@ use App\Enums\CompensationType;
 use App\Enums\SocialPlatform;
 use App\Models\Influencer;
 use App\Models\InfluencerSocial;
+use App\Models\StripeProduct;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 #[Layout('layouts.onboarding')]
@@ -19,6 +22,8 @@ class InfluencerOnboarding extends Component
     public int $step = 1;
 
     public ?Influencer $influencer = null;
+
+    public bool $isNavigationDisabled = false;
 
     // Step 1: Basic Info
     public string $bio = '';
@@ -48,6 +53,9 @@ class InfluencerOnboarding extends Component
     public array $compensationTypes = [];
 
     public ?int $typicalLeadTimeDays = null;
+
+    // Step 6: Subscription
+    public ?int $selectedPriceId = null;
 
     protected array $stepConfiguration = [
         1 => [
@@ -101,8 +109,18 @@ class InfluencerOnboarding extends Component
             ],
         ],
         6 => [
-            'title' => 'Welcome to CollabConnect',
+            'title' => 'Subscription Plan',
             'component' => 'step6',
+            'fields' => [],
+            'tips' => [
+                'Choose a plan that fits your collaboration needs',
+                'Consider the features offered in each subscription tier',
+                'Upgrading your plan can unlock more opportunities',
+            ],
+        ],
+        7 => [
+            'title' => 'Welcome to CollabConnect',
+            'component' => 'step7',
             'fields' => [],
             'tips' => [
                 'Your profile is complete and ready to attract brands',
@@ -136,6 +154,8 @@ class InfluencerOnboarding extends Component
 
         // Ensure step is valid
         $this->step = max(1, min($this->step, $this->getMaxSteps()));
+
+        $this->selectedPriceId = $this->getSubscriptionProducts()->first()?->prices->first()?->id ?? null;
     }
 
     private function fillInfluencerData(): void
@@ -269,6 +289,20 @@ class InfluencerOnboarding extends Component
 
     public function nextStep()
     {
+
+        // If on step 6 (subscription), handle Stripe payment first
+        if ($this->influencer !== null && ! $this->influencer->subscribed('default') && $this->step === 6) {
+            if ($this->selectedPriceId) {
+                // Dispatch event to create Stripe payment method
+                $this->dispatch('createStripePaymentMethod');
+                $this->isNavigationDisabled = true;
+
+                // The JS will handle creating the payment method and dispatch back
+                return;
+            }
+            // If no price selected, skip to next step
+        }
+        $this->dispatch('reloadStripeFromLivewire');
         $this->validateCurrentStep();
         $this->saveStepData();
 
@@ -396,6 +430,68 @@ class InfluencerOnboarding extends Component
         return redirect()->route('dashboard');
     }
 
+    public function getSubscriptionProducts()
+    {
+        return StripeProduct::query()
+            ->where('active', true)
+            ->where('billable_type', 'App\Models\Influencer')
+            ->with(['prices' => function ($query) {
+                $query->where('active', true)
+                    ->orderBy('unit_amount');
+            }])
+            ->get();
+    }
+
+    public function selectPrice(int $priceId)
+    {
+        $this->selectedPriceId = $priceId;
+    }
+
+    #[On('stripePaymentMethodCreated')]
+    public function handleStripePaymentMethod($paymentMethodId)
+    {
+        try {
+            // Create the subscription using Laravel Cashier
+            $user = Auth::user();
+            $influencer = $user->influencer;
+            $influencer->deletePaymentMethods();
+
+            // Get the selected price
+            $price = \App\Models\StripePrice::find($this->selectedPriceId);
+
+            if (! $price) {
+                $this->dispatch('stripePaymentMethodError', message: 'Invalid subscription plan selected.');
+
+                return;
+            }
+
+            // Create subscription with Cashier
+            $influencer->newSubscription('default', $price->stripe_id)
+                ->trialUntil(Carbon::parse(config('collabconnect.stripe.subscriptions.start_date')))
+                ->create($paymentMethodId, [
+                    'email' => $user->email,
+                    'name' => $user->name,
+
+                ]);
+
+            if ($this->step < $this->getMaxSteps()) {
+                $this->step++;
+                $this->setOnboardingStep($this->step);
+            }
+        } catch (\Exception $e) {
+            $this->dispatch('stripePaymentMethodError', message: $e->getMessage());
+        }
+    }
+
+    #[On('stripePaymentMethodError')]
+    public function handleStripeError($message)
+    {
+        $this->isNavigationDisabled = false;
+        // Error is already displayed in the Stripe form
+        // Just log it or handle additional error logic if needed
+        logger()->error('Stripe payment error: '.$message);
+    }
+
     public function render()
     {
         return view('livewire.onboarding.influencer-onboarding', [
@@ -403,6 +499,7 @@ class InfluencerOnboarding extends Component
             'steps' => $this->stepConfiguration,
             'currentStep' => $this->step,
             'maxSteps' => $this->getMaxSteps(),
+            'subscriptionProducts' => $this->getSubscriptionProducts(),
         ]);
     }
 }

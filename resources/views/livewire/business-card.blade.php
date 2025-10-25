@@ -67,7 +67,7 @@
                         @endif
                     </div>
                 </div>
-                
+
                 @if($user->currentBusiness && $user->currentBusiness->city)
                 <p class="text-sm text-gray-500 dark:text-gray-400 flex items-center mt-1">
                     <flux:icon.map-pin class="w-3 h-3 mr-1" />
@@ -99,6 +99,7 @@
                     </div>
                     <div class="text-xs text-gray-500 dark:text-gray-400">Campaigns</div>
                 </div>
+                @if(false === true)
                 <div>
                     <div class="flex items-center justify-center gap-0.5 mb-1">
                         @php
@@ -119,6 +120,7 @@
                     </div>
                     <div class="text-xs text-gray-500 dark:text-gray-400">Rating</div>
                 </div>
+                @endif
             </div>
 
             <!-- Action Buttons -->
@@ -126,15 +128,9 @@
                 <flux:button variant="outline" size="sm" class="flex-1" wire:click="viewBusinessProfile">
                     View Details
                 </flux:button>
-                @if($user->currentBusiness && $user->currentBusiness->campaigns()->exists())
-                    <flux:button variant="primary" size="sm" class="flex-1" wire:click="viewBusinessCampaigns">
-                        View Campaigns
-                    </flux:button>
-                @else
-                    <flux:button variant="ghost" size="sm" class="flex-1" disabled>
-                        No Campaigns
-                    </flux:button>
-                @endif
+                <flux:button variant="primary" size="sm" class="flex-1" wire:click="viewBusinessCampaigns">
+                    View Campaigns
+                </flux:button>
             </div>
         </div>
     </div>

@@ -53,7 +53,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Main dashboard (protected by onboarding middleware)
     Route::middleware(EnsureOnboardingCompleted::class)->group(function () {
         Route::get('/dashboard', App\Livewire\Dashboard::class)->name('dashboard');
-        
+
         // Separate dashboard routes for different user types
         Route::get('/dashboard/business', App\Livewire\BusinessDashboard::class)->name('business.dashboard');
         Route::get('/dashboard/influencer', App\Livewire\InfluencerDashboard::class)->name('influencer.dashboard');
@@ -86,6 +86,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Profile routes
         Route::get('/profile', App\Livewire\Profile\EditProfile::class)->name('profile.edit');
+        Route::get('/billing', App\Livewire\Profile\BillingDetails::class)->name('billing');
         Route::post('/switch-business/{business}', function (\App\Models\Business $business) {
             $user = auth()->user();
 
@@ -100,8 +101,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             return redirect()->back()->with('success', 'Switched to '.$business->name);
         })->name('switch-business');
 
-        // Public profile route (supports both @username and ID)
-        Route::get('/@{username}', App\Livewire\ViewProfile::class)->name('profile');
+        // Public profile route (supports both username and ID)
+        Route::get('/influencer/{username}', App\Livewire\ViewInfluencerProfile::class)->name('influencer.profile');
+        Route::get('/business/{username}', App\Livewire\ViewBusinessProfile::class)->name('business.profile');
 
         // Business routes
         Route::prefix('business')->name('business.')->group(function () {

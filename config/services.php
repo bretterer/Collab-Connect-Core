@@ -45,4 +45,11 @@ return [
         'repository' => env('GITHUB_REPOSITORY', 'bretterer/collabconnect'),
     ],
 
+    'stripe' => [
+        'public_key' => env('STRIPE_KEY'),
+        'secret_key' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'webhook_tolerance' => env('STRIPE_WEBHOOK_TOLERANCE', 300),
+    ],
+
 ];

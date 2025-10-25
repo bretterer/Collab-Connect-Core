@@ -19,6 +19,19 @@
         </div>
     </div>
 
+    @if(!auth()->user()->profile->subscribed('default'))
+        <livewire:components.subscription-prompt
+            variant="blue"
+            heading="Unlock Advanced Search"
+            description="Subscribe to access powerful search capabilities including location-based filtering, social platform selection, follower count ranges, and more."
+            :features="[
+                'Location-based filtering',
+                'Social platform selection',
+                'Follower count ranges',
+                'Advanced sorting options'
+            ]"
+        />
+    @else
     <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
         <!-- Enhanced Filters Sidebar -->
         <div class="col-span-2 lg:col-span-1">
@@ -244,5 +257,6 @@
 
     <!-- Invite Influencer Modal -->
     <livewire:invite-influencer-modal />
+    @endif
 
 </div>

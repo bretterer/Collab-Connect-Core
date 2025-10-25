@@ -34,11 +34,11 @@ class Pricing extends Component
 
     public function render()
     {
-        $products = \App\Models\StripeProduct::with(['stripePrices' => function($query) {
+        $products = \App\Models\StripeProduct::with(['prices' => function($query) {
                 $query->where('active', true)->orderBy('unit_amount');
             }])
             ->where('active', true)
-            ->whereHas('stripePrices', function($query) {
+            ->whereHas('prices', function($query) {
                 $query->where('active', true);
             })
             ->orderBy('name')

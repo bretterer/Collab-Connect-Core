@@ -2,10 +2,13 @@
 
 namespace App\Providers;
 
+use App\Http\Controllers\CashierWebhookController;
+use App\Services\CashierService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Cashier\Cashier;
+use Laravel\Cashier\Http\Controllers\WebhookController;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,7 +30,9 @@ class AppServiceProvider extends ServiceProvider
         // Ensure mail components are properly loaded
         Blade::componentNamespace('Illuminate\\Mail\\Markdown\\Components', 'mail');
 
-        Cashier::calculateTaxes();
+        $this->app->bind(WebhookController::class, function ($app) {
+            return new CashierWebhookController();
+        });
 
     }
 }

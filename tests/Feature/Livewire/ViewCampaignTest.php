@@ -21,7 +21,7 @@ class ViewCampaignTest extends TestCase
     public function test_influencer_can_view_campaign_details()
     {
         // Create business user and campaign
-        $businessUser = User::factory()->business()->withProfile()->create();
+        $businessUser = User::factory()->business()->withProfile()->subscribed()->create();
 
         $campaign = Campaign::factory()->create([
             'business_id' => $businessUser->currentBusiness->id,
@@ -37,7 +37,7 @@ class ViewCampaignTest extends TestCase
 
         // Create influencer user
         /** @var User $influencerUser */
-        $influencerUser = User::factory()->influencer()->withProfile()->create();
+        $influencerUser = User::factory()->influencer()->withProfile()->subscribed()->create();
 
         $this->actingAs($influencerUser);
 
@@ -66,7 +66,7 @@ class ViewCampaignTest extends TestCase
     public function test_back_to_discover_button_works()
     {
         // Create business user and campaign
-        $businessUser = User::factory()->business()->withProfile()->create();
+        $businessUser = User::factory()->business()->withProfile()->subscribed()->create();
 
         $campaign = Campaign::factory()->create([
             'business_id' => $businessUser->currentBusiness->id,
@@ -75,7 +75,7 @@ class ViewCampaignTest extends TestCase
 
         // Create influencer user
         /** @var User $influencerUser */
-        $influencerUser = User::factory()->influencer()->withProfile()->create();
+        $influencerUser = User::factory()->influencer()->withProfile()->subscribed()->create();
 
         $this->actingAs($influencerUser);
 

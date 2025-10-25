@@ -10,7 +10,7 @@
                     View all campaigns from this business
                 </p>
             </div>
-            <flux:button variant="outline" wire:navigate href="{{ route('business.profile', $user) }}">
+            <flux:button variant="outline" wire:navigate href="{{ route('business.profile', ['username' => $user->currentBusiness->username ?? $user->id]) }}">
                 <flux:icon.arrow-left class="w-4 h-4 mr-2" />
                 Back to Profile
             </flux:button>
@@ -143,7 +143,7 @@
             <p class="text-gray-500 dark:text-gray-400 mb-6">
                 This business hasn't created any campaigns yet.
             </p>
-            <flux:button variant="outline" wire:navigate href="{{ route('business.profile', $user) }}">
+            <flux:button variant="outline" wire:navigate href="{{ route('business.profile', ['username' => $user->currentBusiness->username ?? $user->id]) }}">
                 Back to Profile
             </flux:button>
         </div>
