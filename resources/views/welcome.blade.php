@@ -1,6 +1,6 @@
 @extends('layouts.marketing')
 
-@section('title', 'CollabConnect - Coming Soon')
+@section('title', 'CollabConnect - Local Influencer Marketing Made Easy')
 @section('description', 'The first platform designed specifically for local businesses to collaborate with micro-influencers in their community.')
 
 @section('nav-cta')
