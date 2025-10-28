@@ -171,8 +171,8 @@
                                     <div class="flex items-center space-x-3 mb-1">
                                         <h4 class="text-lg font-medium text-gray-900 dark:text-white truncate">{{ $application->user->name }}</h4>
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                            {{ $application->status === \App\Enums\CampaignApplicationStatus::PENDING ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' : 
-                                               ($application->status === \App\Enums\CampaignApplicationStatus::ACCEPTED ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 
+                                            {{ $application->status === \App\Enums\CampaignApplicationStatus::PENDING ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
+                                               ($application->status === \App\Enums\CampaignApplicationStatus::ACCEPTED ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
                                                 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400') }}">
                                             {{ $application->status->label() }}
                                         </span>
@@ -208,10 +208,10 @@
                             </div>
                             <div class="flex items-center space-x-3 ml-6">
                                 @if($application->status === \App\Enums\CampaignApplicationStatus::PENDING)
-                                    <button wire:click="acceptApplication({{ $application->id }})" class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors">
+                                    <button wire:click="acceptApplication('{{ $application->id }}')" class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors">
                                         Accept
                                     </button>
-                                    <button wire:click="declineApplication({{ $application->id }})" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors">
+                                    <button wire:click="declineApplication('{{ $application->id }}')" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors">
                                         Decline
                                     </button>
                                 @endif
