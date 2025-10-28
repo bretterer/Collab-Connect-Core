@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Route;
+use Spatie\Honeypot\ProtectAgainstSpam;
 
 Route::get('/', function () {
     if(Cookie::has('referral_code')) {
@@ -88,7 +89,7 @@ Route::post('/contact', function (Illuminate\Http\Request $request) {
 
         return back()->with('error', 'Sorry, there was an issue sending your message. Please try again later or contact us directly at hello@collabconnect.app.');
     }
-})->name('contact.store');
+})->name('contact.store')->middleware(ProtectAgainstSpam::class);;
 
 Route::post('/waitlist', function (Illuminate\Http\Request $request) {
     try {

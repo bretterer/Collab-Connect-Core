@@ -23,6 +23,7 @@ class Contact extends BaseComponent
 
     public function mount()
     {
+        dd('here');
         // Pre-fill user information if authenticated
         /** @var User $user */
         $user = $this->getAuthenticatedUser();

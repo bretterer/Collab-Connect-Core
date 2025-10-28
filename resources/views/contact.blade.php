@@ -155,6 +155,7 @@
 
         <form class="max-w-2xl mx-auto" method="POST" action="{{ route('contact.store') }}">
             @csrf
+            <x-honeypot />
             <div class="grid md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <label for="first_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name *</label>
