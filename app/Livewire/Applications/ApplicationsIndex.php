@@ -10,6 +10,7 @@ use App\Models\Chat;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\WithPagination;
+use Masmerise\Toaster\Toaster;
 
 #[Layout('layouts.app')]
 class ApplicationsIndex extends BaseComponent
@@ -109,8 +110,9 @@ class ApplicationsIndex extends BaseComponent
     {
         $application = CampaignApplication::find($applicationId);
 
-        if (! $application || ! $application->campaign || $application->campaign->user_id !== Auth::user()->id) {
+        if (! $application || ! $application->campaign || $application->campaign->business_id !== Auth::user()->currentBusiness->id) {
             $this->flashError('Application not found or you do not have permission to accept it.');
+            Toaster::error('Application not found or you do not have permission to accept it.');
 
             return;
         }
@@ -133,15 +135,16 @@ class ApplicationsIndex extends BaseComponent
         }
 
         $this->flashSuccess('Application accepted successfully!');
+        Toaster::success('Application accepted successfully!');
     }
 
     public function declineApplication($applicationId)
     {
         $application = CampaignApplication::find($applicationId);
 
-        if (! $application || ! $application->campaign || $application->campaign->user_id !== Auth::user()->id) {
+        if (! $application || ! $application->campaign || $application->campaign->business_id !== Auth::user()->currentBusiness->id) {
             $this->flashError('Application not found or you do not have permission to decline it.');
-
+            Toaster::error('Application not found or you do not have permission to decline it.');
             return;
         }
 
@@ -152,6 +155,7 @@ class ApplicationsIndex extends BaseComponent
 
         $application->user->notify(new \App\Notifications\CampaignApplicationDeclinedNotification($application->fresh()));
         $this->flashSuccess('Application declined.');
+        Toaster::error('Application declined.');
     }
 
     public function updatedStatusFilter()
