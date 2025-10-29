@@ -161,9 +161,26 @@ class BillingDetails extends Component
             };
 
 
-            $this->billableModel->newSubscription('default', $price->stripe_id)
-                ->trialUntil(Carbon::parse(config('collabconnect.stripe.subscriptions.start_date')))
-                ->create($paymentMethodId, $customerInfo);
+            // Capture Datafast cookies for attribution
+            $datafastVisitorId = request()->cookie('datafast_visitor_id');
+            $datafastSessionId = request()->cookie('datafast_session_id');
+
+            $subscription = $this->billableModel->newSubscription('default', $price->stripe_id)
+                ->trialUntil(Carbon::parse(config('collabconnect.stripe.subscriptions.start_date')));
+
+            // Add Datafast IDs to subscription metadata if available
+            if ($datafastVisitorId || $datafastSessionId) {
+                $metadata = [];
+                if ($datafastVisitorId) {
+                    $metadata['datafast_visitor_id'] = $datafastVisitorId;
+                }
+                if ($datafastSessionId) {
+                    $metadata['datafast_session_id'] = $datafastSessionId;
+                }
+                $subscription->withMetadata($metadata);
+            }
+
+            $subscription->create($paymentMethodId, $customerInfo);
 
             session()->flash('success', 'Your subscription has been created successfully!');
 
