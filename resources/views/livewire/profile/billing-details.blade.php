@@ -229,24 +229,16 @@
                         </div>
                     @endif
                 </div>
-
+                @if($billableModel->hasStripeId())
                 <flux:separator class="my-4" />
 
                 <flux:button wire:click="goToStripePortal" variant="ghost" size="sm" class="w-full">
                     Manage via Stripe Portal
                 </flux:button>
+                @endif
             </flux:card>
 
-            <!-- Help Card -->
-            <flux:card>
-                <flux:heading size="base" class="mb-2">Need Help?</flux:heading>
-                <flux:text class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                    Have questions about your subscription or billing? We're here to help.
-                </flux:text>
-                <flux:button variant="ghost" size="sm" class="w-full">
-                    Contact Support
-                </flux:button>
-            </flux:card>
+
         </div>
     </div>
 
