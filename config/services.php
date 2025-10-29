@@ -52,4 +52,8 @@ return [
         'webhook_tolerance' => env('STRIPE_WEBHOOK_TOLERANCE', 300),
     ],
 
+    'datafast' => [
+        'api_key' => env('DATAFAST_API_KEY'),
+    ],
+
 ];
