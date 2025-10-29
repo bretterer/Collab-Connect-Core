@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Masmerise\Toaster\Toaster;
 
 #[Layout('layouts.app')]
 class BillingDetails extends Component
@@ -236,6 +237,16 @@ class BillingDetails extends Component
 
     public function goToStripePortal()
     {
+        try {
+            if (! $this->billableModel->hasStripeId()) {
+                Toaster::error('No billing account found.');
+                return;
+            }
+        } catch (\Exception $e) {
+            Toaster::error('Failed to access billing portal: '.$e->getMessage());
+            return;
+        }
+
         return redirect($this->billableModel->billingPortalUrl(route('billing')));
     }
 
