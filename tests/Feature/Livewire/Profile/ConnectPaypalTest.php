@@ -1,0 +1,26 @@
+<?php
+
+// TODO: Complete ConnectPaypal component tests
+// Test that the component shows a warning message when user has no referral enrollment
+test('component renders for user without enrollment')->skip('Test needs implementation');
+
+// Test that the component shows the "Connect PayPal Account" button for enrolled users without PayPal
+test('component renders connect button for user without paypal')->skip('Test needs implementation');
+
+// Test that the component shows the connected state with email and verified badge for users with linked PayPal
+test('component renders connected state for user with paypal')->skip('Test needs implementation');
+
+// Test that a user can successfully connect their PayPal account by entering an email address
+test('user can connect paypal account')->skip('Test needs implementation');
+
+// Test that form validation prevents connecting without providing an email address
+test('user cannot connect paypal without email')->skip('Test needs implementation');
+
+// Test that form validation prevents connecting with an invalid email format
+test('user cannot connect paypal with invalid email')->skip('Test needs implementation');
+
+// Test that a user can disconnect their PayPal account and all PayPal data is cleared
+test('user can disconnect paypal account')->skip('Test needs implementation');
+
+// Test that a user can change their connected PayPal account to a different email address
+test('user can change paypal account')->skip('Test needs implementation');

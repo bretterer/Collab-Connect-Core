@@ -17,6 +17,12 @@ return new class extends Migration
             $table->ulid('code')->unique();
             $table->foreignIdFor(User::class);
             $table->unsignedInteger('current_percentage')->default(0);
+
+            // PayPal Payout Account Information
+            $table->string('paypal_email')->nullable();
+            $table->boolean('paypal_verified')->default(false);
+            $table->timestamp('paypal_connected_at')->nullable();
+
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

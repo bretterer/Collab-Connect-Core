@@ -236,6 +236,14 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get the user's referral enrollment
+     */
+    public function referralEnrollment(): HasOne
+    {
+        return $this->hasOne(ReferralEnrollment::class);
+    }
+
+    /**
      * Get the total count of unread messages across all chats for this user.
      */
     public function getUnreadMessageCount(): int
