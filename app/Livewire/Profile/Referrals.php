@@ -2,6 +2,9 @@
 
 namespace App\Livewire\Profile;
 
+use App\Models\ReferralEnrollment;
+use Flux\Flux;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -10,9 +13,16 @@ class Referrals extends Component
 {
     // State properties
     public bool $isEligible = false;
+
     public bool $isEnrolled = false;
+
     public bool $isBusinessOwner = false; // Is this user a business owner
+
     public bool $copied = false;
+
+    public bool $showPayPalStep = false;
+
+    public ?ReferralEnrollment $enrollment = null;
 
     public string $referralLink = 'https://collabconnect.test/register?ref=ABC123XYZ';
 
@@ -51,15 +61,61 @@ class Referrals extends Component
             $this->isBusinessOwner = true;
         }
 
-        // TODO: Check if enrolled in referral program from database
-        // For now, this remains false until backend implementation
-        $this->isEnrolled = false;
+        // Check if enrolled in referral program from database
+        $this->enrollment = $user->referralEnrollment;
+        $this->isEnrolled = $this->enrollment !== null;
+
+        // Generate referral link if enrolled
+        if ($this->isEnrolled && $this->enrollment) {
+            $this->referralLink = url('/register?ref='.$this->enrollment->code);
+        }
     }
 
     public function enrollInProgram()
     {
+        $user = auth()->user();
+
+        // Check if already enrolled
+        if ($user->referralEnrollment) {
+            Flux::toast(
+                heading: 'Already Enrolled',
+                text: 'You are already enrolled in the referral program.',
+                variant: 'error',
+            );
+
+            return;
+        }
+
+        // Create referral enrollment
+        $enrollment = ReferralEnrollment::create([
+            'user_id' => $user->id,
+            'code' => strtoupper(Str::ulid()),
+            'current_percentage' => 10, // Default 10% commission
+        ]);
+
+        // Refresh the user's relationship
+        $user->load('referralEnrollment');
+
+        $this->enrollment = $enrollment->fresh();
         $this->isEnrolled = true;
-        session()->flash('success', 'Successfully enrolled in the referral program!');
+        $this->showPayPalStep = true;
+        $this->referralLink = url('/register?ref='.$enrollment->code);
+
+        Flux::toast(
+            heading: 'Enrolled!',
+            text: 'You have successfully enrolled in the referral program. Connect your PayPal account to receive payouts.',
+            variant: 'success',
+        );
+    }
+
+    public function skipPayPalSetup()
+    {
+        $this->showPayPalStep = false;
+        Flux::toast(
+            heading: 'PayPal Setup Skipped',
+            text: 'You can connect your PayPal account anytime from your referral dashboard.',
+            variant: 'info',
+        );
     }
 
     public function copyReferralLink()

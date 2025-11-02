@@ -1,3 +1,4 @@
+<div>
 {{-- Business Member - Owner Not Enrolled State --}}
 @if(!$isBusinessOwner && $isEligible && !$isEnrolled)
 <div class="max-w-4xl mx-auto px-4 py-8">
@@ -214,14 +215,14 @@
                     </div>
                     <flux:heading size="sm">You Earn 10%</flux:heading>
                     <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
-                        Earn 10% of their subscription payments for as long as they remain active
+                        Earn 10% of their subscription payments for as long as you both remain active subscribers
                     </flux:text>
                 </div>
             </div>
 
             <flux:callout variant="info" class="w-full max-w-2xl text-left">
                 <flux:text class="text-sm">
-                    <strong>How it works:</strong> You'll receive 10% of each monthly or annual subscription payment made by anyone who signs up using your referral link. Payouts begin after their first completed payment and continue as long as they remain an active subscriber.
+                    <strong>How it works:</strong> You'll receive 10% of each monthly or annual subscription payment made by anyone who signs up using your referral link. Payouts begin after their first completed payment and continue as long as you both remain active subscribers.
                 </flux:text>
             </flux:callout>
 
@@ -239,6 +240,67 @@
         <flux:heading size="xl">Referral Program</flux:heading>
         <flux:badge variant="success">Active</flux:badge>
     </div>
+
+    {{-- PayPal Payout Account Card --}}
+    <flux:card class="p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <flux:heading size="lg">Payout Account</flux:heading>
+            @if($enrollment && $enrollment->hasPayPalConnected())
+                <flux:badge variant="success">Connected</flux:badge>
+            @else
+                <flux:badge variant="warning">Not Connected</flux:badge>
+            @endif
+        </div>
+
+        @if($enrollment && $enrollment->hasPayPalConnected())
+            {{-- Connected PayPal Account --}}
+            <div class="space-y-4">
+                <div class="flex items-start justify-between gap-4 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg">
+                    <div class="flex items-start gap-3 flex-1">
+                        <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <flux:icon.paypal class="w-6 h-6 text-blue-600 dark:text-blue-500" />
+                        </div>
+                        <div class="flex-1">
+                            <flux:text class="font-medium">PayPal Account</flux:text>
+                            <flux:text class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                                {{ $enrollment->paypal_email }}
+                            </flux:text>
+                            @if($enrollment->paypal_connected_at)
+                                <flux:text class="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
+                                    Connected {{ $enrollment->paypal_connected_at->diffForHumans() }}
+                                </flux:text>
+                            @endif
+                        </div>
+                    </div>
+                    <flux:button variant="ghost" size="sm" wire:click="$set('showPayPalStep', true)">
+                        Change
+                    </flux:button>
+                </div>
+
+                <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
+                    All referral commission payouts will be sent to this PayPal account. Paypal fees may apply.
+                </flux:text>
+            </div>
+        @else
+            {{-- Not Connected State --}}
+            <div class="space-y-4">
+                <flux:callout variant="warning">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex-1">
+                            <flux:text class="font-semibold mb-1">Connect Your PayPal Account</flux:text>
+                            <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
+                                You need to connect a PayPal account to receive your referral commission payouts. Set this up now to ensure you don't miss any payments.
+                            </flux:text>
+                        </div>
+                    </div>
+                </flux:callout>
+
+                <flux:button variant="primary" wire:click="$set('showPayPalStep', true)">
+                    Connect PayPal Account
+                </flux:button>
+            </div>
+        @endif
+    </flux:card>
 
     {{-- Referral Link Card --}}
     <flux:card class="p-6 mb-6">
@@ -410,3 +472,36 @@
     </flux:card>
 </div>
 @endif
+
+{{-- PayPal Connection Modal --}}
+<flux:modal name="paypal-setup" variant="flyout" wire:model="showPayPalStep" class="space-y-6">
+    <div>
+        <flux:heading size="lg">Connect Your PayPal Account</flux:heading>
+        <flux:text class="text-zinc-600 dark:text-zinc-400 mt-2">
+            Connect your PayPal account to receive commission payouts from your referrals.
+        </flux:text>
+    </div>
+
+    <flux:separator />
+
+    {{-- Include the PayPal connection component --}}
+    @if($enrollment)
+        @livewire('profile.connect-paypal', key('paypal-connect-'.$enrollment->id))
+    @else
+        <flux:callout variant="warning">
+            Unable to load PayPal connection. Please refresh the page.
+        </flux:callout>
+    @endif
+
+    <flux:separator />
+
+    <div class="flex justify-between gap-3">
+        <flux:button variant="ghost" wire:click="skipPayPalSetup">
+            Skip for Now
+        </flux:button>
+        <flux:button variant="primary" wire:click="$set('showPayPalStep', false)">
+            Done
+        </flux:button>
+    </div>
+</flux:modal>
+</div>

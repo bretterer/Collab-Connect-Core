@@ -59,7 +59,7 @@ npm run build
 
 ### Livewire Architecture
 - **BaseComponent**: Abstract class providing common utilities for all Livewire components
-  - Authentication helpers, flash messaging, validation utilities
+  - Authentication helpers, validation utilities
   - Enum handling, array manipulation, account type checks
 - **Wizard Pattern**: Uses HasWizardSteps trait for multi-step processes (onboarding, campaign creation)
 - **Component Organization**: Grouped by feature (Auth, Campaigns, Onboarding)
@@ -716,3 +716,7 @@ $delete = fn(Product $product) => $product->delete();
 - Every change must be programmatically tested. Write a new test or update an existing test, then run the affected tests to make sure they pass.
 - Run the minimum number of tests needed to ensure code quality and speed. Use `php artisan test` with a specific filename or filter.
 </laravel-boost-guidelines>
+
+
+## Custom Notes that are important
+- Do not use session()->flash() for toast messages.  Anything that needs a message, use either `Flux::toast`, or `Toaster` toast messages
