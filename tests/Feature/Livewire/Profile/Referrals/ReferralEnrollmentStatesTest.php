@@ -140,5 +140,4 @@ class ReferralEnrollmentStatesTest extends TestCase
             ->assertSet('stats.total_count', 5)
             ->assertSet('stats.active_count', 2);
     }
-
 }
