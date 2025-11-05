@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/marketing.php';
 
+Route::get('/r/{code}', App\Livewire\ReferralRedirect::class)->name('referral.redirect');
+
 // Broadcasting routes
 Broadcast::routes(['middleware' => ['web', 'auth']]);
 
@@ -42,6 +44,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Subscription & Payment Management
         Route::get('/pricing', App\Livewire\Admin\Pricing::class)->name('pricing');
+
+        // Referral Program Management
+        Route::prefix('referrals')->name('referrals.')->group(function () {
+            Route::get('/', App\Livewire\Admin\Referrals\ReferralIndex::class)->name('index');
+            Route::get('/settings', App\Livewire\Admin\Referrals\ReferralSettings::class)->name('settings');
+            Route::get('/review', App\Livewire\Admin\Referrals\ReferralReview::class)->name('review');
+            Route::get('/{user}', App\Livewire\Admin\Referrals\ReferralShow::class)->name('show');
+        });
 
     });
 

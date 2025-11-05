@@ -244,6 +244,50 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get users that this user has referred.
+     */
+    public function referredUsers(): HasMany
+    {
+        return $this->hasMany(Referral::class, 'referrer_user_id');
+    }
+
+    /**
+     * Get the user who referred this user.
+     */
+    public function referredBy(): HasOne
+    {
+        return $this->hasOne(Referral::class, 'referred_user_id');
+    }
+
+    /**
+     * Get referral program stats for this user.
+     */
+    public function getReferralStats(): array
+    {
+        $enrollment = $this->referralEnrollment;
+
+        if (! $enrollment) {
+            return [
+                'enrolled' => false,
+                'active_count' => 0,
+                'pending_count' => 0,
+                'total_count' => 0,
+                'pending_payout' => 0,
+                'lifetime_earnings' => 0,
+            ];
+        }
+
+        return [
+            'enrolled' => true,
+            'active_count' => $enrollment->getActiveReferralCount(),
+            'pending_count' => $enrollment->referrals()->pending()->count(),
+            'total_count' => $enrollment->referrals()->count(),
+            'pending_payout' => $enrollment->getPendingPayout()?->amount ?? 0,
+            'lifetime_earnings' => $enrollment->getLifetimeEarnings(),
+        ];
+    }
+
+    /**
      * Get the total count of unread messages across all chats for this user.
      */
     public function getUnreadMessageCount(): int

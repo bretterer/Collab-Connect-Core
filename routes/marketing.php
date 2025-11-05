@@ -35,6 +35,40 @@ Route::get('/about', function () {
     return view('about');
 })->name('about');
 
+Route::get('/landing', function () {
+    return view('landing');
+})->name('landing');
+
+Route::get('/landing/thank-you', function () {
+    return view('landing-thank-you');
+})->name('landing.thank-you');
+
+Route::post('/landing/signup', function (Illuminate\Http\Request $request) {
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|max:255',
+    ]);
+
+    try {
+        // Store the email signup (you can create a model for this later)
+        // For now, we'll just send a notification email
+        \Illuminate\Support\Facades\Mail::to('hello@collabconnect.app')
+            ->send(new \App\Mail\LandingPageSignup(
+                name: $validated['name'],
+                email: $validated['email']
+            ));
+
+        return redirect()->route('landing.thank-you');
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Landing page signup failed', [
+            'error' => $e->getMessage(),
+            'email' => $validated['email'],
+        ]);
+
+        return back()->with('error', 'Sorry, there was an issue processing your request. Please try again later.');
+    }
+})->name('landing.signup');
+
 Route::get('/refer', function (Request $request) {
     if ($request->has('code')) {
         $code = $request->input('code');

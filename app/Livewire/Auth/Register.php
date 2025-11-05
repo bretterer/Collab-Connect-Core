@@ -3,8 +3,10 @@
 namespace App\Livewire\Auth;
 
 use App\Enums\AccountType;
+use App\Events\UserRegisteredWithReferral;
 use App\Models\BusinessMemberInvite;
 use App\Models\Invite;
+use App\Models\ReferralEnrollment;
 use App\Models\User;
 use App\Models\Waitlist;
 use Illuminate\Auth\Events\Registered;
@@ -38,11 +40,18 @@ class Register extends Component
 
     public ?array $betaInvite = null;
 
+    public ?ReferralEnrollment $referralEnrollment = null;
+
     public Invite|Waitlist|null $waitlistEntry = null;
 
     public function mount(?string $token = null)
     {
         $this->extraFields = new HoneypotData;
+
+        $referralCode = request()->cookie('referral_code', null);
+        if ($referralCode) {
+            $this->referralEnrollment = ReferralEnrollment::where('code', $referralCode)->first();
+        }
 
         if (config('collabconnect.beta_registration_only')) {
             $this->token = request()->query('token', $token);
@@ -160,6 +169,11 @@ class Register extends Component
         unset($validated['accountType']);
 
         event(new Registered(($user = User::create($validated))));
+
+        if ($this->referralEnrollment) {
+            event(new UserRegisteredWithReferral($user, $this->referralEnrollment));
+            cookie()->queue('referral_code', null, -1); // Clear referral code cookie
+        }
 
         // If this is a beta registration, mark the invite as used in CSV
         if ($this->betaInvite && $this->token) {

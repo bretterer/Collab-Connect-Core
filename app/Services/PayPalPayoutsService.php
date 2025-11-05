@@ -184,10 +184,6 @@ class PayPalPayoutsService
             'paypal_email' => $email,
             'paypal_verified' => $verificationResult['verified'],
             'paypal_connected_at' => now(),
-            'paypal_metadata' => [
-                'verification_method' => 'email',
-                'verified_at' => now()->toIso8601String(),
-            ],
         ]);
 
         return true;

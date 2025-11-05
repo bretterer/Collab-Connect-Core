@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Events\UserRegisteredWithReferral;
 use App\Livewire\Auth\Register;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -49,5 +51,35 @@ class RegistrationTest extends TestCase
             ->assertHasNoErrors();
 
         $this->assertAuthenticated();
+    }
+
+    #[Test]
+    public function a_referred_user_triggers_referral_link_recording_event_after_registering()
+    {
+        Event::fake();
+
+        // Disable Honeypot
+        config(['honeypot.enabled' => false]);
+
+        // Create referrer and their enrollment
+        $referrerEnrollment = \App\Models\ReferralEnrollment::factory()->create();
+
+        // Simulate visiting registration with referral code cookie
+        $response = Livewire::withCookies([
+            'referral_code' => $referrerEnrollment->code,
+        ])->test(Register::class)
+            ->set('name', 'Referred User')
+            ->set('email', 'referred@example.com')
+            ->set('password', 'password')
+            ->set('password_confirmation', 'password')
+            ->call('register');
+
+        $response
+            ->assertHasNoErrors();
+
+        $this->assertAuthenticated();
+
+        Event::assertDispatched(UserRegisteredWithReferral::class);
+
     }
 }
