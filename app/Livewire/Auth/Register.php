@@ -3,11 +3,13 @@
 namespace App\Livewire\Auth;
 
 use App\Enums\AccountType;
+use App\Events\UserRegisteredWithReferral;
 use App\Models\BusinessMemberInvite;
 use App\Models\Invite;
 use App\Models\MarketWaitlist;
 use App\Models\MarketZipcode;
 use App\Models\PostalCode;
+use App\Models\ReferralEnrollment;
 use App\Models\User;
 use App\Models\Waitlist;
 use App\Settings\RegistrationMarkets;
@@ -44,6 +46,8 @@ class Register extends Component
 
     public ?array $betaInvite = null;
 
+    public ?ReferralEnrollment $referralEnrollment = null;
+
     public Invite|Waitlist|null $waitlistEntry = null;
 
     public bool $registrationMarketsEnabled = true;
@@ -53,6 +57,11 @@ class Register extends Component
         $this->extraFields = new HoneypotData;
         $settings = app(RegistrationMarkets::class);
         $this->registrationMarketsEnabled = $settings->enabled;
+
+        $referralCode = request()->cookie('referral_code', null);
+        if ($referralCode) {
+            $this->referralEnrollment = ReferralEnrollment::where('code', $referralCode)->first();
+        }
 
         if (config('collabconnect.beta_registration_only')) {
             $this->token = request()->query('token', $token);
@@ -213,6 +222,11 @@ class Register extends Component
                 'user_id' => $user->id,
                 'postal_code' => $this->postal_code,
             ]);
+        }
+
+        if ($this->referralEnrollment) {
+            event(new UserRegisteredWithReferral($user, $this->referralEnrollment));
+            cookie()->queue('referral_code', null, -1); // Clear referral code cookie
         }
 
         // If this is a beta registration, mark the invite as used in CSV

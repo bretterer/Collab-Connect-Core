@@ -169,7 +169,7 @@
                 </ul>
             </div>
 
-            <flux:button variant="primary" href="{{ route('billing') }}" wire:navigate class="mt-4">
+            <flux:button variant="primary" href="{{route('billing')}}" wire:navigate class="mt-4">
                 View Subscription Options
             </flux:button>
         </div>

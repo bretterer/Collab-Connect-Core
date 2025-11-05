@@ -141,6 +141,4 @@ class ReferralEnrollmentStatesTest extends TestCase
             ->assertSet('stats.active_count', 2);
     }
 
-    #[Test]
-    public function pending_payout_is_reported_correctly() {}
 }
