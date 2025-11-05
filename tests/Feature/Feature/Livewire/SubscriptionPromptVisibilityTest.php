@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Feature\Livewire;
 
-use App\Enums\AccountType;
 use App\Enums\CampaignStatus;
 use App\Models\Campaign;
 use App\Models\User;

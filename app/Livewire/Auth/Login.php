@@ -47,7 +47,7 @@ class Login extends Component
 
         // Redirect directly to the appropriate dashboard based on account type
         $user = Auth::user();
-        $defaultRoute = match($user->account_type) {
+        $defaultRoute = match ($user->account_type) {
             \App\Enums\AccountType::ADMIN => route('admin.dashboard', absolute: false),
             \App\Enums\AccountType::BUSINESS => route('business.dashboard', absolute: false),
             \App\Enums\AccountType::INFLUENCER => route('influencer.dashboard', absolute: false),

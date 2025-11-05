@@ -263,5 +263,4 @@ class MatchScoreService
             'total' => round($totalScore, 1),
         ];
     }
-
 }

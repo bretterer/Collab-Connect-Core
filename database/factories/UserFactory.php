@@ -127,9 +127,9 @@ class UserFactory extends Factory
                 // This bypasses Stripe for testing purposes
                 $billable->subscriptions()->create([
                     'type' => 'default',
-                    'stripe_id' => 'sub_test_' . Str::random(14),
+                    'stripe_id' => 'sub_test_'.Str::random(14),
                     'stripe_status' => 'active',
-                    'stripe_price' => 'price_test_' . Str::random(14),
+                    'stripe_price' => 'price_test_'.Str::random(14),
                     'quantity' => 1,
                     'trial_ends_at' => null,
                     'ends_at' => null,

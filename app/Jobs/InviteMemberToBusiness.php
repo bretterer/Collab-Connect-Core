@@ -16,7 +16,9 @@ class InviteMemberToBusiness implements ShouldQueue
     use Queueable;
 
     public Business $business;
+
     public string $email;
+
     public User $invitedBy;
 
     /**

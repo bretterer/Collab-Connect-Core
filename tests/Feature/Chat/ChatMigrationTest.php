@@ -5,7 +5,6 @@ namespace Tests\Feature\Chat;
 use App\Models\Business;
 use App\Models\Campaign;
 use App\Models\Chat;
-use App\Models\Influencer;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -187,7 +186,7 @@ class ChatMigrationTest extends TestCase
 
         // Verify message order is preserved
         for ($i = 0; $i < 10; $i++) {
-            $this->assertEquals("Message " . ($i + 1), $chat->messages[$i]->body);
+            $this->assertEquals('Message '.($i + 1), $chat->messages[$i]->body);
         }
     }
 

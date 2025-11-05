@@ -21,7 +21,7 @@ class InviteMemberToBusinessMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'You\'ve been invited to join ' . $this->invite->business->name,
+            subject: 'You\'ve been invited to join '.$this->invite->business->name,
         );
     }
 

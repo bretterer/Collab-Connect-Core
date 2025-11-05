@@ -7,7 +7,6 @@ use App\Enums\CampaignStatus;
 use App\Enums\CampaignType;
 use App\Facades\MatchScore;
 use App\Jobs\SendCampaignNotifications;
-use App\Models\Influencer;
 use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -183,7 +182,6 @@ class Campaign extends Model
         return 'Not set';
     }
 
-
     /**
      * Find influencers that match this campaign based on threshold score.
      * Uses database pre-filtering to optimize performance.
@@ -251,45 +249,45 @@ class Campaign extends Model
             BusinessIndustry::FOOD_BEVERAGE->value => [
                 BusinessIndustry::FOOD_BEVERAGE,
                 BusinessIndustry::FITNESS_WELLNESS,
-                BusinessIndustry::TRAVEL_TOURISM
+                BusinessIndustry::TRAVEL_TOURISM,
             ],
             BusinessIndustry::FASHION_APPAREL->value => [
                 BusinessIndustry::FASHION_APPAREL,
                 BusinessIndustry::BEAUTY_COSMETICS,
-                BusinessIndustry::FITNESS_WELLNESS
+                BusinessIndustry::FITNESS_WELLNESS,
             ],
             BusinessIndustry::BEAUTY_COSMETICS->value => [
                 BusinessIndustry::BEAUTY_COSMETICS,
                 BusinessIndustry::FASHION_APPAREL,
-                BusinessIndustry::FITNESS_WELLNESS
+                BusinessIndustry::FITNESS_WELLNESS,
             ],
             BusinessIndustry::FITNESS_WELLNESS->value => [
                 BusinessIndustry::FITNESS_WELLNESS,
                 BusinessIndustry::HEALTHCARE,
                 BusinessIndustry::FOOD_BEVERAGE,
                 BusinessIndustry::BEAUTY_COSMETICS,
-                BusinessIndustry::FASHION_APPAREL
+                BusinessIndustry::FASHION_APPAREL,
             ],
             BusinessIndustry::HOME_GARDEN->value => [
                 BusinessIndustry::HOME_GARDEN,
                 BusinessIndustry::RETAIL,
-                BusinessIndustry::BABY_KIDS
+                BusinessIndustry::BABY_KIDS,
             ],
             BusinessIndustry::TRAVEL_TOURISM->value => [
                 BusinessIndustry::TRAVEL_TOURISM,
                 BusinessIndustry::FOOD_BEVERAGE,
-                BusinessIndustry::ENTERTAINMENT
+                BusinessIndustry::ENTERTAINMENT,
             ],
             BusinessIndustry::RETAIL->value => [
                 BusinessIndustry::RETAIL,
                 BusinessIndustry::FASHION_APPAREL,
-                BusinessIndustry::HOME_GARDEN
+                BusinessIndustry::HOME_GARDEN,
             ],
         ];
 
         // Return the mapped industries or just the exact industry if no mapping exists
         return isset($industryMapping[$businessIndustry->value])
-            ? array_map(fn($industry) => $industry->value, $industryMapping[$businessIndustry->value])
+            ? array_map(fn ($industry) => $industry->value, $industryMapping[$businessIndustry->value])
             : [$businessIndustry->value];
     }
 }

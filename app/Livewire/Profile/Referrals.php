@@ -18,13 +18,11 @@ class Referrals extends Component
 
     public bool $isBusinessOwner = false; // Is this user a business owner
 
-    public bool $copied = false;
-
     public bool $showPayPalStep = false;
 
     public ?ReferralEnrollment $enrollment = null;
 
-    public string $referralLink = 'https://collabconnect.test/register?ref=ABC123XYZ';
+    public string $referralLink = 'https://collabconnect.test/r/ABC123XYZ';
 
     public array $stats = [
         'pending_count' => 3,
@@ -67,7 +65,7 @@ class Referrals extends Component
 
         // Generate referral link if enrolled
         if ($this->isEnrolled && $this->enrollment) {
-            $this->referralLink = url('/register?ref='.$this->enrollment->code);
+            $this->referralLink = url('/r/'.$this->enrollment->code);
         }
     }
 
@@ -90,7 +88,6 @@ class Referrals extends Component
         $enrollment = ReferralEnrollment::create([
             'user_id' => $user->id,
             'code' => strtoupper(Str::ulid()),
-            'current_percentage' => 10, // Default 10% commission
         ]);
 
         // Refresh the user's relationship
@@ -99,7 +96,7 @@ class Referrals extends Component
         $this->enrollment = $enrollment->fresh();
         $this->isEnrolled = true;
         $this->showPayPalStep = true;
-        $this->referralLink = url('/register?ref='.$enrollment->code);
+        $this->referralLink = url('/r/'.$enrollment->code);
 
         Flux::toast(
             heading: 'Enrolled!',
@@ -116,13 +113,5 @@ class Referrals extends Component
             text: 'You can connect your PayPal account anytime from your referral dashboard.',
             variant: 'info',
         );
-    }
-
-    public function copyReferralLink()
-    {
-        $this->copied = true;
-
-        // Reset the copied state after 2 seconds
-        $this->dispatch('link-copied');
     }
 }

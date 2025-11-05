@@ -64,7 +64,7 @@ class Register extends Component
                 $this->name = $this->betaInvite['full_name'] ?? $this->betaInvite['name'];
                 $this->accountType = $this->betaInvite['user_type'] === 'business' ? AccountType::BUSINESS : AccountType::INFLUENCER;
 
-                if($this->betaInvite['business_invite']) {
+                if ($this->betaInvite['business_invite']) {
                     $this->accountType = AccountType::BUSINESS;
                 }
             }
@@ -127,7 +127,7 @@ class Register extends Component
         }
 
         $this->waitlistEntry->update([
-                'registered_at' => now(),
+            'registered_at' => now(),
         ]);
 
     }

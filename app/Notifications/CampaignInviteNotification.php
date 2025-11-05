@@ -5,7 +5,6 @@ namespace App\Notifications;
 use App\Models\Campaign;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -49,7 +48,7 @@ class CampaignInviteNotification extends Notification
             ->line("**Campaign: {$this->campaign->project_name}**")
             ->line("**Personal Message from {$businessContact->first_name}:**")
             ->line("\"{$this->personalMessage}\"")
-            ->line("**Campaign Details:**")
+            ->line('**Campaign Details:**')
             ->line("• **Goal:** {$this->campaign->campaign_goal}")
             ->line("• **Business:** {$business->name}")
             ->line("• **Compensation:** {$this->campaign->compensation_type->label()}")
@@ -60,11 +59,11 @@ class CampaignInviteNotification extends Notification
                 $platforms = implode(', ', array_map('ucfirst', $this->campaign->target_platforms));
                 $message->line("• **Target Platforms:** {$platforms}");
             })
-            ->line("**Why they chose you:**")
-            ->line("This business specifically selected you based on your content, audience, and unique style. This is a curated invitation, not a mass campaign!")
+            ->line('**Why they chose you:**')
+            ->line('This business specifically selected you based on your content, audience, and unique style. This is a curated invitation, not a mass campaign!')
             ->action('View Campaign & Apply', url("/campaigns/{$this->campaign->id}"))
             ->line("**Don't miss out!** Personal invitations like this are rare and show genuine interest in your work.")
-            ->line("Ready to create something amazing together?")
+            ->line('Ready to create something amazing together?')
             ->salutation('Best regards, The CollabConnect Team');
     }
 
@@ -76,8 +75,8 @@ class CampaignInviteNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'title' => 'Campaign Invitation from ' . $this->campaign->business->name,
-            'message' => $this->invitingBusiness->first_name . ' from ' . $this->campaign->business->name . ' has invited you to collaborate on "' . $this->campaign->project_name . '"',
+            'title' => 'Campaign Invitation from '.$this->campaign->business->name,
+            'message' => $this->invitingBusiness->first_name.' from '.$this->campaign->business->name.' has invited you to collaborate on "'.$this->campaign->project_name.'"',
             'campaign_id' => $this->campaign->id,
             'business_id' => $this->campaign->business_id,
             'inviting_user_id' => $this->invitingBusiness->id,

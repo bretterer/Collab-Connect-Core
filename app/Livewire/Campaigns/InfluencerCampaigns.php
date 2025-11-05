@@ -29,7 +29,6 @@ class InfluencerCampaigns extends BaseComponent
 
     public int $perPage = 12;
 
-
     protected $queryString = [
         'search' => ['except' => ''],
         'selectedNiches' => ['except' => []],
@@ -97,7 +96,6 @@ class InfluencerCampaigns extends BaseComponent
         // Return the collection for Livewire pagination
         return $campaigns;
     }
-
 
     private function sortCampaigns($campaigns)
     {

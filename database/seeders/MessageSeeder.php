@@ -35,8 +35,8 @@ class MessageSeeder extends Seeder
         }
 
         // Prioritize Business 1's accepted applications first
-        $business1Apps = $acceptedApplications->filter(fn($app) => $app->campaign->business_id === 1);
-        $otherApps = $acceptedApplications->filter(fn($app) => $app->campaign->business_id !== 1);
+        $business1Apps = $acceptedApplications->filter(fn ($app) => $app->campaign->business_id === 1);
+        $otherApps = $acceptedApplications->filter(fn ($app) => $app->campaign->business_id !== 1);
 
         // Combine: Business 1 apps first, then fill with others up to 10 total
         $applicationsToSeed = $business1Apps->concat($otherApps)->take(10);

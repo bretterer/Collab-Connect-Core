@@ -1,5 +1,7 @@
 <?php
 
+use Tests\TestCase;
+
 // TODO: Complete ConnectPaypal component tests
 // Test that the component shows a warning message when user has no referral enrollment
 test('component renders for user without enrollment')->skip('Test needs implementation');

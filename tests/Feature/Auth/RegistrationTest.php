@@ -6,7 +6,6 @@ use App\Livewire\Auth\Register;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
-use RyanChandler\LaravelCloudflareTurnstile\Rules\Turnstile;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
@@ -18,11 +17,13 @@ class RegistrationTest extends TestCase
     {
         $response = $this->get('/register');
 
-        if(!config('collabconnect.registration_enabled')) {
+        if (! config('collabconnect.registration_enabled')) {
             $response->assertStatus(404);
+
             return;
-        } else if(config('collabconnect.beta_registration_only')) {
+        } elseif (config('collabconnect.beta_registration_only')) {
             $response->assertStatus(403);
+
             return;
         } else {
             $response->assertStatus(200);
@@ -33,7 +34,6 @@ class RegistrationTest extends TestCase
     public function new_users_can_register(): void
     {
         $this->withoutExceptionHandling();
-
 
         // Disable Honeypot
         config(['honeypot.enabled' => false]);

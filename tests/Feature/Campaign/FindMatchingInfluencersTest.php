@@ -6,7 +6,6 @@ use App\Enums\BusinessIndustry;
 use App\Enums\CampaignType;
 use App\Enums\CompensationType;
 use App\Facades\MatchScore;
-use App\Jobs\SendCampaignNotifications;
 use App\Models\Campaign;
 use App\Models\PostalCode;
 use App\Models\User;
@@ -277,9 +276,9 @@ class FindMatchingInfluencersTest extends TestCase
     public function handles_campaign_without_business_gracefully(): void
     {
         $campaign = Campaign::factory()->make(['business_id' => null]);
-        
+
         $matchingInfluencers = $campaign->findMatchingInfluencers(80);
-        
+
         $this->assertCount(0, $matchingInfluencers);
         $this->assertTrue($matchingInfluencers->isEmpty());
     }
@@ -320,10 +319,11 @@ class FindMatchingInfluencersTest extends TestCase
         // Mock the MatchScore facade to count calls
         $mockService = $this->mock(MatchScoreService::class);
         $callCount = 0;
-        
+
         $mockService->shouldReceive('calculateMatchScore')
             ->andReturnUsing(function () use (&$callCount) {
                 $callCount++;
+
                 return 85.0; // Return a score above threshold
             });
 

@@ -13,9 +13,13 @@ use Masmerise\Toaster\Toaster;
 class InviteInfluencerModal extends Component
 {
     public bool $showModal = false;
+
     public ?int $influencerId = null;
+
     public string $influencerName = '';
+
     public string $selectedCampaign = '';
+
     public string $message = '';
 
     #[Computed]
@@ -23,7 +27,7 @@ class InviteInfluencerModal extends Component
     {
         $user = auth()->user();
 
-        if (!$user || !$user->currentBusiness) {
+        if (! $user || ! $user->currentBusiness) {
             return collect();
         }
 
@@ -36,7 +40,7 @@ class InviteInfluencerModal extends Component
     #[Computed]
     public function selectedCampaignData()
     {
-        if (!$this->selectedCampaign) {
+        if (! $this->selectedCampaign) {
             return null;
         }
 
@@ -85,10 +89,10 @@ class InviteInfluencerModal extends Component
         $this->dispatch('invite-sent', [
             'influencerId' => $this->influencerId,
             'campaignId' => $this->selectedCampaign,
-            'message' => $this->message
+            'message' => $this->message,
         ]);
 
-        Toaster::success('Invitation sent successfully to ' . $this->influencerName . '! They will receive both an email and in-app notification.');
+        Toaster::success('Invitation sent successfully to '.$this->influencerName.'! They will receive both an email and in-app notification.');
         $this->closeModal();
     }
 

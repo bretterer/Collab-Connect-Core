@@ -2,8 +2,6 @@
 
 use App\Models\Campaign;
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -19,10 +17,10 @@ return new class extends Migration
                 if (is_array($campaign->campaign_type)) {
                     continue;
                 }
-                
+
                 // Convert single enum value to array
                 $campaign->update([
-                    'campaign_type' => [$campaign->getRawOriginal('campaign_type')]
+                    'campaign_type' => [$campaign->getRawOriginal('campaign_type')],
                 ]);
             }
         });
@@ -38,7 +36,7 @@ return new class extends Migration
             foreach ($campaigns as $campaign) {
                 if (is_array($campaign->campaign_type) && count($campaign->campaign_type) > 0) {
                     $campaign->update([
-                        'campaign_type' => $campaign->campaign_type[0]
+                        'campaign_type' => $campaign->campaign_type[0],
                     ]);
                 }
             }

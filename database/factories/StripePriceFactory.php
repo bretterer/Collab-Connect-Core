@@ -21,9 +21,9 @@ class StripePriceFactory extends Factory
     public function definition(): array
     {
         $isRecurring = $this->faker->boolean(70); // 70% chance of recurring
-        
+
         return [
-            'stripe_id' => 'price_' . $this->faker->unique()->bothify('??????????????'),
+            'stripe_id' => 'price_'.$this->faker->unique()->bothify('??????????????'),
             'active' => true,
             'billing_scheme' => 'per_unit',
             'livemode' => false,
@@ -65,7 +65,7 @@ class StripePriceFactory extends Factory
     public function withFeatures(array $features): self
     {
         return $this->state([
-            'metadata' => ['features' => json_encode($features)]
+            'metadata' => ['features' => json_encode($features)],
         ]);
     }
 

@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Enums\CampaignStatus;
 use App\Enums\CampaignType;
-use App\Enums\CompensationType;
 use App\Models\Business;
 use App\Models\Campaign;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -33,7 +32,7 @@ class CampaignFactory extends Factory
             'status' => CampaignStatus::DRAFT,
             'campaign_goal' => $this->faker->sentence(),
             'campaign_type' => $this->faker->randomElements(
-                array_map(fn($case) => $case->value, CampaignType::cases()), 
+                array_map(fn ($case) => $case->value, CampaignType::cases()),
                 $this->faker->numberBetween(1, 3)
             ),
             'target_zip_code' => $this->faker->numerify('#####'),
@@ -86,8 +85,6 @@ class CampaignFactory extends Factory
      */
     public function withFullDetails(): static
     {
-        return $this->afterCreating(function (Campaign $campaign) {
-
-        });
+        return $this->afterCreating(function (Campaign $campaign) {});
     }
 }

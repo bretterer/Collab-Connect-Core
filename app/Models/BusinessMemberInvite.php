@@ -9,7 +9,7 @@ class BusinessMemberInvite extends Model
 {
     protected $fillable = [
         'invited_by',
-        'business_id', 
+        'business_id',
         'email',
         'role',
         'token',

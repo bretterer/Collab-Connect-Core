@@ -4,7 +4,6 @@ namespace App\Notifications;
 
 use App\Models\CampaignApplication;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -42,7 +41,7 @@ class CampaignApplicationSubmittedNotification extends Notification
             ->subject('New Application Received for Your Campaign')
             ->greeting("Hi {$notifiable->first_name},")
             ->line("Great news! You've received a new application for your campaign **{$campaign->project_name}**.")
-            ->line("**Influencer Details:**")
+            ->line('**Influencer Details:**')
             ->line("• Name: {$influencer->first_name} {$influencer->last_name}")
             ->line("• Email: {$influencer->email}")
             ->when($influencer->isInfluencerAccount(), function ($message) use ($influencer) {
@@ -57,10 +56,10 @@ class CampaignApplicationSubmittedNotification extends Notification
                     $message->line("• YouTube: {$profile->youtube_handle}");
                 }
                 if ($profile->follower_count) {
-                    $message->line("• Total Followers: " . number_format($profile->follower_count));
+                    $message->line('• Total Followers: '.number_format($profile->follower_count));
                 }
             })
-            ->line("**Application Details:**")
+            ->line('**Application Details:**')
             ->line("• Submitted: {$this->application->submitted_at->format('M j, Y g:i A')}")
             ->when($this->application->message, function ($message) {
                 $message->line("• Message: \"{$this->application->message}\"");
@@ -79,7 +78,7 @@ class CampaignApplicationSubmittedNotification extends Notification
     {
         return [
             'title' => 'New Application to Campaign',
-            'message' => 'A new application has been submitted to your campaign: ' . $this->application->campaign->project_name,
+            'message' => 'A new application has been submitted to your campaign: '.$this->application->campaign->project_name,
             'campaign_id' => $this->application->campaign_id,
             'user_id' => $this->application->user_id,
             'status' => $this->application->status,

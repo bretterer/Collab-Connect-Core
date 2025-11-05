@@ -92,19 +92,27 @@
                     Business Referral Link
                 </flux:text>
 
-                <div class="flex gap-3">
+                <div class="flex gap-3" x-data="{ copied: false }">
                     <flux:input
                         readonly
                         value="{{ $referralLink }}"
                         class="flex-1 font-mono text-sm"
+                        x-ref="referralInput"
                     />
                     <flux:button
                         variant="primary"
-                        x-data="{ copied: @entangle('copied') }"
                         @click="
-                            navigator.clipboard.writeText('{{ $referralLink }}');
-                            copied = true;
-                            setTimeout(() => copied = false, 2000);
+                            if (navigator.clipboard) {
+                                navigator.clipboard.writeText('{{ $referralLink }}').then(() => {
+                                    copied = true;
+                                    setTimeout(() => copied = false, 2000);
+                                });
+                            } else {
+                                $refs.referralInput.select();
+                                document.execCommand('copy');
+                                copied = true;
+                                setTimeout(() => copied = false, 2000);
+                            }
                         "
                         class="flex-shrink-0"
                     >
@@ -161,7 +169,7 @@
                 </ul>
             </div>
 
-            <flux:button variant="primary" href="/settings/subscription" wire:navigate class="mt-4">
+            <flux:button variant="primary" href="{{ route('billing') }}" wire:navigate class="mt-4">
                 View Subscription Options
             </flux:button>
         </div>
@@ -309,19 +317,32 @@
             Share this link with friends and colleagues to start earning. You'll receive 10% of their subscription payments.
         </flux:text>
 
-        <div class="flex gap-3">
+        <div class="flex gap-3" x-data="{ copied: false }">
             <flux:input
                 readonly
                 value="{{ $referralLink }}"
                 class="flex-1 font-mono text-sm"
+                x-ref="referralInput"
             />
             <flux:button
                 variant="primary"
-                wire:click="copyReferralLink"
+                @click="
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText('{{ $referralLink }}').then(() => {
+                            copied = true;
+                            setTimeout(() => copied = false, 2000);
+                        });
+                    } else {
+                        $refs.referralInput.select();
+                        document.execCommand('copy');
+                        copied = true;
+                        setTimeout(() => copied = false, 2000);
+                    }
+                "
                 class="flex-shrink-0"
+                icon="clipboard"
             >
-                <flux:icon.clipboard class="w-4 h-4" />
-                {{ $copied ? 'Copied!' : 'Copy' }}
+                <span x-text="copied ? 'Copied!' : 'Copy'"></span>
             </flux:button>
         </div>
     </flux:card>

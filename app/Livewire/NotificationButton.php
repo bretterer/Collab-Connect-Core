@@ -7,7 +7,9 @@ use Livewire\Component;
 class NotificationButton extends Component
 {
     public bool $showModal = false;
+
     public $notifications = [];
+
     public $unreadCount = 0;
 
     public function mount()
@@ -21,7 +23,6 @@ class NotificationButton extends Component
             ->latest()
             ->limit(20)
             ->get();
-
 
         $this->unreadCount = auth()->user()->notifications()
             ->where('read_at', null)

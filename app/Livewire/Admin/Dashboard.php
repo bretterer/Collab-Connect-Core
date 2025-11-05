@@ -9,7 +9,6 @@ use App\Models\CampaignApplication;
 use App\Models\User;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Illuminate\Support\Facades\Session;
 
 #[Layout('layouts.app')]
 class Dashboard extends Component

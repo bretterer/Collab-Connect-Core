@@ -33,9 +33,10 @@ class SyncStripeCommand extends Command
      */
     public function handle()
     {
-        if (!$this->option('force')) {
-            if (!$this->confirm('This will sync data from Stripe and may overwrite local changes. Continue?')) {
+        if (! $this->option('force')) {
+            if (! $this->confirm('This will sync data from Stripe and may overwrite local changes. Continue?')) {
                 $this->info('Sync cancelled.');
+
                 return Command::SUCCESS;
             }
         }
@@ -49,26 +50,28 @@ class SyncStripeCommand extends Command
         try {
             $stripe->products->all(['limit' => 1]);
         } catch (\Exception $e) {
-            $this->error('Unable to connect to Stripe: ' . $e->getMessage());
+            $this->error('Unable to connect to Stripe: '.$e->getMessage());
+
             return Command::FAILURE;
         }
 
         try {
             // Sync products unless prices-only is specified
-            if (!$this->option('prices-only')) {
+            if (! $this->option('prices-only')) {
                 $this->info('Syncing products from Stripe...');
                 $this->syncProducts($stripe, $limit);
             }
 
             // Sync prices unless products-only is specified
-            if (!$this->option('products-only')) {
+            if (! $this->option('products-only')) {
                 $this->info('Syncing prices from Stripe...');
                 $this->syncPrices($stripe, $limit);
             }
 
             $this->info('Stripe sync completed successfully!');
         } catch (\Exception $e) {
-            $this->error('Sync failed: ' . $e->getMessage());
+            $this->error('Sync failed: '.$e->getMessage());
+
             return Command::FAILURE;
         }
 
@@ -129,7 +132,7 @@ class SyncStripeCommand extends Command
             }
 
             $hasMore = $products->has_more && $syncedCount < $limit;
-            if ($hasMore && !empty($products->data)) {
+            if ($hasMore && ! empty($products->data)) {
                 $startingAfter = end($products->data)->id;
             }
         }
@@ -164,10 +167,11 @@ class SyncStripeCommand extends Command
                 // Find the corresponding product in our database
                 $product = StripeProduct::where('stripe_id', $priceData->product)->first();
 
-                if (!$product) {
+                if (! $product) {
                     $this->warn("Skipping price {$priceData->id} - product {$priceData->product} not found in database");
                     $skippedCount++;
                     $syncedCount++;
+
                     continue;
                 }
 
@@ -186,7 +190,7 @@ class SyncStripeCommand extends Command
                         'unit_amount' => $priceData->unit_amount,
                     ]);
                     $updatedCount++;
-                    $this->line("Updated price: {$priceData->id} ($" . $this->formatPrice($priceData->unit_amount) . ")");
+                    $this->line("Updated price: {$priceData->id} ($".$this->formatPrice($priceData->unit_amount).')');
                 } else {
                     // Create new price
                     StripePrice::create([
@@ -201,14 +205,14 @@ class SyncStripeCommand extends Command
                         'unit_amount' => $priceData->unit_amount,
                     ]);
                     $createdCount++;
-                    $this->line("Created price: {$priceData->id} ($" . $this->formatPrice($priceData->unit_amount) . ")");
+                    $this->line("Created price: {$priceData->id} ($".$this->formatPrice($priceData->unit_amount).')');
                 }
 
                 $syncedCount++;
             }
 
             $hasMore = $prices->has_more && $syncedCount < $limit;
-            if ($hasMore && !empty($prices->data)) {
+            if ($hasMore && ! empty($prices->data)) {
                 $startingAfter = end($prices->data)->id;
             }
         }
@@ -224,6 +228,7 @@ class SyncStripeCommand extends Command
         if ($unitAmount === null) {
             return '0.00';
         }
+
         return number_format($unitAmount / 100, 2);
     }
 }
