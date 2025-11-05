@@ -187,22 +187,8 @@ class ReferralProgramTest extends TestCase
             ->assertSet('isEnrolled', true);
     }
 
-    #[Test]
-    public function copy_referral_link_action_works()
-    {
-        // Create enrolled user
-        $user = User::factory()->influencer()->withProfile()->subscribed()->create();
-
-        $this->actingAs($user);
-
-        // Test - copy action should work
-        Livewire::test(Referrals::class)
-            ->set('isEnrolled', true)
-            ->assertSet('copied', false)
-            ->call('copyReferralLink')
-            ->assertSet('copied', true)
-            ->assertDispatched('link-copied');
-    }
+    // Note: Clipboard copying is now handled by Alpine.js on the frontend
+    // and doesn't require Livewire backend testing
 
     #[Test]
     public function stats_are_displayed_correctly_in_active_dashboard()
