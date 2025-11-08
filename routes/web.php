@@ -96,7 +96,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Profile routes
         Route::get('/profile', App\Livewire\Profile\EditProfile::class)->name('profile.edit');
-        Route::get('/profile/referrals', App\Livewire\Profile\Referrals::class)->name('profile.referral');
+        Route::get('/referrals', App\Livewire\Referrals\Index::class)->name('profile.referral');
         Route::get('/billing', App\Livewire\Profile\BillingDetails::class)->name('billing');
         Route::post('/switch-business/{business}', function (\App\Models\Business $business) {
             $user = auth()->user();
