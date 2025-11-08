@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Profile;
+namespace App\Livewire\Referrals;
 
 use App\Enums\PercentageChangeType;
 use App\Enums\ReferralStatus;
@@ -12,7 +12,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
-class Referrals extends Component
+class Index extends Component
 {
     // State properties
     public bool $isEligible = false;
@@ -161,4 +161,9 @@ class Referrals extends Component
         return $stats;
 
     }
+
+    // public function render()
+    // {
+    //     return view('livewire.referrals.index');
+    // }
 }

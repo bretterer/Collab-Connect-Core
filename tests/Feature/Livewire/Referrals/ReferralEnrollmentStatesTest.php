@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Livewire\Profile\Referrals;
+namespace Tests\Feature\Livewire\Referrals;
 
 use App\Enums\ReferralStatus;
 use App\Models\ReferralEnrollment;
@@ -19,7 +19,7 @@ class ReferralEnrollmentStatesTest extends TestCase
 
         $this->actingAs($businessUser);
 
-        Livewire::test(\App\Livewire\Profile\Referrals::class)
+        Livewire::test(\App\Livewire\Referrals\Index::class)
             ->assertStatus(200)
             ->assertSeeText('Join Our Referral Program')
             ->assertSeeText('To join our referral program, you need to be an active subscriber')
@@ -51,7 +51,7 @@ class ReferralEnrollmentStatesTest extends TestCase
         $this->actingAs($member);
 
         // Test - should see owner not enrolled state
-        Livewire::test(\App\Livewire\Profile\Referrals::class)
+        Livewire::test(\App\Livewire\Referrals\Index::class)
             ->assertStatus(200)
             ->assertSee('Referral Program Available')
             ->assertSee('Your business is eligible for the referral program')
@@ -67,7 +67,7 @@ class ReferralEnrollmentStatesTest extends TestCase
 
         $this->actingAs($influencerUser);
 
-        Livewire::test(\App\Livewire\Profile\Referrals::class)
+        Livewire::test(\App\Livewire\Referrals\Index::class)
             ->assertStatus(200)
             ->assertSeeText('Join Our Referral Program')
             ->assertSeeText('To join our referral program, you need to be an active subscriber')
@@ -81,7 +81,7 @@ class ReferralEnrollmentStatesTest extends TestCase
 
         $this->actingAs($influencerUser);
 
-        Livewire::test(\App\Livewire\Profile\Referrals::class)
+        Livewire::test(\App\Livewire\Referrals\Index::class)
             ->assertStatus(200)
             ->assertSeeText('You qualify for our referral program')
             ->assertSeeText('Enroll in Referral Program');
@@ -94,7 +94,7 @@ class ReferralEnrollmentStatesTest extends TestCase
 
         $this->actingAs($influencerUser);
 
-        Livewire::test(\App\Livewire\Profile\Referrals::class)
+        Livewire::test(\App\Livewire\Referrals\Index::class)
             ->assertStatus(200)
             ->assertSeeText('You qualify for our referral program')
             ->assertSeeText('Enroll in Referral Program')
@@ -134,7 +134,7 @@ class ReferralEnrollmentStatesTest extends TestCase
             'status' => ReferralStatus::CHURNED,
         ]);
 
-        Livewire::test(\App\Livewire\Profile\Referrals::class)
+        Livewire::test(\App\Livewire\Referrals\Index::class)
             ->assertStatus(200)
             ->assertSet('stats.pending_count', 3)
             ->assertSet('stats.total_count', 5)
