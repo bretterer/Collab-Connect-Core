@@ -56,7 +56,7 @@ class ReferralEnrollment extends Model
      */
     public function hasPayPalConnected(): bool
     {
-        return ! empty($this->paypal_email) && $this->paypal_verified;
+        return ! empty($this->paypal_email);
     }
 
     /**
@@ -93,6 +93,14 @@ class ReferralEnrollment extends Model
     public function payouts(): HasMany
     {
         return $this->hasMany(ReferralPayout::class);
+    }
+
+    /**
+     * Get all payout items for this enrollment.
+     */
+    public function payoutItems(): HasMany
+    {
+        return $this->hasMany(ReferralPayoutItem::class);
     }
 
     /**
@@ -167,7 +175,31 @@ class ReferralEnrollment extends Model
     }
 
     /**
-     * Get pending payout for current month.
+     * Get pending payout amount for current month.
+     * This checks both unprocessed payout items (DRAFT/PENDING) and pending payouts.
+     *
+     * @return float Total pending payout amount
+     */
+    public function getPendingPayoutAmount(): float
+    {
+        // Get unprocessed payout items (items not yet aggregated into a payout)
+        $itemsAmount = (float) $this->payoutItems()
+            ->whereNull('referral_payout_id') // Not yet associated with a payout
+            ->whereIn('status', [PayoutStatus::DRAFT, PayoutStatus::PENDING])
+            ->sum('amount');
+
+        // Get pending payouts that have been created but not yet processed
+        $payoutsAmount = (float) $this->payouts()
+            ->where('status', PayoutStatus::PENDING)
+            ->sum('amount');
+
+        return $itemsAmount + $payoutsAmount;
+    }
+
+    /**
+     * Get pending payout for current month (legacy method - consider using getPendingPayoutAmount).
+     * This now only returns pending payouts, not unprocessed items.
+     * Use hasPendingPayouts() to check for both items and payouts.
      */
     public function getPendingPayout(): ?ReferralPayout
     {
@@ -176,6 +208,23 @@ class ReferralEnrollment extends Model
             ->where('year', now()->year)
             ->where('status', PayoutStatus::PENDING)
             ->first();
+    }
+
+    /**
+     * Check if enrollment has any pending payouts (items or payouts).
+     */
+    public function hasPendingPayouts(): bool
+    {
+        $hasUnprocessedItems = $this->payoutItems()
+            ->whereNull('referral_payout_id')
+            ->whereIn('status', [PayoutStatus::DRAFT, PayoutStatus::PENDING])
+            ->exists();
+
+        $hasPendingPayouts = $this->payouts()
+            ->where('status', PayoutStatus::PENDING)
+            ->exists();
+
+        return $hasUnprocessedItems || $hasPendingPayouts;
     }
 
     /**

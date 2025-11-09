@@ -44,7 +44,7 @@ class PayoutCancelledNotification extends Notification implements ShouldQueue
             ->line("**Reason:** {$this->reason}")
             ->line('After 3 attempts to process your payout, we were unable to complete the transaction because no PayPal email was provided.')
             ->line('To ensure future payouts are processed successfully, please add your PayPal email to your referral account.')
-            ->action('Add PayPal Email', route('referrals.index'))
+            ->action('Add PayPal Email', route('referral.index'))
             ->line('If you have any questions, please contact our support team.');
     }
 

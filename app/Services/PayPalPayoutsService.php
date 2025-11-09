@@ -209,7 +209,7 @@ class PayPalPayoutsService
         }
 
         try {
-            $response = $this->getClient()->post('/v1/payments/payouts', [
+            $body = [
                 'sender_batch_header' => [
                     'sender_batch_id' => 'Referral_'.time().'_'.$enrollment->id,
                     'email_subject' => 'You have a referral commission payment!',
@@ -227,6 +227,15 @@ class PayPalPayoutsService
                         'sender_item_id' => "REFCOMM_{$enrollment->id}_".time(),
                     ],
                 ],
+            ];
+            $response = $this->getClient()->post('/v1/payments/payouts', $body);
+
+            Log::info('PayPal payout request sent', [
+                'enrollment_id' => $enrollment->id,
+                'amount' => $amount,
+                'response_status' => $response->status(),
+                'response_body' => $response->json(),
+                'request_body' => $body,
             ]);
 
             if ($response->failed()) {
@@ -276,6 +285,85 @@ class PayPalPayoutsService
         } catch (\Exception $e) {
             Log::error('PayPal payout exception', [
                 'enrollment_id' => $enrollment->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Create a batch payout for multiple referral payouts.
+     *
+     * @param  array  $payouts  Array of ReferralPayout models (max 5000)
+     * @return array|null Returns payout data if successful 201 response, null otherwise
+     *
+     * @throws \Exception If batch exceeds 5000 items
+     */
+    public function createBatchPayout(array $payouts): ?array
+    {
+        if (count($payouts) > 5000) {
+            throw new \Exception('Batch cannot exceed 5000 payouts');
+        }
+
+        if (empty($payouts)) {
+            Log::warning('createBatchPayout called with empty payouts array');
+
+            return null;
+        }
+
+        try {
+            $items = [];
+            $firstPayout = $payouts[0];
+
+            foreach ($payouts as $payout) {
+                $enrollment = $payout->enrollment;
+
+                $items[] = [
+                    'recipient_type' => 'EMAIL',
+                    'amount' => [
+                        'value' => number_format((float) $payout->amount, 2, '.', ''),
+                        'currency' => $payout->currency ?? 'USD',
+                    ],
+                    'receiver' => $enrollment->paypal_email,
+                    'note' => "Referral Commission - {$payout->month_year}",
+                    'sender_item_id' => "REFPAYOUT_{$payout->id}_".time(),
+                ];
+            }
+
+            $body = [
+                'sender_batch_header' => [
+                    'sender_batch_id' => 'Referral_'.time().'_'.uniqid(),
+                    'email_subject' => 'You have a referral commission payment!',
+                    'email_message' => "Referral Commission - {$firstPayout->month_year}",
+                ],
+                'items' => $items,
+            ];
+
+            $response = $this->getClient()->post('/v1/payments/payouts', $body);
+
+            Log::info('PayPal batch payout request sent', [
+                'payout_count' => count($payouts),
+                'response_status' => $response->status(),
+                'response_body' => $response->json(),
+            ]);
+
+            // Only return data on successful 201 response
+            if ($response->status() !== 201) {
+                $error = $response->json();
+                Log::error('PayPal batch payout failed', [
+                    'status' => $response->status(),
+                    'error' => $error,
+                    'payout_count' => count($payouts),
+                ]);
+
+                return null;
+            }
+
+            return $response->json();
+        } catch (\Exception $e) {
+            Log::error('PayPal batch payout exception', [
+                'payout_count' => count($payouts),
                 'error' => $e->getMessage(),
             ]);
 

@@ -51,6 +51,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/settings', App\Livewire\Admin\Referrals\ReferralSettings::class)->name('settings');
             Route::get('/review', App\Livewire\Admin\Referrals\ReferralReview::class)->name('review');
             Route::get('/percentages', App\Livewire\Admin\Referrals\ManagePercentages::class)->name('percentages');
+            Route::get('/payouts', App\Livewire\Admin\Referrals\PayoutManagement::class)->name('payouts');
             Route::get('/{user}', App\Livewire\Admin\Referrals\ReferralShow::class)->name('show');
         });
 
