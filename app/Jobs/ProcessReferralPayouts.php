@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Enums\PayoutStatus;
 use App\Models\ReferralPayout;
+use App\Notifications\PayoutCancelledNotification;
 use App\Notifications\PayPalEmailRequiredNotification;
 use App\Services\PayPalPayoutsService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -84,9 +85,6 @@ class ProcessReferralPayouts implements ShouldQueue
                 'attempt_number' => $this->attemptNumber,
             ]);
 
-            // Send notification to user
-            $enrollment->user->notify(new PayPalEmailRequiredNotification($payout, $this->attemptNumber));
-
             if ($this->attemptNumber === 3) {
                 // Final attempt - cancel the payout
                 $payout->update([
@@ -95,9 +93,17 @@ class ProcessReferralPayouts implements ShouldQueue
                     'failed_at' => now(),
                 ]);
 
+                // Send cancellation notification
+                $enrollment->user->notify(
+                    new PayoutCancelledNotification($payout, 'No PayPal email provided after 3 attempts')
+                );
+
                 Log::info('ProcessReferralPayouts: Payout cancelled due to missing PayPal email', [
                     'payout_id' => $payout->id,
                 ]);
+            } else {
+                // Send notification to user to add PayPal email
+                $enrollment->user->notify(new PayPalEmailRequiredNotification($payout, $this->attemptNumber));
             }
 
             return;
