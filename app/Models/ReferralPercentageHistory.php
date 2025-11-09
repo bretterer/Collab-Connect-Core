@@ -22,6 +22,7 @@ class ReferralPercentageHistory extends Model
         'months_remaining',
         'reason',
         'changed_by_user_id',
+        'processed_at',
     ];
 
     protected function casts(): array
@@ -32,6 +33,7 @@ class ReferralPercentageHistory extends Model
             'new_percentage' => 'integer',
             'expires_at' => 'datetime',
             'months_remaining' => 'integer',
+            'processed_at' => 'datetime',
         ];
     }
 

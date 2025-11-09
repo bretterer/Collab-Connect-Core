@@ -21,8 +21,13 @@ CollabConnect is a Laravel-based platform connecting local businesses with influ
 # Database operations
 php artisan migrate
 php artisan db:seed
-php artisan db:seed --class=CampaignSeeder
-php artisan db:seed --class=BiggbysCampaignTemplateSeeder
+
+# If resetting the database, please run
+php artisan migrate --seed
+#or
+php artisan migrate:fresh --seed
+# and then, you need to run
+php artisan db:seed --class=StripeDataSeeder
 
 # Testing
 php artisan test

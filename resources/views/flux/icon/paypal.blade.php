@@ -1,5 +1,3 @@
-@pure
-
 @php
 $classes = Flux::classes('shrink-0');
 @endphp

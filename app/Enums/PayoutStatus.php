@@ -12,6 +12,7 @@ enum PayoutStatus: string
     case PENDING = 'pending';
     case APPROVED = 'approved';
     case PROCESSING = 'processing';
+    case PROCESSED = 'processed';
     case PAID = 'paid';
     case FAILED = 'failed';
     case CANCELLED = 'cancelled';
@@ -23,6 +24,7 @@ enum PayoutStatus: string
             self::PENDING => 'Pending Review',
             self::APPROVED => 'Approved',
             self::PROCESSING => 'Processing',
+            self::PROCESSED => 'Processed',
             self::PAID => 'Paid',
             self::FAILED => 'Failed',
             self::CANCELLED => 'Cancelled',
@@ -36,6 +38,7 @@ enum PayoutStatus: string
             self::PENDING => 'yellow',
             self::APPROVED => 'blue',
             self::PROCESSING => 'purple',
+            self::PROCESSED => 'indigo',
             self::PAID => 'green',
             self::FAILED => 'red',
             self::CANCELLED => 'zinc',

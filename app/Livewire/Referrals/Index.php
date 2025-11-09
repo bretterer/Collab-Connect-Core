@@ -162,8 +162,8 @@ class Index extends Component
 
     }
 
-    // public function render()
-    // {
-    //     return view('livewire.referrals.index');
-    // }
+    public function render()
+    {
+        return view('livewire.referrals.index');
+    }
 }
