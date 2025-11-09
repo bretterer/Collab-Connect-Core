@@ -40,19 +40,16 @@ class ProcessReferralPayoutsTest extends TestCase
             'amount' => 100.00,
         ]);
 
-        // Mock PayPal service
+        // Mock PayPal service for batch processing
         $mockPayPal = Mockery::mock(PayPalPayoutsService::class);
-        $mockPayPal->shouldReceive('createPayout')
+        $mockPayPal->shouldReceive('createBatchPayout')
             ->once()
+            ->with(Mockery::on(function ($payouts) use ($payout) {
+                return count($payouts) === 1 && $payouts[0]->id === $payout->id;
+            }))
             ->andReturn([
                 'batch_header' => [
                     'payout_batch_id' => 'BATCH123',
-                ],
-                'items' => [
-                    [
-                        'payout_item_id' => 'ITEM123',
-                        'transaction_id' => 'TXN123',
-                    ],
                 ],
             ]);
 
@@ -65,7 +62,6 @@ class ProcessReferralPayoutsTest extends TestCase
         $payout->refresh();
         $this->assertEquals(PayoutStatus::PAID, $payout->status);
         $this->assertEquals('BATCH123', $payout->paypal_batch_id);
-        $this->assertEquals('ITEM123', $payout->paypal_transaction_id);
         $this->assertNotNull($payout->paid_at);
     }
 
@@ -202,7 +198,7 @@ class ProcessReferralPayoutsTest extends TestCase
     }
 
     #[Test]
-    public function marks_payout_as_failed_when_paypal_payout_fails_on_first_attempt()
+    public function keeps_payout_pending_when_paypal_batch_fails_on_first_attempt()
     {
         $user = User::factory()->influencer()->create();
         $enrollment = ReferralEnrollment::factory()->create([
@@ -220,18 +216,18 @@ class ProcessReferralPayoutsTest extends TestCase
 
         // Mock PayPal service to return null (failure)
         $mockPayPal = Mockery::mock(PayPalPayoutsService::class);
-        $mockPayPal->shouldReceive('createPayout')
+        $mockPayPal->shouldReceive('createBatchPayout')
             ->once()
             ->andReturn(null);
 
         // Run the job with attempt 1
         (new ProcessReferralPayouts(1))->handle($mockPayPal);
 
-        // Assert payout was marked as failed
+        // Assert payout status remains PENDING for retry
         $payout->refresh();
-        $this->assertEquals(PayoutStatus::FAILED, $payout->status);
-        $this->assertStringContainsString('PayPal payout failed', $payout->failure_reason);
-        $this->assertNotNull($payout->failed_at);
+        $this->assertEquals(PayoutStatus::PENDING, $payout->status);
+        $this->assertNull($payout->failure_reason);
+        $this->assertNull($payout->failed_at);
     }
 
     #[Test]
@@ -253,7 +249,7 @@ class ProcessReferralPayoutsTest extends TestCase
 
         // Mock PayPal service to return null (failure)
         $mockPayPal = Mockery::mock(PayPalPayoutsService::class);
-        $mockPayPal->shouldReceive('createPayout')
+        $mockPayPal->shouldReceive('createBatchPayout')
             ->once()
             ->andReturn(null);
 
@@ -268,7 +264,7 @@ class ProcessReferralPayoutsTest extends TestCase
     }
 
     #[Test]
-    public function handles_exception_gracefully_on_first_attempt()
+    public function keeps_payout_pending_on_exception_during_first_attempt()
     {
         $user = User::factory()->influencer()->create();
         $enrollment = ReferralEnrollment::factory()->create([
@@ -286,18 +282,18 @@ class ProcessReferralPayoutsTest extends TestCase
 
         // Mock PayPal service to throw exception
         $mockPayPal = Mockery::mock(PayPalPayoutsService::class);
-        $mockPayPal->shouldReceive('createPayout')
+        $mockPayPal->shouldReceive('createBatchPayout')
             ->once()
             ->andThrow(new \Exception('PayPal service error'));
 
         // Run the job with attempt 1
         (new ProcessReferralPayouts(1))->handle($mockPayPal);
 
-        // Assert payout was marked as failed
+        // Assert payout remains PENDING for retry
         $payout->refresh();
-        $this->assertEquals(PayoutStatus::FAILED, $payout->status);
-        $this->assertStringContainsString('Exception: PayPal service error', $payout->failure_reason);
-        $this->assertNotNull($payout->failed_at);
+        $this->assertEquals(PayoutStatus::PENDING, $payout->status);
+        $this->assertNull($payout->failure_reason);
+        $this->assertNull($payout->failed_at);
     }
 
     #[Test]
@@ -319,7 +315,7 @@ class ProcessReferralPayoutsTest extends TestCase
 
         // Mock PayPal service to throw exception
         $mockPayPal = Mockery::mock(PayPalPayoutsService::class);
-        $mockPayPal->shouldReceive('createPayout')
+        $mockPayPal->shouldReceive('createBatchPayout')
             ->once()
             ->andThrow(new \Exception('Critical PayPal error'));
 
@@ -334,7 +330,7 @@ class ProcessReferralPayoutsTest extends TestCase
     }
 
     #[Test]
-    public function processes_multiple_payouts_in_single_run()
+    public function processes_multiple_payouts_in_single_batch()
     {
         $user1 = User::factory()->influencer()->create();
         $enrollment1 = ReferralEnrollment::factory()->create([
@@ -364,31 +360,37 @@ class ProcessReferralPayoutsTest extends TestCase
             'amount' => 150.00,
         ]);
 
-        // Mock PayPal service
+        // Mock PayPal service to receive batch with both payouts
         $mockPayPal = Mockery::mock(PayPalPayoutsService::class);
-        $mockPayPal->shouldReceive('createPayout')
-            ->twice()
+        $mockPayPal->shouldReceive('createBatchPayout')
+            ->once()
+            ->with(Mockery::on(function ($payouts) use ($payout1, $payout2) {
+                return count($payouts) === 2
+                    && in_array($payouts[0]->id, [$payout1->id, $payout2->id])
+                    && in_array($payouts[1]->id, [$payout1->id, $payout2->id]);
+            }))
             ->andReturn([
                 'batch_header' => ['payout_batch_id' => 'BATCH123'],
-                'items' => [['payout_item_id' => 'ITEM123']],
             ]);
 
         // Run the job
         (new ProcessReferralPayouts(1))->handle($mockPayPal);
 
-        // Assert both payouts were processed
+        // Assert both payouts were processed in single batch
         $payout1->refresh();
         $payout2->refresh();
 
         $this->assertEquals(PayoutStatus::PAID, $payout1->status);
         $this->assertEquals(PayoutStatus::PAID, $payout2->status);
+        $this->assertEquals('BATCH123', $payout1->paypal_batch_id);
+        $this->assertEquals('BATCH123', $payout2->paypal_batch_id);
     }
 
     #[Test]
     public function handles_empty_pending_payouts_gracefully()
     {
         $mockPayPal = Mockery::mock(PayPalPayoutsService::class);
-        $mockPayPal->shouldNotReceive('createPayout');
+        $mockPayPal->shouldNotReceive('createBatchPayout');
 
         // Run the job with no pending payouts
         (new ProcessReferralPayouts(1))->handle($mockPayPal);
@@ -424,7 +426,7 @@ class ProcessReferralPayoutsTest extends TestCase
         ]);
 
         $mockPayPal = Mockery::mock(PayPalPayoutsService::class);
-        $mockPayPal->shouldNotReceive('createPayout');
+        $mockPayPal->shouldNotReceive('createBatchPayout');
 
         // Run the job
         (new ProcessReferralPayouts(1))->handle($mockPayPal);

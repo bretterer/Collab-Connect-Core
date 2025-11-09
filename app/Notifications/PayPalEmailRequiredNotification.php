@@ -52,7 +52,7 @@ class PayPalEmailRequiredNotification extends Notification implements ShouldQueu
         }
 
         return $message
-            ->action('Add PayPal Email', route('referrals.index'))
+            ->action('Add PayPal Email', route('referral.index'))
             ->line('Thank you for being part of our referral program!');
     }
 

@@ -67,4 +67,8 @@ return [
             'start_date' => env('SUBSCRIPTIONS_START_DATE', now()->toDateString()),
         ],
     ],
+
+    'referrals' => [
+        'default_percentage' => env('REFERRAL_DEFAULT_PERCENTAGE', 10),
+    ],
 ];
