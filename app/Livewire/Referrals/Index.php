@@ -98,7 +98,7 @@ class Index extends Component
         ReferralPercentageHistory::create([
             'referral_enrollment_id' => $enrollment->id,
             'old_percentage' => 0,
-            'new_percentage' => 10,
+            'new_percentage' => config('collabconnect.referrals.default_percentage', 10),
             'change_type' => PercentageChangeType::ENROLLMENT,
             'reason' => 'Initial enrollment percentage',
             'changed_by_user_id' => null,

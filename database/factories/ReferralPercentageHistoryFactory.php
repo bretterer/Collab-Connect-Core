@@ -19,7 +19,7 @@ class ReferralPercentageHistoryFactory extends Factory
         return [
             'referral_enrollment_id' => \App\Models\ReferralEnrollment::factory(),
             'old_percentage' => 0,
-            'new_percentage' => 10,
+            'new_percentage' => config('collabconnect.referrals.default_percentage', 10),
             'change_type' => \App\Enums\PercentageChangeType::ENROLLMENT,
             'expires_at' => null,
             'months_remaining' => null,

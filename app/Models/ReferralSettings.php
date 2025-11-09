@@ -35,7 +35,7 @@ class ReferralSettings extends Model
 
         if (! $settings) {
             $settings = self::create([
-                'default_percentage' => 10,
+                'default_percentage' => config('collabconnect.referrals.default_percentage', 10),
                 'payout_threshold' => 25.00,
                 'payout_day_of_month' => 15,
                 'require_subscription' => true,

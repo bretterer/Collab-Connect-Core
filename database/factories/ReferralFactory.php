@@ -27,7 +27,7 @@ class ReferralFactory extends Factory
             'referred_user_id' => $referred->id,
             'referral_code_used' => $enrollment->code,
             'status' => \App\Enums\ReferralStatus::PENDING,
-            'base_referral_percentage' => 10,
+            'base_referral_percentage' => config('collabconnect.referrals.default_percentage', 10),
         ];
     }
 }
