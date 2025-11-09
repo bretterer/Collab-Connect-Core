@@ -215,9 +215,9 @@ class PrepareReferralPayoutsTest extends TestCase
         $this->assertNotNull($payout1);
         $this->assertNotNull($payout2);
 
-        // Assert correct amounts
-        $this->assertEquals($expectedTotal1, (float) $payout1->amount);
-        $this->assertEquals($expectedTotal2, (float) $payout2->amount);
+        // Assert correct amounts (using delta for floating point comparison)
+        $this->assertEqualsWithDelta($expectedTotal1, (float) $payout1->amount, 0.01);
+        $this->assertEqualsWithDelta($expectedTotal2, (float) $payout2->amount, 0.01);
 
         // Assert correct counts
         $this->assertEquals(2, $payout1->referral_count);
