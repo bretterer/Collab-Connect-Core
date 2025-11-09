@@ -7,6 +7,7 @@ use App\Jobs\ProcessReferralPayouts;
 use App\Models\ReferralEnrollment;
 use App\Models\ReferralPayout;
 use App\Models\User;
+use App\Notifications\PayoutCancelledNotification;
 use App\Notifications\PayPalEmailRequiredNotification;
 use App\Services\PayPalPayoutsService;
 use Illuminate\Support\Facades\Notification;
@@ -125,8 +126,15 @@ class ProcessReferralPayoutsTest extends TestCase
         // Run the job with attempt 3
         (new ProcessReferralPayouts(3))->handle($mockPayPal);
 
-        // Assert notification was sent
-        Notification::assertSentTo($user, PayPalEmailRequiredNotification::class);
+        // Assert cancellation notification was sent (NOT PayPalEmailRequiredNotification)
+        Notification::assertSentTo(
+            $user,
+            PayoutCancelledNotification::class,
+            function ($notification) use ($payout) {
+                return $notification->payout->id === $payout->id
+                    && $notification->reason === 'No PayPal email provided after 3 attempts';
+            }
+        );
 
         // Assert payout was cancelled
         $payout->refresh();
