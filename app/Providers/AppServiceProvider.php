@@ -33,10 +33,10 @@ class AppServiceProvider extends ServiceProvider
         Feature::activateForEveryone(config('collabconnect.pennant.global_enable', []));
         Feature::deactivateForEveryone(config('collabconnect.pennant.global_disable', []));
         EnsureFeaturesAreActive::whenInactive(
-        function (Request $request, array $features) {
-            return new Response(status: 404);
-        }
-    );
+            function (Request $request, array $features) {
+                return new Response(status: 404);
+            }
+        );
 
         // Ensure mail components are properly loaded
         Blade::componentNamespace('Illuminate\\Mail\\Markdown\\Components', 'mail');

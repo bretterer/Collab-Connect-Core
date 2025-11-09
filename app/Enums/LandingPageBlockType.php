@@ -18,6 +18,7 @@ enum LandingPageBlockType: string
     case FOOTER = 'footer';
     case EXIT_POPUP = 'exit_popup';
     case CUSTOM_HTML = 'custom_html';
+    case FORM = 'form';
     case STRIPE_CHECKOUT = 'stripe_checkout';
     case THANK_YOU = 'thank_you';
 
@@ -34,6 +35,7 @@ enum LandingPageBlockType: string
             self::FOOTER => 'Footer',
             self::EXIT_POPUP => 'Exit Intent Popup',
             self::CUSTOM_HTML => 'Custom HTML',
+            self::FORM => 'Form',
             self::STRIPE_CHECKOUT => 'Stripe Checkout',
             self::THANK_YOU => 'Thank You Page',
         };
@@ -52,6 +54,7 @@ enum LandingPageBlockType: string
             self::FOOTER => 'bars-3-bottom-left',
             self::EXIT_POPUP => 'arrow-up-on-square',
             self::CUSTOM_HTML => 'code-bracket',
+            self::FORM => 'clipboard-document-list',
             self::STRIPE_CHECKOUT => 'credit-card',
             self::THANK_YOU => 'check-circle',
         };
@@ -70,6 +73,7 @@ enum LandingPageBlockType: string
             self::FOOTER => 'Footer with links and information',
             self::EXIT_POPUP => 'Exit intent popup modal',
             self::CUSTOM_HTML => 'Custom HTML/CSS/JavaScript code',
+            self::FORM => 'Display a published form',
             self::STRIPE_CHECKOUT => 'Collect data and redirect to Stripe checkout',
             self::THANK_YOU => 'Success page after purchase completion',
         };

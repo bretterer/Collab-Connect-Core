@@ -1,7 +1,7 @@
 <div>
     <!-- Floating Feedback Bug Button -->
     <div class="fixed bottom-6 right-6 z-50">
-        <button 
+        <button
             wire:click="openModal"
             class="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 group"
             title="Send Feedback">
@@ -9,14 +9,14 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
             </svg>
             <!-- Tooltip -->
-            <div class="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            <!-- <div class="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 Report Bug / Send Feedback
-            </div>
+            </div> -->
         </button>
     </div>
 
     <!-- Feedback Modal -->
-    <div 
+    <div
         x-data="{ show: @entangle('showModal') }"
         x-show="show"
         x-transition:enter="transition ease-out duration-300"
@@ -33,7 +33,7 @@
 
         <!-- Modal content -->
         <div class="flex min-h-full items-center justify-center p-4">
-            <div 
+            <div
                 x-show="show"
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -47,7 +47,7 @@
                 <div class="mb-6">
                     <div class="flex items-center justify-between">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Send Feedback</h3>
-                        <button 
+                        <button
                             wire:click="closeModal"
                             class="rounded-md bg-white dark:bg-gray-800 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
@@ -68,9 +68,9 @@
                         <div class="grid grid-cols-1 gap-3">
                             @foreach(\App\Enums\FeedbackType::cases() as $feedbackType)
                                 <label class="relative flex items-start p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors {{ $type === $feedbackType->value ? 'ring-2 ring-blue-600 border-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-600' }}">
-                                    <input 
-                                        type="radio" 
-                                        wire:model.live="type" 
+                                    <input
+                                        type="radio"
+                                        wire:model.live="type"
                                         value="{{ $feedbackType->value }}"
                                         class="sr-only"
                                     >
@@ -107,8 +107,8 @@
                         <label for="subject" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Subject
                         </label>
-                        <input 
-                            wire:model="subject" 
+                        <input
+                            wire:model="subject"
                             id="subject"
                             type="text"
                             placeholder="Brief summary of your feedback"
@@ -124,8 +124,8 @@
                         <label for="message" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Message
                         </label>
-                        <textarea 
-                            wire:model="message" 
+                        <textarea
+                            wire:model="message"
                             id="message"
                             rows="6"
                             placeholder="Provide details about your feedback..."
@@ -140,16 +140,16 @@
 
                 <!-- Modal Footer -->
                 <div class="mt-6 flex items-center justify-end space-x-3">
-                    <button 
+                    <button
                         type="button"
                         wire:click="closeModal"
                         class="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         Cancel
                     </button>
-                    <button 
+                    <button
                         type="submit"
-                        wire:click="submit" 
+                        wire:click="submit"
                         wire:loading.attr="disabled"
                         class="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                     >

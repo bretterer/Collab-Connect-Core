@@ -97,6 +97,16 @@
                                             </button>
                                         </div>
                                         <button
+                                            wire:click.stop="editSectionSettings('{{ $section['id'] }}')"
+                                            class="text-gray-400 hover:text-blue-600"
+                                            title="Section settings"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            </svg>
+                                        </button>
+                                        <button
                                             wire:click.stop="deleteSection('{{ $section['id'] }}')"
                                             class="text-gray-400 hover:text-red-600"
                                             title="Delete section"
@@ -169,6 +179,118 @@
                     </div>
                 @endif
             </div>
+
+            <!-- Two Step Optin Section -->
+            <div class="border-t border-gray-200 dark:border-gray-700 p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Two Step Optin</h3>
+                    <flux:switch wire:model.live="twoStepOptinEnabled" size="sm" />
+                </div>
+
+                @if($twoStepOptinEnabled)
+                    <div class="space-y-2 mt-3">
+                        @if(count($twoStepOptinBlocks) > 0)
+                            @foreach($twoStepOptinBlocks as $blockIndex => $block)
+                                @php
+                                    $blockType = App\Enums\LandingPageBlockType::from($block['type']);
+                                @endphp
+                                <div class="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-medium text-gray-900 dark:text-white truncate">
+                                            {{ $blockType->label() }}
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <flux:button
+                                            size="xs"
+                                            variant="ghost"
+                                            icon="pencil"
+                                            wire:click="editTwoStepOptinBlock({{ $blockIndex }})"
+                                        />
+                                        <flux:button
+                                            size="xs"
+                                            variant="ghost"
+                                            icon="document-duplicate"
+                                            wire:click="duplicateTwoStepOptinBlock({{ $blockIndex }})"
+                                        />
+                                        <flux:button
+                                            size="xs"
+                                            variant="ghost"
+                                            icon="trash"
+                                            wire:click="deleteTwoStepOptinBlock({{ $blockIndex }})"
+                                        />
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endif
+                        <flux:button
+                            size="xs"
+                            variant="outline"
+                            icon="plus"
+                            wire:click="$set('editingTwoStepOptin', 'selector')"
+                            class="w-full"
+                        >
+                            Add Block
+                        </flux:button>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Exit Popup Section -->
+            <div class="border-t border-gray-200 dark:border-gray-700 p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Exit Popup</h3>
+                    <flux:switch wire:model.live="exitPopupEnabled" size="sm" />
+                </div>
+
+                @if($exitPopupEnabled)
+                    <div class="space-y-2 mt-3">
+                        @if(count($exitPopupBlocks) > 0)
+                            @foreach($exitPopupBlocks as $blockIndex => $block)
+                                @php
+                                    $blockType = App\Enums\LandingPageBlockType::from($block['type']);
+                                @endphp
+                                <div class="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-medium text-gray-900 dark:text-white truncate">
+                                            {{ $blockType->label() }}
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <flux:button
+                                            size="xs"
+                                            variant="ghost"
+                                            icon="pencil"
+                                            wire:click="editExitPopupBlock({{ $blockIndex }})"
+                                        />
+                                        <flux:button
+                                            size="xs"
+                                            variant="ghost"
+                                            icon="document-duplicate"
+                                            wire:click="duplicateExitPopupBlock({{ $blockIndex }})"
+                                        />
+                                        <flux:button
+                                            size="xs"
+                                            variant="ghost"
+                                            icon="trash"
+                                            wire:click="deleteExitPopupBlock({{ $blockIndex }})"
+                                        />
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endif
+                        <flux:button
+                            size="xs"
+                            variant="outline"
+                            icon="plus"
+                            wire:click="$set('editingExitPopup', 'selector')"
+                            class="w-full"
+                        >
+                            Add Block
+                        </flux:button>
+                    </div>
+                @endif
+            </div>
         </div>
 
         <!-- Center - Preview -->
@@ -179,26 +301,83 @@
                         @foreach($sections as $section)
                             @php
                                 $settings = $section['settings'];
-                                $bgType = $settings['background_type'] ?? 'color';
+
+                                // Background settings
                                 $bgColor = $settings['background_color'] ?? '#ffffff';
-                                $paddingTop = $settings['padding_top'] ?? 0;
-                                $paddingBottom = $settings['padding_bottom'] ?? 0;
-                                $maxWidth = $settings['max_width'] ?? 'full';
+                                $bgImage = $settings['background_image'] ?? '';
+                                $bgPosition = $settings['background_position'] ?? 'center';
+                                $bgFixed = $settings['background_fixed'] ?? false;
+
+                                // Desktop layout
+                                $desktopHide = $settings['desktop_hide'] ?? false;
+                                $desktopPaddingTop = $settings['desktop_padding_top'] ?? 64;
+                                $desktopPaddingBottom = $settings['desktop_padding_bottom'] ?? 64;
+                                $desktopPaddingLeft = $settings['desktop_padding_left'] ?? 16;
+                                $desktopPaddingRight = $settings['desktop_padding_right'] ?? 16;
+                                $desktopVerticalAlign = $settings['desktop_vertical_align'] ?? 'top';
+                                $desktopHorizontalAlign = $settings['desktop_horizontal_align'] ?? 'left';
+
+                                // Mobile layout
+                                $mobileHide = $settings['mobile_hide'] ?? false;
+                                $mobilePaddingTop = $settings['mobile_padding_top'] ?? 48;
+                                $mobilePaddingBottom = $settings['mobile_padding_bottom'] ?? 48;
+                                $mobilePaddingLeft = $settings['mobile_padding_left'] ?? 16;
+                                $mobilePaddingRight = $settings['mobile_padding_right'] ?? 16;
+
+                                // Build background styles
+                                $backgroundStyles = "background-color: {$bgColor};";
+                                if ($bgImage) {
+                                    $bgAttachment = $bgFixed ? 'fixed' : 'scroll';
+                                    $bgPositionMap = [
+                                        'top' => 'center top',
+                                        'center' => 'center center',
+                                        'bottom' => 'center bottom',
+                                    ];
+                                    $bgPositionValue = $bgPositionMap[$bgPosition] ?? 'center center';
+                                    $backgroundStyles .= " background-image: url('{$bgImage}'); background-size: cover; background-position: {$bgPositionValue}; background-attachment: {$bgAttachment};";
+                                }
+
+                                // Build responsive classes
+                                $visibilityClasses = '';
+                                if ($desktopHide && $mobileHide) {
+                                    $visibilityClasses = 'hidden';
+                                } elseif ($desktopHide) {
+                                    $visibilityClasses = 'hidden md:block';
+                                } elseif ($mobileHide) {
+                                    $visibilityClasses = 'block md:hidden';
+                                }
+
+                                // Build flex alignment classes
+                                $verticalAlignMap = [
+                                    'top' => 'items-start',
+                                    'center' => 'items-center',
+                                    'bottom' => 'items-end',
+                                ];
+                                $horizontalAlignMap = [
+                                    'left' => 'justify-start',
+                                    'center' => 'justify-center',
+                                    'right' => 'justify-end',
+                                    'space-around' => 'justify-around',
+                                    'space-between' => 'justify-between',
+                                ];
+                                $flexClasses = ($verticalAlignMap[$desktopVerticalAlign] ?? 'items-start') . ' ' . ($horizontalAlignMap[$desktopHorizontalAlign] ?? 'justify-start');
                             @endphp
 
                             <section
-                                style="background-color: {{ $bgColor }}; padding-top: {{ $paddingTop }}px; padding-bottom: {{ $paddingBottom }}px;"
-                                class="relative group"
+                                style="{{ $backgroundStyles }} padding: {{ $mobilePaddingTop }}px {{ $mobilePaddingRight }}px {{ $mobilePaddingBottom }}px {{ $mobilePaddingLeft }}px; @media (min-width: 768px) { padding: {{ $desktopPaddingTop }}px {{ $desktopPaddingRight }}px {{ $desktopPaddingBottom }}px {{ $desktopPaddingLeft }}px; }"
+                                class="relative group {{ $visibilityClasses }}"
                             >
                                 <!-- Section overlay when selected -->
                                 @if($selectedSectionId === $section['id'])
                                     <div class="absolute inset-0 border-2 border-blue-500 pointer-events-none"></div>
                                 @endif
 
-                                <div class="{{ $maxWidth === 'container' ? 'max-w-7xl mx-auto px-4' : 'w-full' }}">
-                                    @foreach($section['blocks'] as $block)
-                                        @include('landing-pages.blocks.' . $block['type'], ['data' => $block['data']])
-                                    @endforeach
+                                <div class="flex {{ $flexClasses }} min-h-full">
+                                    <div class="w-full">
+                                        @foreach($section['blocks'] as $block)
+                                            @include('landing-pages.blocks.' . $block['type'], ['data' => $block['data']])
+                                        @endforeach
+                                    </div>
                                 </div>
                             </section>
                         @endforeach
@@ -357,6 +536,283 @@
                     Delete Block
                 </flux:button>
             </div>
+        </div>
+    </flux:modal>
+
+    <!-- Two Step Optin Block Selector Modal -->
+    <flux:modal :open="$editingTwoStepOptin === 'selector'" wire:model="editingTwoStepOptin" class="max-w-4xl">
+        <flux:heading>Add Block to Two Step Optin</flux:heading>
+        <flux:subheading>Choose a block type to add to the two step optin modal</flux:subheading>
+
+        <div class="mt-6 grid grid-cols-3 gap-4">
+            @foreach(App\Enums\LandingPageBlockType::cases() as $blockType)
+                <button
+                    wire:click="addTwoStepOptinBlock('{{ $blockType->value }}'); $set('editingTwoStepOptin', false)"
+                    class="flex flex-col items-start p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
+                >
+                    <div class="w-8 h-8 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 mb-2">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-medium text-gray-900 dark:text-white text-sm">{{ $blockType->label() }}</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $blockType->description() }}</p>
+                </button>
+            @endforeach
+        </div>
+    </flux:modal>
+
+    <!-- Exit Popup Block Selector Modal -->
+    <flux:modal :open="$editingExitPopup === 'selector'" wire:model="editingExitPopup" class="max-w-4xl">
+        <flux:heading>Add Block to Exit Popup</flux:heading>
+        <flux:subheading>Choose a block type to add to the exit popup</flux:subheading>
+
+        <div class="mt-6 grid grid-cols-3 gap-4">
+            @foreach(App\Enums\LandingPageBlockType::cases() as $blockType)
+                <button
+                    wire:click="addExitPopupBlock('{{ $blockType->value }}'); $set('editingExitPopup', false)"
+                    class="flex flex-col items-start p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
+                >
+                    <div class="w-8 h-8 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 mb-2">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-medium text-gray-900 dark:text-white text-sm">{{ $blockType->label() }}</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $blockType->description() }}</p>
+                </button>
+            @endforeach
+        </div>
+    </flux:modal>
+
+    <!-- Two Step Optin Block Editor -->
+    @if($editingTwoStepOptin === true && $editingTwoStepOptinBlockIndex !== null)
+        @php
+            $editingBlock = $twoStepOptinBlocks[$editingTwoStepOptinBlockIndex] ?? null;
+        @endphp
+
+        @if($editingBlock)
+            @php
+                $blockType = App\Enums\LandingPageBlockType::from($editingBlock['type']);
+            @endphp
+            <flux:modal :open="true" wire:model="editingTwoStepOptin" class="max-w-2xl">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <flux:heading>Edit {{ $blockType->label() }}</flux:heading>
+                        <flux:subheading>Customize block settings for two step optin</flux:subheading>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    @include('livewire.admin.landing-pages.partials.block-editors.' . $blockType->value, ['data' => 'twoStepOptinBlockData'])
+                </div>
+
+                <div class="mt-6 flex gap-3 justify-end">
+                    <flux:button variant="ghost" wire:click="cancelTwoStepOptinBlockEdit">
+                        Cancel
+                    </flux:button>
+                    <flux:button wire:click="saveTwoStepOptinBlock">
+                        Save Changes
+                    </flux:button>
+                </div>
+            </flux:modal>
+        @endif
+    @endif
+
+    <!-- Exit Popup Block Editor -->
+    @if($editingExitPopup === true && $editingExitPopupBlockIndex !== null)
+        @php
+            $editingBlock = $exitPopupBlocks[$editingExitPopupBlockIndex] ?? null;
+        @endphp
+
+        @if($editingBlock)
+            @php
+                $blockType = App\Enums\LandingPageBlockType::from($editingBlock['type']);
+            @endphp
+            <flux:modal :open="true" wire:model="editingExitPopup" class="max-w-2xl">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <flux:heading>Edit {{ $blockType->label() }}</flux:heading>
+                        <flux:subheading>Customize block settings for exit popup</flux:subheading>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    @include('livewire.admin.landing-pages.partials.block-editors.' . $blockType->value, ['data' => 'exitPopupBlockData'])
+                </div>
+
+                <div class="mt-6 flex gap-3 justify-end">
+                    <flux:button variant="ghost" wire:click="cancelExitPopupBlockEdit">
+                        Cancel
+                    </flux:button>
+                    <flux:button wire:click="saveExitPopupBlock">
+                        Save Changes
+                    </flux:button>
+                </div>
+            </flux:modal>
+        @endif
+    @endif
+
+    <!-- Section Settings Modal -->
+    <flux:modal name="section-settings" class="max-w-3xl">
+        <flux:heading>Section Settings</flux:heading>
+        <flux:subheading>Customize section layout and appearance</flux:subheading>
+
+        <div class="mt-6 space-y-6">
+            <!-- Background Settings -->
+            <div class="border-b border-gray-200 dark:border-gray-700 pb-6">
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Background</h3>
+                <div class="space-y-4">
+                    <flux:field>
+                        <flux:label>Background Color</flux:label>
+                        <flux:input type="color" wire:model="sectionSettings.background_color" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>Background Image URL</flux:label>
+                        <flux:input wire:model="sectionSettings.background_image" placeholder="https://example.com/image.jpg" />
+                        <flux:description>Leave empty for solid color background</flux:description>
+                    </flux:field>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <flux:field>
+                            <flux:label>Image Position</flux:label>
+                            <flux:select wire:model="sectionSettings.background_position">
+                                <option value="top">Top</option>
+                                <option value="center">Center</option>
+                                <option value="bottom">Bottom</option>
+                            </flux:select>
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>Fixed Background</flux:label>
+                            <flux:switch wire:model="sectionSettings.background_fixed" />
+                            <flux:description>Parallax effect</flux:description>
+                        </flux:field>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desktop Layout Settings -->
+            <div class="border-b border-gray-200 dark:border-gray-700 pb-6">
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Desktop Layout</h3>
+                <div class="space-y-4">
+                    <flux:field>
+                        <flux:label>Hide on Desktop</flux:label>
+                        <flux:switch wire:model="sectionSettings.desktop_hide" />
+                    </flux:field>
+
+                    <div>
+                        <flux:label class="mb-2">Desktop Padding</flux:label>
+                        <div class="grid grid-cols-4 gap-2">
+                            <flux:field>
+                                <flux:input type="number" wire:model="sectionSettings.desktop_padding_top" min="0">
+                                    <x-slot:suffix>
+                                        <span class="text-xs">T</span>
+                                    </x-slot:suffix>
+                                </flux:input>
+                            </flux:field>
+                            <flux:field>
+                                <flux:input type="number" wire:model="sectionSettings.desktop_padding_right" min="0">
+                                    <x-slot:suffix>
+                                        <span class="text-xs">R</span>
+                                    </x-slot:suffix>
+                                </flux:input>
+                            </flux:field>
+                            <flux:field>
+                                <flux:input type="number" wire:model="sectionSettings.desktop_padding_bottom" min="0">
+                                    <x-slot:suffix>
+                                        <span class="text-xs">B</span>
+                                    </x-slot:suffix>
+                                </flux:input>
+                            </flux:field>
+                            <flux:field>
+                                <flux:input type="number" wire:model="sectionSettings.desktop_padding_left" min="0">
+                                    <x-slot:suffix>
+                                        <span class="text-xs">L</span>
+                                    </x-slot:suffix>
+                                </flux:input>
+                            </flux:field>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <flux:field>
+                            <flux:label>Vertical Alignment</flux:label>
+                            <flux:select wire:model="sectionSettings.desktop_vertical_align">
+                                <option value="top">Top</option>
+                                <option value="center">Center</option>
+                                <option value="bottom">Bottom</option>
+                            </flux:select>
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>Horizontal Alignment</flux:label>
+                            <flux:select wire:model="sectionSettings.desktop_horizontal_align">
+                                <option value="left">Left</option>
+                                <option value="center">Center</option>
+                                <option value="right">Right</option>
+                                <option value="space-around">Space Around</option>
+                                <option value="space-between">Space Between</option>
+                            </flux:select>
+                        </flux:field>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Layout Settings -->
+            <div>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Mobile Layout</h3>
+                <div class="space-y-4">
+                    <flux:field>
+                        <flux:label>Hide on Mobile</flux:label>
+                        <flux:switch wire:model="sectionSettings.mobile_hide" />
+                    </flux:field>
+
+                    <div>
+                        <flux:label class="mb-2">Mobile Padding</flux:label>
+                        <div class="grid grid-cols-4 gap-2">
+                            <flux:field>
+                                <flux:input type="number" wire:model="sectionSettings.mobile_padding_top" min="0">
+                                    <x-slot:suffix>
+                                        <span class="text-xs">T</span>
+                                    </x-slot:suffix>
+                                </flux:input>
+                            </flux:field>
+                            <flux:field>
+                                <flux:input type="number" wire:model="sectionSettings.mobile_padding_right" min="0">
+                                    <x-slot:suffix>
+                                        <span class="text-xs">R</span>
+                                    </x-slot:suffix>
+                                </flux:input>
+                            </flux:field>
+                            <flux:field>
+                                <flux:input type="number" wire:model="sectionSettings.mobile_padding_bottom" min="0">
+                                    <x-slot:suffix>
+                                        <span class="text-xs">B</span>
+                                    </x-slot:suffix>
+                                </flux:input>
+                            </flux:field>
+                            <flux:field>
+                                <flux:input type="number" wire:model="sectionSettings.mobile_padding_left" min="0">
+                                    <x-slot:suffix>
+                                        <span class="text-xs">L</span>
+                                    </x-slot:suffix>
+                                </flux:input>
+                            </flux:field>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 flex gap-3 justify-end">
+            <flux:button variant="ghost" wire:click="cancelSectionSettings">
+                Cancel
+            </flux:button>
+            <flux:button wire:click="saveSectionSettings">
+                Save Settings
+            </flux:button>
         </div>
     </flux:modal>
 </div>

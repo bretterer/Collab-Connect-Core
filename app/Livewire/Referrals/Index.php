@@ -38,7 +38,7 @@ class Index extends Component
 
     public function mount()
     {
-        if(! Feature::active('referral-program')) {
+        if (! Feature::active('referral-program')) {
             abort(404, 'Referral program is not available.');
         }
         $user = auth()->user();

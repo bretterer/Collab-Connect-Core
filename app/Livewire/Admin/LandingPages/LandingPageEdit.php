@@ -41,11 +41,31 @@ class LandingPageEdit extends Component
 
     public bool $showDeleteSectionModal = false;
 
-    public bool $showSectionSettings = false;
-
     public array $sectionSettings = [];
 
     public ?string $editingSectionId = null;
+
+    // Two Step Optin Properties
+    public bool $twoStepOptinEnabled = false;
+
+    public array $twoStepOptinBlocks = [];
+
+    public bool $editingTwoStepOptin = false;
+
+    public ?int $editingTwoStepOptinBlockIndex = null;
+
+    public array $twoStepOptinBlockData = [];
+
+    // Exit Popup Properties
+    public bool $exitPopupEnabled = false;
+
+    public array $exitPopupBlocks = [];
+
+    public bool $editingExitPopup = false;
+
+    public ?int $editingExitPopupBlockIndex = null;
+
+    public array $exitPopupBlockData = [];
 
     public function mount(LandingPage $landingPage)
     {
@@ -55,6 +75,18 @@ class LandingPageEdit extends Component
         $this->description = $landingPage->description ?? '';
         $this->status = $landingPage->status;
         $this->sections = $landingPage->blocks ?? [];
+
+        // Load Two Step Optin
+        if ($landingPage->two_step_optin) {
+            $this->twoStepOptinEnabled = $landingPage->two_step_optin['enabled'] ?? false;
+            $this->twoStepOptinBlocks = $landingPage->two_step_optin['blocks'] ?? [];
+        }
+
+        // Load Exit Popup
+        if ($landingPage->exit_popup) {
+            $this->exitPopupEnabled = $landingPage->exit_popup['enabled'] ?? false;
+            $this->exitPopupBlocks = $landingPage->exit_popup['blocks'] ?? [];
+        }
     }
 
     protected function rules()
@@ -131,7 +163,6 @@ class LandingPageEdit extends Component
     public function selectSection($sectionId)
     {
         $this->selectedSectionId = $sectionId;
-        $this->showSectionSettings = false;
         $this->editingBlockIndex = null;
     }
 
@@ -141,10 +172,11 @@ class LandingPageEdit extends Component
         foreach ($this->sections as $section) {
             if ($section['id'] === $sectionId) {
                 $this->sectionSettings = $section['settings'];
-                $this->showSectionSettings = true;
                 break;
             }
         }
+
+        Flux::modal('section-settings')->show();
     }
 
     public function saveSectionSettings()
@@ -158,8 +190,8 @@ class LandingPageEdit extends Component
             }
             $this->editingSectionId = null;
             $this->sectionSettings = [];
-            $this->showSectionSettings = false;
 
+            Flux::modal('section-settings')->close();
             Flux::toast(text: 'Section settings updated', variant: 'success');
         }
     }
@@ -168,7 +200,8 @@ class LandingPageEdit extends Component
     {
         $this->editingSectionId = null;
         $this->sectionSettings = [];
-        $this->showSectionSettings = false;
+
+        Flux::modal('section-settings')->close();
     }
 
     // Block Management
@@ -180,14 +213,22 @@ class LandingPageEdit extends Component
             'data' => $this->getDefaultBlockData($blockType),
         ];
 
+        $blockIndex = null;
         foreach ($this->sections as &$section) {
             if ($section['id'] === $sectionId) {
                 $section['blocks'][] = $block;
+                $blockIndex = count($section['blocks']) - 1;
                 break;
             }
         }
 
         $this->showBlockSelector = false;
+
+        // Automatically open the edit modal for the newly added block
+        if ($blockIndex !== null) {
+            $this->editBlock($sectionId, $blockIndex);
+        }
+
         Flux::toast(text: 'Block added', variant: 'success');
     }
 
@@ -319,6 +360,152 @@ class LandingPageEdit extends Component
         }
     }
 
+    // Two Step Optin Management
+    public function toggleTwoStepOptin()
+    {
+        $this->twoStepOptinEnabled = ! $this->twoStepOptinEnabled;
+        Flux::toast(
+            text: $this->twoStepOptinEnabled ? 'Two-step optin enabled' : 'Two-step optin disabled',
+            variant: 'success'
+        );
+    }
+
+    public function addTwoStepOptinBlock($blockType)
+    {
+        $block = [
+            'id' => uniqid('block-'),
+            'type' => $blockType,
+            'data' => $this->getDefaultBlockData($blockType),
+        ];
+
+        $this->twoStepOptinBlocks[] = $block;
+        $blockIndex = count($this->twoStepOptinBlocks) - 1;
+
+        // Automatically open the edit modal for the newly added block
+        $this->editTwoStepOptinBlock($blockIndex);
+
+        Flux::toast(text: 'Block added', variant: 'success');
+    }
+
+    public function editTwoStepOptinBlock($blockIndex)
+    {
+        $this->editingTwoStepOptinBlockIndex = $blockIndex;
+        $this->twoStepOptinBlockData = $this->twoStepOptinBlocks[$blockIndex]['data'] ?? [];
+        $this->editingTwoStepOptin = true;
+    }
+
+    public function saveTwoStepOptinBlock()
+    {
+        if ($this->editingTwoStepOptinBlockIndex !== null) {
+            $this->twoStepOptinBlocks[$this->editingTwoStepOptinBlockIndex]['data'] = $this->twoStepOptinBlockData;
+            $this->editingTwoStepOptinBlockIndex = null;
+            $this->twoStepOptinBlockData = [];
+            $this->editingTwoStepOptin = false;
+
+            Flux::toast(text: 'Block updated', variant: 'success');
+        }
+    }
+
+    public function cancelTwoStepOptinBlockEdit()
+    {
+        $this->editingTwoStepOptinBlockIndex = null;
+        $this->twoStepOptinBlockData = [];
+        $this->editingTwoStepOptin = false;
+    }
+
+    public function deleteTwoStepOptinBlock($blockIndex)
+    {
+        unset($this->twoStepOptinBlocks[$blockIndex]);
+        $this->twoStepOptinBlocks = array_values($this->twoStepOptinBlocks);
+        Flux::toast(text: 'Block removed', variant: 'success');
+    }
+
+    public function duplicateTwoStepOptinBlock($blockIndex)
+    {
+        $originalBlock = $this->twoStepOptinBlocks[$blockIndex];
+        $duplicatedBlock = [
+            'id' => uniqid('block-'),
+            'type' => $originalBlock['type'],
+            'data' => $originalBlock['data'],
+        ];
+
+        array_splice($this->twoStepOptinBlocks, $blockIndex + 1, 0, [$duplicatedBlock]);
+        Flux::toast(text: 'Block duplicated', variant: 'success');
+    }
+
+    // Exit Popup Management
+    public function toggleExitPopup()
+    {
+        $this->exitPopupEnabled = ! $this->exitPopupEnabled;
+        Flux::toast(
+            text: $this->exitPopupEnabled ? 'Exit popup enabled' : 'Exit popup disabled',
+            variant: 'success'
+        );
+    }
+
+    public function addExitPopupBlock($blockType)
+    {
+        $block = [
+            'id' => uniqid('block-'),
+            'type' => $blockType,
+            'data' => $this->getDefaultBlockData($blockType),
+        ];
+
+        $this->exitPopupBlocks[] = $block;
+        $blockIndex = count($this->exitPopupBlocks) - 1;
+
+        // Automatically open the edit modal for the newly added block
+        $this->editExitPopupBlock($blockIndex);
+
+        Flux::toast(text: 'Block added', variant: 'success');
+    }
+
+    public function editExitPopupBlock($blockIndex)
+    {
+        $this->editingExitPopupBlockIndex = $blockIndex;
+        $this->exitPopupBlockData = $this->exitPopupBlocks[$blockIndex]['data'] ?? [];
+        $this->editingExitPopup = true;
+    }
+
+    public function saveExitPopupBlock()
+    {
+        if ($this->editingExitPopupBlockIndex !== null) {
+            $this->exitPopupBlocks[$this->editingExitPopupBlockIndex]['data'] = $this->exitPopupBlockData;
+            $this->editingExitPopupBlockIndex = null;
+            $this->exitPopupBlockData = [];
+            $this->editingExitPopup = false;
+
+            Flux::toast(text: 'Block updated', variant: 'success');
+        }
+    }
+
+    public function cancelExitPopupBlockEdit()
+    {
+        $this->editingExitPopupBlockIndex = null;
+        $this->exitPopupBlockData = [];
+        $this->editingExitPopup = false;
+    }
+
+    public function deleteExitPopupBlock($blockIndex)
+    {
+        unset($this->exitPopupBlocks[$blockIndex]);
+        $this->exitPopupBlocks = array_values($this->exitPopupBlocks);
+        Flux::toast(text: 'Block removed', variant: 'success');
+    }
+
+    public function duplicateExitPopupBlock($blockIndex)
+    {
+        $originalBlock = $this->exitPopupBlocks[$blockIndex];
+        $duplicatedBlock = [
+            'id' => uniqid('block-'),
+            'type' => $originalBlock['type'],
+            'data' => $originalBlock['data'],
+        ];
+
+        array_splice($this->exitPopupBlocks, $blockIndex + 1, 0, [$duplicatedBlock]);
+        Flux::toast(text: 'Block duplicated', variant: 'success');
+    }
+
     public function save($publish = false)
     {
         $this->validate();
@@ -328,6 +515,14 @@ class LandingPageEdit extends Component
             'slug' => $this->slug,
             'description' => $this->description,
             'blocks' => $this->sections, // Store sections in blocks column
+            'two_step_optin' => $this->twoStepOptinEnabled ? [
+                'enabled' => true,
+                'blocks' => $this->twoStepOptinBlocks,
+            ] : null,
+            'exit_popup' => $this->exitPopupEnabled ? [
+                'enabled' => true,
+                'blocks' => $this->exitPopupBlocks,
+            ] : null,
             'status' => $publish ? 'published' : $this->status,
             'published_at' => $publish && ! $this->landingPage->isPublished() ? now() : $this->landingPage->published_at,
             'updated_by' => auth()->id(),
@@ -342,19 +537,27 @@ class LandingPageEdit extends Component
     private function getDefaultSectionSettings(): array
     {
         return [
-            'background_type' => 'color', // color, image, video
+            // Background
             'background_color' => '#ffffff',
             'background_image' => '',
-            'background_video' => '',
-            'background_position' => 'center',
-            'background_size' => 'cover',
+            'background_position' => 'center', // top, center, bottom
             'background_fixed' => false,
-            'padding_top' => 0,
-            'padding_bottom' => 0,
-            'padding_left' => 0,
-            'padding_right' => 0,
-            'max_width' => 'full', // full, container
-            'text_color' => '#000000',
+
+            // Desktop Layout
+            'desktop_hide' => false,
+            'desktop_padding_top' => 64,
+            'desktop_padding_bottom' => 64,
+            'desktop_padding_left' => 16,
+            'desktop_padding_right' => 16,
+            'desktop_vertical_align' => 'top', // top, center, bottom
+            'desktop_horizontal_align' => 'left', // left, center, right, space-around, space-between
+
+            // Mobile Layout
+            'mobile_hide' => false,
+            'mobile_padding_top' => 48,
+            'mobile_padding_bottom' => 48,
+            'mobile_padding_left' => 16,
+            'mobile_padding_right' => 16,
         ];
     }
 
@@ -457,6 +660,9 @@ class LandingPageEdit extends Component
                 'html' => '',
                 'css' => '',
                 'js' => '',
+            ],
+            LandingPageBlockType::FORM->value => [
+                'form_id' => null,
             ],
             LandingPageBlockType::STRIPE_CHECKOUT->value => [
                 'button_text' => 'Buy Now',

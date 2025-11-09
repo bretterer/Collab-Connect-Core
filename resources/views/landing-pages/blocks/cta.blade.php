@@ -39,6 +39,7 @@
     $buttonSize = $data['button_size'] ?? 'large';
     $buttonBorderRadius = $data['button_border_radius'] ?? 8;
     $buttonNewTab = $data['button_new_tab'] ?? false;
+    $buttonAction = $data['button_action'] ?? 'url';
 
     // Shadow mapping
     $shadowClass = match($boxShadow) {
@@ -101,14 +102,24 @@
             @endif
 
             @if(!empty($data['button_text']))
-                <a
-                    href="{{ $data['button_url'] ?? '#' }}"
-                    {{ $buttonNewTab ? 'target="_blank" rel="noopener noreferrer"' : '' }}
-                    class="inline-block {{ $buttonSizeClasses }} font-semibold transition-all hover:opacity-90 {{ $buttonWidth === 'full' ? 'w-full' : '' }}"
-                    style="{{ $buttonStyle }}"
-                >
-                    {{ $data['button_text'] }}
-                </a>
+                @if($buttonAction === 'two_step_optin')
+                    <button
+                        @click="$dispatch('open-two-step-optin')"
+                        class="inline-block {{ $buttonSizeClasses }} font-semibold transition-all hover:opacity-90 {{ $buttonWidth === 'full' ? 'w-full' : '' }}"
+                        style="{{ $buttonStyle }}"
+                    >
+                        {{ $data['button_text'] }}
+                    </button>
+                @else
+                    <a
+                        href="{{ $data['button_url'] ?? '#' }}"
+                        {{ $buttonNewTab ? 'target="_blank" rel="noopener noreferrer"' : '' }}
+                        class="inline-block {{ $buttonSizeClasses }} font-semibold transition-all hover:opacity-90 {{ $buttonWidth === 'full' ? 'w-full' : '' }}"
+                        style="{{ $buttonStyle }}"
+                    >
+                        {{ $data['button_text'] }}
+                    </a>
+                @endif
             @endif
         </div>
     </div>
@@ -138,14 +149,24 @@
             @endif
 
             @if(!empty($data['button_text']))
-                <a
-                    href="{{ $data['button_url'] ?? '#' }}"
-                    {{ $buttonNewTab ? 'target="_blank" rel="noopener noreferrer"' : '' }}
-                    class="inline-block {{ $buttonSizeClasses }} font-semibold transition-all hover:opacity-90 {{ $buttonWidth === 'full' ? 'w-full' : '' }}"
-                    style="{{ $buttonStyle }}"
-                >
-                    {{ $data['button_text'] }}
-                </a>
+                @if($buttonAction === 'two_step_optin')
+                    <button
+                        @click="$dispatch('open-two-step-optin')"
+                        class="inline-block {{ $buttonSizeClasses }} font-semibold transition-all hover:opacity-90 {{ $buttonWidth === 'full' ? 'w-full' : '' }}"
+                        style="{{ $buttonStyle }}"
+                    >
+                        {{ $data['button_text'] }}
+                    </button>
+                @else
+                    <a
+                        href="{{ $data['button_url'] ?? '#' }}"
+                        {{ $buttonNewTab ? 'target="_blank" rel="noopener noreferrer"' : '' }}
+                        class="inline-block {{ $buttonSizeClasses }} font-semibold transition-all hover:opacity-90 {{ $buttonWidth === 'full' ? 'w-full' : '' }}"
+                        style="{{ $buttonStyle }}"
+                    >
+                        {{ $data['button_text'] }}
+                    </a>
+                @endif
             @endif
         </div>
     </div>

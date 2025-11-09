@@ -19,6 +19,8 @@ class LandingPage extends Model
         'description',
         'blocks',
         'settings',
+        'two_step_optin',
+        'exit_popup',
         'status',
         'published_at',
         'created_by',
@@ -30,6 +32,8 @@ class LandingPage extends Model
         return [
             'blocks' => 'array',
             'settings' => 'array',
+            'two_step_optin' => 'array',
+            'exit_popup' => 'array',
             'published_at' => 'datetime',
         ];
     }
