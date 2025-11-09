@@ -144,7 +144,7 @@ class ProcessReferralPayoutsTest extends TestCase
     }
 
     #[Test]
-    public function skips_disabled_enrollments_on_first_attempt()
+    public function cancels_payout_immediately_when_enrollment_is_disabled()
     {
         $user = User::factory()->influencer()->create();
         $enrollment = ReferralEnrollment::factory()->create([
@@ -162,16 +162,18 @@ class ProcessReferralPayoutsTest extends TestCase
         $mockPayPal = Mockery::mock(PayPalPayoutsService::class);
         $mockPayPal->shouldNotReceive('createPayout');
 
-        // Run the job with attempt 1
+        // Run the job with attempt 1 - should cancel immediately
         (new ProcessReferralPayouts(1))->handle($mockPayPal);
 
-        // Assert payout status unchanged
+        // Assert payout was cancelled
         $payout->refresh();
-        $this->assertEquals(PayoutStatus::PENDING, $payout->status);
+        $this->assertEquals(PayoutStatus::CANCELLED, $payout->status);
+        $this->assertEquals('Enrollment is disabled', $payout->failure_reason);
+        $this->assertNotNull($payout->failed_at);
     }
 
     #[Test]
-    public function cancels_disabled_enrollment_on_third_attempt()
+    public function cancels_disabled_enrollment_regardless_of_attempt_number()
     {
         $user = User::factory()->influencer()->create();
         $enrollment = ReferralEnrollment::factory()->create([
@@ -189,10 +191,10 @@ class ProcessReferralPayoutsTest extends TestCase
         $mockPayPal = Mockery::mock(PayPalPayoutsService::class);
         $mockPayPal->shouldNotReceive('createPayout');
 
-        // Run the job with attempt 3
+        // Run the job with attempt 3 - should still cancel immediately
         (new ProcessReferralPayouts(3))->handle($mockPayPal);
 
-        // Assert payout was cancelled
+        // Assert payout was cancelled with same result
         $payout->refresh();
         $this->assertEquals(PayoutStatus::CANCELLED, $payout->status);
         $this->assertEquals('Enrollment is disabled', $payout->failure_reason);
