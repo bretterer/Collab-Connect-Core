@@ -15,6 +15,11 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+// Landing Pages
+Route::get('/l/{slug}', [App\Http\Controllers\LandingPageController::class, 'show'])->name('landing.show');
+Route::post('/landing/stripe-checkout', [App\Http\Controllers\LandingPageStripeCheckoutController::class, 'createCheckoutSession'])->name('landing.stripe-checkout');
+Route::get('/thank-you', fn () => view('thank-you'))->name('thank-you');
+
 Route::get('/contact', function () {
     return view('contact');
 })->name('contact');

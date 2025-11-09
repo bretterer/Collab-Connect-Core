@@ -53,6 +53,12 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
             Route::get('/settings', App\Livewire\Admin\Markets\MarketSettings::class)->name('settings');
             Route::get('/{market}/edit', App\Livewire\Admin\Markets\MarketEdit::class)->name('edit');
             Route::get('/waitlist', App\Livewire\Admin\Markets\WaitlistManagement::class)->name('waitlist');
+        // Landing Page Management
+        Route::prefix('landing-pages')->name('landing-pages.')->group(function () {
+            Route::get('/', App\Livewire\Admin\LandingPages\LandingPageIndex::class)->name('index');
+            Route::get('/create', App\Livewire\Admin\LandingPages\LandingPageCreate::class)->name('create');
+            Route::get('/{landingPage}/edit', App\Livewire\Admin\LandingPages\LandingPageEdit::class)->name('edit');
+        });
 
         // Referral Program Management
         Route::prefix('referrals')->name('referrals.')->group(function () {
