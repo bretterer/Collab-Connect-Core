@@ -53,11 +53,23 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
             Route::get('/settings', App\Livewire\Admin\Markets\MarketSettings::class)->name('settings');
             Route::get('/{market}/edit', App\Livewire\Admin\Markets\MarketEdit::class)->name('edit');
             Route::get('/waitlist', App\Livewire\Admin\Markets\WaitlistManagement::class)->name('waitlist');
-        // Landing Page Management
-        Route::prefix('landing-pages')->name('landing-pages.')->group(function () {
-            Route::get('/', App\Livewire\Admin\LandingPages\LandingPageIndex::class)->name('index');
-            Route::get('/create', App\Livewire\Admin\LandingPages\LandingPageCreate::class)->name('create');
-            Route::get('/{landingPage}/edit', App\Livewire\Admin\LandingPages\LandingPageEdit::class)->name('edit');
+
+        // Marketing Management
+        Route::prefix('marketing')->name('marketing.')->group(function () {
+
+            Route::prefix('landing-pages')->name('landing-pages.')->group(function () {
+                Route::get('/', App\Livewire\Admin\LandingPages\LandingPageIndex::class)->name('index');
+                Route::get('/create', App\Livewire\Admin\LandingPages\LandingPageCreate::class)->name('create');
+                Route::get('/{landingPage}/edit', App\Livewire\Admin\LandingPages\LandingPageEdit::class)->name('edit');
+            });
+
+            Route::prefix('forms')->name('forms.')->group(function () {
+                Route::get('/', App\Livewire\Admin\Forms\FormIndex::class)->name('index');
+                Route::get('/create', App\Livewire\Admin\Forms\FormCreate::class)->name('create');
+                Route::get('/{form}/edit', App\Livewire\Admin\Forms\FormEdit::class)->name('edit');
+                Route::get('/{form}/submissions', App\Livewire\Admin\Forms\FormSubmissions::class)->name('submissions');
+            });
+
         });
 
         // Referral Program Management
