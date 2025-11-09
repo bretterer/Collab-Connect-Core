@@ -50,6 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/', App\Livewire\Admin\Referrals\ReferralIndex::class)->name('index');
             Route::get('/settings', App\Livewire\Admin\Referrals\ReferralSettings::class)->name('settings');
             Route::get('/review', App\Livewire\Admin\Referrals\ReferralReview::class)->name('review');
+            Route::get('/percentages', App\Livewire\Admin\Referrals\ManagePercentages::class)->name('percentages');
             Route::get('/{user}', App\Livewire\Admin\Referrals\ReferralShow::class)->name('show');
         });
 
@@ -94,9 +95,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{chatId}', App\Livewire\Chat::class)->name('show');
         });
 
+        // Referral routes
+        Route::get('/referrals', App\Livewire\Referrals\Index::class)->name('referral.index');
+
         // Profile routes
         Route::get('/profile', App\Livewire\Profile\EditProfile::class)->name('profile.edit');
-        Route::get('/referrals', App\Livewire\Referrals\Index::class)->name('profile.referral');
         Route::get('/billing', App\Livewire\Profile\BillingDetails::class)->name('billing');
         Route::post('/switch-business/{business}', function (\App\Models\Business $business) {
             $user = auth()->user();

@@ -22,7 +22,7 @@ class ReferralPercentageHistoryFactory extends Factory
             'new_percentage' => 10,
             'change_type' => \App\Enums\PercentageChangeType::ENROLLMENT,
             'expires_at' => null,
-            'months' => null,
+            'months_remaining' => null,
             'reason' => 'Initial enrollment percentage',
             'changed_by_user_id' => null,
         ];

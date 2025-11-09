@@ -21,12 +21,11 @@ class ReferralEnrollment extends Model
     protected $fillable = [
         'code',
         'user_id',
-        'current_percentage',
+        'enrolled_at',
+        'disabled_at',
         'paypal_email',
-        'paypal_payer_id',
         'paypal_verified',
         'paypal_connected_at',
-        'paypal_metadata',
     ];
 
     /**
@@ -37,9 +36,10 @@ class ReferralEnrollment extends Model
     protected function casts(): array
     {
         return [
+            'enrolled_at' => 'datetime',
+            'disabled_at' => 'datetime',
             'paypal_verified' => 'boolean',
             'paypal_connected_at' => 'datetime',
-            'paypal_metadata' => 'array',
         ];
     }
 
@@ -118,7 +118,7 @@ class ReferralEnrollment extends Model
         $latestChange = $this->percentageHistory()
             ->where('change_type', '!=', PercentageChangeType::ENROLLMENT)
             ->where('expires_at', '>', now())
-            ->latest()
+            ->latest('id')
             ->first();
 
         return $latestChange;
@@ -127,7 +127,7 @@ class ReferralEnrollment extends Model
     public function currentReferralPercentage(): int
     {
         $latestChange = $this->percentageHistory()
-            ->orderBy('created_at')
+            ->latest('id')
             ->first();
 
         return $latestChange ? $latestChange->new_percentage : 0;
@@ -136,7 +136,7 @@ class ReferralEnrollment extends Model
     public function promotionalReferralPercentage()
     {
         $latestChange = $this->percentageHistory()
-            ->orderBy('created_at')
+            ->latest('id')
             ->first();
 
         if ($latestChange) {
@@ -148,12 +148,12 @@ class ReferralEnrollment extends Model
     public function promotionalPercentageExpiresAt(): ?\DateTimeInterface
     {
         $latestChange = $this->percentageHistory()
-            ->orderBy('created_at')
+            ->latest('id')
             ->first();
 
         return match ($latestChange->change_type) {
             PercentageChangeType::TEMPORARY_DATE => $latestChange->expires_at,
-            PercentageChangeType::TEMPORARY_MONTHS => now()->addMonths($latestChange->months ?? 0),
+            PercentageChangeType::TEMPORARY_MONTHS => now()->addMonths($latestChange->months_remaining ?? 0),
             default => null,
         };
     }

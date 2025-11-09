@@ -13,6 +13,7 @@ class ReferralPayoutItem extends Model
 
     protected $fillable = [
         'referral_payout_id',
+        'referral_enrollment_id',
         'referral_id',
         'referral_percentage_history_id',
         'subscription_amount',
@@ -45,5 +46,15 @@ class ReferralPayoutItem extends Model
     public function referralPercentageHistory(): BelongsTo
     {
         return $this->belongsTo(ReferralPercentageHistory::class);
+    }
+
+    public function enrollment(): BelongsTo
+    {
+        return $this->belongsTo(ReferralEnrollment::class, 'referral_enrollment_id');
+    }
+
+    public function notes()
+    {
+        return $this->hasMany(ReferralPayoutItemNote::class, 'referral_payout_item_id');
     }
 }

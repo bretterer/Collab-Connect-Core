@@ -2,6 +2,7 @@
 
 use App\Models\Referral;
 use App\Models\ReferralPayout;
+use App\Models\ReferralPayoutItem;
 use App\Models\ReferralPercentageHistory;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
@@ -39,9 +40,10 @@ return new class extends Migration
             $table->unsignedInteger('new_percentage');
             $table->string('change_type');
             $table->timestamp('expires_at')->nullable();
-            $table->unsignedInteger('months')->nullable();
+            $table->unsignedInteger('months_remaining')->nullable();
             $table->text('reason')->nullable();
             $table->foreignId('changed_by_user_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamp('processed_at')->nullable(); // Tracks when an expired temporary change was processed
             $table->timestamps();
 
             $table->index('referral_enrollment_id');
@@ -79,13 +81,10 @@ return new class extends Migration
             $table->string('paypal_transaction_id')->nullable();
 
             // Admin tracking
-            $table->foreignId('approved_by_user_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->timestamp('approved_at')->nullable();
             $table->timestamp('processed_at')->nullable();
             $table->timestamp('paid_at')->nullable();
             $table->timestamp('failed_at')->nullable();
             $table->text('failure_reason')->nullable();
-            $table->text('admin_notes')->nullable();
 
             $table->timestamps();
 
@@ -96,6 +95,7 @@ return new class extends Migration
         Schema::create('referral_payout_items', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(ReferralPayout::class, 'referral_payout_id')->nullable()->constrained()->onDelete('cascade'); // Nullable until rolled up into a payout
+            $table->foreignId('referral_enrollment_id')->constrained('referral_enrollments')->onDelete('cascade'); // Direct link to enrollment for easier queries
             $table->foreignIdFor(Referral::class, 'referral_id')->constrained()->onDelete('cascade');
             $table->foreignIdFor(ReferralPercentageHistory::class, 'referral_percentage_history_id')->nullable()->constrained('referral_percentage_history')->onDelete('set null');
             $table->decimal('subscription_amount', 10, 2); // The base subscription payment amount
@@ -114,7 +114,18 @@ return new class extends Migration
             $table->index('referral_payout_id');
             $table->index('referral_id');
             $table->index(['status', 'scheduled_payout_date']);
+            $table->index(['referral_enrollment_id', 'scheduled_payout_date'], 'idx_enrollment_payout_date');
 
+            // Unique constraint to prevent duplicate payout items for same referral on same date
+            $table->unique(['referral_id', 'scheduled_payout_date'], 'unique_referral_payout_date');
+        });
+
+        Schema::create('referral_payout_item_notes', function (Blueprint $table) {
+            $table->id();
+            $table->foreignIdFor(ReferralPayoutItem::class)->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->text('note');
+            $table->timestamps();
         });
 
         Schema::create('referral_settings', function (Blueprint $table) {
@@ -135,7 +146,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Drop tables in reverse order, ensuring child tables (with foreign keys) are dropped first
         Schema::dropIfExists('referral_settings');
+        Schema::dropIfExists('referral_payout_item_notes'); // Must drop before referral_payout_items
         Schema::dropIfExists('referral_payout_items');
         Schema::dropIfExists('referral_payouts');
         Schema::dropIfExists('referrals');
