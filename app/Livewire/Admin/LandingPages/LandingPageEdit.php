@@ -576,6 +576,11 @@ class LandingPageEdit extends Component
                 'image' => '',
                 'background_color' => '#ffffff',
             ],
+            LandingPageBlockType::TEXT->value => [
+                'content' => '<p>Add your content here...</p>',
+                'text_align' => 'left',
+                'max_width' => 'prose',
+            ],
             LandingPageBlockType::FEATURES->value => [
                 'title' => 'Features',
                 'items' => [
