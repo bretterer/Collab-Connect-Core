@@ -154,8 +154,8 @@ class Index extends Component
                 ]
             )
                 ->count(),
-            'pending_payout' => 0,
-            'lifetime_earnings' => 0,
+            'pending_payout' => $enrollment->getPendingPayoutAmount(),
+            'lifetime_earnings' => $enrollment->getLifetimeEarnings(),
         ];
 
         return $stats;
