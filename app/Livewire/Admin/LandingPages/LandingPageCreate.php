@@ -321,7 +321,7 @@ class LandingPageCreate extends Component
             variant: 'success'
         );
 
-        return redirect()->route('admin.landing-pages.edit', $page);
+        return redirect()->route('admin.marketing.landing-pages.edit', $page);
     }
 
     private function getDefaultSectionSettings(): array

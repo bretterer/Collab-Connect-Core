@@ -3,7 +3,7 @@
     <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <flux:button variant="ghost" size="sm" :href="route('admin.landing-pages.index')" wire:navigate icon="arrow-left">
+                <flux:button variant="ghost" size="sm" :href="route('admin.marketing.landing-pages.index')" wire:navigate icon="arrow-left">
                     Back
                 </flux:button>
                 <div>

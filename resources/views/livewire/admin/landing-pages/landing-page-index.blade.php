@@ -7,7 +7,7 @@
                 Create and manage custom landing pages with a block-based editor.
             </p>
         </div>
-        <flux:button :href="route('admin.landing-pages.create')" wire:navigate icon="plus">
+        <flux:button :href="route('admin.marketing.landing-pages.create')" wire:navigate icon="plus">
             Create Landing Page
         </flux:button>
     </div>
@@ -147,7 +147,7 @@
                                         <flux:button variant="ghost" size="sm" icon="ellipsis-vertical" />
 
                                         <flux:menu>
-                                            <flux:menu.item icon="pencil" :href="route('admin.landing-pages.edit', $page)" wire:navigate>
+                                            <flux:menu.item icon="pencil" :href="route('admin.marketing.landing-pages.edit', $page)" wire:navigate>
                                                 Edit
                                             </flux:menu.item>
 
@@ -194,7 +194,7 @@
                     Get started by creating a new landing page.
                 </p>
                 <div class="mt-6">
-                    <flux:button :href="route('admin.landing-pages.create')" wire:navigate icon="plus">
+                    <flux:button :href="route('admin.marketing.landing-pages.create')" wire:navigate icon="plus">
                         Create Landing Page
                     </flux:button>
                 </div>

@@ -93,7 +93,7 @@ class LandingPageIndex extends Component
             variant: 'success'
         );
 
-        return redirect()->route('admin.landing-pages.edit', $newPage);
+        return redirect()->route('admin.marketing.landing-pages.edit', $newPage);
     }
 
     public function toggleStatus($id)
