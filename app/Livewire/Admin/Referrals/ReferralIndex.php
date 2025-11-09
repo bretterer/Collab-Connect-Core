@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Referrals;
 use App\Enums\PayoutStatus;
 use App\Models\ReferralEnrollment;
 use App\Models\ReferralPayout;
+use App\Models\ReferralPayoutItem;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -77,6 +78,16 @@ class ReferralIndex extends Component
         ];
     }
 
+    public function hasDraftPayoutItems(): bool
+    {
+        return ReferralPayoutItem::where('status', PayoutStatus::DRAFT)->exists();
+    }
+
+    public function getDraftPayoutItemsCount(): int
+    {
+        return ReferralPayoutItem::where('status', PayoutStatus::DRAFT)->count();
+    }
+
     public function render()
     {
         $enrollments = ReferralEnrollment::query()
@@ -101,6 +112,8 @@ class ReferralIndex extends Component
         return view('livewire.admin.referrals.referral-index', [
             'enrollments' => $enrollments,
             'stats' => $this->getStats(),
+            'hasDraftPayoutItems' => $this->hasDraftPayoutItems(),
+            'draftPayoutItemsCount' => $this->getDraftPayoutItemsCount(),
         ]);
     }
 }
