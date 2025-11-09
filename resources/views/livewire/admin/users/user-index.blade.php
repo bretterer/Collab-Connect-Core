@@ -8,42 +8,35 @@
     </div>
 
     <!-- Filters and Search -->
-    <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
-        <div class="px-4 py-5 sm:p-6">
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <!-- Search -->
-                <div>
-                    <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Search Users
-                    </label>
-                    <input type="text"
-                           wire:model.live.debounce.300ms="search"
-                           placeholder="Search by name or email..."
-                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm">
-                </div>
+    <flux:card class="mb-6">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+            <!-- Search -->
+            <flux:field>
+                <flux:label>Search Users</flux:label>
+                <flux:input
+                    wire:model.live.debounce.300ms="search"
+                    placeholder="Search by name or email..."
+                />
+            </flux:field>
 
-                <!-- Account Type Filter -->
-                <div>
-                    <label for="accountTypeFilter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Account Type
-                    </label>
-                    <select wire:model.live="accountTypeFilter"
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm">
-                        @foreach($this->getAccountTypeOptions() as $value => $label)
-                            <option value="{{ $value }}">{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
+            <!-- Account Type Filter -->
+            <flux:field>
+                <flux:label>Account Type</flux:label>
+                <flux:select wire:model.live="accountTypeFilter">
+                    @foreach($this->getAccountTypeOptions() as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </flux:select>
+            </flux:field>
 
-                <!-- Results Count -->
-                <div class="flex items-end">
-                    <div class="text-sm text-gray-600 dark:text-gray-400">
-                        Showing {{ $users->count() }} of {{ $users->total() }} users
-                    </div>
-                </div>
+            <!-- Results Count -->
+            <div class="flex items-end pb-2">
+                <flux:text class="text-sm">
+                    Showing {{ $users->count() }} of {{ $users->total() }} users
+                </flux:text>
             </div>
         </div>
-    </div>
+    </flux:card>
 
     <!-- Users Table -->
     <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
