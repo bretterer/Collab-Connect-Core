@@ -8,6 +8,7 @@ use App\Models\ReferralEnrollment;
 use App\Models\ReferralPercentageHistory;
 use Flux\Flux;
 use Illuminate\Support\Str;
+use Laravel\Pennant\Feature;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -37,6 +38,9 @@ class Index extends Component
 
     public function mount()
     {
+        if(! Feature::active('referral-program')) {
+            abort(404, 'Referral program is not available.');
+        }
         $user = auth()->user();
 
         // Determine if user has a subscription (eligible)

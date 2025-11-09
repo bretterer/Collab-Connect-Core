@@ -69,6 +69,7 @@
                         </a>
                     </li>
 
+                    @feature('referral-program')
                     <!-- Referrals -->
                     <li>
                         <a href="{{ route('referral.index') }}"
@@ -79,6 +80,7 @@
                             <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Referrals</span>
                         </a>
                     </li>
+                    @endfeature
 
                     @elseif(auth()->user()->account_type === App\Enums\AccountType::INFLUENCER && request()->routeIs('admin.*') === false)
                     <!-- Influencer Navigation -->
@@ -116,6 +118,7 @@
                         </a>
                     </li>
 
+                    @feature('referral-program')
                     <!-- Referrals -->
                     <li>
                         <a href="{{ route('referral.index') }}"
@@ -126,6 +129,7 @@
                             <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Referrals</span>
                         </a>
                     </li>
+                    @endfeature
 
                     @elseif(auth()->user()->isAdmin())
                     <!-- Admin Navigation -->
@@ -218,6 +222,8 @@
                             <span x-show="sidebarExpanded || window.innerWidth < 1024" x-transition>Referrals</span>
                         </a>
                     </li>
+
+
                     @endif
 
 
