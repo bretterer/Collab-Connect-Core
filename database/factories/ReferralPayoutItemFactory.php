@@ -19,7 +19,7 @@ class ReferralPayoutItemFactory extends Factory
     public function definition(): array
     {
         $subscriptionAmount = fake()->randomFloat(2, 10, 100);
-        $defaultPercentage = 10;
+        $defaultPercentage = config('collabconnect.referrals.default_percentage', 10);
 
         return [
             'referral_payout_id' => null, // Nullable until rolled up
