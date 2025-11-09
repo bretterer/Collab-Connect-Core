@@ -7,6 +7,34 @@
         </p>
     </div>
 
+    <!-- Draft Payout Items Alert -->
+    @if($hasDraftPayoutItems)
+        <div class="mb-6 rounded-lg border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/30 p-4">
+            <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <div class="flex-shrink-0">
+                        <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <span class="font-semibold text-yellow-900 dark:text-yellow-100">
+                            {{ $draftPayoutItemsCount }} {{ Str::plural('payout item', $draftPayoutItemsCount) }} pending review
+                        </span>
+                        <span class="text-sm text-yellow-800 dark:text-yellow-200">
+                            — Review and approve payout items to process payments.
+                        </span>
+                    </div>
+                </div>
+                <div class="flex-shrink-0">
+                    <flux:button size="sm" href="{{ route('admin.referrals.review') }}" variant="filled">
+                        Review Payouts
+                    </flux:button>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         <flux:card size="sm">
@@ -16,9 +44,15 @@
                     <flux:heading size="lg" class="mt-1">{{ number_format($stats['total_enrolled']) }}</flux:heading>
                 </div>
                 <div class="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
-                    </svg>
+                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 245.25 203.25">
+
+    <circle cx="72.88" cy="31.9" r="31.9" transform="translate(15.52 87.03) rotate(-67.5)"/>
+    <path d="M151.82,106.25h-7.71c-6.49,0-12.49,2.15-17.33,5.76,6.19,6.86,9.97,15.93,9.97,25.88v2.02c0,8.96-3.08,17.22-8.22,23.78-1.45,1.85-3.06,3.56-4.81,5.12-6.39,5.67-14.67,9.26-23.76,9.7-.61.03-1.23.05-1.86.05H23.7v-44.27c0-19.32,15.72-35.03,35.03-35.03h29.27c5.92-9.2,14.03-16.85,23.61-22.22-4.35-.96-8.86-1.48-13.5-1.48h-39.38C26.3,75.55,0,101.85,0,134.28v60.98c0,3.86,3.13,6.98,6.98,6.98h91.13c5.88,0,11.56-.83,16.95-2.35,3.1-.87,6.1-1.98,8.99-3.3,9.09-4.16,17-10.45,23.1-18.22,1.7-2.17,3.27-4.44,4.67-6.83,5.48-9.28,8.63-20.09,8.63-31.64v-2.02c0-11.55-3.15-22.36-8.63-31.64Z"/>
+
+    <circle cx="170.36" cy="31.9" r="31.9" transform="translate(-2.93 28.76) rotate(-9.57)"/>
+    <path d="M185.48,75.55h-41.37c-4.44,0-8.75.5-12.91,1.42-3.4.75-6.68,1.78-9.83,3.08-9.91,4.09-18.48,10.77-24.87,19.2-1.68,2.22-3.2,4.56-4.56,7-4.78,8.59-7.51,18.47-7.51,28.99v.57c0,13.16,3.84,25.42,10.45,35.74h3.25c7.86,0,15.05-2.88,20.59-7.64-6.58-7.52-10.58-17.35-10.58-28.1v-.57c0-8.77,3.16-16.82,8.39-23.07,1.52-1.81,3.21-3.48,5.06-4.96,6.17-4.98,14.01-7.96,22.54-7.96h41.37c19.68,0,35.68,16.01,35.68,35.68v43.62h-65.51c-5.85,8.68-13.61,15.95-22.67,21.25,5.69,1.58,11.67,2.45,17.87,2.45h87.03c3.86,0,6.98-3.13,6.98-6.98v-60.33c0-32.8-26.59-59.38-59.38-59.38Z"/>
+
+</svg>
                 </div>
             </div>
         </flux:card>
@@ -67,42 +101,35 @@
     </div>
 
     <!-- Filters and Search -->
-    <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
-        <div class="px-4 py-5 sm:p-6">
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <!-- Search -->
-                <div>
-                    <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Search Users
-                    </label>
-                    <input type="text"
-                           wire:model.live.debounce.300ms="search"
-                           placeholder="Search by name or email..."
-                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm">
-                </div>
+    <flux:card class="mb-6">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+            <!-- Search -->
+            <flux:field>
+                <flux:label>Search Users</flux:label>
+                <flux:input
+                    wire:model.live.debounce.300ms="search"
+                    placeholder="Search by name or email..."
+                />
+            </flux:field>
 
-                <!-- PayPal Status Filter -->
-                <div>
-                    <label for="paypalStatusFilter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        PayPal Status
-                    </label>
-                    <select wire:model.live="paypalStatusFilter"
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm">
-                        @foreach($this->getPaypalStatusOptions() as $value => $label)
-                            <option value="{{ $value }}">{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
+            <!-- PayPal Status Filter -->
+            <flux:field>
+                <flux:label>PayPal Status</flux:label>
+                <flux:select wire:model.live="paypalStatusFilter">
+                    @foreach($this->getPaypalStatusOptions() as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </flux:select>
+            </flux:field>
 
-                <!-- Results Count -->
-                <div class="flex items-end">
-                    <div class="text-sm text-gray-600 dark:text-gray-400">
-                        Showing {{ $enrollments->count() }} of {{ $enrollments->total() }} enrollments
-                    </div>
-                </div>
+            <!-- Results Count -->
+            <div class="flex items-end pb-2">
+                <flux:text class="text-sm">
+                    Showing {{ $enrollments->count() }} of {{ $enrollments->total() }} enrollments
+                </flux:text>
             </div>
         </div>
-    </div>
+    </flux:card>
 
     <!-- Enrollments Table -->
     <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
@@ -134,17 +161,8 @@
                                 @endif
                             </div>
                         </th>
-                        <th scope="col"
-                            wire:click="sortBy('current_percentage')"
-                            class="cursor-pointer px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider hover:bg-gray-100 dark:hover:bg-gray-600">
-                            <div class="flex items-center space-x-1">
-                                <span>Current %</span>
-                                @if($sortBy === 'current_percentage')
-                                    <svg class="w-4 h-4 {{ $sortDirection === 'asc' ? 'transform rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                @endif
-                            </div>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Current Percentage
                         </th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Active Referrals
@@ -184,7 +202,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
-                                    {{ $enrollment->current_percentage }}%
+                                    {{ $enrollment->percentageHistory()->latest()->first()->new_percentage ?? 0 }}%
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
@@ -222,9 +240,7 @@
                         <tr>
                             <td colspan="7" class="px-6 py-12 text-center">
                                 <div class="text-gray-500 dark:text-gray-400">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                                    </svg>
+                                    <flux:icon name="collabconnect" class="w-12 h-12 mb-4 mx-auto" />
                                     <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-1">No enrollments found</h3>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Try adjusting your search criteria.</p>
                                 </div>
