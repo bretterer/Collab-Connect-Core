@@ -3,7 +3,7 @@
 namespace Tests\Feature\Jobs;
 
 use App\Enums\PayoutStatus;
-use App\Jobs\ProcessReferralPayouts;
+use App\Jobs\PrepareReferralPayouts;
 use App\Models\Referral;
 use App\Models\ReferralEnrollment;
 use App\Models\ReferralPayout;
@@ -11,7 +11,7 @@ use App\Models\ReferralPayoutItem;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class ProcessReferralPayoutsTest extends TestCase
+class PrepareReferralPayoutsTest extends TestCase
 {
     #[Test]
     public function processes_draft_pending_and_approved_items()
@@ -60,7 +60,7 @@ class ProcessReferralPayoutsTest extends TestCase
         ]);
 
         // Run the job
-        (new ProcessReferralPayouts)->handle();
+        (new PrepareReferralPayouts)->handle();
 
         // Assert all draft/pending/approved items are now processed
         $this->assertDatabaseHas('referral_payout_items', [
@@ -110,7 +110,7 @@ class ProcessReferralPayoutsTest extends TestCase
         $expectedTotal = $item1->amount + $item2->amount;
 
         // Run the job
-        (new ProcessReferralPayouts)->handle();
+        (new PrepareReferralPayouts)->handle();
 
         // Assert a ReferralPayout was created with correct totals
         $payout = ReferralPayout::where('referral_enrollment_id', $enrollment->id)->first();
@@ -144,7 +144,7 @@ class ProcessReferralPayoutsTest extends TestCase
         ]);
 
         // Run the job
-        (new ProcessReferralPayouts)->handle();
+        (new PrepareReferralPayouts)->handle();
 
         // Get the created payout
         $payout = ReferralPayout::where('referral_enrollment_id', $enrollment->id)->first();
@@ -206,7 +206,7 @@ class ProcessReferralPayoutsTest extends TestCase
         $expectedTotal2 = $item2a->amount + $item2b->amount;
 
         // Run the job
-        (new ProcessReferralPayouts)->handle();
+        (new PrepareReferralPayouts)->handle();
 
         // Assert two separate payouts were created
         $payout1 = ReferralPayout::where('referral_enrollment_id', $enrollment1->id)->first();
@@ -231,7 +231,7 @@ class ProcessReferralPayoutsTest extends TestCase
         ReferralPayoutItem::query()->delete();
 
         // Run the job
-        (new ProcessReferralPayouts)->handle();
+        (new PrepareReferralPayouts)->handle();
 
         // Assert no payouts were created
         $this->assertEquals(0, ReferralPayout::count());
@@ -252,7 +252,7 @@ class ProcessReferralPayoutsTest extends TestCase
         ]);
 
         // Run the job
-        (new ProcessReferralPayouts)->handle();
+        (new PrepareReferralPayouts)->handle();
 
         // Assert payout has correct month and year
         $this->assertDatabaseHas('referral_payouts', [
@@ -277,7 +277,7 @@ class ProcessReferralPayoutsTest extends TestCase
         ]);
 
         // Run the job
-        (new ProcessReferralPayouts)->handle();
+        (new PrepareReferralPayouts)->handle();
 
         // Assert payout has correct currency
         $this->assertDatabaseHas('referral_payouts', [
@@ -308,7 +308,7 @@ class ProcessReferralPayoutsTest extends TestCase
         ]);
 
         // Run the job
-        (new ProcessReferralPayouts)->handle();
+        (new PrepareReferralPayouts)->handle();
 
         // Assert no payouts were created
         $this->assertEquals(0, ReferralPayout::count());
