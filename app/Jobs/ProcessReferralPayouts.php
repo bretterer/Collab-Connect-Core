@@ -66,13 +66,12 @@ class ProcessReferralPayouts implements ShouldQueue
                 'enrollment_id' => $enrollment->id,
             ]);
 
-            if ($this->attemptNumber === 3) {
-                $payout->update([
-                    'status' => PayoutStatus::CANCELLED,
-                    'failure_reason' => 'Enrollment is disabled',
-                    'failed_at' => now(),
-                ]);
-            }
+            // Cancel payout immediately - enrollment is disabled
+            $payout->update([
+                'status' => PayoutStatus::CANCELLED,
+                'failure_reason' => 'Enrollment is disabled',
+                'failed_at' => now(),
+            ]);
 
             return;
         }
