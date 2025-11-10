@@ -581,6 +581,25 @@ class LandingPageEdit extends Component
                 'text_align' => 'left',
                 'max_width' => 'prose',
             ],
+            LandingPageBlockType::IMAGE->value => [
+                'url' => '',
+                'alt' => '',
+                'caption' => '',
+                'width' => 'full',
+                'alignment' => 'center',
+                'rounded' => 'lg',
+            ],
+            LandingPageBlockType::YOUTUBE->value => [
+                'video_id' => '',
+                'aspect_ratio' => '16/9',
+                'max_width' => 'large',
+                'autoplay' => false,
+                'controls' => true,
+                'loop' => false,
+                'mute' => false,
+                'modest_branding' => false,
+                'color' => 'red',
+            ],
             LandingPageBlockType::FEATURES->value => [
                 'title' => 'Features',
                 'items' => [

@@ -11,6 +11,8 @@ enum LandingPageBlockType: string
     case HEADER = 'header';
     case HERO = 'hero';
     case TEXT = 'text';
+    case IMAGE = 'image';
+    case YOUTUBE = 'youtube';
     case FEATURES = 'features';
     case CTA = 'cta';
     case TWO_STEP_OPTIN = 'two_step_optin';
@@ -29,6 +31,8 @@ enum LandingPageBlockType: string
             self::HEADER => 'Header',
             self::HERO => 'Hero Section',
             self::TEXT => 'Text Block',
+            self::IMAGE => 'Image',
+            self::YOUTUBE => 'YouTube Video',
             self::FEATURES => 'Features Section',
             self::CTA => 'Call to Action',
             self::TWO_STEP_OPTIN => 'Two-Step Opt-in',
@@ -49,6 +53,8 @@ enum LandingPageBlockType: string
             self::HEADER => 'bars-3',
             self::HERO => 'photo',
             self::TEXT => 'document-text',
+            self::IMAGE => 'photo',
+            self::YOUTUBE => 'play-circle',
             self::FEATURES => 'squares-2x2',
             self::CTA => 'megaphone',
             self::TWO_STEP_OPTIN => 'cursor-arrow-rays',
@@ -69,6 +75,8 @@ enum LandingPageBlockType: string
             self::HEADER => 'Navigation header with logo and menu',
             self::HERO => 'Main hero section with headline and image',
             self::TEXT => 'Rich text content with formatting',
+            self::IMAGE => 'Single image with caption and alt text',
+            self::YOUTUBE => 'Embedded YouTube video player',
             self::FEATURES => 'Feature highlights with icons',
             self::CTA => 'Call-to-action button with text',
             self::TWO_STEP_OPTIN => 'Two-step email capture form',
