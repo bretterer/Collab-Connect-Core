@@ -35,7 +35,7 @@
                         <flux:label>Autoplay</flux:label>
                         <flux:description>Automatically start playing when the page loads</flux:description>
                     </div>
-                    <flux:switch wire:model="blockData.autoplay" />
+                    <flux:switch wire:model.boolean="blockData.autoplay" />
                 </div>
             </flux:field>
 
@@ -45,7 +45,7 @@
                         <flux:label>Show Controls</flux:label>
                         <flux:description>Display video player controls</flux:description>
                     </div>
-                    <flux:switch wire:model="blockData.controls" />
+                    <flux:switch wire:model.boolean="blockData.controls" />
                 </div>
             </flux:field>
 
@@ -55,7 +55,7 @@
                         <flux:label>Loop Video</flux:label>
                         <flux:description>Play the video in a continuous loop</flux:description>
                     </div>
-                    <flux:switch wire:model="blockData.loop" />
+                    <flux:switch wire:model.boolean="blockData.loop" />
                 </div>
             </flux:field>
 
@@ -65,7 +65,7 @@
                         <flux:label>Mute</flux:label>
                         <flux:description>Start with audio muted</flux:description>
                     </div>
-                    <flux:switch wire:model="blockData.mute" />
+                    <flux:switch wire:model.boolean="blockData.mute" />
                 </div>
             </flux:field>
 
@@ -75,7 +75,7 @@
                         <flux:label>Modest Branding</flux:label>
                         <flux:description>Minimize YouTube branding in the player</flux:description>
                     </div>
-                    <flux:switch wire:model="blockData.modest_branding" />
+                    <flux:switch wire:model.boolean="blockData.modest_branding" />
                 </div>
             </flux:field>
         </div>
