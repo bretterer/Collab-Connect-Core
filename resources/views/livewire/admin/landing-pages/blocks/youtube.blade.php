@@ -34,7 +34,11 @@
                     <flux:label>Autoplay</flux:label>
                     <flux:description>Automatically start playing when the page loads</flux:description>
                 </div>
-                <flux:checkbox wire:model.live="blockData.autoplay" />
+                <input
+                    type="checkbox"
+                    wire:model.live="blockData.autoplay"
+                    class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                />
             </div>
 
             <div class="flex items-center justify-between py-2">
@@ -42,7 +46,11 @@
                     <flux:label>Show Controls</flux:label>
                     <flux:description>Display video player controls</flux:description>
                 </div>
-                <flux:checkbox wire:model.live="blockData.controls" />
+                <input
+                    type="checkbox"
+                    wire:model.live="blockData.controls"
+                    class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                />
             </div>
 
             <div class="flex items-center justify-between py-2">
@@ -50,7 +58,11 @@
                     <flux:label>Loop Video</flux:label>
                     <flux:description>Play the video in a continuous loop</flux:description>
                 </div>
-                <flux:checkbox wire:model.live="blockData.loop" />
+                <input
+                    type="checkbox"
+                    wire:model.live="blockData.loop"
+                    class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                />
             </div>
 
             <div class="flex items-center justify-between py-2">
@@ -58,7 +70,11 @@
                     <flux:label>Mute</flux:label>
                     <flux:description>Start with audio muted</flux:description>
                 </div>
-                <flux:checkbox wire:model.live="blockData.mute" />
+                <input
+                    type="checkbox"
+                    wire:model.live="blockData.mute"
+                    class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                />
             </div>
 
             <div class="flex items-center justify-between py-2">
@@ -66,7 +82,11 @@
                     <flux:label>Modest Branding</flux:label>
                     <flux:description>Minimize YouTube branding in the player</flux:description>
                 </div>
-                <flux:checkbox wire:model.live="blockData.modest_branding" />
+                <input
+                    type="checkbox"
+                    wire:model.live="blockData.modest_branding"
+                    class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                />
             </div>
         </div>
     </div>
