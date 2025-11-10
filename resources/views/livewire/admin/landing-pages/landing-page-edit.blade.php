@@ -604,7 +604,7 @@
                 </div>
 
                 <div class="space-y-4">
-                    @include('livewire.admin.landing-pages.partials.block-editors.' . $blockType->value, ['data' => 'twoStepOptinBlockData'])
+                    @include('livewire.admin.landing-pages.blocks.' . $blockType->value, ['blockData' => $twoStepOptinBlockData])
                 </div>
 
                 <div class="mt-6 flex gap-3 justify-end">
@@ -638,7 +638,7 @@
                 </div>
 
                 <div class="space-y-4">
-                    @include('livewire.admin.landing-pages.partials.block-editors.' . $blockType->value, ['data' => 'exitPopupBlockData'])
+                    @include('livewire.admin.landing-pages.blocks.' . $blockType->value, ['blockData' => $exitPopupBlockData])
                 </div>
 
                 <div class="mt-6 flex gap-3 justify-end">
