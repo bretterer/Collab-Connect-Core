@@ -36,19 +36,19 @@
 
                 // Desktop layout
                 $desktopHide = $settings['desktop_hide'] ?? false;
-                $desktopPaddingTop = $settings['desktop_padding_top'] ?? 64;
-                $desktopPaddingBottom = $settings['desktop_padding_bottom'] ?? 64;
-                $desktopPaddingLeft = $settings['desktop_padding_left'] ?? 16;
-                $desktopPaddingRight = $settings['desktop_padding_right'] ?? 16;
+                $desktopPaddingTop = $settings['desktop_padding_top'] ?? 0;
+                $desktopPaddingBottom = $settings['desktop_padding_bottom'] ?? 0;
+                $desktopPaddingLeft = $settings['desktop_padding_left'] ?? 0;
+                $desktopPaddingRight = $settings['desktop_padding_right'] ?? 0;
                 $desktopVerticalAlign = $settings['desktop_vertical_align'] ?? 'top';
                 $desktopHorizontalAlign = $settings['desktop_horizontal_align'] ?? 'left';
 
                 // Mobile layout
                 $mobileHide = $settings['mobile_hide'] ?? false;
-                $mobilePaddingTop = $settings['mobile_padding_top'] ?? 48;
-                $mobilePaddingBottom = $settings['mobile_padding_bottom'] ?? 48;
-                $mobilePaddingLeft = $settings['mobile_padding_left'] ?? 16;
-                $mobilePaddingRight = $settings['mobile_padding_right'] ?? 16;
+                $mobilePaddingTop = $settings['mobile_padding_top'] ?? 0;
+                $mobilePaddingBottom = $settings['mobile_padding_bottom'] ?? 0;
+                $mobilePaddingLeft = $settings['mobile_padding_left'] ?? 0;
+                $mobilePaddingRight = $settings['mobile_padding_right'] ?? 0;
 
                 // Build background styles
                 $backgroundStyles = "background-color: {$bgColor};";

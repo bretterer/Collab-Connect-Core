@@ -1,8 +1,8 @@
 <div class="space-y-4">
     <flux:field>
         <flux:label>Content</flux:label>
-        <flux:editor wire:model="blockData.content" placeholder="Enter your content here..." />
-        <flux:description>Use the editor toolbar to format your text with headings, bold, italic, lists, and more.</flux:description>
+        <flux:editor wire:model="blockData.content" placeholder="Enter your content here..." toolbar="heading | bold italic underline strike | color | bullet ordered blockquote | link | align" />
+        <flux:description>Use the editor toolbar to format your text with headings, bold, italic, lists, colors, and more.</flux:description>
     </flux:field>
 
     <flux:field>
