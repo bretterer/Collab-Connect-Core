@@ -29,55 +29,45 @@
         <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Player Options</h4>
 
         <div class="space-y-3">
-            <flux:field>
-                <div class="flex items-center justify-between">
-                    <div>
-                        <flux:label>Autoplay</flux:label>
-                        <flux:description>Automatically start playing when the page loads</flux:description>
-                    </div>
-                    <flux:switch wire:model.boolean="blockData.autoplay" />
+            <div class="flex items-center justify-between py-2">
+                <div>
+                    <flux:label>Autoplay</flux:label>
+                    <flux:description>Automatically start playing when the page loads</flux:description>
                 </div>
-            </flux:field>
+                <flux:checkbox wire:model.live="blockData.autoplay" />
+            </div>
 
-            <flux:field>
-                <div class="flex items-center justify-between">
-                    <div>
-                        <flux:label>Show Controls</flux:label>
-                        <flux:description>Display video player controls</flux:description>
-                    </div>
-                    <flux:switch wire:model.boolean="blockData.controls" />
+            <div class="flex items-center justify-between py-2">
+                <div>
+                    <flux:label>Show Controls</flux:label>
+                    <flux:description>Display video player controls</flux:description>
                 </div>
-            </flux:field>
+                <flux:checkbox wire:model.live="blockData.controls" />
+            </div>
 
-            <flux:field>
-                <div class="flex items-center justify-between">
-                    <div>
-                        <flux:label>Loop Video</flux:label>
-                        <flux:description>Play the video in a continuous loop</flux:description>
-                    </div>
-                    <flux:switch wire:model.boolean="blockData.loop" />
+            <div class="flex items-center justify-between py-2">
+                <div>
+                    <flux:label>Loop Video</flux:label>
+                    <flux:description>Play the video in a continuous loop</flux:description>
                 </div>
-            </flux:field>
+                <flux:checkbox wire:model.live="blockData.loop" />
+            </div>
 
-            <flux:field>
-                <div class="flex items-center justify-between">
-                    <div>
-                        <flux:label>Mute</flux:label>
-                        <flux:description>Start with audio muted</flux:description>
-                    </div>
-                    <flux:switch wire:model.boolean="blockData.mute" />
+            <div class="flex items-center justify-between py-2">
+                <div>
+                    <flux:label>Mute</flux:label>
+                    <flux:description>Start with audio muted</flux:description>
                 </div>
-            </flux:field>
+                <flux:checkbox wire:model.live="blockData.mute" />
+            </div>
 
-            <flux:field>
-                <div class="flex items-center justify-between">
-                    <div>
-                        <flux:label>Modest Branding</flux:label>
-                        <flux:description>Minimize YouTube branding in the player</flux:description>
-                    </div>
-                    <flux:switch wire:model.boolean="blockData.modest_branding" />
+            <div class="flex items-center justify-between py-2">
+                <div>
+                    <flux:label>Modest Branding</flux:label>
+                    <flux:description>Minimize YouTube branding in the player</flux:description>
                 </div>
-            </flux:field>
+                <flux:checkbox wire:model.live="blockData.modest_branding" />
+            </div>
         </div>
     </div>
 
