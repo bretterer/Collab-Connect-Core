@@ -593,12 +593,6 @@ class LandingPageEdit extends Component
                 'video_id' => '',
                 'aspect_ratio' => '16/9',
                 'max_width' => 'large',
-                'autoplay' => false,
-                'controls' => true,
-                'loop' => false,
-                'mute' => false,
-                'modest_branding' => false,
-                'color' => 'red',
             ],
             LandingPageBlockType::FEATURES->value => [
                 'title' => 'Features',

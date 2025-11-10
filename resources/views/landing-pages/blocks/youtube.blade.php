@@ -28,38 +28,7 @@
         default => 'max-w-full',
     };
 
-    // Build YouTube embed parameters
-    $params = [];
-
-    if ($data['autoplay'] ?? false) {
-        $params[] = 'autoplay=1';
-        $params[] = 'mute=1'; // Autoplay requires mute in most browsers
-    }
-
-    if (!($data['controls'] ?? true)) {
-        $params[] = 'controls=0';
-    }
-
-    if ($data['loop'] ?? false) {
-        $params[] = 'loop=1';
-        $params[] = 'playlist=' . $videoId; // Loop requires playlist parameter
-    }
-
-    if ($data['mute'] ?? false) {
-        $params[] = 'mute=1';
-    }
-
-    if ($data['modest_branding'] ?? false) {
-        $params[] = 'modestbranding=1';
-    }
-
-    $color = $data['color'] ?? 'red';
-    if ($color === 'white') {
-        $params[] = 'color=white';
-    }
-
-    $paramString = !empty($params) ? '?' . implode('&', $params) : '';
-    $embedUrl = "https://www.youtube.com/embed/{$videoId}{$paramString}";
+    $embedUrl = "https://www.youtube.com/embed/{$videoId}";
 @endphp
 
 <div class="py-8">
