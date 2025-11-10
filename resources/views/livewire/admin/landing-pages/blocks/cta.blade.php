@@ -74,36 +74,65 @@
 
     <!-- Button Tab -->
     <div x-show="activeTab === 'button'" class="space-y-4">
-        <div class="grid grid-cols-2 gap-4">
+        <flux:field>
+            <flux:label>Button Text</flux:label>
+            <flux:input wire:model="blockData.button_text" placeholder="Get Started Now" />
+        </flux:field>
+
+        <flux:field>
+            <flux:label>Button Action</flux:label>
+            <flux:select wire:model.live="blockData.button_action">
+                <option value="url">Go to URL</option>
+                <option value="landing_page">Go to Landing Page</option>
+                <option value="two_step_optin">Open Two Step Optin Popup</option>
+            </flux:select>
+        </flux:field>
+
+        @if(($blockData['button_action'] ?? 'url') === 'url')
             <flux:field>
-                <flux:label>Button Text</flux:label>
-                <flux:input wire:model="blockData.button_text" placeholder="Get Started Now" />
+                <flux:label>Button URL</flux:label>
+                <flux:input wire:model="blockData.button_url" placeholder="https://example.com" />
             </flux:field>
 
             <flux:field>
-                <flux:label>Button Action</flux:label>
-                <flux:select wire:model="blockData.button_action">
-                    <option value="url">Open URL</option>
-                    <option value="popup">Open Popup</option>
-                    <option value="new_tab">Open In New Tab</option>
+                <flux:label>Open In New Tab</flux:label>
+                <div class="flex items-center gap-2">
+                    <flux:switch wire:model.boolean="blockData.button_new_tab" />
+                    <span class="text-sm text-gray-600 dark:text-gray-400">
+                        {{ ($blockData['button_new_tab'] ?? false) ? 'Enabled' : 'Disabled' }}
+                    </span>
+                </div>
+            </flux:field>
+        @endif
+
+        @if(($blockData['button_action'] ?? 'url') === 'landing_page')
+            <flux:field>
+                <flux:label>Select Landing Page</flux:label>
+                <flux:select wire:model="blockData.landing_page_id">
+                    <option value="">Choose a landing page...</option>
+                    @foreach($publishedLandingPages as $page)
+                        <option value="{{ $page->id }}">{{ $page->title }}</option>
+                    @endforeach
                 </flux:select>
+                <flux:description>Only published landing pages are shown</flux:description>
             </flux:field>
-        </div>
 
-        <flux:field>
-            <flux:label>Button URL</flux:label>
-            <flux:input wire:model="blockData.button_url" placeholder="#" />
-        </flux:field>
+            <flux:field>
+                <flux:label>Open In New Tab</flux:label>
+                <div class="flex items-center gap-2">
+                    <flux:switch wire:model.boolean="blockData.button_new_tab" />
+                    <span class="text-sm text-gray-600 dark:text-gray-400">
+                        {{ ($blockData['button_new_tab'] ?? false) ? 'Enabled' : 'Disabled' }}
+                    </span>
+                </div>
+            </flux:field>
+        @endif
 
-        <flux:field>
-            <flux:label>Open In New Tab</flux:label>
-            <div class="flex items-center gap-2">
-                <flux:switch wire:model.boolean="blockData.button_new_tab" />
-                <span class="text-sm text-gray-600 dark:text-gray-400">
-                    {{ ($blockData['button_new_tab'] ?? false) ? 'Enabled' : 'Disabled' }}
-                </span>
-            </div>
-        </flux:field>
+        @if(($blockData['button_action'] ?? 'url') === 'two_step_optin')
+            <flux:field>
+                <flux:description>This will open the two-step optin popup configured for this landing page</flux:description>
+            </flux:field>
+        @endif
 
         <flux:field>
             <flux:label>Button Background Color</flux:label>
@@ -375,9 +404,32 @@
     <div x-show="activeTab === 'background'" class="space-y-4">
         <flux:field>
             <flux:label>Block Background Color</flux:label>
-            <div class="flex items-center gap-2">
-                <input type="color" wire:model.live="blockData.background_color" class="h-10 w-20 rounded border border-gray-300 dark:border-gray-600" />
-                <flux:input wire:model="blockData.background_color" placeholder="#CAAE51" class="flex-1" />
+            <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                    @if(($blockData['background_color'] ?? '#f9fafb') !== 'transparent')
+                        <input
+                            type="color"
+                            wire:model.live="blockData.background_color"
+                            class="h-10 w-20 rounded border border-gray-300 dark:border-gray-600"
+                        />
+                    @else
+                        <div class="h-10 w-20 rounded border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700"></div>
+                    @endif
+                    <flux:input
+                        wire:model="blockData.background_color"
+                        placeholder="#f9fafb or transparent"
+                        class="flex-1"
+                    />
+                </div>
+                <label class="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        @change="$wire.set('blockData.background_color', $el.checked ? 'transparent' : '#f9fafb')"
+                        {{ ($blockData['background_color'] ?? '#f9fafb') === 'transparent' ? 'checked' : '' }}
+                        class="rounded text-blue-600"
+                    />
+                    <span class="text-sm text-gray-600 dark:text-gray-400">Transparent background</span>
+                </label>
             </div>
         </flux:field>
 

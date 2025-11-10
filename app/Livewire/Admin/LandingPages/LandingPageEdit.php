@@ -611,6 +611,7 @@ class LandingPageEdit extends Component
                 'button_url' => '#',
                 'button_action' => 'url',
                 'button_new_tab' => false,
+                'landing_page_id' => null,
                 'button_bg_color' => '#3b82f6',
                 'button_text_color' => '#ffffff',
                 'button_width' => 'auto',
@@ -708,6 +709,10 @@ class LandingPageEdit extends Component
     {
         return view('livewire.admin.landing-pages.landing-page-edit', [
             'blockTypes' => LandingPageBlockType::cases(),
+            'publishedLandingPages' => LandingPage::where('status', 'published')
+                ->where('id', '!=', $this->landingPage->id)
+                ->orderBy('title')
+                ->get(['id', 'title', 'slug']),
         ]);
     }
 }

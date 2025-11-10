@@ -35,11 +35,20 @@
     $buttonBgColor = $data['button_bg_color'] ?? '#3b82f6';
     $buttonTextColor = $data['button_text_color'] ?? '#ffffff';
     $buttonWidth = $data['button_width'] ?? 'auto';
-    $buttonStyle = $data['button_style'] ?? 'solid';
+    $buttonStyleType = $data['button_style'] ?? 'solid';
     $buttonSize = $data['button_size'] ?? 'large';
     $buttonBorderRadius = $data['button_border_radius'] ?? 8;
     $buttonNewTab = $data['button_new_tab'] ?? false;
     $buttonAction = $data['button_action'] ?? 'url';
+
+    // Generate button URL based on action
+    $buttonUrl = '#';
+    if ($buttonAction === 'url') {
+        $buttonUrl = $data['button_url'] ?? '#';
+    } elseif ($buttonAction === 'landing_page' && !empty($data['landing_page_id'])) {
+        $landingPage = \App\Models\LandingPage::find($data['landing_page_id']);
+        $buttonUrl = $landingPage ? route('landing-pages.show', $landingPage->slug) : '#';
+    }
 
     // Shadow mapping
     $shadowClass = match($boxShadow) {
@@ -66,14 +75,14 @@
         $sectionStyle .= " border-radius: {$borderRadius}px;";
     }
 
-    // Button styles
-    $buttonStyle = "background-color: {$buttonBgColor}; color: {$buttonTextColor}; border-radius: {$buttonBorderRadius}px;";
-    if ($buttonStyle === 'outline') {
-        $buttonStyle = "background-color: transparent; color: {$buttonBgColor}; border: 2px solid {$buttonBgColor}; border-radius: {$buttonBorderRadius}px;";
+    // Button inline styles
+    $buttonInlineStyle = "background-color: {$buttonBgColor}; color: {$buttonTextColor}; border-radius: {$buttonBorderRadius}px;";
+    if ($buttonStyleType === 'outline') {
+        $buttonInlineStyle = "background-color: transparent; color: {$buttonBgColor}; border: 2px solid {$buttonBgColor}; border-radius: {$buttonBorderRadius}px;";
     }
 @endphp
 
-<section
+<div
     class="{{ $shadowClass }} {{ $desktopHide ? 'hidden md:block' : '' }} {{ $mobileHide ? 'md:hidden' : '' }}"
     style="{{ $sectionStyle }}"
 >
@@ -104,18 +113,18 @@
             @if(!empty($data['button_text']))
                 @if($buttonAction === 'two_step_optin')
                     <button
-                        @click="$dispatch('open-two-step-optin')"
+                        @click.prevent="$dispatch('open-two-step-optin'); window.dispatchEvent(new CustomEvent('open-two-step-optin', { bubbles: true }))"
                         class="inline-block {{ $buttonSizeClasses }} font-semibold transition-all hover:opacity-90 {{ $buttonWidth === 'full' ? 'w-full' : '' }}"
-                        style="{{ $buttonStyle }}"
+                        style="{{ $buttonInlineStyle }}"
                     >
                         {{ $data['button_text'] }}
                     </button>
                 @else
                     <a
-                        href="{{ $data['button_url'] ?? '#' }}"
+                        href="{{ $buttonUrl }}"
                         {{ $buttonNewTab ? 'target="_blank" rel="noopener noreferrer"' : '' }}
                         class="inline-block {{ $buttonSizeClasses }} font-semibold transition-all hover:opacity-90 {{ $buttonWidth === 'full' ? 'w-full' : '' }}"
-                        style="{{ $buttonStyle }}"
+                        style="{{ $buttonInlineStyle }}"
                     >
                         {{ $data['button_text'] }}
                     </a>
@@ -151,18 +160,18 @@
             @if(!empty($data['button_text']))
                 @if($buttonAction === 'two_step_optin')
                     <button
-                        @click="$dispatch('open-two-step-optin')"
+                        @click.prevent="$dispatch('open-two-step-optin'); window.dispatchEvent(new CustomEvent('open-two-step-optin', { bubbles: true }))"
                         class="inline-block {{ $buttonSizeClasses }} font-semibold transition-all hover:opacity-90 {{ $buttonWidth === 'full' ? 'w-full' : '' }}"
-                        style="{{ $buttonStyle }}"
+                        style="{{ $buttonInlineStyle }}"
                     >
                         {{ $data['button_text'] }}
                     </button>
                 @else
                     <a
-                        href="{{ $data['button_url'] ?? '#' }}"
+                        href="{{ $buttonUrl }}"
                         {{ $buttonNewTab ? 'target="_blank" rel="noopener noreferrer"' : '' }}
                         class="inline-block {{ $buttonSizeClasses }} font-semibold transition-all hover:opacity-90 {{ $buttonWidth === 'full' ? 'w-full' : '' }}"
-                        style="{{ $buttonStyle }}"
+                        style="{{ $buttonInlineStyle }}"
                     >
                         {{ $data['button_text'] }}
                     </a>
@@ -170,4 +179,4 @@
             @endif
         </div>
     </div>
-</section>
+</div>

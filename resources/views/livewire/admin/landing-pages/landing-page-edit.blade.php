@@ -160,7 +160,7 @@
                                             size="xs"
                                             variant="outline"
                                             icon="plus"
-                                            wire:click.stop="$set('showBlockSelector', true); $set('selectedSectionId', '{{ $section['id'] }}')"
+                                            @click.stop="$wire.set('showBlockSelector', true); $wire.set('selectedSectionId', '{{ $section['id'] }}')"
                                             class="w-full"
                                         >
                                             Add Block
