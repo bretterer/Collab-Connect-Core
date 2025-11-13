@@ -408,13 +408,20 @@
 
             @if($editingBlock)
                 @php
-                    $blockType = App\Enums\LandingPageBlockType::from($editingBlock['type']);
+                    // Try to get block from registry first, fallback to enum
+                    $blockInstance = \App\LandingPages\BlockRegistry::get($editingBlock['type']);
+                    if ($blockInstance) {
+                        $blockLabel = $blockInstance::label();
+                    } else {
+                        $blockType = App\Enums\LandingPageBlockType::from($editingBlock['type']);
+                        $blockLabel = $blockType->label();
+                    }
                 @endphp
-                <div class="w-96 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col">
+                <div class="fixed right-0 top-16 bottom-0 w-[600px] bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col shadow-2xl z-50">
                     <div class="p-4 border-b border-gray-200 dark:border-gray-700">
                         <div class="flex items-center justify-between">
                             <div>
-                                <h3 class="font-semibold text-gray-900 dark:text-white">Edit {{ $blockType->label() }}</h3>
+                                <h3 class="font-semibold text-gray-900 dark:text-white">Edit {{ $blockLabel }}</h3>
                                 <p class="text-sm text-gray-500 dark:text-gray-400">Customize block settings</p>
                             </div>
                             <flux:button variant="ghost" size="sm" icon="x-mark" wire:click="cancelBlockEdit" />
@@ -422,7 +429,11 @@
                     </div>
 
                     <div class="flex-1 overflow-y-auto p-4">
-                        @include('livewire.admin.landing-pages.blocks.' . $editingBlock['type'])
+                        @if($blockInstance)
+                            {!! $blockInstance->renderEditor($blockData, 'blockData') !!}
+                        @else
+                            @include('livewire.admin.landing-pages.blocks.' . $editingBlock['type'])
+                        @endif
                     </div>
 
                     <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
@@ -444,18 +455,16 @@
         <flux:subheading>Choose a block type to add to this section</flux:subheading>
 
         <div class="mt-6 grid grid-cols-3 gap-4">
-            @foreach(App\Enums\LandingPageBlockType::cases() as $blockType)
+            @foreach($blockTypes as $blockType)
                 <button
-                    wire:click="addBlockToSection('{{ $selectedSectionId }}', '{{ $blockType->value }}')"
+                    wire:click="addBlockToSection('{{ $selectedSectionId }}', '{{ $blockType->type }}')"
                     class="flex flex-col items-start p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
                 >
                     <div class="w-8 h-8 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 mb-2">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
+                        <flux:icon.{{ $blockType->icon }} />
                     </div>
-                    <h3 class="font-medium text-gray-900 dark:text-white text-sm">{{ $blockType->label() }}</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $blockType->description() }}</p>
+                    <h3 class="font-medium text-gray-900 dark:text-white text-sm">{{ $blockType->label }}</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $blockType->description }}</p>
                 </button>
             @endforeach
         </div>

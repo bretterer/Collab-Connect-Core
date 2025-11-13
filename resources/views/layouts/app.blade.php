@@ -95,12 +95,12 @@
 
     <!-- Desktop sidebar -->
     <div class="hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:flex-col"
-        x-bind:class="sidebarExpanded ? 'lg:w-72' : 'lg:w-20'">
+        x-bind:class="sidebarExpanded ? 'lg:w-64' : 'lg:w-20'">
         @include('layouts.partials.app-sidebar')
     </div>
 
     <!-- Main content -->
-    <div class="lg:pl-20" x-bind:class="{ 'lg:pl-72': sidebarExpanded, 'lg:pl-20': !sidebarExpanded }">
+    <div class="lg:pl-20" x-bind:class="{ 'lg:pl-64': sidebarExpanded, 'lg:pl-20': !sidebarExpanded }">
         <!-- Top bar -->
         <div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm px-4 shadow-sm sm:px-6 lg:px-8">
             <!-- Mobile menu button -->
@@ -110,12 +110,14 @@
                 </svg>
             </button>
 
+            @if(false===true) <!-- do not show toggle, but don't lose the code -->
             <!-- Desktop sidebar toggle -->
             <button x-on:click="sidebarExpanded = !sidebarExpanded" class="hidden lg:flex -m-2.5 p-2.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                 </svg>
             </button>
+            @endif
 
             <!-- Breadcrumb -->
             <nav class="flex flex-1" aria-label="Breadcrumb">

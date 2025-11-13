@@ -32,7 +32,7 @@
             <img
                 src="{{ $data['url'] ?? '' }}"
                 alt="{{ $data['alt'] ?? '' }}"
-                class="w-full h-auto {{ $roundedClass }} shadow-lg"
+                class="w-full h-auto {{ $roundedClass }}"
             />
             @if(!empty($data['caption']))
                 <figcaption class="mt-3 text-sm text-gray-600 dark:text-gray-400 text-center">

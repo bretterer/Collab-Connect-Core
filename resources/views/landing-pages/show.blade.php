@@ -105,7 +105,14 @@
                     <div class="w-full">
                         @if(isset($section['blocks']) && is_array($section['blocks']))
                             @foreach($section['blocks'] as $block)
-                                @include('landing-pages.blocks.' . $block['type'], ['data' => $block['data']])
+                                @php
+                                    $blockInstance = \App\LandingPages\BlockRegistry::get($block['type']);
+                                @endphp
+                                @if($blockInstance)
+                                    {!! $blockInstance->render($block['data']) !!}
+                                @else
+                                    @include('landing-pages.blocks.' . $block['type'], ['data' => $block['data']])
+                                @endif
                             @endforeach
                         @endif
                     </div>
@@ -152,7 +159,14 @@
 
                         <!-- Two Step Optin Content -->
                         @foreach($page->two_step_optin['blocks'] as $block)
-                            @include('landing-pages.blocks.' . $block['type'], ['data' => $block['data']])
+                            @php
+                                $blockInstance = \App\LandingPages\BlockRegistry::get($block['type']);
+                            @endphp
+                            @if($blockInstance)
+                                {!! $blockInstance->render($block['data']) !!}
+                            @else
+                                @include('landing-pages.blocks.' . $block['type'], ['data' => $block['data']])
+                            @endif
                         @endforeach
                     </div>
                 </div>
@@ -187,7 +201,14 @@
 
                         <!-- Exit Popup Content -->
                         @foreach($page->exit_popup['blocks'] as $block)
-                            @include('landing-pages.blocks.' . $block['type'], ['data' => $block['data']])
+                            @php
+                                $blockInstance = \App\LandingPages\BlockRegistry::get($block['type']);
+                            @endphp
+                            @if($blockInstance)
+                                {!! $blockInstance->render($block['data']) !!}
+                            @else
+                                @include('landing-pages.blocks.' . $block['type'], ['data' => $block['data']])
+                            @endif
                         @endforeach
                     </div>
                 </div>

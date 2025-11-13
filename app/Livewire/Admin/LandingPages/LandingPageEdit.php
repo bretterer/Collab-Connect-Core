@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\LandingPages;
 
 use App\Enums\LandingPageBlockType;
+use App\LandingPages\BlockRegistry;
 use App\Models\LandingPage;
 use Flux\Flux;
 use Livewire\Attributes\Layout;
@@ -66,6 +67,8 @@ class LandingPageEdit extends Component
     public ?int $editingExitPopupBlockIndex = null;
 
     public array $exitPopupBlockData = [];
+
+    public string $activeEditorTab = 'content';
 
     public function mount(LandingPage $landingPage)
     {
@@ -207,10 +210,15 @@ class LandingPageEdit extends Component
     // Block Management
     public function addBlockToSection($sectionId, $blockType)
     {
+        // Use BlockRegistry to get default data if block is registered
+        $defaultData = BlockRegistry::has($blockType)
+            ? BlockRegistry::getDefaultData($blockType)
+            : $this->getDefaultBlockData($blockType);
+
         $block = [
             'id' => uniqid('block-'),
             'type' => $blockType,
-            'data' => $this->getDefaultBlockData($blockType),
+            'data' => $defaultData,
         ];
 
         $blockIndex = null;
@@ -707,8 +715,21 @@ class LandingPageEdit extends Component
 
     public function render()
     {
+        // Merge registered blocks with enum-based blocks
+        $registeredBlocks = BlockRegistry::all()->map(fn ($block) => (object) $block);
+        $enumBlocks = collect(LandingPageBlockType::cases())->map(fn ($case) => (object) [
+            'type' => $case->value,
+            'label' => $case->label(),
+            'description' => $case->description(),
+            'icon' => $case->icon(),
+        ]);
+
+        // Filter out enum blocks that are already registered
+        $registeredTypes = $registeredBlocks->pluck('type')->toArray();
+        $enumBlocks = $enumBlocks->filter(fn ($block) => ! in_array($block->type, $registeredTypes));
+
         return view('livewire.admin.landing-pages.landing-page-edit', [
-            'blockTypes' => LandingPageBlockType::cases(),
+            'blockTypes' => $registeredBlocks->merge($enumBlocks),
             'publishedLandingPages' => LandingPage::where('status', 'published')
                 ->where('id', '!=', $this->landingPage->id)
                 ->orderBy('title')
