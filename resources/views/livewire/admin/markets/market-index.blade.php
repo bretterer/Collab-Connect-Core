@@ -27,7 +27,7 @@
                     @foreach($markets as $market)
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <a href="{{ route('admin.markets.edit', $market) }}" class="text-blue-600 hover:text-blue-800 font-medium">
+                                <a href="{{ route('admin.markets.edit', $market) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
                                     {{ $market->name }}
                                 </a>
                             </td>
