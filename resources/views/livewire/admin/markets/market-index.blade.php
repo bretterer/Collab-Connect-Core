@@ -8,7 +8,7 @@
     </div>
 
     @if($markets->isEmpty())
-        <flux:callout variant="info">
+        <flux:callout variant="info" class="text-gray-900 dark:text-gray-100">
             No markets have been created yet. Click "Create New Market" to get started.
         </flux:callout>
     @else

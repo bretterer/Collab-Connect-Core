@@ -114,7 +114,7 @@
         <flux:heading size="lg" class="mb-4">Current Zipcodes ({{ $market->zipcodes_count }})</flux:heading>
 
         @if($zipcodes->isEmpty())
-            <flux:callout variant="info">
+            <flux:callout variant="info" class="text-gray-900 dark:text-gray-100">
                 No zipcodes have been added to this market yet.
             </flux:callout>
         @else

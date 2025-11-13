@@ -17,7 +17,7 @@
     @endif
 
     @if($waitlistData->isEmpty())
-        <flux:callout variant="success">
+        <flux:callout variant="success" class="text-gray-900 dark:text-gray-100">
             No users are currently on the waitlist!
         </flux:callout>
     @else
@@ -74,7 +74,7 @@
     @endif
 
     <div class="mt-6">
-        <flux:callout variant="info">
+        <flux:callout variant="info" class="text-gray-900 dark:text-gray-100">
             <strong>Note:</strong> When you approve users for a zipcode, they will immediately gain access to the platform on their next login.
             Make sure you've added the zipcode to an active market before approving users.
         </flux:callout>
