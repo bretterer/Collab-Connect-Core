@@ -51,7 +51,7 @@
                                     <flux:button
                                         wire:click="toggleActive({{ $market->id }})"
                                         size="sm"
-                                        :variant="$market->is_active ? 'warning' : 'success'">
+                                        :variant="$market->is_active ? 'warning' : 'primary'">
                                         {{ $market->is_active ? 'Deactivate' : 'Activate' }}
                                     </flux:button>
 
