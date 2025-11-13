@@ -34,6 +34,11 @@ class MarketEdit extends Component
     // For manual zipcode entry
     public $manualZipcode = '';
 
+    // For map drawing
+    public $drawnBoundary = null;
+
+    public $previewZipcodes = [];
+
     public function mount(Market $market)
     {
         $this->market = $market;
@@ -175,6 +180,94 @@ class MarketEdit extends Component
         MarketZipcode::find($zipcodeId)->delete();
 
         Flux::toast('Zipcode removed successfully!');
+    }
+
+    public function findZipcodesInBoundary($boundary)
+    {
+        // Boundary is either a circle or polygon from the map
+        // Circle: { type: 'circle', center: [lng, lat], radius: miles }
+        // Polygon: { type: 'polygon', coordinates: [[lng, lat], ...] }
+
+        $boundaryData = json_decode($boundary, true);
+
+        if ($boundaryData['type'] === 'circle') {
+            // Find zipcodes within radius
+            $center = PostalCode::where('country_code', 'US')
+                ->where('latitude', '!=', null)
+                ->where('longitude', '!=', null)
+                ->selectRaw('
+                    postal_code,
+                    place_name,
+                    admin_name1,
+                    (3959 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance
+                ', [$boundaryData['center'][1], $boundaryData['center'][0], $boundaryData['center'][1]])
+                ->having('distance', '<=', $boundaryData['radius'])
+                ->get();
+
+            $this->previewZipcodes = $center->toArray();
+        } elseif ($boundaryData['type'] === 'polygon') {
+            // Find zipcodes within polygon using point-in-polygon algorithm
+            $zipcodes = PostalCode::where('country_code', 'US')
+                ->where('latitude', '!=', null)
+                ->where('longitude', '!=', null)
+                ->get()
+                ->filter(function ($zipcode) use ($boundaryData) {
+                    return $this->isPointInPolygon(
+                        $zipcode->longitude,
+                        $zipcode->latitude,
+                        $boundaryData['coordinates']
+                    );
+                });
+
+            $this->previewZipcodes = $zipcodes->toArray();
+        }
+
+        return count($this->previewZipcodes);
+    }
+
+    public function addBoundaryZipcodes()
+    {
+        if (empty($this->previewZipcodes)) {
+            Flux::toast('No zipcodes found in the drawn area.', variant: 'warning');
+
+            return;
+        }
+
+        $added = 0;
+        foreach ($this->previewZipcodes as $zipcode) {
+            MarketZipcode::firstOrCreate([
+                'market_id' => $this->market->id,
+                'postal_code' => $zipcode['postal_code'],
+            ]);
+            $added++;
+        }
+
+        $this->previewZipcodes = [];
+        $this->drawnBoundary = null;
+
+        Flux::toast("{$added} zipcodes added successfully!");
+    }
+
+    private function isPointInPolygon($lng, $lat, $polygon)
+    {
+        $inside = false;
+        $count = count($polygon);
+
+        for ($i = 0, $j = $count - 1; $i < $count; $j = $i++) {
+            $xi = $polygon[$i][0];
+            $yi = $polygon[$i][1];
+            $xj = $polygon[$j][0];
+            $yj = $polygon[$j][1];
+
+            $intersect = (($yi > $lat) != ($yj > $lat))
+                && ($lng < ($xj - $xi) * ($lat - $yi) / ($yj - $yi) + $xi);
+
+            if ($intersect) {
+                $inside = ! $inside;
+            }
+        }
+
+        return $inside;
     }
 
     public function render()
