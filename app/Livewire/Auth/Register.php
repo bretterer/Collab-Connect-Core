@@ -5,6 +5,9 @@ namespace App\Livewire\Auth;
 use App\Enums\AccountType;
 use App\Models\BusinessMemberInvite;
 use App\Models\Invite;
+use App\Models\MarketWaitlist;
+use App\Models\MarketZipcode;
+use App\Models\PostalCode;
 use App\Models\User;
 use App\Models\Waitlist;
 use Illuminate\Auth\Events\Registered;
@@ -29,6 +32,8 @@ class Register extends Component
     public string $password = '';
 
     public string $password_confirmation = '';
+
+    public string $postal_code = '';
 
     public AccountType $accountType = AccountType::INFLUENCER;
 
@@ -64,7 +69,7 @@ class Register extends Component
                 $this->name = $this->betaInvite['full_name'] ?? $this->betaInvite['name'];
                 $this->accountType = $this->betaInvite['user_type'] === 'business' ? AccountType::BUSINESS : AccountType::INFLUENCER;
 
-                if($this->betaInvite['business_invite']) {
+                if ($this->betaInvite['business_invite']) {
                     $this->accountType = AccountType::BUSINESS;
                 }
             }
@@ -127,7 +132,7 @@ class Register extends Component
         }
 
         $this->waitlistEntry->update([
-                'registered_at' => now(),
+            'registered_at' => now(),
         ]);
 
     }
@@ -145,21 +150,44 @@ class Register extends Component
         $this->protectAgainstSpam();
 
         $this->email = strtolower($this->email);
+        $this->postal_code = trim($this->postal_code);
 
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
+            'postal_code' => ['required', 'string', 'max:10', function ($attribute, $value, $fail) {
+                // Validate that the postal code exists in our postal_codes table
+                $postalCode = PostalCode::where('postal_code', $value)
+                    ->where('country_code', 'US')
+                    ->first();
+
+                if (! $postalCode) {
+                    $fail('The postal code you entered is not valid.');
+                }
+            }],
             'accountType' => ['required', Rule::enum(AccountType::class)],
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
         $validated['account_type'] = $validated['accountType'];
 
+        // Check if postal code is in an active market
+        $isMarketApproved = MarketZipcode::isInActiveMarket($this->postal_code);
+        $validated['market_approved'] = $isMarketApproved;
+
         // Remove accountType from validated data as it's not a user field
         unset($validated['accountType']);
 
         event(new Registered(($user = User::create($validated))));
+
+        // If market is not approved, add user to waitlist
+        if (! $isMarketApproved) {
+            MarketWaitlist::create([
+                'user_id' => $user->id,
+                'postal_code' => $this->postal_code,
+            ]);
+        }
 
         // If this is a beta registration, mark the invite as used in CSV
         if ($this->betaInvite && $this->token) {
@@ -182,6 +210,11 @@ class Register extends Component
 
         Auth::login($user);
 
-        $this->redirect(route('verification.notice', absolute: false), navigate: true);
+        // Redirect to market waitlist page if not approved, otherwise to email verification
+        if (! $isMarketApproved) {
+            $this->redirect(route('market-waitlist'), navigate: true);
+        } else {
+            $this->redirect(route('verification.notice', absolute: false), navigate: true);
+        }
     }
 }

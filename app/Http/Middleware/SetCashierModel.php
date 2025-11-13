@@ -15,7 +15,7 @@ class SetCashierModel
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if(! $request->user()) {
+        if (! $request->user()) {
             return $next($request);
         }
 

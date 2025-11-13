@@ -93,7 +93,6 @@ class HighMatchScoreTest extends TestCase
         $score = MatchScore::calculateMatchScore($campaign, $influencerUser->influencer, 50);
         $breakdown = MatchScore::getDetailedScoreBreakdown($campaign, $influencerUser->influencer, 50);
 
-
         $this->assertGreaterThan(80, $score);
         $this->assertLessThan(95, $score);
     }
@@ -124,7 +123,6 @@ class HighMatchScoreTest extends TestCase
 
         $score = MatchScore::calculateMatchScore($campaign, $influencerUser->influencer);
         $breakdown = MatchScore::getDetailedScoreBreakdown($campaign, $influencerUser->influencer);
-
 
         $this->assertGreaterThan(75, $score);
         $this->assertLessThan(90, $score);
@@ -174,7 +172,6 @@ class HighMatchScoreTest extends TestCase
         );
 
         $score = MatchScore::calculateMatchScore($campaign, $influencerUser->influencer, 50);
-
 
         $this->assertGreaterThan(90, $score);
         $this->assertLessThan(100, $score);

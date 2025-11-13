@@ -21,7 +21,7 @@ class StripePriceCreated
                 ->where('stripe_id', $priceData['product'])
                 ->first();
 
-            if (!$product) {
+            if (! $product) {
                 throw new \Exception('Stripe product not found');
             }
 

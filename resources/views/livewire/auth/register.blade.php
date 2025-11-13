@@ -56,6 +56,14 @@
                     :placeholder="__('Confirm password')"
                     viewable />
 
+                <!-- Postal Code -->
+                <flux:input type="text"
+                    wire:model="postal_code"
+                    :label="__('Zip Code')"
+                    required
+                    autocomplete="postal-code"
+                    :placeholder="__('Enter your zip code')"
+                    maxlength="10" />
 
                 @unless($betaInvite && $betaInvite['business_invite'])
                 <flux:label>Account Type</flux:label>

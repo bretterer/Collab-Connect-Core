@@ -17,7 +17,7 @@ class MatchScoreServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new MatchScoreService();
+        $this->service = new MatchScoreService;
     }
 
     public function test_calculates_perfect_match_score(): void

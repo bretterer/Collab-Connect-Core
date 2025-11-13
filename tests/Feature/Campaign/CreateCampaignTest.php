@@ -8,10 +8,7 @@ use App\Enums\DeliverableType;
 use App\Enums\SuccessMetric;
 use App\Enums\TargetPlatform;
 use App\Livewire\Campaigns\CreateCampaign;
-use App\Models\Campaign;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -38,7 +35,7 @@ class CreateCampaignTest extends TestCase
             ->assertSee('Step 2 of 6')
             ->set('brandOverview', 'This is a great brand.')
             ->set('currentAdvertisingCampaign', 'We advertise on social media.')
-            ->set('brandStory' , 'Our brand story is compelling.')
+            ->set('brandStory', 'Our brand story is compelling.')
             ->call('nextStep')
             ->assertSet('currentStep', 3)
             ->assertSee('Step 3 of 6')
@@ -75,7 +72,6 @@ class CreateCampaignTest extends TestCase
             ->assertSee('Publish Campaign')
             ->call('publishCampaign');
 
-
         $this->assertDatabaseHas('campaigns', [
             'business_id' => $business->id,
             'project_name' => 'New Campaign',
@@ -94,7 +90,6 @@ class CreateCampaignTest extends TestCase
             'additional_considerations' => 'We value authenticity.',
         ]);
     }
-
 
     #[Test]
     public function a_business_member_can_create_a_campaign_for_the_business(): void
@@ -128,7 +123,7 @@ class CreateCampaignTest extends TestCase
             ->assertSee('Step 2 of 6')
             ->set('brandOverview', 'This is a great brand.')
             ->set('currentAdvertisingCampaign', 'We advertise on social media.')
-            ->set('brandStory' , 'Our brand story is compelling.')
+            ->set('brandStory', 'Our brand story is compelling.')
             ->call('nextStep')
             ->assertSet('currentStep', 3)
             ->assertSee('Step 3 of 6')
@@ -164,7 +159,6 @@ class CreateCampaignTest extends TestCase
             ->set('publishAction', 'publish')
             ->assertSee('Publish Campaign')
             ->call('publishCampaign');
-
 
         $this->assertDatabaseHas('campaigns', [
             'business_id' => $business->id,

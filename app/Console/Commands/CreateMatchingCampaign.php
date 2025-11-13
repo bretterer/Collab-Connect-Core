@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Enums\BusinessIndustry;
 use App\Enums\CampaignType;
-use App\Enums\CompensationType;
 use App\Facades\MatchScore;
 use App\Models\Campaign;
 use App\Models\User;
@@ -35,8 +34,9 @@ class CreateMatchingCampaign extends Command
         $user = User::query()->find($userId);
         $businessUser = User::query()->where('email', config('collabconnect.init_business_email'))->first();
 
-        if(! $user->isInfluencerAccount()) {
+        if (! $user->isInfluencerAccount()) {
             $this->error("User ID: {$userId} is not an influencer.");
+
             return Command::FAILURE;
         }
 
@@ -58,7 +58,7 @@ class CreateMatchingCampaign extends Command
             ])->toArray()
         );
 
-        $this->info('Match percentage: ' . MatchScore::calculateMatchScore($campaign, $user->influencer));
+        $this->info('Match percentage: '.MatchScore::calculateMatchScore($campaign, $user->influencer));
 
         return Command::SUCCESS;
     }

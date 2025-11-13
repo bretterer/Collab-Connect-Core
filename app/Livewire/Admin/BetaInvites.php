@@ -40,7 +40,7 @@ class BetaInvites extends Component
             $this->invites = $invites;
         } catch (\Exception $e) {
             $this->invites = [];
-            session()->flash('error', 'Error loading invites: ' . $e->getMessage());
+            session()->flash('error', 'Error loading invites: '.$e->getMessage());
         }
     }
 
@@ -50,7 +50,7 @@ class BetaInvites extends Component
             'invite.email' => 'required|email|unique:invites,email',
             'invite.name' => 'required|string|max:255',
             'invite.user_type' => 'required|in:business,influencer',
-        ],[
+        ], [
             'invite.email.unique' => 'This email has already been invited.',
             'invite.email.required' => 'Email is required.',
             'invite.email.email' => 'Please enter a valid email address.',
@@ -78,7 +78,7 @@ class BetaInvites extends Component
         ];
 
         // Send email based on user type
-        $emailClass = match($this->invite['user_type']) {
+        $emailClass = match ($this->invite['user_type']) {
             'business' => \App\Mail\BetaInviteBusiness::class,
             'influencer' => \App\Mail\BetaInviteInfluencer::class,
             default => \App\Mail\BetaInviteGeneric::class,
@@ -141,7 +141,7 @@ class BetaInvites extends Component
             })->toArray();
         } catch (\Exception $e) {
             $this->waitlistItems = [];
-            session()->flash('error', 'Error loading waitlist: ' . $e->getMessage());
+            session()->flash('error', 'Error loading waitlist: '.$e->getMessage());
         }
     }
 
@@ -149,8 +149,9 @@ class BetaInvites extends Component
     {
         $waitlistEntry = Waitlist::find($inviteId);
 
-        if (!$waitlistEntry || $waitlistEntry->invited_at) {
+        if (! $waitlistEntry || $waitlistEntry->invited_at) {
             session()->flash('error', 'Invite not found or already sent.');
+
             return;
         }
 
@@ -165,7 +166,7 @@ class BetaInvites extends Component
 
         // Create signed URL that expires in 7 days
         $signedUrl = URL::temporarySignedRoute(
-            "register",
+            'register',
             now()->addDays(7),
             ['token' => $token]
         );
@@ -179,7 +180,7 @@ class BetaInvites extends Component
         ];
 
         // Send email based on user type
-        $emailClass = match($waitlistEntry->user_type) {
+        $emailClass = match ($waitlistEntry->user_type) {
             'business' => \App\Mail\BetaInviteBusiness::class,
             'influencer' => \App\Mail\BetaInviteInfluencer::class,
             default => \App\Mail\BetaInviteGeneric::class,
@@ -193,14 +194,15 @@ class BetaInvites extends Component
 
     public function resendInvite($inviteId, $type = null)
     {
-        if($type === 'personal') {
+        if ($type === 'personal') {
             $waitlistEntry = Invite::find($inviteId);
         } else {
             $waitlistEntry = Waitlist::find($inviteId);
         }
 
-        if (!$waitlistEntry) {
+        if (! $waitlistEntry) {
             session()->flash('error', 'Invite not found.');
+
             return;
         }
 
@@ -214,7 +216,7 @@ class BetaInvites extends Component
 
         // Create signed URL
         $signedUrl = URL::temporarySignedRoute(
-            "register",
+            'register',
             now()->addDays(7),
             ['token' => $token]
         );
@@ -228,7 +230,7 @@ class BetaInvites extends Component
         ];
 
         // Send email
-        $emailClass = match($waitlistEntry->user_type) {
+        $emailClass = match ($waitlistEntry->user_type) {
             'business' => \App\Mail\BetaInviteBusiness::class,
             'influencer' => \App\Mail\BetaInviteInfluencer::class,
             default => \App\Mail\BetaInviteGeneric::class,
@@ -242,20 +244,21 @@ class BetaInvites extends Component
 
     public function addToReferralProgram($inviteId, $type = null)
     {
-        if($type === 'personal') {
+        if ($type === 'personal') {
             $waitlistEntry = Invite::find($inviteId);
         } else {
             $waitlistEntry = Waitlist::find($inviteId);
         }
 
-        if (!$waitlistEntry) {
+        if (! $waitlistEntry) {
             session()->flash('error', 'Invite not found.');
+
             return;
         }
 
         $referralCode = ReferralCode::create([
             'email' => $waitlistEntry->email,
-            'code' => (new ReferralCode())->generateCode(),
+            'code' => (new ReferralCode)->generateCode(),
         ]);
 
         Mail::to($waitlistEntry->email)->send(new \App\Mail\ReferralProgramInvite($waitlistEntry->email, $waitlistEntry->name, $referralCode->code));
@@ -268,8 +271,9 @@ class BetaInvites extends Component
     {
         $waitlistEntry = Waitlist::find($inviteId);
 
-        if (!$waitlistEntry || !$waitlistEntry->referralCode) {
+        if (! $waitlistEntry || ! $waitlistEntry->referralCode) {
             session()->flash('error', 'Referral code not found.');
+
             return;
         }
 
@@ -277,5 +281,4 @@ class BetaInvites extends Component
 
         session()->flash('message', "Referral code resent to {$waitlistEntry->email}");
     }
-
 }

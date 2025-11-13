@@ -160,7 +160,6 @@ class BillingDetails extends Component
                 default => [],
             };
 
-
             // Capture Datafast cookies for attribution
             $datafastVisitorId = request()->cookie('datafast_visitor_id');
             $datafastSessionId = request()->cookie('datafast_session_id');
@@ -257,10 +256,12 @@ class BillingDetails extends Component
         try {
             if (! $this->billableModel->hasStripeId()) {
                 Toaster::error('No billing account found.');
+
                 return;
             }
         } catch (\Exception $e) {
             Toaster::error('Failed to access billing portal: '.$e->getMessage());
+
             return;
         }
 

@@ -40,6 +40,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'account_type' => AccountType::class,
+            'market_approved' => 'boolean',
         ];
     }
 
@@ -251,6 +252,22 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasUnreadMessages(): bool
     {
         return $this->getUnreadMessageCount() > 0;
+    }
+
+    /**
+     * Get the user's market waitlist entry
+     */
+    public function marketWaitlist(): HasOne
+    {
+        return $this->hasOne(MarketWaitlist::class);
+    }
+
+    /**
+     * Check if the user is on the market waitlist
+     */
+    public function isOnMarketWaitlist(): bool
+    {
+        return $this->marketWaitlist()->exists();
     }
 
     /**

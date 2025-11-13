@@ -31,8 +31,6 @@ class Search extends BaseComponent
 
     public $responseTime = '';
 
-
-
     protected $queryString = [
         'search' => ['except' => ''],
         'selectedNiches' => ['except' => []],
@@ -107,7 +105,6 @@ class Search extends BaseComponent
         $this->resetPage();
     }
 
-
     public function render()
     {
         $currentUser = $this->getAuthenticatedUser();
@@ -138,6 +135,4 @@ class Search extends BaseComponent
             'results' => $results,
         ], $metadata));
     }
-
-
 }

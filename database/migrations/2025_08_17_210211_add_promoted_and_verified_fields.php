@@ -33,7 +33,7 @@ return new class extends Migration
                 'is_promoted',
                 'promoted_until',
                 'is_verified',
-                'verified_at'
+                'verified_at',
             ]);
         });
 

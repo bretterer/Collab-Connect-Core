@@ -145,6 +145,7 @@ class ApplicationsIndex extends BaseComponent
         if (! $application || ! $application->campaign || $application->campaign->business_id !== Auth::user()->currentBusiness->id) {
             $this->flashError('Application not found or you do not have permission to decline it.');
             Toaster::error('Application not found or you do not have permission to decline it.');
+
             return;
         }
 

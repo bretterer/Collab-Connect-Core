@@ -10,11 +10,15 @@ class BusinessCard extends Component
     public User $user;
 
     public bool $isPromoted = false;
+
     public bool $isVerified = false;
+
     public bool $showFavorites = true;
 
     public string $profileImageUrl;
+
     public string $coverImageUrl;
+
     public int $randomSeed;
 
     public function mount()
@@ -22,7 +26,7 @@ class BusinessCard extends Component
         // Generate random seed for consistent images per component instance
         $this->randomSeed = rand(1, 799);
         $this->profileImageUrl = "https://picsum.photos/seed/{$this->randomSeed}/150/150";
-        $this->coverImageUrl = "https://picsum.photos/seed/" . ($this->randomSeed + 1) . "/400/200";
+        $this->coverImageUrl = 'https://picsum.photos/seed/'.($this->randomSeed + 1).'/400/200';
     }
 
     public function getRandomRating()

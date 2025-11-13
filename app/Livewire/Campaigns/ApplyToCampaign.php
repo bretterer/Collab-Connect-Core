@@ -69,7 +69,7 @@ class ApplyToCampaign extends BaseComponent
 
         CampaignApplicationSubmitted::dispatch($this->campaign, $user, $application);
 
-        $this->campaign->business->owner->each(fn($owner) => $owner->notify(new \App\Notifications\CampaignApplicationSubmittedNotification($application)));
+        $this->campaign->business->owner->each(fn ($owner) => $owner->notify(new \App\Notifications\CampaignApplicationSubmittedNotification($application)));
 
         // Update the existing application property
         $this->existingApplication = $application;

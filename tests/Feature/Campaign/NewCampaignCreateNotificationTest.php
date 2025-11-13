@@ -12,8 +12,6 @@ use App\Jobs\SendCampaignNotifications;
 use App\Models\Campaign;
 use App\Models\PostalCode;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
@@ -49,7 +47,7 @@ class NewCampaignCreateNotificationTest extends TestCase
             'content_types' => ['retail'],
             'preferred_business_types' => [BusinessType::ECOMMERCE],
             'primary_industry' => BusinessIndustry::FITNESS_WELLNESS,
-            'postal_code' => '45066' // Exact match = 100 location points
+            'postal_code' => '45066', // Exact match = 100 location points
         ])->create();
 
         // Create published campaign - this should trigger the job dispatch
@@ -99,7 +97,7 @@ class NewCampaignCreateNotificationTest extends TestCase
             'content_types' => ['retail'],
             'preferred_business_types' => [BusinessType::ECOMMERCE],
             'primary_industry' => BusinessIndustry::FITNESS_WELLNESS,
-            'postal_code' => '45066' // Exact match = 100 location points
+            'postal_code' => '45066', // Exact match = 100 location points
         ])->create();
 
         // Create published campaign - this should trigger and execute the job
@@ -149,7 +147,7 @@ class NewCampaignCreateNotificationTest extends TestCase
 
         $influencerUser = User::factory()->influencer()->withProfile([
             'primary_industry' => BusinessIndustry::FITNESS_WELLNESS,
-            'postal_code' => '45066'
+            'postal_code' => '45066',
         ])->create();
 
         $campaign = $businessUser->currentBusiness->campaigns()->create(
