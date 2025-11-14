@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Admin\LandingPages;
 
-use App\Enums\LandingPageBlockType;
 use App\LandingPages\BlockRegistry;
 use App\Models\LandingPage;
 use Flux\Flux;
@@ -210,10 +209,7 @@ class LandingPageEdit extends Component
     // Block Management
     public function addBlockToSection($sectionId, $blockType)
     {
-        // Use BlockRegistry to get default data if block is registered
-        $defaultData = BlockRegistry::has($blockType)
-            ? BlockRegistry::getDefaultData($blockType)
-            : $this->getDefaultBlockData($blockType);
+        $defaultData = BlockRegistry::getDefaultData($blockType);
 
         $block = [
             'id' => uniqid('block-'),
@@ -383,7 +379,7 @@ class LandingPageEdit extends Component
         $block = [
             'id' => uniqid('block-'),
             'type' => $blockType,
-            'data' => $this->getDefaultBlockData($blockType),
+            'data' => BlockRegistry::getDefaultData($blockType),
         ];
 
         $this->twoStepOptinBlocks[] = $block;
@@ -456,7 +452,7 @@ class LandingPageEdit extends Component
         $block = [
             'id' => uniqid('block-'),
             'type' => $blockType,
-            'data' => $this->getDefaultBlockData($blockType),
+            'data' => BlockRegistry::getDefaultData($blockType),
         ];
 
         $this->exitPopupBlocks[] = $block;
@@ -542,6 +538,36 @@ class LandingPageEdit extends Component
         );
     }
 
+    public function unpublish()
+    {
+        $this->validate();
+
+        $this->landingPage->update([
+            'title' => $this->title,
+            'slug' => $this->slug,
+            'description' => $this->description,
+            'blocks' => $this->sections,
+            'two_step_optin' => $this->twoStepOptinEnabled ? [
+                'enabled' => true,
+                'blocks' => $this->twoStepOptinBlocks,
+            ] : null,
+            'exit_popup' => $this->exitPopupEnabled ? [
+                'enabled' => true,
+                'blocks' => $this->exitPopupBlocks,
+            ] : null,
+            'status' => 'draft',
+            'published_at' => null,
+            'updated_by' => auth()->id(),
+        ]);
+
+        $this->status = 'draft';
+
+        Flux::toast(
+            text: 'Landing page unpublished',
+            variant: 'success'
+        );
+    }
+
     private function getDefaultSectionSettings(): array
     {
         return [
@@ -553,183 +579,26 @@ class LandingPageEdit extends Component
 
             // Desktop Layout
             'desktop_hide' => false,
-            'desktop_padding_top' => 64,
-            'desktop_padding_bottom' => 64,
-            'desktop_padding_left' => 16,
-            'desktop_padding_right' => 16,
+            'desktop_padding_top' => 0,
+            'desktop_padding_bottom' => 0,
+            'desktop_padding_left' => 0,
+            'desktop_padding_right' => 0,
             'desktop_vertical_align' => 'top', // top, center, bottom
             'desktop_horizontal_align' => 'left', // left, center, right, space-around, space-between
 
             // Mobile Layout
             'mobile_hide' => false,
-            'mobile_padding_top' => 48,
-            'mobile_padding_bottom' => 48,
-            'mobile_padding_left' => 16,
-            'mobile_padding_right' => 16,
+            'mobile_padding_top' => 0,
+            'mobile_padding_bottom' => 0,
+            'mobile_padding_left' => 0,
+            'mobile_padding_right' => 0,
         ];
-    }
-
-    private function getDefaultBlockData($blockType): array
-    {
-        return match ($blockType) {
-            LandingPageBlockType::HEADER->value => [
-                'logo' => '',
-                'navigation' => [],
-            ],
-            LandingPageBlockType::HERO->value => [
-                'headline' => 'Your Compelling Headline',
-                'subheadline' => 'Supporting text that explains your offer',
-                'cta_text' => 'Get Started',
-                'cta_url' => '#',
-                'image' => '',
-                'background_color' => '#ffffff',
-            ],
-            LandingPageBlockType::TEXT->value => [
-                'content' => '<p>Add your content here...</p>',
-                'text_align' => 'left',
-                'max_width' => 'prose',
-            ],
-            LandingPageBlockType::IMAGE->value => [
-                'url' => '',
-                'alt' => '',
-                'caption' => '',
-                'width' => 'full',
-                'alignment' => 'center',
-                'rounded' => 'lg',
-            ],
-            LandingPageBlockType::YOUTUBE->value => [
-                'video_id' => '',
-                'aspect_ratio' => '16/9',
-                'max_width' => 'large',
-            ],
-            LandingPageBlockType::FEATURES->value => [
-                'title' => 'Features',
-                'items' => [
-                    ['icon' => 'star', 'title' => 'Feature 1', 'description' => 'Description'],
-                    ['icon' => 'star', 'title' => 'Feature 2', 'description' => 'Description'],
-                    ['icon' => 'star', 'title' => 'Feature 3', 'description' => 'Description'],
-                ],
-            ],
-            LandingPageBlockType::CTA->value => [
-                'headline' => 'Ready to get started?',
-                'subheadline' => 'Join thousands of satisfied customers',
-                'text' => '',
-                'width' => 12,
-                'button_text' => 'Get Started Now',
-                'button_url' => '#',
-                'button_action' => 'url',
-                'button_new_tab' => false,
-                'landing_page_id' => null,
-                'button_bg_color' => '#3b82f6',
-                'button_text_color' => '#ffffff',
-                'button_width' => 'auto',
-                'button_style' => 'solid',
-                'button_size' => 'large',
-                'button_border_radius' => 8,
-                'background_color' => '#f9fafb',
-                'border_type' => 'none',
-                'border_width' => 1,
-                'border_color' => '#e5e7eb',
-                'border_radius' => 0,
-                'box_shadow' => 'none',
-                'desktop_hide' => false,
-                'desktop_text_align' => 'center',
-                'desktop_padding_top' => 64,
-                'desktop_padding_bottom' => 64,
-                'desktop_padding_left' => 16,
-                'desktop_padding_right' => 16,
-                'desktop_margin_top' => 0,
-                'desktop_margin_bottom' => 0,
-                'desktop_margin_left' => 0,
-                'desktop_margin_right' => 0,
-                'desktop_make_flush' => false,
-                'mobile_hide' => false,
-                'mobile_text_align' => 'center',
-                'mobile_padding_top' => 48,
-                'mobile_padding_bottom' => 48,
-                'mobile_padding_left' => 16,
-                'mobile_padding_right' => 16,
-                'mobile_margin_top' => 0,
-                'mobile_margin_bottom' => 0,
-                'mobile_margin_left' => 0,
-                'mobile_margin_right' => 0,
-            ],
-            LandingPageBlockType::TWO_STEP_OPTIN->value => [
-                'button_text' => 'Yes! I Want This',
-                'modal_headline' => 'Enter your email to continue',
-                'form_button_text' => 'Get Instant Access',
-                'success_message' => 'Check your email!',
-            ],
-            LandingPageBlockType::TESTIMONIALS->value => [
-                'title' => 'What Our Customers Say',
-                'items' => [
-                    ['name' => 'John Doe', 'role' => 'CEO, Company', 'content' => 'Great product!', 'image' => ''],
-                ],
-            ],
-            LandingPageBlockType::FAQ->value => [
-                'title' => 'Frequently Asked Questions',
-                'items' => [
-                    ['question' => 'Question 1?', 'answer' => 'Answer 1'],
-                    ['question' => 'Question 2?', 'answer' => 'Answer 2'],
-                ],
-            ],
-            LandingPageBlockType::FOOTER->value => [
-                'copyright' => '© 2025 Your Company',
-                'links' => [],
-            ],
-            LandingPageBlockType::EXIT_POPUP->value => [
-                'headline' => 'Wait! Don\'t Leave Yet',
-                'content' => 'Get a special offer before you go',
-                'cta_text' => 'Claim Offer',
-                'cta_url' => '#',
-            ],
-            LandingPageBlockType::CUSTOM_HTML->value => [
-                'html' => '',
-                'css' => '',
-                'js' => '',
-            ],
-            LandingPageBlockType::FORM->value => [
-                'form_id' => null,
-            ],
-            LandingPageBlockType::STRIPE_CHECKOUT->value => [
-                'button_text' => 'Buy Now',
-                'modal_headline' => 'Complete Your Purchase',
-                'modal_description' => 'Enter your information below',
-                'stripe_price_id' => '',
-                'cancel_url' => '',
-                'fields' => [
-                    ['name' => 'name', 'label' => 'Full Name', 'type' => 'text', 'required' => true],
-                    ['name' => 'email', 'label' => 'Email Address', 'type' => 'email', 'required' => true],
-                ],
-            ],
-            LandingPageBlockType::THANK_YOU->value => [
-                'headline' => 'Thank You!',
-                'message' => 'Your payment was successful. You\'ll receive a confirmation email shortly.',
-                'show_order_id' => true,
-                'button_text' => 'Return to Home',
-                'button_url' => '/',
-            ],
-            default => [],
-        };
     }
 
     public function render()
     {
-        // Merge registered blocks with enum-based blocks
-        $registeredBlocks = BlockRegistry::all()->map(fn ($block) => (object) $block);
-        $enumBlocks = collect(LandingPageBlockType::cases())->map(fn ($case) => (object) [
-            'type' => $case->value,
-            'label' => $case->label(),
-            'description' => $case->description(),
-            'icon' => $case->icon(),
-        ]);
-
-        // Filter out enum blocks that are already registered
-        $registeredTypes = $registeredBlocks->pluck('type')->toArray();
-        $enumBlocks = $enumBlocks->filter(fn ($block) => ! in_array($block->type, $registeredTypes));
-
         return view('livewire.admin.landing-pages.landing-page-edit', [
-            'blockTypes' => $registeredBlocks->merge($enumBlocks),
+            'blockTypes' => BlockRegistry::all()->map(fn ($block) => (object) $block),
             'publishedLandingPages' => LandingPage::where('status', 'published')
                 ->where('id', '!=', $this->landingPage->id)
                 ->orderBy('title')

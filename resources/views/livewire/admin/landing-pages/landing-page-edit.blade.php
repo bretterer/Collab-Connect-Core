@@ -16,12 +16,21 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <flux:button variant="outline" wire:click="save(false)" size="sm">
-                    Save Draft
-                </flux:button>
-                <flux:button wire:click="save(true)" size="sm">
-                    Publish
-                </flux:button>
+                @if($status === 'published')
+                    <flux:button variant="outline" wire:click="unpublish" size="sm">
+                        Unpublish
+                    </flux:button>
+                    <flux:button wire:click="save(true)" size="sm">
+                        Publish Changes
+                    </flux:button>
+                @else
+                    <flux:button variant="outline" wire:click="save(false)" size="sm">
+                        Save Draft
+                    </flux:button>
+                    <flux:button wire:click="save(true)" size="sm">
+                        Publish
+                    </flux:button>
+                @endif
             </div>
         </div>
     </div>
@@ -123,10 +132,11 @@
                                     <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 space-y-1">
                                         @foreach($section['blocks'] as $blockIndex => $block)
                                             @php
-                                                $blockType = App\Enums\LandingPageBlockType::from($block['type']);
+                                                $blockInstance = \App\LandingPages\BlockRegistry::get($block['type']);
+                                                $blockLabel = $blockInstance ? $blockInstance::label() : $block['type'];
                                             @endphp
                                             <div class="flex items-center justify-between text-xs py-1 px-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700" wire:key="{{ $block['id'] }}">
-                                                <span class="text-gray-700 dark:text-gray-300">{{ $blockType->label() }}</span>
+                                                <span class="text-gray-700 dark:text-gray-300">{{ $blockLabel }}</span>
                                                 <div class="flex gap-1">
                                                     <flux:button
                                                         size="xs"
@@ -192,12 +202,13 @@
                         @if(count($twoStepOptinBlocks) > 0)
                             @foreach($twoStepOptinBlocks as $blockIndex => $block)
                                 @php
-                                    $blockType = App\Enums\LandingPageBlockType::from($block['type']);
+                                    $blockInstance = \App\LandingPages\BlockRegistry::get($block['type']);
+                                    $blockLabel = $blockInstance ? $blockInstance::label() : $block['type'];
                                 @endphp
                                 <div class="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
                                     <div class="flex-1 min-w-0">
                                         <p class="text-xs font-medium text-gray-900 dark:text-white truncate">
-                                            {{ $blockType->label() }}
+                                            {{ $blockLabel }}
                                         </p>
                                     </div>
                                     <div class="flex items-center gap-1">
@@ -248,12 +259,13 @@
                         @if(count($exitPopupBlocks) > 0)
                             @foreach($exitPopupBlocks as $blockIndex => $block)
                                 @php
-                                    $blockType = App\Enums\LandingPageBlockType::from($block['type']);
+                                    $blockInstance = \App\LandingPages\BlockRegistry::get($block['type']);
+                                    $blockLabel = $blockInstance ? $blockInstance::label() : $block['type'];
                                 @endphp
                                 <div class="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
                                     <div class="flex-1 min-w-0">
                                         <p class="text-xs font-medium text-gray-900 dark:text-white truncate">
-                                            {{ $blockType->label() }}
+                                            {{ $blockLabel }}
                                         </p>
                                     </div>
                                     <div class="flex items-center gap-1">
@@ -294,10 +306,10 @@
         </div>
 
         <!-- Center - Preview -->
-        <div class="flex-1 bg-gray-100 dark:bg-gray-950 overflow-auto">
+        <div class="flex-1 bg-gray-100 overflow-auto">
             <div class="h-full">
                 @if(count($sections) > 0)
-                    <div class="bg-white dark:bg-gray-900">
+                    <div class="bg-white">
                         @foreach($sections as $section)
                             @php
                                 $settings = $section['settings'];
@@ -375,7 +387,7 @@
                                 <div class="flex {{ $flexClasses }} min-h-full">
                                     <div class="w-full">
                                         @foreach($section['blocks'] as $block)
-                                            @include('landing-pages.blocks.' . $block['type'], ['data' => $block['data']])
+                                            @include('landing-pages.blocks.' . $block['type'] . '.render', ['data' => $block['data']])
                                         @endforeach
                                     </div>
                                 </div>
@@ -385,11 +397,11 @@
                 @else
                     <div class="flex items-center justify-center h-full">
                         <div class="text-center">
-                            <svg class="w-16 h-16 mx-auto text-gray-300 dark:text-gray-700 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
-                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Start Building</h3>
-                            <p class="text-gray-500 dark:text-gray-400 mb-4">Add your first section to get started</p>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Start Building</h3>
+                            <p class="text-gray-500 mb-4">Add your first section to get started</p>
                             <flux:button wire:click="addSection" icon="plus">
                                 Add Section
                             </flux:button>
@@ -408,14 +420,8 @@
 
             @if($editingBlock)
                 @php
-                    // Try to get block from registry first, fallback to enum
                     $blockInstance = \App\LandingPages\BlockRegistry::get($editingBlock['type']);
-                    if ($blockInstance) {
-                        $blockLabel = $blockInstance::label();
-                    } else {
-                        $blockType = App\Enums\LandingPageBlockType::from($editingBlock['type']);
-                        $blockLabel = $blockType->label();
-                    }
+                    $blockLabel = $blockInstance ? $blockInstance::label() : $editingBlock['type'];
                 @endphp
                 <div class="fixed right-0 top-16 bottom-0 w-[600px] bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col shadow-2xl z-50">
                     <div class="p-4 border-b border-gray-200 dark:border-gray-700">
@@ -554,9 +560,9 @@
         <flux:subheading>Choose a block type to add to the two step optin modal</flux:subheading>
 
         <div class="mt-6 grid grid-cols-3 gap-4">
-            @foreach(App\Enums\LandingPageBlockType::cases() as $blockType)
+            @foreach($blockTypes as $blockType)
                 <button
-                    wire:click="addTwoStepOptinBlock('{{ $blockType->value }}'); $set('editingTwoStepOptin', false)"
+                    wire:click="addTwoStepOptinBlock('{{ $blockType->type }}'); $set('editingTwoStepOptin', false)"
                     class="flex flex-col items-start p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
                 >
                     <div class="w-8 h-8 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 mb-2">
@@ -564,8 +570,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
                     </div>
-                    <h3 class="font-medium text-gray-900 dark:text-white text-sm">{{ $blockType->label() }}</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $blockType->description() }}</p>
+                    <h3 class="font-medium text-gray-900 dark:text-white text-sm">{{ $blockType->label }}</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $blockType->description }}</p>
                 </button>
             @endforeach
         </div>
@@ -577,9 +583,9 @@
         <flux:subheading>Choose a block type to add to the exit popup</flux:subheading>
 
         <div class="mt-6 grid grid-cols-3 gap-4">
-            @foreach(App\Enums\LandingPageBlockType::cases() as $blockType)
+            @foreach($blockTypes as $blockType)
                 <button
-                    wire:click="addExitPopupBlock('{{ $blockType->value }}'); $set('editingExitPopup', false)"
+                    wire:click="addExitPopupBlock('{{ $blockType->type }}'); $set('editingExitPopup', false)"
                     class="flex flex-col items-start p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
                 >
                     <div class="w-8 h-8 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 mb-2">
@@ -587,8 +593,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
                     </div>
-                    <h3 class="font-medium text-gray-900 dark:text-white text-sm">{{ $blockType->label() }}</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $blockType->description() }}</p>
+                    <h3 class="font-medium text-gray-900 dark:text-white text-sm">{{ $blockType->label }}</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $blockType->description }}</p>
                 </button>
             @endforeach
         </div>
@@ -602,12 +608,13 @@
 
         @if($editingBlock)
             @php
-                $blockType = App\Enums\LandingPageBlockType::from($editingBlock['type']);
+                $blockInstance = \App\LandingPages\BlockRegistry::get($editingBlock['type']);
+                $blockLabel = $blockInstance ? $blockInstance::label() : $editingBlock['type'];
             @endphp
             <flux:modal :open="true" wire:model="editingTwoStepOptin" class="max-w-2xl">
                 <div class="flex items-center justify-between mb-6">
                     <div>
-                        <flux:heading>Edit {{ $blockType->label() }}</flux:heading>
+                        <flux:heading>Edit {{ $blockLabel }}</flux:heading>
                         <flux:subheading>Customize block settings for two step optin</flux:subheading>
                     </div>
                 </div>
@@ -636,12 +643,13 @@
 
         @if($editingBlock)
             @php
-                $blockType = App\Enums\LandingPageBlockType::from($editingBlock['type']);
+                $blockInstance = \App\LandingPages\BlockRegistry::get($editingBlock['type']);
+                $blockLabel = $blockInstance ? $blockInstance::label() : $editingBlock['type'];
             @endphp
             <flux:modal :open="true" wire:model="editingExitPopup" class="max-w-2xl">
                 <div class="flex items-center justify-between mb-6">
                     <div>
-                        <flux:heading>Edit {{ $blockType->label() }}</flux:heading>
+                        <flux:heading>Edit {{ $blockLabel }}</flux:heading>
                         <flux:subheading>Customize block settings for exit popup</flux:subheading>
                     </div>
                 </div>

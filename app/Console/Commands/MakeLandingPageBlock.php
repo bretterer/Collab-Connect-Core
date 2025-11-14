@@ -165,59 +165,23 @@ class {$className} extends BaseBlock
         return 'document-text';
     }
 
-    public static function defaultData(): array
+    /**
+     * Define content-specific defaults for this block
+     */
+    protected static function contentDefaultData(): array
     {
         return [
-            // Content
             'content' => '',
-
-            // Layout - Desktop
-            'desktop_hide' => false,
-            'desktop_padding_top' => 64,
-            'desktop_padding_bottom' => 64,
-            'desktop_padding_left' => 16,
-            'desktop_padding_right' => 16,
-            'desktop_margin_top' => 0,
-            'desktop_margin_bottom' => 0,
-
-            // Layout - Mobile
-            'mobile_hide' => false,
-            'mobile_padding_top' => 48,
-            'mobile_padding_bottom' => 48,
-            'mobile_padding_left' => 16,
-            'mobile_padding_right' => 16,
-            'mobile_margin_top' => 0,
-            'mobile_margin_bottom' => 0,
-
-            // Style
-            'background_color' => 'transparent',
-            'text_color' => 'inherit',
         ];
     }
 
-    protected function rules(): array
+    /**
+     * Define content-specific validation rules
+     */
+    protected function contentRules(): array
     {
         return [
             'content' => ['nullable', 'string'],
-
-            'desktop_hide' => ['boolean'],
-            'desktop_padding_top' => ['integer', 'min:0', 'max:256'],
-            'desktop_padding_bottom' => ['integer', 'min:0', 'max:256'],
-            'desktop_padding_left' => ['integer', 'min:0', 'max:256'],
-            'desktop_padding_right' => ['integer', 'min:0', 'max:256'],
-            'desktop_margin_top' => ['integer', 'min:-128', 'max:256'],
-            'desktop_margin_bottom' => ['integer', 'min:-128', 'max:256'],
-
-            'mobile_hide' => ['boolean'],
-            'mobile_padding_top' => ['integer', 'min:0', 'max:256'],
-            'mobile_padding_bottom' => ['integer', 'min:0', 'max:256'],
-            'mobile_padding_left' => ['integer', 'min:0', 'max:256'],
-            'mobile_padding_right' => ['integer', 'min:0', 'max:256'],
-            'mobile_margin_top' => ['integer', 'min:-128', 'max:256'],
-            'mobile_margin_bottom' => ['integer', 'min:-128', 'max:256'],
-
-            'background_color' => ['nullable', 'string'],
-            'text_color' => ['nullable', 'string'],
         ];
     }
 
@@ -247,140 +211,16 @@ PHP;
     protected function getEditorViewStub(): string
     {
         return <<<'BLADE'
-<div>
-    {{-- Tab Navigation --}}
-    <flux:tab.group>
-        <flux:tabs wire:model="activeEditorTab" class="mb-6">
-            @foreach($tabs as $tab)
-                <flux:tab name="{{ $tab['name'] }}" icon="{{ $tab['icon'] ?? null }}">
-                    {{ $tab['label'] }}
-                </flux:tab>
-            @endforeach
-        </flux:tabs>
-
-        {{-- Content Tab --}}
-        <flux:tab.panel name="content">
-            <div class="space-y-6">
-                <flux:field>
-                    <flux:label>Content</flux:label>
-                    <flux:description>Add your content here</flux:description>
-                    <flux:input wire:model="{{ $propertyPrefix }}.content" placeholder="Enter content..." />
-                </flux:field>
-            </div>
-        </flux:tab.panel>
-
-        {{-- Layout Tab --}}
-        <flux:tab.panel name="layout">
-            <div class="space-y-8">
-                {{-- Desktop Layout --}}
-                <div>
-                    <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Desktop Layout</h3>
-                    <div class="space-y-4">
-                        <flux:field>
-                            <flux:checkbox wire:model="{{ $propertyPrefix }}.desktop_hide">
-                                Hide on desktop
-                            </flux:checkbox>
-                        </flux:field>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <flux:field>
-                                <flux:label>Padding Top (px)</flux:label>
-                                <flux:input type="number" wire:model="{{ $propertyPrefix }}.desktop_padding_top" min="0" max="256" />
-                            </flux:field>
-
-                            <flux:field>
-                                <flux:label>Padding Bottom (px)</flux:label>
-                                <flux:input type="number" wire:model="{{ $propertyPrefix }}.desktop_padding_bottom" min="0" max="256" />
-                            </flux:field>
-
-                            <flux:field>
-                                <flux:label>Padding Left (px)</flux:label>
-                                <flux:input type="number" wire:model="{{ $propertyPrefix }}.desktop_padding_left" min="0" max="256" />
-                            </flux:field>
-
-                            <flux:field>
-                                <flux:label>Padding Right (px)</flux:label>
-                                <flux:input type="number" wire:model="{{ $propertyPrefix }}.desktop_padding_right" min="0" max="256" />
-                            </flux:field>
-
-                            <flux:field>
-                                <flux:label>Margin Top (px)</flux:label>
-                                <flux:input type="number" wire:model="{{ $propertyPrefix }}.desktop_margin_top" min="-128" max="256" />
-                            </flux:field>
-
-                            <flux:field>
-                                <flux:label>Margin Bottom (px)</flux:label>
-                                <flux:input type="number" wire:model="{{ $propertyPrefix }}.desktop_margin_bottom" min="-128" max="256" />
-                            </flux:field>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Mobile Layout --}}
-                <div>
-                    <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Mobile Layout</h3>
-                    <div class="space-y-4">
-                        <flux:field>
-                            <flux:checkbox wire:model="{{ $propertyPrefix }}.mobile_hide">
-                                Hide on mobile
-                            </flux:checkbox>
-                        </flux:field>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <flux:field>
-                                <flux:label>Padding Top (px)</flux:label>
-                                <flux:input type="number" wire:model="{{ $propertyPrefix }}.mobile_padding_top" min="0" max="256" />
-                            </flux:field>
-
-                            <flux:field>
-                                <flux:label>Padding Bottom (px)</flux:label>
-                                <flux:input type="number" wire:model="{{ $propertyPrefix }}.mobile_padding_bottom" min="0" max="256" />
-                            </flux:field>
-
-                            <flux:field>
-                                <flux:label>Padding Left (px)</flux:label>
-                                <flux:input type="number" wire:model="{{ $propertyPrefix }}.mobile_padding_left" min="0" max="256" />
-                            </flux:field>
-
-                            <flux:field>
-                                <flux:label>Padding Right (px)</flux:label>
-                                <flux:input type="number" wire:model="{{ $propertyPrefix }}.mobile_padding_right" min="0" max="256" />
-                            </flux:field>
-
-                            <flux:field>
-                                <flux:label>Margin Top (px)</flux:label>
-                                <flux:input type="number" wire:model="{{ $propertyPrefix }}.mobile_margin_top" min="-128" max="256" />
-                            </flux:field>
-
-                            <flux:field>
-                                <flux:label>Margin Bottom (px)</flux:label>
-                                <flux:input type="number" wire:model="{{ $propertyPrefix }}.mobile_margin_bottom" min="-128" max="256" />
-                            </flux:field>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </flux:tab.panel>
-
-        {{-- Style Tab --}}
-        <flux:tab.panel name="style">
-            <div class="space-y-6">
-                {{-- Colors --}}
-                <div class="grid grid-cols-2 gap-4">
-                    <flux:field>
-                        <flux:label>Background Color</flux:label>
-                        <flux:input type="color" wire:model="{{ $propertyPrefix }}.background_color" />
-                    </flux:field>
-
-                    <flux:field>
-                        <flux:label>Text Color</flux:label>
-                        <flux:input type="color" wire:model="{{ $propertyPrefix }}.text_color" />
-                    </flux:field>
-                </div>
-            </div>
-        </flux:tab.panel>
-    </flux:tab.group>
-</div>
+<x-landing-page-block.editor :tabs="$tabs" :property-prefix="$propertyPrefix">
+    {{-- Content Tab Fields --}}
+    <div class="space-y-6">
+        <flux:field>
+            <flux:label>Content</flux:label>
+            <flux:description>Add your content here</flux:description>
+            <flux:input wire:model="{{ $propertyPrefix }}.content" placeholder="Enter content..." />
+        </flux:field>
+    </div>
+</x-landing-page-block.editor>
 BLADE;
     }
 
@@ -390,46 +230,12 @@ BLADE;
     protected function getRenderViewStub(): string
     {
         return <<<'BLADE'
-@php
-    $hideClasses = [];
-    if ($data['desktop_hide']) {
-        $hideClasses[] = 'hidden';
-        if (!$data['mobile_hide']) {
-            $hideClasses[] = 'md:block';
-        }
-    }
-    if ($data['mobile_hide'] && !$data['desktop_hide']) {
-        $hideClasses[] = 'hidden md:block';
-    }
-@endphp
-
-<div
-    class="mx-auto {{ implode(' ', $hideClasses) }}"
-    style="
-        padding-top: {{ $data['mobile_padding_top'] }}px;
-        padding-bottom: {{ $data['mobile_padding_bottom'] }}px;
-        padding-left: {{ $data['mobile_padding_left'] }}px;
-        padding-right: {{ $data['mobile_padding_right'] }}px;
-        margin-top: {{ $data['mobile_margin_top'] }}px;
-        margin-bottom: {{ $data['mobile_margin_bottom'] }}px;
-        background-color: {{ $data['background_color'] }};
-        color: {{ $data['text_color'] }};
-
-        @media (min-width: 768px) {
-            padding-top: {{ $data['desktop_padding_top'] }}px;
-            padding-bottom: {{ $data['desktop_padding_bottom'] }}px;
-            padding-left: {{ $data['desktop_padding_left'] }}px;
-            padding-right: {{ $data['desktop_padding_right'] }}px;
-            margin-top: {{ $data['desktop_margin_top'] }}px;
-            margin-bottom: {{ $data['desktop_margin_bottom'] }}px;
-        }
-    "
->
+<x-landing-page-block.wrapper :data="$data">
     {{-- Your block content goes here --}}
     <div class="max-w-7xl mx-auto">
         {{ $data['content'] }}
     </div>
-</div>
+</x-landing-page-block.wrapper>
 BLADE;
     }
 }

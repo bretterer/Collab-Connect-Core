@@ -59,10 +59,14 @@
                         <div class="relative group">
                             <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                 <span class="bg-gray-900 text-white text-xs px-2 py-1 rounded">
-                                    {{ \App\Enums\LandingPageBlockType::from($block['type'])->label() }}
+                                    @php
+                                        $blockInstance = \App\LandingPages\BlockRegistry::get($block['type']);
+                                        $label = $blockInstance ? $blockInstance::label() : $block['type'];
+                                    @endphp
+                                    {{ $label }}
                                 </span>
                             </div>
-                            @include('landing-pages.blocks.' . $block['type'], ['data' => $block['data']])
+                            @include('landing-pages.blocks.' . $block['type'] . '.render', ['data' => $block['data']])
                         </div>
                     @endforeach
                 @else

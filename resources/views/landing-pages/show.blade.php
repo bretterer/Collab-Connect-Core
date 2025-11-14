@@ -111,7 +111,7 @@
                                 @if($blockInstance)
                                     {!! $blockInstance->render($block['data']) !!}
                                 @else
-                                    @include('landing-pages.blocks.' . $block['type'], ['data' => $block['data']])
+                                    @include('landing-pages.blocks.' . $block['type'] . '.render', ['data' => $block['data']])
                                 @endif
                             @endforeach
                         @endif
@@ -165,7 +165,7 @@
                             @if($blockInstance)
                                 {!! $blockInstance->render($block['data']) !!}
                             @else
-                                @include('landing-pages.blocks.' . $block['type'], ['data' => $block['data']])
+                                @include('landing-pages.blocks.' . $block['type'] . '.render', ['data' => $block['data']])
                             @endif
                         @endforeach
                     </div>
@@ -207,7 +207,7 @@
                             @if($blockInstance)
                                 {!! $blockInstance->render($block['data']) !!}
                             @else
-                                @include('landing-pages.blocks.' . $block['type'], ['data' => $block['data']])
+                                @include('landing-pages.blocks.' . $block['type'] . '.render', ['data' => $block['data']])
                             @endif
                         @endforeach
                     </div>

@@ -53,6 +53,7 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
             Route::get('/settings', App\Livewire\Admin\Markets\MarketSettings::class)->name('settings');
             Route::get('/{market}/edit', App\Livewire\Admin\Markets\MarketEdit::class)->name('edit');
             Route::get('/waitlist', App\Livewire\Admin\Markets\WaitlistManagement::class)->name('waitlist');
+        });
 
         // Marketing Management
         Route::prefix('marketing')->name('marketing.')->group(function () {

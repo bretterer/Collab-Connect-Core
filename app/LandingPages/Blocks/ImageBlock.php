@@ -26,57 +26,56 @@ class ImageBlock extends BaseBlock
         return 'document-text';
     }
 
-    public static function defaultData(): array
+    /**
+     * Define content-specific defaults for this block
+     */
+    protected static function contentDefaultData(): array
     {
         return [
-            // Content
             'content' => '',
+        ];
+    }
 
-            // Layout - Desktop
-            'desktop_hide' => false,
+    /**
+     * Override layout defaults with larger padding for images
+     */
+    protected static function layoutDefaultData(): array
+    {
+        return array_merge(parent::layoutDefaultData(), [
             'desktop_padding_top' => 64,
             'desktop_padding_bottom' => 64,
-            'desktop_padding_left' => 16,
-            'desktop_padding_right' => 16,
-            'desktop_margin_top' => 0,
-            'desktop_margin_bottom' => 0,
-
-            // Layout - Mobile
-            'mobile_hide' => false,
             'mobile_padding_top' => 48,
             'mobile_padding_bottom' => 48,
-            'mobile_padding_left' => 16,
-            'mobile_padding_right' => 16,
-            'mobile_margin_top' => 0,
-            'mobile_margin_bottom' => 0,
+        ]);
+    }
 
-            // Style
+    /**
+     * Override style defaults - images only need basic colors
+     */
+    protected static function styleDefaultData(): array
+    {
+        return [
             'background_color' => 'transparent',
             'text_color' => 'inherit',
         ];
     }
 
-    protected function rules(): array
+    /**
+     * Define content-specific validation rules
+     */
+    protected function contentRules(): array
     {
         return [
             'content' => ['nullable', 'string'],
+        ];
+    }
 
-            'desktop_hide' => ['boolean'],
-            'desktop_padding_top' => ['integer', 'min:0', 'max:256'],
-            'desktop_padding_bottom' => ['integer', 'min:0', 'max:256'],
-            'desktop_padding_left' => ['integer', 'min:0', 'max:256'],
-            'desktop_padding_right' => ['integer', 'min:0', 'max:256'],
-            'desktop_margin_top' => ['integer', 'min:-128', 'max:256'],
-            'desktop_margin_bottom' => ['integer', 'min:-128', 'max:256'],
-
-            'mobile_hide' => ['boolean'],
-            'mobile_padding_top' => ['integer', 'min:0', 'max:256'],
-            'mobile_padding_bottom' => ['integer', 'min:0', 'max:256'],
-            'mobile_padding_left' => ['integer', 'min:0', 'max:256'],
-            'mobile_padding_right' => ['integer', 'min:0', 'max:256'],
-            'mobile_margin_top' => ['integer', 'min:-128', 'max:256'],
-            'mobile_margin_bottom' => ['integer', 'min:-128', 'max:256'],
-
+    /**
+     * Override style rules - images don't need borders/shadows
+     */
+    protected function styleRules(): array
+    {
+        return [
             'background_color' => ['nullable', 'string'],
             'text_color' => ['nullable', 'string'],
         ];
