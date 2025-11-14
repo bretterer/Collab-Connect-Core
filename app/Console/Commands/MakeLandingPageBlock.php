@@ -141,8 +141,6 @@ class MakeLandingPageBlock extends Command
 
 namespace App\LandingPages\Blocks;
 
-use Illuminate\View\View;
-
 class {$className} extends BaseBlock
 {
     public static function type(): string
@@ -183,22 +181,6 @@ class {$className} extends BaseBlock
         return [
             'content' => ['nullable', 'string'],
         ];
-    }
-
-    public function renderEditor(array \$data, string \$propertyPrefix = 'blockData'): View
-    {
-        return view('landing-pages.blocks.{$blockType}.editor', [
-            'data' => array_merge(self::defaultData(), \$data),
-            'propertyPrefix' => \$propertyPrefix,
-            'tabs' => \$this->editorTabs(),
-        ]);
-    }
-
-    public function render(array \$data): View
-    {
-        return view('landing-pages.blocks.{$blockType}.render', [
-            'data' => array_merge(self::defaultData(), \$data),
-        ]);
     }
 }
 

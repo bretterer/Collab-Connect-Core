@@ -3,6 +3,7 @@
 namespace App\LandingPages\Blocks;
 
 use Illuminate\Support\Facades\Validator;
+use Illuminate\View\View;
 
 abstract class BaseBlock implements BlockInterface
 {
@@ -279,5 +280,33 @@ abstract class BaseBlock implements BlockInterface
             'label' => ucfirst($tabName),
             'icon' => $defaultIcons[$tabName] ?? 'square-3-stack-3d',
         ];
+    }
+
+    /**
+     * Render the block editor view
+     * Automatically discovers the editor view based on block type
+     */
+    public function renderEditor(array $data, string $propertyPrefix = 'blockData'): View
+    {
+        $viewPath = 'landing-pages.blocks.'.static::type().'.editor';
+
+        return view($viewPath, [
+            'data' => array_merge(static::defaultData(), $data),
+            'propertyPrefix' => $propertyPrefix,
+            'tabs' => $this->editorTabs(),
+        ]);
+    }
+
+    /**
+     * Render the block for the frontend
+     * Automatically discovers the render view based on block type
+     */
+    public function render(array $data): View
+    {
+        $viewPath = 'landing-pages.blocks.'.static::type().'.render';
+
+        return view($viewPath, [
+            'data' => array_merge(static::defaultData(), $data),
+        ]);
     }
 }

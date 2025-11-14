@@ -2,8 +2,6 @@
 
 namespace App\LandingPages\Blocks;
 
-use Illuminate\View\View;
-
 class ImageBlock extends BaseBlock
 {
     public static function type(): string
@@ -23,7 +21,7 @@ class ImageBlock extends BaseBlock
 
     public static function icon(): string
     {
-        return 'document-text';
+        return 'photo';
     }
 
     /**
@@ -79,21 +77,5 @@ class ImageBlock extends BaseBlock
             'background_color' => ['nullable', 'string'],
             'text_color' => ['nullable', 'string'],
         ];
-    }
-
-    public function renderEditor(array $data, string $propertyPrefix = 'blockData'): View
-    {
-        return view('landing-pages.blocks.image.editor', [
-            'data' => array_merge(self::defaultData(), $data),
-            'propertyPrefix' => $propertyPrefix,
-            'tabs' => $this->editorTabs(),
-        ]);
-    }
-
-    public function render(array $data): View
-    {
-        return view('landing-pages.blocks.image.render', [
-            'data' => array_merge(self::defaultData(), $data),
-        ]);
     }
 }

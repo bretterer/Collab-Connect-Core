@@ -2,8 +2,6 @@
 
 namespace App\LandingPages\Blocks;
 
-use Illuminate\View\View;
-
 class TextBlock extends BaseBlock
 {
     public static function type(): string
@@ -48,21 +46,5 @@ class TextBlock extends BaseBlock
             'text_align' => ['required', 'in:left,center,right,justify'],
             'max_width' => ['required', 'in:sm,prose,lg,xl,full'],
         ];
-    }
-
-    public function renderEditor(array $data, string $propertyPrefix = 'blockData'): View
-    {
-        return view('landing-pages.blocks.text.editor', [
-            'data' => array_merge(self::defaultData(), $data),
-            'propertyPrefix' => $propertyPrefix,
-            'tabs' => $this->editorTabs(),
-        ]);
-    }
-
-    public function render(array $data): View
-    {
-        return view('landing-pages.blocks.text.render', [
-            'data' => array_merge(self::defaultData(), $data),
-        ]);
     }
 }

@@ -111,6 +111,46 @@
                         style="background-color: #ec4899"
                         title="Pink"
                     ></button>
+
+                    <button
+                        type="button"
+                        x-on:click="currentColor = '#ffffff'; $el.closest('[data-flux-editor]').editor.chain().focus().setColor('#ffffff').run()"
+                        class="w-8 h-8 rounded border-2 border-gray-300 dark:border-gray-600 hover:scale-110 transition-transform"
+                        style="background-color: #ffffff"
+                        title="White"
+                    ></button>
+
+                    <button
+                        type="button"
+                        x-on:click="currentColor = '#d1d5db'; $el.closest('[data-flux-editor]').editor.chain().focus().setColor('#d1d5db').run()"
+                        class="w-8 h-8 rounded border-2 border-gray-300 dark:border-gray-600 hover:scale-110 transition-transform"
+                        style="background-color: #d1d5db"
+                        title="Light Gray"
+                    ></button>
+
+                    <button
+                        type="button"
+                        x-on:click="currentColor = '#6b7280'; $el.closest('[data-flux-editor]').editor.chain().focus().setColor('#6b7280').run()"
+                        class="w-8 h-8 rounded border-2 border-gray-300 dark:border-gray-600 hover:scale-110 transition-transform"
+                        style="background-color: #6b7280"
+                        title="Gray"
+                    ></button>
+
+                    <button
+                        type="button"
+                        x-on:click="currentColor = '#374151'; $el.closest('[data-flux-editor]').editor.chain().focus().setColor('#374151').run()"
+                        class="w-8 h-8 rounded border-2 border-gray-300 dark:border-gray-600 hover:scale-110 transition-transform"
+                        style="background-color: #374151"
+                        title="Dark Gray"
+                    ></button>
+
+                    <button
+                        type="button"
+                        x-on:click="currentColor = '#14b8a6'; $el.closest('[data-flux-editor]').editor.chain().focus().setColor('#14b8a6').run()"
+                        class="w-8 h-8 rounded border-2 border-gray-300 dark:border-gray-600 hover:scale-110 transition-transform"
+                        style="background-color: #14b8a6"
+                        title="Teal"
+                    ></button>
                 </div>
             </div>
         </div>

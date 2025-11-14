@@ -386,8 +386,35 @@
 
                                 <div class="flex {{ $flexClasses }} min-h-full">
                                     <div class="w-full">
-                                        @foreach($section['blocks'] as $block)
-                                            @include('landing-pages.blocks.' . $block['type'] . '.render', ['data' => $block['data']])
+                                        @foreach($section['blocks'] as $blockIndex => $block)
+                                            <div
+                                                wire:click="editBlock('{{ $section['id'] }}', {{ $blockIndex }})"
+                                                class="relative group cursor-pointer transition-all hover:ring-2 hover:ring-blue-500 hover:ring-inset {{ ($selectedSectionId === $section['id'] && $editingBlockIndex === $blockIndex) ? 'ring-2 ring-green-500 ring-inset' : '' }}"
+                                                title="Click to edit this block"
+                                            >
+                                                @include('landing-pages.blocks.' . $block['type'] . '.render', ['data' => $block['data']])
+
+                                                {{-- Edit indicator --}}
+                                                @if($selectedSectionId === $section['id'] && $editingBlockIndex === $blockIndex)
+                                                    <div class="absolute top-2 right-2 pointer-events-none">
+                                                        <div class="bg-green-500 text-white text-xs px-2 py-1 rounded shadow-lg flex items-center gap-1">
+                                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                                                            </svg>
+                                                            Editing
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                                        <div class="bg-blue-500 text-white text-xs px-2 py-1 rounded shadow-lg flex items-center gap-1">
+                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                                            </svg>
+                                                            Edit
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                            </div>
                                         @endforeach
                                     </div>
                                 </div>
@@ -466,8 +493,8 @@
                     wire:click="addBlockToSection('{{ $selectedSectionId }}', '{{ $blockType->type }}')"
                     class="flex flex-col items-start p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
                 >
-                    <div class="w-8 h-8 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 mb-2">
-                        <flux:icon.{{ $blockType->icon }} />
+                    <div class="text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 mb-2">
+                        <flux:icon name="{{ $blockType->icon ?? 'square-3-stack-3d' }}" class="w-8 h-8" />
                     </div>
                     <h3 class="font-medium text-gray-900 dark:text-white text-sm">{{ $blockType->label }}</h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $blockType->description }}</p>
@@ -565,10 +592,8 @@
                     wire:click="addTwoStepOptinBlock('{{ $blockType->type }}'); $set('editingTwoStepOptin', false)"
                     class="flex flex-col items-start p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
                 >
-                    <div class="w-8 h-8 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 mb-2">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
+                    <div class="text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 mb-2">
+                        <flux:icon name="{{ $blockType->icon ?? 'square-3-stack-3d' }}" class="w-8 h-8" />
                     </div>
                     <h3 class="font-medium text-gray-900 dark:text-white text-sm">{{ $blockType->label }}</h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $blockType->description }}</p>
@@ -588,10 +613,8 @@
                     wire:click="addExitPopupBlock('{{ $blockType->type }}'); $set('editingExitPopup', false)"
                     class="flex flex-col items-start p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
                 >
-                    <div class="w-8 h-8 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 mb-2">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
+                    <div class="text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 mb-2">
+                        <flux:icon name="{{ $blockType->icon ?? 'square-3-stack-3d' }}" class="w-8 h-8" />
                     </div>
                     <h3 class="font-medium text-gray-900 dark:text-white text-sm">{{ $blockType->label }}</h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $blockType->description }}</p>
