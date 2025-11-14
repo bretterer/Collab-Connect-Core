@@ -26,7 +26,7 @@ class Banner extends Component
         session()->forget('banner');
 
         // Set up the beta banner
-        $betaDismissed = false; //session('beta_banner_dismissed');
+        $betaDismissed = false; // session('beta_banner_dismissed');
         if (! $betaDismissed) {
             $this->betaBanner = [
                 'type' => 'info',

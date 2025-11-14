@@ -11,7 +11,12 @@ require __DIR__.'/marketing.php';
 // Broadcasting routes
 Broadcast::routes(['middleware' => ['web', 'auth']]);
 
-Route::middleware(['auth', 'verified'])->group(function () {
+// Market waitlist route (accessible to authenticated users)
+Route::middleware('auth')->group(function () {
+    Route::get('/market-waitlist', App\Livewire\MarketWaitlist::class)->name('market-waitlist');
+});
+
+Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved::class])->group(function () {
 
     // Admin routes (protected by admin middleware)
     Route::prefix('admin')->name('admin.')->middleware(App\Http\Middleware\EnsureAdminAccess::class)->group(function () {
@@ -34,14 +39,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{campaign}/edit', App\Livewire\Admin\Campaigns\CampaignEdit::class)->name('edit');
         });
 
-        // System settings
-        Route::get('/settings', App\Livewire\Admin\Settings::class)->name('settings');
-
         // Analytics & Reports
         Route::get('/analytics', App\Livewire\Admin\Analytics::class)->name('analytics');
 
         // Subscription & Payment Management
         Route::get('/pricing', App\Livewire\Admin\Pricing::class)->name('pricing');
+
+        // Market Management
+        Route::prefix('markets')->name('markets.')->group(function () {
+            Route::get('/', App\Livewire\Admin\Markets\MarketIndex::class)->name('index');
+            Route::get('/settings', App\Livewire\Admin\Markets\MarketSettings::class)->name('settings');
+            Route::get('/{market}/edit', App\Livewire\Admin\Markets\MarketEdit::class)->name('edit');
+            Route::get('/waitlist', App\Livewire\Admin\Markets\WaitlistManagement::class)->name('waitlist');
+
+        });
 
     });
 

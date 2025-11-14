@@ -3,9 +3,6 @@
 namespace App\Listeners;
 
 use App\Models\StripeProduct;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\Events\WebhookReceived;
 
 class StripeProductUpdated
@@ -33,4 +30,3 @@ class StripeProductUpdated
         }
     }
 }
-

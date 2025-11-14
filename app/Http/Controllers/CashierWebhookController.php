@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Services\CashierService;
-use Illuminate\Routing\Controller;
 use Laravel\Cashier\Http\Controllers\WebhookController;
 
 class CashierWebhookController extends WebhookController
@@ -18,5 +17,4 @@ class CashierWebhookController extends WebhookController
     {
         return CashierService::findBillable($stripeId);
     }
-
 }

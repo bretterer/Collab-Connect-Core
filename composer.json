@@ -24,7 +24,8 @@
         "ryangjchandler/laravel-cloudflare-turnstile": "^2.0",
         "spatie/laravel-honeypot": "^4.6",
         "spatie/laravel-login-link": "^1.6",
-        "spatie/laravel-medialibrary": "^11.13"
+        "spatie/laravel-medialibrary": "^11.13",
+        "spatie/laravel-settings": "^3.5"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.15",

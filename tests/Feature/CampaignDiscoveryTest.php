@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Enums\AccountType;
 use App\Enums\CampaignStatus;
 use App\Enums\CampaignType;
-use App\Enums\CompensationType;
 use App\Models\Campaign;
 use App\Models\PostalCode;
 use App\Models\User;
@@ -96,7 +95,6 @@ class CampaignDiscoveryTest extends TestCase
             ->assertSee('Second published campaign')
             ->assertDontSee('Draft campaign');
     }
-
 
     public function test_campaign_filtering_by_type()
     {
@@ -330,5 +328,4 @@ class CampaignDiscoveryTest extends TestCase
         $component->assertDontSee('Expired campaign')
             ->assertSee('Active campaign');
     }
-
 }

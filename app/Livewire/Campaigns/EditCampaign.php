@@ -161,7 +161,7 @@ class EditCampaign extends BaseComponent
         }
 
         $this->campaignGoal = $campaign->campaign_goal;
-        $this->campaignType = $campaign->campaign_type ? $campaign->campaign_type->map(fn($enum) => $enum->value)->toArray() : [];
+        $this->campaignType = $campaign->campaign_type ? $campaign->campaign_type->map(fn ($enum) => $enum->value)->toArray() : [];
         $this->targetZipCode = $campaign->target_zip_code ?? '';
         $this->targetArea = $campaign->target_area ?? '';
         $this->campaignDescription = $campaign->campaign_description;

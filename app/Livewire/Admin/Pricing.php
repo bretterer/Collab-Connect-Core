@@ -2,25 +2,30 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\StripePrice;
 use App\Enums\AccountType;
+use App\Models\StripePrice;
+use Laravel\Cashier\Cashier;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Laravel\Cashier\Cashier;
 
 #[Layout('layouts.app')]
 class Pricing extends Component
 {
     public $showEditModal = false;
+
     public $selectedPrice = null;
+
     public $selectedProduct = null;
+
     public $editType = null; // 'price' or 'product'
+
     public $priceMetadata = [];
+
     public $productMetadata = [];
-    
+
     // Product-specific fields
     public $selectedAccountType = null;
-    
+
     // Price-specific fields (for features)
     public $priceFeatures = [];
 
@@ -34,18 +39,18 @@ class Pricing extends Component
 
     public function render()
     {
-        $products = \App\Models\StripeProduct::with(['prices' => function($query) {
-                $query->where('active', true)->orderBy('unit_amount');
-            }])
+        $products = \App\Models\StripeProduct::with(['prices' => function ($query) {
+            $query->where('active', true)->orderBy('unit_amount');
+        }])
             ->where('active', true)
-            ->whereHas('prices', function($query) {
+            ->whereHas('prices', function ($query) {
                 $query->where('active', true);
             })
             ->orderBy('name')
             ->get();
 
         return view('livewire.admin.pricing', [
-            'products' => $products
+            'products' => $products,
         ]);
     }
 
@@ -53,16 +58,16 @@ class Pricing extends Component
     {
         $this->selectedPrice = StripePrice::findOrFail($priceId);
         $this->priceMetadata = $this->selectedPrice->metadata ?? [];
-        
+
         // Load existing features from metadata
         $this->priceFeatures = [];
         if (isset($this->priceMetadata['features'])) {
-            $features = is_string($this->priceMetadata['features']) ? 
-                json_decode($this->priceMetadata['features'], true) : 
+            $features = is_string($this->priceMetadata['features']) ?
+                json_decode($this->priceMetadata['features'], true) :
                 $this->priceMetadata['features'];
             $this->priceFeatures = $features ?? [];
         }
-        
+
         $this->editType = 'price';
         $this->showEditModal = true;
     }
@@ -71,10 +76,10 @@ class Pricing extends Component
     {
         $this->selectedProduct = \App\Models\StripeProduct::findOrFail($productId);
         $this->productMetadata = $this->selectedProduct->metadata ?? [];
-        
+
         // Handle account type - could be stored as string name or integer value
         $accountTypeValue = $this->productMetadata['account_type'] ?? null;
-        
+
         if ($accountTypeValue) {
             // Try to find the enum by name first (legacy)
             $accountType = null;
@@ -88,7 +93,7 @@ class Pricing extends Component
         } else {
             $this->selectedAccountType = null;
         }
-        
+
         $this->editType = 'product';
         $this->showEditModal = true;
     }
@@ -102,19 +107,19 @@ class Pricing extends Component
 
             try {
                 $stripe = Cashier::stripe();
-                
+
                 // Prepare metadata with features
                 $metadata = $this->priceMetadata;
                 $metadata['features'] = json_encode($this->priceFeatures);
-                
+
                 $stripe->prices->update($this->selectedPrice->stripe_id, [
-                    'metadata' => $metadata
+                    'metadata' => $metadata,
                 ]);
 
                 session()->flash('message', 'Price features updated successfully. Changes will sync via webhook.');
                 $this->closeModal();
             } catch (\Exception $e) {
-                session()->flash('error', 'Failed to update price features: ' . $e->getMessage());
+                session()->flash('error', 'Failed to update price features: '.$e->getMessage());
             }
         } elseif ($this->editType === 'product') {
             $this->validate([
@@ -123,22 +128,22 @@ class Pricing extends Component
 
             try {
                 $stripe = Cashier::stripe();
-                
+
                 // Get the enum case and store its name (for consistency)
                 $accountType = AccountType::from($this->selectedAccountType);
-                
+
                 // Prepare metadata with account type
                 $metadata = $this->productMetadata;
                 $metadata['account_type'] = $accountType->name;
-                
+
                 $stripe->products->update($this->selectedProduct->stripe_id, [
-                    'metadata' => $metadata
+                    'metadata' => $metadata,
                 ]);
 
                 session()->flash('message', 'Product account type updated successfully. Changes will sync via webhook.');
                 $this->closeModal();
             } catch (\Exception $e) {
-                session()->flash('error', 'Failed to update product account type: ' . $e->getMessage());
+                session()->flash('error', 'Failed to update product account type: '.$e->getMessage());
             }
         }
     }
@@ -170,9 +175,9 @@ class Pricing extends Component
     {
         // Filter out UNDEFINED and ADMIN for product assignment
         $relevantCases = collect(AccountType::cases())
-            ->filter(fn($case) => in_array($case, [AccountType::BUSINESS, AccountType::INFLUENCER]))
+            ->filter(fn ($case) => in_array($case, [AccountType::BUSINESS, AccountType::INFLUENCER]))
             ->toArray();
-            
+
         return AccountType::toOptions($relevantCases);
     }
 }

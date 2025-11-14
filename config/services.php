@@ -56,4 +56,8 @@ return [
         'api_key' => env('DATAFAST_API_KEY'),
     ],
 
+    'mapbox' => [
+        'api_key' => env('MAPBOX_API_KEY'),
+    ],
+
 ];

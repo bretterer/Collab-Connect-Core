@@ -5,8 +5,12 @@ namespace App\Livewire\Auth;
 use App\Enums\AccountType;
 use App\Models\BusinessMemberInvite;
 use App\Models\Invite;
+use App\Models\MarketWaitlist;
+use App\Models\MarketZipcode;
+use App\Models\PostalCode;
 use App\Models\User;
 use App\Models\Waitlist;
+use App\Settings\RegistrationMarkets;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -30,6 +34,8 @@ class Register extends Component
 
     public string $password_confirmation = '';
 
+    public string $postal_code = '';
+
     public AccountType $accountType = AccountType::INFLUENCER;
 
     public HoneypotData $extraFields;
@@ -40,9 +46,13 @@ class Register extends Component
 
     public Invite|Waitlist|null $waitlistEntry = null;
 
+    public bool $registrationMarketsEnabled = true;
+
     public function mount(?string $token = null)
     {
         $this->extraFields = new HoneypotData;
+        $settings = app(RegistrationMarkets::class);
+        $this->registrationMarketsEnabled = $settings->enabled;
 
         if (config('collabconnect.beta_registration_only')) {
             $this->token = request()->query('token', $token);
@@ -64,7 +74,7 @@ class Register extends Component
                 $this->name = $this->betaInvite['full_name'] ?? $this->betaInvite['name'];
                 $this->accountType = $this->betaInvite['user_type'] === 'business' ? AccountType::BUSINESS : AccountType::INFLUENCER;
 
-                if($this->betaInvite['business_invite']) {
+                if ($this->betaInvite['business_invite']) {
                     $this->accountType = AccountType::BUSINESS;
                 }
             }
@@ -120,16 +130,15 @@ class Register extends Component
         ];
     }
 
-    private function markInviteAsRegistered(string $token): void
+    private function markInviteAsRegistered(): void
     {
         if ($this->waitlistEntry === null) {
             return;
         }
 
         $this->waitlistEntry->update([
-                'registered_at' => now(),
+            'registered_at' => now(),
         ]);
-
     }
 
     public function setAccountType(AccountType $accountType): void
@@ -145,25 +154,70 @@ class Register extends Component
         $this->protectAgainstSpam();
 
         $this->email = strtolower($this->email);
+        $this->postal_code = trim($this->postal_code);
 
-        $validated = $this->validate([
+        // Build validation rules conditionally based on market_enabled setting
+        $validationRules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
             'accountType' => ['required', Rule::enum(AccountType::class)],
-        ]);
+        ];
+
+        // Only validate postal code if markets are enabled
+        if ($this->registrationMarketsEnabled) {
+            $validationRules['postal_code'] = ['required', 'string', 'max:10', function ($attribute, $value, $fail) {
+                // Validate that the postal code exists in our postal_codes table
+                $postalCode = PostalCode::where('postal_code', $value)
+                    ->where('country_code', 'US')
+                    ->first();
+
+                if (! $postalCode) {
+                    $fail('The postal code you entered is not valid.');
+                }
+            }];
+        }
+
+        $validated = $this->validate($validationRules);
 
         $validated['password'] = Hash::make($validated['password']);
         $validated['account_type'] = $validated['accountType'];
 
+        // Check if postal code is in an active market (only if markets are enabled)
+        $isMarketApproved = true; // Default to approved if markets are disabled
+        if ($this->registrationMarketsEnabled && ! empty($this->postal_code)) {
+            $isMarketApproved = MarketZipcode::isInActiveMarket($this->postal_code);
+            $validated['market_approved'] = $isMarketApproved;
+        } else {
+            // If markets are disabled, always approve
+            $validated['market_approved'] = true;
+            // If markets are disabled but postal code was provided, add it to validated data
+            if (! empty($this->postal_code)) {
+                $validated['postal_code'] = $this->postal_code;
+            }
+        }
+
         // Remove accountType from validated data as it's not a user field
         unset($validated['accountType']);
 
-        event(new Registered(($user = User::create($validated))));
+        $user = User::create($validated);
+
+        // Only fire Registered event (which sends verification email) for approved users
+        if ($isMarketApproved) {
+            event(new Registered($user));
+        }
+
+        // If market is not approved, add user to waitlist (only if markets are enabled)
+        if ($this->registrationMarketsEnabled && ! $isMarketApproved) {
+            MarketWaitlist::create([
+                'user_id' => $user->id,
+                'postal_code' => $this->postal_code,
+            ]);
+        }
 
         // If this is a beta registration, mark the invite as used in CSV
         if ($this->betaInvite && $this->token) {
-            $this->markInviteAsRegistered($this->token);
+            $this->markInviteAsRegistered();
         }
 
         if ($this->betaInvite && $this->betaInvite['business_invite'] === true) {
@@ -182,6 +236,11 @@ class Register extends Component
 
         Auth::login($user);
 
-        $this->redirect(route('verification.notice', absolute: false), navigate: true);
+        // Redirect to market waitlist page if not approved (and markets enabled), otherwise to email verification
+        if ($this->registrationMarketsEnabled && ! $isMarketApproved) {
+            $this->redirect(route('market-waitlist'), navigate: true);
+        } else {
+            $this->redirect(route('verification.notice', absolute: false), navigate: true);
+        }
     }
 }

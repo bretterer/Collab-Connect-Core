@@ -300,9 +300,9 @@ class SearchService
             return $query->with([
                 'influencer',
                 'socialMediaAccounts',
-                'influencer.postalCodeInfo' => function($query) {
+                'influencer.postalCodeInfo' => function ($query) {
                     $query->select(['postal_code', 'place_name', 'admin_name1', 'admin_code1']);
-                }
+                },
             ]);
         } else {
             return $query->with(['currentBusiness']);

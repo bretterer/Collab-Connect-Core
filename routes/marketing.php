@@ -6,9 +6,10 @@ use Illuminate\Support\Facades\Route;
 use Spatie\Honeypot\ProtectAgainstSpam;
 
 Route::get('/', function () {
-    if(Cookie::has('referral_code')) {
+    if (Cookie::has('referral_code')) {
         $referralCode = Cookie::get('referral_code');
     }
+
     return view('welcome', [
         'referralCode' => $referralCode ?? null,
     ]);
@@ -35,7 +36,7 @@ Route::get('/about', function () {
 })->name('about');
 
 Route::get('/refer', function (Request $request) {
-    if($request->has('code')) {
+    if ($request->has('code')) {
         $code = $request->input('code');
         Cookie::queue('referral_code', $code, 60 * 24 * 30); // Store for 30 days
     }
@@ -89,7 +90,7 @@ Route::post('/contact', function (Illuminate\Http\Request $request) {
 
         return back()->with('error', 'Sorry, there was an issue sending your message. Please try again later or contact us directly at hello@collabconnect.app.');
     }
-})->name('contact.store')->middleware(ProtectAgainstSpam::class);;
+})->name('contact.store')->middleware(ProtectAgainstSpam::class);
 
 Route::post('/waitlist', function (Illuminate\Http\Request $request) {
     try {

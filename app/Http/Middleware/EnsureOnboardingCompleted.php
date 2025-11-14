@@ -28,8 +28,8 @@ class EnsureOnboardingCompleted
         }
 
         if ($user->hasBusinessInvitePending()) {
-            if($user->isInfluencerAccount()) {
-                $user->businessInvites()->get()->each(function($invite) {
+            if ($user->isInfluencerAccount()) {
+                $user->businessInvites()->get()->each(function ($invite) {
                     // $invite->delete();
                 });
             }
@@ -44,7 +44,7 @@ class EnsureOnboardingCompleted
             return redirect()->route('onboarding.influencer');
         }
 
-        if ($user->isBusinessAccount() && ($user->currentBusiness == null ||! $user->currentBusiness->onboarding_complete)) {
+        if ($user->isBusinessAccount() && ($user->currentBusiness == null || ! $user->currentBusiness->onboarding_complete)) {
             return redirect()->route('onboarding.business');
         }
 

@@ -47,9 +47,9 @@ class UnreadMessagesReminderNotification extends Notification implements ShouldQ
     public function toArray($notifiable): array
     {
         return [
-            'title'       => 'Unread Chat Messages Reminder',
-            'body'        => 'You have chat messages that have not been read.',
-            'link'        => url('/chat'),
+            'title' => 'Unread Chat Messages Reminder',
+            'body' => 'You have chat messages that have not been read.',
+            'link' => url('/chat'),
             'notified_at' => Carbon::now(),
         ];
     }

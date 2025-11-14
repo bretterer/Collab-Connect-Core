@@ -25,23 +25,23 @@ class NotifyUsersOfStaleUnreadMessages implements ShouldQueue
         User::query()
             ->whereExists(function (QueryBuilder $q) use ($olderThan) {
                 $q->selectRaw('1')
-                  ->from('messages as m')
+                    ->from('messages as m')
                   // user participates in this chat (infer from any message they've sent in it)
-                  ->whereExists(function (QueryBuilder $qq) {
-                      $qq->selectRaw('1')
-                         ->from('messages as mine')
-                         ->whereColumn('mine.chat_id', 'm.chat_id')
-                         ->whereColumn('mine.user_id', 'users.id')
-                         ->limit(1);
-                  })
-                  ->whereColumn('m.user_id', '!=', 'users.id')      // sent by someone else
-                  ->where('m.created_at', '<=', $olderThan)         // older than 24h
-                  ->whereNull('m.read_at')                          // still unread (your schema)
-                  ->where(function (QueryBuilder $n) {
-                      $n->whereNull('users.unread_notified_up_to')
-                        ->orWhereColumn('m.created_at', '>', 'users.unread_notified_up_to');
-                  })
-                  ->limit(1);
+                    ->whereExists(function (QueryBuilder $qq) {
+                        $qq->selectRaw('1')
+                            ->from('messages as mine')
+                            ->whereColumn('mine.chat_id', 'm.chat_id')
+                            ->whereColumn('mine.user_id', 'users.id')
+                            ->limit(1);
+                    })
+                    ->whereColumn('m.user_id', '!=', 'users.id')      // sent by someone else
+                    ->where('m.created_at', '<=', $olderThan)         // older than 24h
+                    ->whereNull('m.read_at')                          // still unread (your schema)
+                    ->where(function (QueryBuilder $n) {
+                        $n->whereNull('users.unread_notified_up_to')
+                            ->orWhereColumn('m.created_at', '>', 'users.unread_notified_up_to');
+                    })
+                    ->limit(1);
             })
             ->chunkById(500, function ($users) use ($olderThan) {
                 foreach ($users as $user) {
@@ -50,10 +50,10 @@ class NotifyUsersOfStaleUnreadMessages implements ShouldQueue
                             ->from('messages as m')
                             ->whereExists(function (QueryBuilder $qq) use ($user) {
                                 $qq->selectRaw('1')
-                                   ->from('messages as mine')
-                                   ->whereColumn('mine.chat_id', 'm.chat_id')
-                                   ->where('mine.user_id', $user->id)
-                                   ->limit(1);
+                                    ->from('messages as mine')
+                                    ->whereColumn('mine.chat_id', 'm.chat_id')
+                                    ->where('mine.user_id', $user->id)
+                                    ->limit(1);
                             })
                             ->where('m.user_id', '!=', $user->id)
                             ->whereNull('m.read_at')
@@ -63,7 +63,7 @@ class NotifyUsersOfStaleUnreadMessages implements ShouldQueue
                             })
                             ->max('m.created_at');
 
-                        if (!$maxCreatedAt) {
+                        if (! $maxCreatedAt) {
                             return;
                         }
 

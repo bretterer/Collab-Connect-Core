@@ -53,7 +53,6 @@ return new class extends Migration
             $table->index('campaign_id');
         });
 
-
         Schema::create('campaign_compensations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('campaign_id')->constrained()->onDelete('cascade');

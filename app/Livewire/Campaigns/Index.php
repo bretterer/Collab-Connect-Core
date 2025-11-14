@@ -14,6 +14,7 @@ class Index extends BaseComponent
     public string $activeTab = 'drafts';
 
     public bool $showArchiveModal = false;
+
     public ?int $campaignToArchive = null;
 
     public function mount()
@@ -62,7 +63,7 @@ class Index extends BaseComponent
 
     public function archiveCampaign()
     {
-        if (!$this->campaignToArchive) {
+        if (! $this->campaignToArchive) {
             return;
         }
 
@@ -86,8 +87,9 @@ class Index extends BaseComponent
     {
         $campaign = Campaign::query()->find($campaignId);
 
-        if($campaign->applications->isEmpty()) {
+        if ($campaign->applications->isEmpty()) {
             Toaster::error('You must have at least one influencer application to start this campaign.');
+
             return;
         }
 

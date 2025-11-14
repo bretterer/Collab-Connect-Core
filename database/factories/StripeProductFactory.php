@@ -20,12 +20,12 @@ class StripeProductFactory extends Factory
     public function definition(): array
     {
         return [
-            'stripe_id' => 'prod_' . $this->faker->unique()->bothify('??????????????'),
+            'stripe_id' => 'prod_'.$this->faker->unique()->bothify('??????????????'),
             'name' => $this->faker->words(3, true),
             'active' => true,
             'description' => $this->faker->sentence(),
             'metadata' => [
-                'account_type' => $this->faker->randomElement(['BUSINESS', 'INFLUENCER'])
+                'account_type' => $this->faker->randomElement(['BUSINESS', 'INFLUENCER']),
             ],
             'livemode' => false,
         ];
@@ -39,14 +39,14 @@ class StripeProductFactory extends Factory
     public function business(): self
     {
         return $this->state([
-            'metadata' => ['account_type' => 'BUSINESS']
+            'metadata' => ['account_type' => 'BUSINESS'],
         ]);
     }
 
     public function influencer(): self
     {
         return $this->state([
-            'metadata' => ['account_type' => 'INFLUENCER']
+            'metadata' => ['account_type' => 'INFLUENCER'],
         ]);
     }
 

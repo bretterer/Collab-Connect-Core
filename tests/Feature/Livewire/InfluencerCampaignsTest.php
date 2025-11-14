@@ -2,14 +2,10 @@
 
 namespace Tests\Feature\Livewire;
 
-use App\Enums\AccountType;
 use App\Enums\CampaignStatus;
 use App\Enums\CampaignType;
-use App\Enums\Niche;
 use App\Livewire\Campaigns\InfluencerCampaigns;
-use App\Models\BusinessProfile;
 use App\Models\Campaign;
-use App\Models\InfluencerProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -35,7 +31,6 @@ class InfluencerCampaignsTest extends TestCase
     {
         // Create influencer
         $influencer = User::factory()->influencer()->withProfile()->create();
-
 
         // Create businesses and campaigns
         $business1 = User::factory()->business()->withProfile()->create();
@@ -82,7 +77,6 @@ class InfluencerCampaignsTest extends TestCase
 
         $business = User::factory()->business()->withProfile()->create();
 
-
         $campaign = Campaign::factory()->create([
             'business_id' => $business->currentBusiness->id,
             'status' => CampaignStatus::PUBLISHED,
@@ -98,5 +92,4 @@ class InfluencerCampaignsTest extends TestCase
             ->assertStatus(200)
             ->assertSee('Discover Campaigns');
     }
-
 }

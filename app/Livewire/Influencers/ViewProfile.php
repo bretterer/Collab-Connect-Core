@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Influencers;
 
-use App\Models\User;
-use App\Models\CampaignApplication;
 use App\Enums\CampaignApplicationStatus;
+use App\Models\CampaignApplication;
+use App\Models\User;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -12,22 +12,27 @@ use Livewire\Component;
 class ViewProfile extends Component
 {
     public User $user;
+
     public $influencer;
+
     public $socialAccounts;
+
     public $completedCampaigns;
+
     public $totalFollowers;
+
     public $avgEngagement;
 
     public function mount($userId)
     {
         $this->user = User::with([
             'influencer.socialAccounts',
-            'influencer.postalCodeInfo'
+            'influencer.postalCodeInfo',
         ])->findOrFail($userId);
 
         $this->influencer = $this->user->influencer;
 
-        if (!$this->influencer) {
+        if (! $this->influencer) {
             abort(404, 'Influencer profile not found');
         }
 
@@ -51,7 +56,7 @@ class ViewProfile extends Component
     public function getProfileImageUrl()
     {
         return $this->influencer->getProfileImageUrl()
-            ?? 'https://ui-avatars.com/api/?name=' . urlencode($this->user->name) . '&size=200';
+            ?? 'https://ui-avatars.com/api/?name='.urlencode($this->user->name).'&size=200';
     }
 
     public function getLocation()
@@ -61,12 +66,12 @@ class ViewProfile extends Component
             $this->influencer->state,
         ]);
 
-        return !empty($parts) ? implode(', ', $parts) : 'Location not provided';
+        return ! empty($parts) ? implode(', ', $parts) : 'Location not provided';
     }
 
     public function getJoinedDate()
     {
-        return 'Member since ' . $this->user->created_at->format('M Y');
+        return 'Member since '.$this->user->created_at->format('M Y');
     }
 
     public function render()

@@ -245,8 +245,6 @@ class CampaignStatusTransitionTest extends TestCase
             'target_zip_code' => '49503',
         ]);
 
-
-
         // Publish the campaign
         $publishedCampaign = CampaignService::publishCampaign($campaign, $this->businessUser);
 

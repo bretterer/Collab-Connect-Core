@@ -167,6 +167,94 @@ Extensive use of enums with HasFormOptions trait for form generation:
 
 - Always use FluxUI where possible
 
+## Application Settings (spatie/laravel-settings)
+
+CollabConnect uses `spatie/laravel-settings` for managing application-wide configuration that can be changed at runtime.
+
+### Key Concepts
+- **Settings Classes**: Extend `Spatie\LaravelSettings\Settings` base class
+- **Database Storage**: Settings are stored in the `settings` table with key-value pairs
+- **Caching**: Settings are cached for performance (configurable in `config/settings.php`)
+- **Migrations**: Settings use migrations to define and update setting values
+
+### Creating Settings Classes
+
+Settings classes live in `app/Settings` and must:
+1. Extend `Spatie\LaravelSettings\Settings`
+2. Define a `group()` method returning a unique string identifier
+3. Use public properties for setting values
+
+```php
+use Spatie\LaravelSettings\Settings;
+
+class GeneralSettings extends Settings
+{
+    public bool $market_enabled;
+    public string $site_name;
+
+    public static function group(): string
+    {
+        return 'general';
+    }
+}
+```
+
+### Settings Migrations
+
+Create settings migrations using:
+```bash
+php artisan make:settings-migration CreateGeneralSettings
+```
+
+Migrations support operations in the `up()` method:
+- `$this->migrator->add('general.site_name', 'default_value')` - Add setting with default
+- `$this->migrator->add('general.api_key', 'secret', encrypted: true)` - Add encrypted setting
+- `$this->migrator->rename('old_key', 'new_key')` - Rename a setting
+- `$this->migrator->update('key', fn($value) => $modified)` - Update existing value
+- `$this->migrator->delete('key')` - Remove a setting
+- `$this->migrator->inGroup('general', function($migrator) {})` - Group operations
+
+### Accessing Settings
+
+Settings can be accessed via dependency injection or the service container:
+
+```php
+// Dependency injection (preferred)
+public function index(GeneralSettings $settings)
+{
+    if ($settings->market_enabled) {
+        // ...
+    }
+}
+
+// Via container
+$marketEnabled = app(GeneralSettings::class)->market_enabled;
+```
+
+### Updating Settings
+
+Modify properties and call `save()`:
+
+```php
+$settings = app(GeneralSettings::class);
+$settings->market_enabled = false;
+$settings->save();
+```
+
+### Property Types
+
+Supported types include:
+- Primitives: `string`, `bool`, `int`, `float`, `array`
+- DateTime: `DateTimeInterface`, `DateTimeZone`
+- Custom objects via casts
+- Nullable properties
+
+### Important Notes
+- Settings classes must be registered in `config/settings.php`
+- Changes to settings are cached - clear cache if modifying settings structure
+- Settings are ideal for admin-configurable application behavior
+- Use `encrypted: true` for sensitive values like API keys
+
 ===
 
 <laravel-boost-guidelines>
@@ -328,6 +416,32 @@ This is correct as of Boost installation, but there may be additional components
 <available-flux-components>
 accordion, autocomplete, avatar, badge, brand, breadcrumbs, button, calendar, callout, card, chart, checkbox, command, context, date-picker, dropdown, editor, field, heading, icon, input, modal, navbar, pagination, popover, profile, radio, select, separator, switch, table, tabs, text, textarea, toast, tooltip
 </available-flux-components>
+
+### CRITICAL: Flux Component Size Limitations
+
+**DO NOT use `size="lg"` with Flux components** - it will cause "UnhandledMatchError: Unhandled match case 'lg'"
+
+**Supported sizes for most Flux components:**
+- `flux:heading` - Only supports: `xl`, `base`, `sm` (NO 'lg' or other sizes)
+- `flux:button` - Only supports: `sm`, `base` (NO 'lg')
+- `flux:text` - Generally doesn't use size prop
+
+**Always use these safe size values:**
+- For headings: `xl` (largest), `base` (medium), `sm` (small)
+- For buttons: `base` (default), `sm` (small)
+
+**Examples of CORRECT usage:**
+```blade
+<flux:heading size="xl">Large Heading</flux:heading>
+<flux:heading size="base">Normal Heading</flux:heading>
+<flux:button size="base">Normal Button</flux:button>
+```
+
+**Examples of INCORRECT usage (will error):**
+```blade
+<flux:heading size="lg">Will Error!</flux:heading>
+<flux:button size="lg">Will Error!</flux:button>
+```
 
 
 === livewire/core rules ===

@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Enums\CampaignStatus;
-use App\Enums\CompensationType;
 use App\Events\CampaignArchived;
 use App\Events\CampaignEdited;
 use App\Events\CampaignPublished;
@@ -34,10 +33,10 @@ class CampaignService
                 'target_area' => $data['target_area'] ?? '',
                 'campaign_description' => $data['campaign_description'] ?? '',
                 'influencer_count' => $data['influencer_count'] ?? 1,
-                'application_deadline' => !empty($data['application_deadline']) ? $data['application_deadline'] : null,
-                'campaign_completion_date' => !empty($data['campaign_completion_date']) ? $data['campaign_completion_date'] : null,
+                'application_deadline' => ! empty($data['application_deadline']) ? $data['application_deadline'] : null,
+                'campaign_completion_date' => ! empty($data['campaign_completion_date']) ? $data['campaign_completion_date'] : null,
                 'publish_action' => $data['publish_action'] ?? 'publish',
-                'scheduled_date' => !empty($data['scheduled_date']) ? $data['scheduled_date'] : null,
+                'scheduled_date' => ! empty($data['scheduled_date']) ? $data['scheduled_date'] : null,
                 'current_step' => $data['current_step'] ?? 1,
 
                 // Brief fields
@@ -78,7 +77,6 @@ class CampaignService
 
         return $campaign;
     }
-
 
     /**
      * Publish a campaign
@@ -197,7 +195,7 @@ class CampaignService
 
         // Handle date fields to prevent datetime format errors
         $dateFields = ['application_deadline', 'campaign_completion_date', 'scheduled_date'];
-        
+
         foreach ($dateFields as $field) {
             if (isset($updateData[$field])) {
                 $updateData[$field] = ! empty($updateData[$field]) ? $updateData[$field] : null;

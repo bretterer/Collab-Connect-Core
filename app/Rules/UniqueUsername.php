@@ -10,6 +10,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 class UniqueUsername implements ValidationRule
 {
     protected $ignoreBusinessId;
+
     protected $ignoreInfluencerId;
 
     public function __construct($ignoreBusinessId = null, $ignoreInfluencerId = null)
@@ -38,6 +39,7 @@ class UniqueUsername implements ValidationRule
 
         if ($businessExists) {
             $fail('This username is already taken.');
+
             return;
         }
 
@@ -50,6 +52,7 @@ class UniqueUsername implements ValidationRule
 
         if ($influencerExists) {
             $fail('This username is already taken.');
+
             return;
         }
     }

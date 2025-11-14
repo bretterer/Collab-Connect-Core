@@ -24,7 +24,9 @@ class AuthenticationTest extends TestCase
     #[Test]
     public function users_can_authenticate_using_the_login_screen(): void
     {
-        $user = User::factory()->business()->withProfile()->create();
+        $user = User::factory()->business()->withProfile()->create([
+            'market_approved' => true,
+        ]);
 
         $response = Livewire::test(Login::class)
             ->set('email', $user->email)

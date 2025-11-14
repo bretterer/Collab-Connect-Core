@@ -35,11 +35,11 @@ class DatafastPaymentAPI implements ShouldQueue
             if (isset($invoice['subscription_details']['metadata'])) {
                 $metadata = $invoice['subscription_details']['metadata'];
 
-                if (!empty($metadata['datafast_visitor_id'])) {
+                if (! empty($metadata['datafast_visitor_id'])) {
                     $paymentData['datafast_visitor_id'] = $metadata['datafast_visitor_id'];
                 }
 
-                if (!empty($metadata['datafast_session_id'])) {
+                if (! empty($metadata['datafast_session_id'])) {
                     $paymentData['datafast_session_id'] = $metadata['datafast_session_id'];
                 }
             }
