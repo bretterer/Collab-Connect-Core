@@ -43,7 +43,7 @@
                                 @if($market->is_active)
                                     <flux:badge variant="success">Active</flux:badge>
                                 @else
-                                    <flux:badge variant="warning">Inactive</flux:badge>
+                                    <flux:badge>Inactive</flux:badge>
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -51,7 +51,7 @@
                                     <flux:button
                                         wire:click="toggleActive({{ $market->id }})"
                                         size="sm"
-                                        :variant="$market->is_active ? 'warning' : 'primary'">
+                                        :variant="$market->is_active ? 'danger' : 'primary'">
                                         {{ $market->is_active ? 'Deactivate' : 'Activate' }}
                                     </flux:button>
 

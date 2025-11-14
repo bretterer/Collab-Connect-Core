@@ -29,7 +29,7 @@
         <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
             <div class="bg-white dark:bg-gray-800 px-6 py-8 shadow sm:rounded-lg">
                 <div class="space-y-6">
-                    <flux:callout variant="info" icon="information-circle">
+                    <flux:callout variant="info" icon="information-circle" class="text-gray-900 dark:text-gray-100">
                         <strong>Good news!</strong> You're already on our waitlist. We'll notify you via email as soon as we launch in your area.
                     </flux:callout>
 
@@ -73,9 +73,18 @@
                     </div>
 
                     <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-                        <p class="text-sm text-gray-600 dark:text-gray-400 text-center">
+                        <p class="text-sm text-gray-600 dark:text-gray-400 text-center mb-4">
                             Registered on {{ $waitlistEntry?->created_at?->format('F j, Y') ?? now()->format('F j, Y') }}
                         </p>
+
+                        <div class="flex justify-center">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <flux:button type="submit" variant="ghost" size="sm">
+                                    Sign Out
+                                </flux:button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>

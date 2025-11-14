@@ -125,7 +125,7 @@ class Register extends Component
         ];
     }
 
-    private function markInviteAsRegistered(string $token): void
+    private function markInviteAsRegistered(): void
     {
         if ($this->waitlistEntry === null) {
             return;
@@ -134,7 +134,6 @@ class Register extends Component
         $this->waitlistEntry->update([
             'registered_at' => now(),
         ]);
-
     }
 
     public function setAccountType(AccountType $accountType): void
@@ -179,7 +178,12 @@ class Register extends Component
         // Remove accountType from validated data as it's not a user field
         unset($validated['accountType']);
 
-        event(new Registered(($user = User::create($validated))));
+        $user = User::create($validated);
+
+        // Only fire Registered event (which sends verification email) for approved users
+        if ($isMarketApproved) {
+            event(new Registered($user));
+        }
 
         // If market is not approved, add user to waitlist
         if (! $isMarketApproved) {
@@ -191,7 +195,7 @@ class Register extends Component
 
         // If this is a beta registration, mark the invite as used in CSV
         if ($this->betaInvite && $this->token) {
-            $this->markInviteAsRegistered($this->token);
+            $this->markInviteAsRegistered();
         }
 
         if ($this->betaInvite && $this->betaInvite['business_invite'] === true) {
