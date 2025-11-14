@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Livewire\Auth\Register;
+use App\Settings\RegistrationMarkets;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
@@ -37,6 +38,11 @@ class RegistrationTest extends TestCase
 
         // Disable Honeypot
         config(['honeypot.enabled' => false]);
+
+        // Disable market-based registration for this test
+        $settings = app(RegistrationMarkets::class);
+        $settings->enabled = false;
+        $settings->save();
 
         $response = Livewire::test(Register::class)
             ->set('name', 'Test User')
