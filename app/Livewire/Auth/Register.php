@@ -10,6 +10,7 @@ use App\Models\MarketZipcode;
 use App\Models\PostalCode;
 use App\Models\User;
 use App\Models\Waitlist;
+use App\Settings\RegistrationMarkets;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -45,9 +46,13 @@ class Register extends Component
 
     public Invite|Waitlist|null $waitlistEntry = null;
 
+    public bool $registrationMarketsEnabled = true;
+
     public function mount(?string $token = null)
     {
         $this->extraFields = new HoneypotData;
+        $settings = app(RegistrationMarkets::class);
+        $this->registrationMarketsEnabled = $settings->enabled;
 
         if (config('collabconnect.beta_registration_only')) {
             $this->token = request()->query('token', $token);
@@ -151,11 +156,17 @@ class Register extends Component
         $this->email = strtolower($this->email);
         $this->postal_code = trim($this->postal_code);
 
-        $validated = $this->validate([
+        // Build validation rules conditionally based on market_enabled setting
+        $validationRules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
-            'postal_code' => ['required', 'string', 'max:10', function ($attribute, $value, $fail) {
+            'accountType' => ['required', Rule::enum(AccountType::class)],
+        ];
+
+        // Only validate postal code if markets are enabled
+        if ($this->registrationMarketsEnabled) {
+            $validationRules['postal_code'] = ['required', 'string', 'max:10', function ($attribute, $value, $fail) {
                 // Validate that the postal code exists in our postal_codes table
                 $postalCode = PostalCode::where('postal_code', $value)
                     ->where('country_code', 'US')
@@ -164,16 +175,23 @@ class Register extends Component
                 if (! $postalCode) {
                     $fail('The postal code you entered is not valid.');
                 }
-            }],
-            'accountType' => ['required', Rule::enum(AccountType::class)],
-        ]);
+            }];
+        }
+
+        $validated = $this->validate($validationRules);
 
         $validated['password'] = Hash::make($validated['password']);
         $validated['account_type'] = $validated['accountType'];
 
-        // Check if postal code is in an active market
-        $isMarketApproved = MarketZipcode::isInActiveMarket($this->postal_code);
-        $validated['market_approved'] = $isMarketApproved;
+        // Check if postal code is in an active market (only if markets are enabled)
+        $isMarketApproved = true; // Default to approved if markets are disabled
+        if ($this->registrationMarketsEnabled && ! empty($this->postal_code)) {
+            $isMarketApproved = MarketZipcode::isInActiveMarket($this->postal_code);
+            $validated['market_approved'] = $isMarketApproved;
+        } else {
+            // If markets are disabled, always approve
+            $validated['market_approved'] = true;
+        }
 
         // Remove accountType from validated data as it's not a user field
         unset($validated['accountType']);
@@ -185,8 +203,8 @@ class Register extends Component
             event(new Registered($user));
         }
 
-        // If market is not approved, add user to waitlist
-        if (! $isMarketApproved) {
+        // If market is not approved, add user to waitlist (only if markets are enabled)
+        if ($this->registrationMarketsEnabled && ! $isMarketApproved) {
             MarketWaitlist::create([
                 'user_id' => $user->id,
                 'postal_code' => $this->postal_code,
@@ -214,8 +232,8 @@ class Register extends Component
 
         Auth::login($user);
 
-        // Redirect to market waitlist page if not approved, otherwise to email verification
-        if (! $isMarketApproved) {
+        // Redirect to market waitlist page if not approved (and markets enabled), otherwise to email verification
+        if ($this->registrationMarketsEnabled && ! $isMarketApproved) {
             $this->redirect(route('market-waitlist'), navigate: true);
         } else {
             $this->redirect(route('verification.notice', absolute: false), navigate: true);

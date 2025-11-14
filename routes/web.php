@@ -39,9 +39,6 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
             Route::get('/{campaign}/edit', App\Livewire\Admin\Campaigns\CampaignEdit::class)->name('edit');
         });
 
-        // System settings
-        Route::get('/settings', App\Livewire\Admin\Settings::class)->name('settings');
-
         // Analytics & Reports
         Route::get('/analytics', App\Livewire\Admin\Analytics::class)->name('analytics');
 
@@ -51,8 +48,10 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
         // Market Management
         Route::prefix('markets')->name('markets.')->group(function () {
             Route::get('/', App\Livewire\Admin\Markets\MarketIndex::class)->name('index');
+            Route::get('/settings', App\Livewire\Admin\Markets\MarketSettings::class)->name('settings');
             Route::get('/{market}/edit', App\Livewire\Admin\Markets\MarketEdit::class)->name('edit');
             Route::get('/waitlist', App\Livewire\Admin\Markets\WaitlistManagement::class)->name('waitlist');
+
         });
 
     });
