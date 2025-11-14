@@ -191,6 +191,10 @@ class Register extends Component
         } else {
             // If markets are disabled, always approve
             $validated['market_approved'] = true;
+            // If markets are disabled but postal code was provided, add it to validated data
+            if (! empty($this->postal_code)) {
+                $validated['postal_code'] = $this->postal_code;
+            }
         }
 
         // Remove accountType from validated data as it's not a user field
