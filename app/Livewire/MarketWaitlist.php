@@ -10,6 +10,10 @@ class MarketWaitlist extends Component
 {
     public function mount()
     {
+        $registrationMarkets = app(\App\Settings\RegistrationMarkets::class);
+        if (! $registrationMarkets->enabled) {
+            return redirect()->route('dashboard');
+        }
         $user = auth()->user();
 
         // Redirect users who shouldn't be on the waitlist page

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Settings\RegistrationMarkets;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,6 +16,10 @@ class EnsureMarketApproved
      */
     public function handle(Request $request, Closure $next): Response
     {
+        $registrationMarkets = app(RegistrationMarkets::class);
+        if (!$registrationMarkets->enabled) {
+            return $next($request);
+        }
         $user = $request->user();
 
         // Allow admins to bypass market approval check

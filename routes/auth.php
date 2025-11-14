@@ -13,7 +13,7 @@ Route::middleware('guest')->group(function () {
     Route::get('reset-password/{token}', Auth\ResetPassword::class)->name('password.reset');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware('auth', App\Http\Middleware\EnsureMarketApproved::class)->group(function () {
     Route::get('verify-email', App\Livewire\Auth\VerifyEmail::class)
         ->name('verification.notice');
 
