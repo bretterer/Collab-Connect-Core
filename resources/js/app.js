@@ -18,7 +18,6 @@ import.meta.glob([
 ]);
 
 document.addEventListener('flux:editor', (e) => {
-  console.log('Registering Tiptap extensions', TextStyleKit);
   e.detail.registerExtensions([
     TextStyleKit,
   ]);
