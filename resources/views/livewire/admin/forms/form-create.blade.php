@@ -70,6 +70,9 @@
                                         <div class="min-w-0 flex-1">
                                             <div class="flex items-center gap-2 flex-wrap">
                                                 <span class="font-medium text-gray-900 dark:text-white">{{ $field['label'] ?? 'Untitled Field' }}</span>
+                                                @if(($field['type'] ?? '') === 'email')
+                                                    <flux:badge color="blue" size="sm">System Field</flux:badge>
+                                                @endif
                                                 @if($field['required'] ?? false)
                                                     <flux:badge color="red" size="sm">Required</flux:badge>
                                                 @endif
@@ -89,9 +92,11 @@
                                         @if($index < count($fields) - 1)
                                             <flux:button wire:click="moveFieldDown({{ $index }})" icon="arrow-down" variant="ghost" size="sm" />
                                         @endif
-                                        <flux:button wire:click="editField({{ $index }})" icon="pencil" variant="ghost" size="sm" />
-                                        <flux:button wire:click="duplicateField({{ $index }})" icon="document-duplicate" variant="ghost" size="sm" />
-                                        <flux:button wire:click="deleteField({{ $index }})" icon="trash" variant="ghost" size="sm" />
+                                        @if(($field['type'] ?? '') !== 'email')
+                                            <flux:button wire:click="editField({{ $index }})" icon="pencil" variant="ghost" size="sm" />
+                                            <flux:button wire:click="duplicateField({{ $index }})" icon="document-duplicate" variant="ghost" size="sm" />
+                                            <flux:button wire:click="deleteField({{ $index }})" icon="trash" variant="ghost" size="sm" />
+                                        @endif
                                     </div>
                                 </div>
                             </div>
