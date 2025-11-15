@@ -22,7 +22,7 @@
         {!! $page->settings['head_scripts'] !!}
     @endif
 </head>
-<body class="antialiased">
+<body class="antialiased" x-data>
     @if($page->blocks && count($page->blocks) > 0)
         @foreach($page->blocks as $section)
             @php
@@ -107,11 +107,12 @@
                             @foreach($section['blocks'] as $block)
                                 @php
                                     $blockInstance = \App\LandingPages\BlockRegistry::get($block['type']);
+                                    $twoStepOptinEnabled = $page->two_step_optin && ($page->two_step_optin['enabled'] ?? false) && !empty($page->two_step_optin['blocks']);
                                 @endphp
                                 @if($blockInstance)
-                                    {!! $blockInstance->render($block['data']) !!}
+                                    {!! $blockInstance->render($block['data'], ['twoStepOptinEnabled' => $twoStepOptinEnabled]) !!}
                                 @else
-                                    @include('landing-pages.blocks.' . $block['type'] . '.render', ['data' => $block['data']])
+                                    @include('landing-pages.blocks.' . $block['type'] . '.render', ['data' => $block['data'], 'twoStepOptinEnabled' => $twoStepOptinEnabled])
                                 @endif
                             @endforeach
                         @endif
@@ -138,14 +139,14 @@
             <div x-show="showTwoStepOptin"
                  x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
+                 x-transition:enter-end="opacity-20"
                  x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-start="opacity-20"
                  x-transition:leave-end="opacity-0"
                  class="fixed inset-0 z-50 overflow-y-auto"
                  style="display: none;">
                 <!-- Overlay -->
-                <div class="fixed inset-0 bg-black bg-opacity-50" @click="showTwoStepOptin = false"></div>
+                <div class="fixed inset-0 bg-opacity-20 bg-black/20" @click="showTwoStepOptin = false"></div>
 
                 <!-- Modal -->
                 <div class="flex min-h-full items-center justify-center p-4">
@@ -180,14 +181,14 @@
             <div x-show="show"
                  x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
+                 x-transition:enter-end="opacity-20"
                  x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-start="opacity-20"
                  x-transition:leave-end="opacity-0"
                  class="fixed inset-0 z-50 overflow-y-auto"
                  style="display: none;">
                 <!-- Overlay -->
-                <div class="fixed inset-0 bg-black bg-opacity-50" @click="show = false"></div>
+                <div class="fixed inset-0 bg-black/20 bg-opacity-20"></div>
 
                 <!-- Modal -->
                 <div class="flex min-h-full items-center justify-center p-4">
@@ -223,7 +224,7 @@
                 init() {
                     // Detect when user's mouse leaves the viewport (exit intent)
                     document.addEventListener('mouseleave', (e) => {
-                        if (e.clientY <= 0 && !this.shown) {
+                        if ((e.clientY <= 0 || e.clientX <= 0 || e.clientX >= window.innerWidth || e.clientY >= window.innerHeight) && !this.shown) {
                             this.show = true;
                             this.shown = true; // Only show once per session
                         }

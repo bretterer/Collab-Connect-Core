@@ -301,12 +301,12 @@ abstract class BaseBlock implements BlockInterface
      * Render the block for the frontend
      * Automatically discovers the render view based on block type
      */
-    public function render(array $data): View
+    public function render(array $data, array $context = []): View
     {
         $viewPath = 'landing-pages.blocks.'.static::type().'.render';
 
-        return view($viewPath, [
+        return view($viewPath, array_merge([
             'data' => array_merge(static::defaultData(), $data),
-        ]);
+        ], $context));
     }
 }

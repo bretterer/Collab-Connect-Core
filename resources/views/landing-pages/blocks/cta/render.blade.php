@@ -41,6 +41,7 @@
     $href = '#';
     $target = '';
     $onClick = '';
+    $alpineClick = '';
 
     if ($action === 'url') {
         $href = $data['url'] ?? '#';
@@ -50,7 +51,12 @@
         $onClick = 'event.preventDefault(); document.getElementById(\'' . ($data['section_id'] ?? '') . '\')?.scrollIntoView({ behavior: \'smooth\' });';
     } elseif ($action === 'two_step_optin') {
         $href = '#';
-        $onClick = 'event.preventDefault(); /* Two-step optin popup will be implemented here */';
+        // Only dispatch event if two-step optin is enabled
+        if ($twoStepOptinEnabled ?? false) {
+            $alpineClick = '$event.preventDefault(); $dispatch(\'open-two-step-optin\')';
+        } else {
+            $onClick = 'event.preventDefault();';
+        }
     }
 
     // Combined classes
@@ -63,6 +69,7 @@
             href="{{ $href }}"
             @if($target) target="{{ $target }}" rel="noopener noreferrer" @endif
             @if($onClick) onclick="{{ $onClick }}" @endif
+            @if($alpineClick) @click="{{ $alpineClick }}" @endif
             class="{{ $buttonClasses }}"
             style="{{ $styleAttribute }}"
         >

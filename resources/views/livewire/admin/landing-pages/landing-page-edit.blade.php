@@ -194,7 +194,18 @@
             <div class="border-t border-gray-200 dark:border-gray-700 p-4">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Two Step Optin</h3>
-                    <flux:switch wire:model.live="twoStepOptinEnabled" size="sm" />
+                    <div class="flex items-center gap-2">
+                        @if($twoStepOptinEnabled && count($twoStepOptinBlocks) > 0)
+                            <flux:button
+                                size="xs"
+                                variant="ghost"
+                                icon="eye"
+                                wire:click="$set('showTwoStepOptinPreview', true)"
+                                title="Preview two step optin"
+                            />
+                        @endif
+                        <flux:switch wire:model.live="twoStepOptinEnabled" size="sm" />
+                    </div>
                 </div>
 
                 @if($twoStepOptinEnabled)
@@ -238,7 +249,7 @@
                             size="xs"
                             variant="outline"
                             icon="plus"
-                            wire:click="$set('editingTwoStepOptin', 'selector')"
+                            wire:click="$set('showTwoStepOptinBlockSelector', true)"
                             class="w-full"
                         >
                             Add Block
@@ -251,7 +262,18 @@
             <div class="border-t border-gray-200 dark:border-gray-700 p-4">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Exit Popup</h3>
-                    <flux:switch wire:model.live="exitPopupEnabled" size="sm" />
+                    <div class="flex items-center gap-2">
+                        @if($exitPopupEnabled && count($exitPopupBlocks) > 0)
+                            <flux:button
+                                size="xs"
+                                variant="ghost"
+                                icon="eye"
+                                wire:click="$set('showExitPopupPreview', true)"
+                                title="Preview exit popup"
+                            />
+                        @endif
+                        <flux:switch wire:model.live="exitPopupEnabled" size="sm" />
+                    </div>
                 </div>
 
                 @if($exitPopupEnabled)
@@ -295,7 +317,7 @@
                             size="xs"
                             variant="outline"
                             icon="plus"
-                            wire:click="$set('editingExitPopup', 'selector')"
+                            wire:click="$set('showExitPopupBlockSelector', true)"
                             class="w-full"
                         >
                             Add Block
@@ -306,7 +328,7 @@
         </div>
 
         <!-- Center - Preview -->
-        <div class="flex-1 bg-gray-100 overflow-auto">
+        <div class="flex-1 bg-gray-100 overflow-auto relative">
             <div class="h-full">
                 @if(count($sections) > 0)
                     <div class="bg-white">
@@ -436,49 +458,182 @@
                     </div>
                 @endif
             </div>
-        </div>
 
-        <!-- Right Panel - Block/Section Editor -->
-        @if($editingBlockIndex !== null && $selectedSectionId)
-            @php
-                $editingSection = collect($sections)->firstWhere('id', $selectedSectionId);
-                $editingBlock = $editingSection['blocks'][$editingBlockIndex] ?? null;
-            @endphp
+            <!-- Two Step Optin Preview Modal -->
+            @if($showTwoStepOptinPreview && $twoStepOptinEnabled && count($twoStepOptinBlocks) > 0)
+                <div
+                    x-data="{ show: true }"
+                    x-show="show"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-20"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-20"
+                    x-transition:leave-end="opacity-0"
+                    @click.self="$wire.set('showTwoStepOptinPreview', false)"
+                    class="absolute inset-0 z-50 overflow-y-auto"
+                >
+                    <!-- Overlay -->
+                    <div class="absolute inset-0 bg-opacity-20 bg-black/20" wire:click="$set('showTwoStepOptinPreview', false)"></div>
 
-            @if($editingBlock)
-                @php
-                    $blockInstance = \App\LandingPages\BlockRegistry::get($editingBlock['type']);
-                    $blockLabel = $blockInstance ? $blockInstance::label() : $editingBlock['type'];
-                @endphp
-                <div class="fixed right-0 top-16 bottom-0 w-[600px] bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col shadow-2xl z-50">
-                    <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="font-semibold text-gray-900 dark:text-white">Edit {{ $blockLabel }}</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Customize block settings</p>
-                            </div>
-                            <flux:button variant="ghost" size="sm" icon="x-mark" wire:click="cancelBlockEdit" />
+                    <!-- Modal -->
+                    <div class="flex min-h-full items-center justify-center p-4 relative">
+                        <div class="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
+                            <!-- Close Button -->
+                            <button wire:click="$set('showTwoStepOptinPreview', false)" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+
+                            <!-- Two Step Optin Content -->
+                            @foreach($twoStepOptinBlocks as $block)
+                                @php
+                                    $blockInstance = \App\LandingPages\BlockRegistry::get($block['type']);
+                                @endphp
+                                @if($blockInstance)
+                                    {!! $blockInstance->render($block['data']) !!}
+                                @else
+                                    @include('landing-pages.blocks.' . $block['type'] . '.render', ['data' => $block['data']])
+                                @endif
+                            @endforeach
                         </div>
-                    </div>
-
-                    <div class="flex-1 overflow-y-auto p-4">
-                        @if($blockInstance)
-                            {!! $blockInstance->renderEditor($blockData, 'blockData') !!}
-                        @else
-                            @include('livewire.admin.landing-pages.blocks.' . $editingBlock['type'])
-                        @endif
-                    </div>
-
-                    <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-                        <flux:button variant="ghost" wire:click="cancelBlockEdit" size="sm">
-                            Cancel
-                        </flux:button>
-                        <flux:button wire:click="saveBlockEdit" size="sm">
-                            Save Changes
-                        </flux:button>
                     </div>
                 </div>
             @endif
+
+            <!-- Exit Popup Preview Modal -->
+            @if($showExitPopupPreview && $exitPopupEnabled && count($exitPopupBlocks) > 0)
+                <div
+                    x-data="{ show: true }"
+                    x-show="show"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-20"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-20"
+                    x-transition:leave-end="opacity-0"
+                    @click.self="$wire.set('showExitPopupPreview', false)"
+                    class="absolute inset-0 z-50 overflow-y-auto"
+                >
+                    <!-- Overlay -->
+                    <div class="absolute inset-0 bg-opacity-20 bg-black/20" wire:click="$set('showExitPopupPreview', false)"></div>
+
+                    <!-- Modal -->
+                    <div class="flex min-h-full items-center justify-center p-4 relative">
+                        <div class="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
+                            <!-- Close Button -->
+                            <button wire:click="$set('showExitPopupPreview', false)" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+
+                            <!-- Exit Popup Content -->
+                            @foreach($exitPopupBlocks as $block)
+                                @php
+                                    $blockInstance = \App\LandingPages\BlockRegistry::get($block['type']);
+                                @endphp
+                                @if($blockInstance)
+                                    {!! $blockInstance->render($block['data']) !!}
+                                @else
+                                    @include('landing-pages.blocks.' . $block['type'] . '.render', ['data' => $block['data']])
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </div>
+
+        <!-- Right Panel - Block/Section Editor -->
+        @php
+            $showRightPanel = false;
+            $editingBlock = null;
+            $blockInstance = null;
+            $blockLabel = '';
+            $editingData = [];
+            $editingWireModel = '';
+            $editingContext = '';
+            $cancelMethod = '';
+            $saveMethod = '';
+
+            // Regular section block editing
+            if ($editingBlockIndex !== null && $selectedSectionId) {
+                $editingSection = collect($sections)->firstWhere('id', $selectedSectionId);
+                $editingBlock = $editingSection['blocks'][$editingBlockIndex] ?? null;
+                if ($editingBlock) {
+                    $showRightPanel = true;
+                    $editingData = $blockData;
+                    $editingWireModel = 'blockData';
+                    $editingContext = 'section block';
+                    $cancelMethod = 'cancelBlockEdit';
+                    $saveMethod = 'saveBlockEdit';
+                }
+            }
+
+            // Two Step Optin block editing
+            if ($editingTwoStepOptin === true && $editingTwoStepOptinBlockIndex !== null) {
+                $editingBlock = $twoStepOptinBlocks[$editingTwoStepOptinBlockIndex] ?? null;
+                if ($editingBlock) {
+                    $showRightPanel = true;
+                    $editingData = $twoStepOptinBlockData;
+                    $editingWireModel = 'twoStepOptinBlockData';
+                    $editingContext = 'two step optin';
+                    $cancelMethod = 'cancelTwoStepOptinBlockEdit';
+                    $saveMethod = 'saveTwoStepOptinBlock';
+                }
+            }
+
+            // Exit Popup block editing
+            if ($editingExitPopup === true && $editingExitPopupBlockIndex !== null) {
+                $editingBlock = $exitPopupBlocks[$editingExitPopupBlockIndex] ?? null;
+                if ($editingBlock) {
+                    $showRightPanel = true;
+                    $editingData = $exitPopupBlockData;
+                    $editingWireModel = 'exitPopupBlockData';
+                    $editingContext = 'exit popup';
+                    $cancelMethod = 'cancelExitPopupBlockEdit';
+                    $saveMethod = 'saveExitPopupBlock';
+                }
+            }
+
+            // Get block instance and label if we have a block
+            if ($editingBlock) {
+                $blockInstance = \App\LandingPages\BlockRegistry::get($editingBlock['type']);
+                $blockLabel = $blockInstance ? $blockInstance::label() : $editingBlock['type'];
+            }
+        @endphp
+
+        @if($showRightPanel && $editingBlock)
+            <div class="fixed right-0 top-16 bottom-0 w-[600px] bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col shadow-2xl z-50">
+                <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-semibold text-gray-900 dark:text-white">Edit {{ $blockLabel }}</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Customize {{ $editingContext }} block settings</p>
+                        </div>
+                        <flux:button variant="ghost" size="sm" icon="x-mark" wire:click="{{ $cancelMethod }}" />
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4">
+                    @if($blockInstance)
+                        {!! $blockInstance->renderEditor($editingData, $editingWireModel) !!}
+                    @else
+                        @include('livewire.admin.landing-pages.blocks.' . $editingBlock['type'], ['blockData' => $editingData])
+                    @endif
+                </div>
+
+                <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+                    <flux:button variant="ghost" wire:click="{{ $cancelMethod }}" size="sm">
+                        Cancel
+                    </flux:button>
+                    <flux:button wire:click="{{ $saveMethod }}" size="sm">
+                        Save Changes
+                    </flux:button>
+                </div>
+            </div>
         @endif
     </div>
 
@@ -582,14 +737,14 @@
     </flux:modal>
 
     <!-- Two Step Optin Block Selector Modal -->
-    <flux:modal :open="$editingTwoStepOptin === 'selector'" wire:model="editingTwoStepOptin" class="max-w-4xl">
+    <flux:modal :open="$showTwoStepOptinBlockSelector" wire:model="showTwoStepOptinBlockSelector" class="max-w-4xl">
         <flux:heading>Add Block to Two Step Optin</flux:heading>
         <flux:subheading>Choose a block type to add to the two step optin modal</flux:subheading>
 
         <div class="mt-6 grid grid-cols-3 gap-4">
             @foreach($blockTypes as $blockType)
                 <button
-                    wire:click="addTwoStepOptinBlock('{{ $blockType->type }}'); $set('editingTwoStepOptin', false)"
+                    wire:click="addTwoStepOptinBlock('{{ $blockType->type }}')"
                     class="flex flex-col items-start p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
                 >
                     <div class="text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 mb-2">
@@ -603,14 +758,14 @@
     </flux:modal>
 
     <!-- Exit Popup Block Selector Modal -->
-    <flux:modal :open="$editingExitPopup === 'selector'" wire:model="editingExitPopup" class="max-w-4xl">
+    <flux:modal :open="$showExitPopupBlockSelector" wire:model="showExitPopupBlockSelector" class="max-w-4xl">
         <flux:heading>Add Block to Exit Popup</flux:heading>
         <flux:subheading>Choose a block type to add to the exit popup</flux:subheading>
 
         <div class="mt-6 grid grid-cols-3 gap-4">
             @foreach($blockTypes as $blockType)
                 <button
-                    wire:click="addExitPopupBlock('{{ $blockType->type }}'); $set('editingExitPopup', false)"
+                    wire:click="addExitPopupBlock('{{ $blockType->type }}')"
                     class="flex flex-col items-start p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
                 >
                     <div class="text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 mb-2">
@@ -623,75 +778,6 @@
         </div>
     </flux:modal>
 
-    <!-- Two Step Optin Block Editor -->
-    @if($editingTwoStepOptin === true && $editingTwoStepOptinBlockIndex !== null)
-        @php
-            $editingBlock = $twoStepOptinBlocks[$editingTwoStepOptinBlockIndex] ?? null;
-        @endphp
-
-        @if($editingBlock)
-            @php
-                $blockInstance = \App\LandingPages\BlockRegistry::get($editingBlock['type']);
-                $blockLabel = $blockInstance ? $blockInstance::label() : $editingBlock['type'];
-            @endphp
-            <flux:modal :open="true" wire:model="editingTwoStepOptin" class="max-w-2xl">
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <flux:heading>Edit {{ $blockLabel }}</flux:heading>
-                        <flux:subheading>Customize block settings for two step optin</flux:subheading>
-                    </div>
-                </div>
-
-                <div class="space-y-4">
-                    @include('livewire.admin.landing-pages.blocks.' . $blockType->value, ['blockData' => $twoStepOptinBlockData])
-                </div>
-
-                <div class="mt-6 flex gap-3 justify-end">
-                    <flux:button variant="ghost" wire:click="cancelTwoStepOptinBlockEdit">
-                        Cancel
-                    </flux:button>
-                    <flux:button wire:click="saveTwoStepOptinBlock">
-                        Save Changes
-                    </flux:button>
-                </div>
-            </flux:modal>
-        @endif
-    @endif
-
-    <!-- Exit Popup Block Editor -->
-    @if($editingExitPopup === true && $editingExitPopupBlockIndex !== null)
-        @php
-            $editingBlock = $exitPopupBlocks[$editingExitPopupBlockIndex] ?? null;
-        @endphp
-
-        @if($editingBlock)
-            @php
-                $blockInstance = \App\LandingPages\BlockRegistry::get($editingBlock['type']);
-                $blockLabel = $blockInstance ? $blockInstance::label() : $editingBlock['type'];
-            @endphp
-            <flux:modal :open="true" wire:model="editingExitPopup" class="max-w-2xl">
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <flux:heading>Edit {{ $blockLabel }}</flux:heading>
-                        <flux:subheading>Customize block settings for exit popup</flux:subheading>
-                    </div>
-                </div>
-
-                <div class="space-y-4">
-                    @include('livewire.admin.landing-pages.blocks.' . $blockType->value, ['blockData' => $exitPopupBlockData])
-                </div>
-
-                <div class="mt-6 flex gap-3 justify-end">
-                    <flux:button variant="ghost" wire:click="cancelExitPopupBlockEdit">
-                        Cancel
-                    </flux:button>
-                    <flux:button wire:click="saveExitPopupBlock">
-                        Save Changes
-                    </flux:button>
-                </div>
-            </flux:modal>
-        @endif
-    @endif
 
     <!-- Section Settings Modal -->
     <flux:modal name="section-settings" class="max-w-3xl" variant="flyout">

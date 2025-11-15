@@ -50,22 +50,30 @@ class LandingPageEdit extends Component
 
     public array $twoStepOptinBlocks = [];
 
+    public bool $showTwoStepOptinBlockSelector = false;
+
     public bool $editingTwoStepOptin = false;
 
     public ?int $editingTwoStepOptinBlockIndex = null;
 
     public array $twoStepOptinBlockData = [];
 
+    public bool $showTwoStepOptinPreview = false;
+
     // Exit Popup Properties
     public bool $exitPopupEnabled = false;
 
     public array $exitPopupBlocks = [];
+
+    public bool $showExitPopupBlockSelector = false;
 
     public bool $editingExitPopup = false;
 
     public ?int $editingExitPopupBlockIndex = null;
 
     public array $exitPopupBlockData = [];
+
+    public bool $showExitPopupPreview = false;
 
     public string $activeEditorTab = 'content';
 
@@ -385,7 +393,9 @@ class LandingPageEdit extends Component
         $this->twoStepOptinBlocks[] = $block;
         $blockIndex = count($this->twoStepOptinBlocks) - 1;
 
-        // Automatically open the edit modal for the newly added block
+        $this->showTwoStepOptinBlockSelector = false;
+
+        // Automatically open the edit panel for the newly added block
         $this->editTwoStepOptinBlock($blockIndex);
 
         Flux::toast(text: 'Block added', variant: 'success');
@@ -458,7 +468,9 @@ class LandingPageEdit extends Component
         $this->exitPopupBlocks[] = $block;
         $blockIndex = count($this->exitPopupBlocks) - 1;
 
-        // Automatically open the edit modal for the newly added block
+        $this->showExitPopupBlockSelector = false;
+
+        // Automatically open the edit panel for the newly added block
         $this->editExitPopupBlock($blockIndex);
 
         Flux::toast(text: 'Block added', variant: 'success');
