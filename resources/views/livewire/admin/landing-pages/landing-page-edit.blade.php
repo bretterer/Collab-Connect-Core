@@ -341,6 +341,8 @@
                                 $bgImage = $settings['background_image'] ?? '';
                                 $bgPosition = $settings['background_position'] ?? 'center';
                                 $bgFixed = $settings['background_fixed'] ?? false;
+                                $overlayColor = $settings['overlay_color'] ?? '#000000';
+                                $overlayOpacity = $settings['overlay_opacity'] ?? 0;
 
                                 // Desktop layout
                                 $desktopHide = $settings['desktop_hide'] ?? false;
@@ -401,12 +403,26 @@
                                 style="{{ $backgroundStyles }} padding: {{ $mobilePaddingTop }}px {{ $mobilePaddingRight }}px {{ $mobilePaddingBottom }}px {{ $mobilePaddingLeft }}px; @media (min-width: 768px) { padding: {{ $desktopPaddingTop }}px {{ $desktopPaddingRight }}px {{ $desktopPaddingBottom }}px {{ $desktopPaddingLeft }}px; }"
                                 class="relative group {{ $visibilityClasses }}"
                             >
-                                <!-- Section overlay when selected -->
-                                @if($selectedSectionId === $section['id'])
-                                    <div class="absolute inset-0 border-2 border-blue-500 pointer-events-none"></div>
+                                {{-- Color Overlay --}}
+                                @if($overlayOpacity > 0)
+                                    @php
+                                        // Convert hex color to RGB
+                                        $hex = ltrim($overlayColor, '#');
+                                        $r = hexdec(substr($hex, 0, 2));
+                                        $g = hexdec(substr($hex, 2, 2));
+                                        $b = hexdec(substr($hex, 4, 2));
+                                        $alpha = $overlayOpacity / 100;
+                                        $overlayRgba = "rgba({$r}, {$g}, {$b}, {$alpha})";
+                                    @endphp
+                                    <div class="absolute inset-0 pointer-events-none" style="background-color: {{ $overlayRgba }};"></div>
                                 @endif
 
-                                <div class="flex {{ $flexClasses }} min-h-full">
+                                <!-- Section overlay when selected -->
+                                @if($selectedSectionId === $section['id'])
+                                    <div class="absolute inset-0 border-2 border-blue-500 pointer-events-none z-20"></div>
+                                @endif
+
+                                <div class="flex {{ $flexClasses }} min-h-full relative z-10">
                                     <div class="w-full">
                                         @foreach($section['blocks'] as $blockIndex => $block)
                                             <div
@@ -795,9 +811,55 @@
                     </flux:field>
 
                     <flux:field>
-                        <flux:label>Background Image URL</flux:label>
-                        <flux:input wire:model="sectionSettings.background_image" placeholder="https://example.com/image.jpg" />
-                        <flux:description>Leave empty for solid color background</flux:description>
+                        <flux:label>Background Image</flux:label>
+                        <flux:description>Upload an image for the section background</flux:description>
+
+                        @if(!empty($sectionSettings['background_image']))
+                            <div class="mt-2 space-y-3">
+                                {{-- Image Preview --}}
+                                <div class="relative rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 max-h-48">
+                                    <img
+                                        src="{{ $sectionSettings['background_image'] }}"
+                                        alt="Section background"
+                                        class="w-full h-auto object-cover"
+                                    />
+                                </div>
+
+                                {{-- Action Buttons --}}
+                                <div class="flex gap-2">
+                                    <flux:button size="sm" variant="danger" wire:click="deleteSectionBackgroundImage" icon="trash">
+                                        Delete Image
+                                    </flux:button>
+                                </div>
+                            </div>
+                        @else
+                            {{-- File Upload Input --}}
+                            <div class="mt-2">
+                                <input
+                                    type="file"
+                                    wire:model="sectionBackgroundImage"
+                                    accept="image/*"
+                                    class="block w-full text-sm text-zinc-900 dark:text-zinc-100
+                                           border border-zinc-300 dark:border-zinc-600 rounded-lg cursor-pointer
+                                           bg-zinc-50 dark:bg-zinc-800 focus:outline-none
+                                           file:mr-4 file:py-2 file:px-4
+                                           file:rounded-l-lg file:border-0
+                                           file:text-sm file:font-semibold
+                                           file:bg-zinc-100 dark:file:bg-zinc-700
+                                           file:text-zinc-700 dark:file:text-zinc-300
+                                           hover:file:bg-zinc-200 dark:hover:file:bg-zinc-600"
+                                />
+
+                                <div wire:loading wire:target="sectionBackgroundImage" class="mt-2 flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                                    <flux:icon.arrow-path class="animate-spin" />
+                                    Uploading image...
+                                </div>
+                            </div>
+
+                            @error('sectionBackgroundImage')
+                                <flux:error>{{ $message }}</flux:error>
+                            @enderror
+                        @endif
                     </flux:field>
 
                     <div class="grid grid-cols-2 gap-4">
@@ -815,6 +877,30 @@
                             <flux:switch wire:model="sectionSettings.background_fixed" />
                             <flux:description>Parallax effect</flux:description>
                         </flux:field>
+                    </div>
+
+                    <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+                        <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-4">Color Overlay</h4>
+                        <div class="space-y-4">
+                            <flux:field>
+                                <flux:label>Overlay Color</flux:label>
+                                <flux:description>Overlay color applied over the background</flux:description>
+                                <flux:input type="color" wire:model="sectionSettings.overlay_color" />
+                            </flux:field>
+
+                            <flux:field>
+                                <flux:label>Overlay Opacity: {{ $sectionSettings['overlay_opacity'] ?? 0 }}%</flux:label>
+                                <flux:description>Transparency of the overlay (0% = invisible, 100% = solid)</flux:description>
+                                <input
+                                    type="range"
+                                    wire:model.live="sectionSettings.overlay_opacity"
+                                    min="0"
+                                    max="100"
+                                    step="1"
+                                    class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                />
+                            </flux:field>
+                        </div>
                     </div>
                 </div>
             </div>

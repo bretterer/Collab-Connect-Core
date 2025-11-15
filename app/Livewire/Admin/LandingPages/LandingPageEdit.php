@@ -5,12 +5,18 @@ namespace App\Livewire\Admin\LandingPages;
 use App\LandingPages\BlockRegistry;
 use App\Models\LandingPage;
 use Flux\Flux;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Laravel\Facades\Image;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 
 #[Layout('layouts.app')]
 class LandingPageEdit extends Component
 {
+    use WithFileUploads;
+
     public LandingPage $landingPage;
 
     public string $title = '';
@@ -76,6 +82,8 @@ class LandingPageEdit extends Component
     public bool $showExitPopupPreview = false;
 
     public string $activeEditorTab = 'content';
+
+    public ?TemporaryUploadedFile $sectionBackgroundImage = null;
 
     public function mount(LandingPage $landingPage)
     {
@@ -212,6 +220,61 @@ class LandingPageEdit extends Component
         $this->sectionSettings = [];
 
         Flux::modal('section-settings')->close();
+    }
+
+    public function updatedSectionBackgroundImage(): void
+    {
+        $this->validate([
+            'sectionBackgroundImage' => ['required', 'image', 'max:10240'], // 10MB max
+        ]);
+
+        try {
+            // Process and upload the image
+            $image = Image::read($this->sectionBackgroundImage->getRealPath());
+
+            // Generate a unique filename
+            $filename = 'landing-pages/backgrounds/'.uniqid('bg_', true).'.jpg';
+
+            // Encode the image
+            $encodedImage = $image->encodeByMediaType('image/jpeg', quality: 85);
+
+            // Upload to Linode Object Storage
+            Storage::disk('linode')->put($filename, $encodedImage, 'public');
+
+            // Get the public URL
+            $imageUrl = Storage::disk('linode')->url($filename);
+
+            // Update section settings
+            $this->sectionSettings['background_image'] = $imageUrl;
+
+            // Reset the file input
+            $this->sectionBackgroundImage = null;
+
+            Flux::toast(text: 'Background image uploaded successfully', variant: 'success');
+        } catch (\Exception $e) {
+            $this->addError('sectionBackgroundImage', 'Failed to upload image: '.$e->getMessage());
+        }
+    }
+
+    public function deleteSectionBackgroundImage(): void
+    {
+        if (! empty($this->sectionSettings['background_image'])) {
+            $imageUrl = $this->sectionSettings['background_image'];
+
+            // Extract the filename from the URL
+            $parsedUrl = parse_url($imageUrl);
+            $path = ltrim($parsedUrl['path'] ?? '', '/');
+
+            // Delete from storage if it exists
+            if (Storage::disk('linode')->exists($path)) {
+                Storage::disk('linode')->delete($path);
+            }
+
+            // Clear the image from section settings
+            $this->sectionSettings['background_image'] = '';
+
+            Flux::toast(text: 'Background image deleted', variant: 'success');
+        }
     }
 
     // Block Management
@@ -588,6 +651,8 @@ class LandingPageEdit extends Component
             'background_image' => '',
             'background_position' => 'center', // top, center, bottom
             'background_fixed' => false,
+            'overlay_color' => '#000000',
+            'overlay_opacity' => 0, // 0-100
 
             // Desktop Layout
             'desktop_hide' => false,

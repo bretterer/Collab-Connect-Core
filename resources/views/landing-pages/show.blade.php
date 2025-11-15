@@ -33,6 +33,8 @@
                 $bgImage = $settings['background_image'] ?? '';
                 $bgPosition = $settings['background_position'] ?? 'center';
                 $bgFixed = $settings['background_fixed'] ?? false;
+                $overlayColor = $settings['overlay_color'] ?? '#000000';
+                $overlayOpacity = $settings['overlay_opacity'] ?? 0;
 
                 // Desktop layout
                 $desktopHide = $settings['desktop_hide'] ?? false;
@@ -101,7 +103,21 @@
                     }
                 </style>
 
-                <div class="flex {{ $flexClasses }} min-h-full w-full">
+                {{-- Color Overlay --}}
+                @if($overlayOpacity > 0)
+                    @php
+                        // Convert hex color to RGB
+                        $hex = ltrim($overlayColor, '#');
+                        $r = hexdec(substr($hex, 0, 2));
+                        $g = hexdec(substr($hex, 2, 2));
+                        $b = hexdec(substr($hex, 4, 2));
+                        $alpha = $overlayOpacity / 100;
+                        $overlayRgba = "rgba({$r}, {$g}, {$b}, {$alpha})";
+                    @endphp
+                    <div class="absolute inset-0" style="background-color: {{ $overlayRgba }}; pointer-events: none;"></div>
+                @endif
+
+                <div class="flex {{ $flexClasses }} min-h-full w-full relative z-10">
                     <div class="w-full">
                         @if(isset($section['blocks']) && is_array($section['blocks']))
                             @foreach($section['blocks'] as $block)
