@@ -30,7 +30,27 @@ class ImageBlock extends BaseBlock
     protected static function contentDefaultData(): array
     {
         return [
-            'content' => '',
+            'image_url' => '',
+            'image_alt' => '',
+            'image_width' => null,
+            'image_height' => null,
+            'brightness' => 0,
+            'contrast' => 0,
+            'saturation' => 0,
+            'blur' => 0,
+        ];
+    }
+
+    /**
+     * Define settings-specific defaults for display configuration
+     */
+    protected static function settingsDefaultData(): array
+    {
+        return [
+            'display_width' => null,
+            'display_height' => null,
+            'maintain_aspect_ratio' => true,
+            'alignment' => 'center', // left, center, right
         ];
     }
 
@@ -64,7 +84,14 @@ class ImageBlock extends BaseBlock
     protected function contentRules(): array
     {
         return [
-            'content' => ['nullable', 'string'],
+            'image_url' => ['nullable', 'string', 'max:2048'],
+            'image_alt' => ['nullable', 'string', 'max:255'],
+            'image_width' => ['nullable', 'integer', 'min:1', 'max:5000'],
+            'image_height' => ['nullable', 'integer', 'min:1', 'max:5000'],
+            'brightness' => ['nullable', 'integer', 'min:-100', 'max:100'],
+            'contrast' => ['nullable', 'integer', 'min:-100', 'max:100'],
+            'saturation' => ['nullable', 'integer', 'min:-100', 'max:100'],
+            'blur' => ['nullable', 'integer', 'min:0', 'max:100'],
         ];
     }
 
@@ -76,6 +103,19 @@ class ImageBlock extends BaseBlock
         return [
             'background_color' => ['nullable', 'string'],
             'text_color' => ['nullable', 'string'],
+        ];
+    }
+
+    /**
+     * Define settings validation rules
+     */
+    protected function settingsRules(): array
+    {
+        return [
+            'display_width' => ['nullable', 'integer', 'min:1', 'max:5000'],
+            'display_height' => ['nullable', 'integer', 'min:1', 'max:5000'],
+            'maintain_aspect_ratio' => ['boolean'],
+            'alignment' => ['required', 'in:left,center,right'],
         ];
     }
 }
