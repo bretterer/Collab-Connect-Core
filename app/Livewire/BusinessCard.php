@@ -37,12 +37,12 @@ class BusinessCard extends Component
 
     public function viewBusinessProfile()
     {
-        return $this->redirect(route('business.profile', $this->user), navigate: true);
+        return $this->redirect(route('business.profile', ['username' => $this->user->currentBusiness?->username ?? $this->user->currentBusiness?->id ?? $this->user->id]), navigate: true);
     }
 
     public function viewBusinessCampaigns()
     {
-        return $this->redirect(route('business.campaigns', $this->user), navigate: true);
+        return $this->redirect(route('business.campaigns', ['user' => $this->user->id]), navigate: true);
     }
 
     public function render()
