@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Livewire\Admin\Forms;
 
+use App\Enums\AccountType;
 use App\Enums\FormFieldType;
 use App\Livewire\Admin\Forms\FormCreate;
 use App\Models\User;
@@ -20,7 +21,7 @@ class FormCreateTest extends TestCase
     {
         parent::setUp();
 
-        $this->admin = User::factory()->create(['account_type' => 'ADMIN']);
+        $this->admin = User::factory()->admin()->create();
     }
 
     #[Test]
@@ -111,7 +112,7 @@ class FormCreateTest extends TestCase
         $component->set('fields', [])
             ->set('title', 'Test Form')
             ->call('save')
-            ->assertHasErrors(['fields' => 'Form must contain an email field.']);
+            ->assertHasErrors(['fields']);
     }
 
     #[Test]

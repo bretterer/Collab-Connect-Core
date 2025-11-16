@@ -67,6 +67,11 @@ class RegistrationTest extends TestCase
         // Disable Honeypot
         config(['honeypot.enabled' => false]);
 
+        // Disable market-based registration for this test
+        $settings = app(\App\Settings\RegistrationMarkets::class);
+        $settings->enabled = false;
+        $settings->save();
+
         // Create referrer and their enrollment
         $referrerEnrollment = \App\Models\ReferralEnrollment::factory()->create();
 

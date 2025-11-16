@@ -10,6 +10,7 @@ use App\Models\ReferralPayout;
 use App\Models\ReferralPayoutItem;
 use App\Models\ReferralPercentageHistory;
 use App\Models\User;
+use Laravel\Pennant\Feature;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -22,6 +23,7 @@ class ReferralPayoutReportingTest extends TestCase
         $influencerUser = User::factory()->influencer()->withProfile()->subscribed()->create();
 
         $this->actingAs($influencerUser);
+        Feature::activate('referral-program');
 
         $referralEnrollment = ReferralEnrollment::factory()->create([
             'user_id' => $influencerUser->id,

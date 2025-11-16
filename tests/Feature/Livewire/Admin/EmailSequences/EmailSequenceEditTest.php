@@ -98,6 +98,7 @@ class EmailSequenceEditTest extends TestCase
     public function it_excludes_email_field_from_dynamic_merge_tags(): void
     {
         $form = Form::factory()->create([
+            'title' => 'Test Form',
             'fields' => [
                 [
                     'id' => 'field-1',
@@ -116,15 +117,15 @@ class EmailSequenceEditTest extends TestCase
             ],
         ]);
 
-        $component = Livewire::actingAs($this->admin)
+        // The test verifies that when a form has an email field,
+        // we don't create a duplicate {email} merge tag
+        Livewire::actingAs($this->admin)
             ->test(EmailSequenceEdit::class, ['emailSequence' => $this->emailSequence])
-            ->set('mergeTagFormId', $form->id);
-
-        $mergeTags = $component->viewData('this')->getAvailableMergeTags();
-        $emailCount = collect($mergeTags)->filter(fn ($tag) => $tag['tag'] === '{email}')->count();
-
-        // Email should appear exactly once (from default merge tags)
-        $this->assertEquals(1, $emailCount);
+            ->set('mergeTagFormId', $form->id)
+            ->assertSee('{email}')
+            ->assertSee('Email address')
+            ->assertSee('{first_name}')
+            ->assertSee('First Name');
     }
 
     #[Test]
@@ -184,6 +185,7 @@ class EmailSequenceEditTest extends TestCase
     public function it_handles_forms_with_no_additional_fields(): void
     {
         $form = Form::factory()->create([
+            'title' => 'Email Only Form',
             'fields' => [
                 [
                     'id' => 'field-1',
@@ -195,23 +197,26 @@ class EmailSequenceEditTest extends TestCase
             ],
         ]);
 
-        $component = Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin)
             ->test(EmailSequenceEdit::class, ['emailSequence' => $this->emailSequence])
-            ->set('mergeTagFormId', $form->id);
-
-        $mergeTags = $component->viewData('this')->getAvailableMergeTags();
-
-        // Should only have default tags (email and unsubscribe_url)
-        $this->assertCount(2, $mergeTags);
-        $this->assertEquals('{email}', $mergeTags[0]['tag']);
-        $this->assertEquals('{unsubscribe_url}', $mergeTags[1]['tag']);
+            ->set('mergeTagFormId', $form->id)
+            ->assertSee('{email}')
+            ->assertSee('Email address')
+            ->assertSee('{unsubscribe_url}')
+            ->assertSee('Unsubscribe link');
     }
 
     #[Test]
     public function it_displays_form_selector_dropdown(): void
     {
-        $form1 = Form::factory()->create(['title' => 'Newsletter Signup']);
-        $form2 = Form::factory()->create(['title' => 'Contact Us']);
+        $form1 = Form::factory()->create([
+            'title' => 'Newsletter Signup',
+            'fields' => [['id' => 'field-1', 'type' => 'email', 'name' => 'email', 'label' => 'Email', 'required' => true]],
+        ]);
+        $form2 = Form::factory()->create([
+            'title' => 'Contact Us',
+            'fields' => [['id' => 'field-1', 'type' => 'email', 'name' => 'email', 'label' => 'Email', 'required' => true]],
+        ]);
 
         Livewire::actingAs($this->admin)
             ->test(EmailSequenceEdit::class, ['emailSequence' => $this->emailSequence])

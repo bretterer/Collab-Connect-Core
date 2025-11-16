@@ -29,9 +29,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Model::unguard();
 
-        Feature::discover();
-        Feature::activateForEveryone(config('collabconnect.pennant.global_enable', []));
-        Feature::deactivateForEveryone(config('collabconnect.pennant.global_disable', []));
+
         EnsureFeaturesAreActive::whenInactive(
             function (Request $request, array $features) {
                 return new Response(status: 404);

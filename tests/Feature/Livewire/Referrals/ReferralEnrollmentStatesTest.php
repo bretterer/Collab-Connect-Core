@@ -6,6 +6,7 @@ use App\Enums\ReferralStatus;
 use App\Models\ReferralEnrollment;
 use App\Models\ReferralPercentageHistory;
 use App\Models\User;
+use Laravel\Pennant\Feature;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -18,6 +19,8 @@ class ReferralEnrollmentStatesTest extends TestCase
         $businessUser = User::factory()->business()->withProfile()->create();
 
         $this->actingAs($businessUser);
+
+        Feature::activate('referral-program');
 
         Livewire::test(\App\Livewire\Referrals\Index::class)
             ->assertStatus(200)
@@ -50,6 +53,8 @@ class ReferralEnrollmentStatesTest extends TestCase
         // Act as the member
         $this->actingAs($member);
 
+        Feature::activate('referral-program');
+
         // Test - should see owner not enrolled state
         Livewire::test(\App\Livewire\Referrals\Index::class)
             ->assertStatus(200)
@@ -67,6 +72,8 @@ class ReferralEnrollmentStatesTest extends TestCase
 
         $this->actingAs($influencerUser);
 
+        Feature::activate('referral-program');
+
         Livewire::test(\App\Livewire\Referrals\Index::class)
             ->assertStatus(200)
             ->assertSeeText('Join Our Referral Program')
@@ -81,6 +88,7 @@ class ReferralEnrollmentStatesTest extends TestCase
 
         $this->actingAs($influencerUser);
 
+        Feature::activate('referral-program');
         Livewire::test(\App\Livewire\Referrals\Index::class)
             ->assertStatus(200)
             ->assertSeeText('You qualify for our referral program')
@@ -93,6 +101,8 @@ class ReferralEnrollmentStatesTest extends TestCase
         $influencerUser = User::factory()->influencer()->withProfile()->subscribed()->create();
 
         $this->actingAs($influencerUser);
+
+        Feature::activate('referral-program');
 
         Livewire::test(\App\Livewire\Referrals\Index::class)
             ->assertStatus(200)
@@ -110,6 +120,7 @@ class ReferralEnrollmentStatesTest extends TestCase
 
         $this->actingAs($influencerUser);
 
+        Feature::activate('referral-program');
         $referralEnrollment = ReferralEnrollment::factory()->create([
             'user_id' => $influencerUser->id,
         ]);
