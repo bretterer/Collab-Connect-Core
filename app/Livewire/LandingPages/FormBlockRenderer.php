@@ -5,6 +5,7 @@ namespace App\Livewire\LandingPages;
 use App\Models\Form;
 use App\Models\FormSubmission;
 use App\Models\LandingPage;
+use App\Services\EmailSequenceService;
 use Livewire\Component;
 
 class FormBlockRenderer extends Component
@@ -97,6 +98,14 @@ class FormBlockRenderer extends Component
             'user_agent' => request()->userAgent(),
             'referrer' => request()->header('referer'),
         ]);
+
+        // Trigger email sequences
+        if (isset($this->formData['email'])) {
+            app(EmailSequenceService::class)->handleFormSubmission(
+                formId: $this->form->id,
+                data: $this->formData
+            );
+        }
 
         // Fire Livewire event if enabled
         if ($this->blockData['fire_event'] ?? true) {

@@ -77,7 +77,7 @@
                             @if($user->referralEnrollment->hasPayPalConnected())
                                 <div class="mt-2 flex items-center gap-2">
                                     <flux:badge variant="success">Connected</flux:badge>
-                                    <flux:button wire:click="disconnectPayPal" size="sm" variant="ghost">
+                                    <flux:button wire:click="disconnectPayPal" size="sm" variant="ghost" icon="x-mark">
                                         Disconnect
                                     </flux:button>
                                 </div>
@@ -141,8 +141,8 @@
                                     wire:click="copyReferralLink"
                                     variant="ghost"
                                     x-on:click="navigator.clipboard.writeText('{{ $referralLink }}')"
+                                    icon="clipboard"
                                 >
-                                    <flux:icon.clipboard class="size-5" />
                                 </flux:button>
                             </div>
                         </flux:field>

@@ -71,6 +71,18 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
                 Route::get('/{form}/submissions', App\Livewire\Admin\Forms\FormSubmissions::class)->name('submissions');
             });
 
+            Route::prefix('email-sequences')->name('email-sequences.')->group(function () {
+                Route::get('/', App\Livewire\Admin\EmailSequences\EmailSequenceIndex::class)->name('index');
+                Route::get('/create', App\Livewire\Admin\EmailSequences\EmailSequenceCreate::class)->name('create');
+                Route::get('/{emailSequence}/edit', App\Livewire\Admin\EmailSequences\EmailSequenceEdit::class)->name('edit');
+            });
+
+            Route::prefix('funnels')->name('funnels.')->group(function () {
+                Route::get('/', App\Livewire\Admin\Funnels\FunnelIndex::class)->name('index');
+                Route::get('/create', App\Livewire\Admin\Funnels\FunnelEdit::class)->name('create');
+                Route::get('/{funnel}/edit', App\Livewire\Admin\Funnels\FunnelEdit::class)->name('edit')->where('funnel', '[0-9]+');
+            });
+
         });
 
         // Referral Program Management
@@ -165,6 +177,52 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
 });
 
 Route::get('/js/dfscript.js', [DataFastProxyController::class, 'script']);
+
+// Email Sequence Public Routes
+Route::get('/unsubscribe/{subscriber}', function ($subscriberId) {
+    $subscriber = \App\Models\EmailSequenceSubscriber::findOrFail($subscriberId);
+
+    // Verify token
+    $token = request('token');
+    $validToken = hash_hmac('sha256', $subscriber->id, config('app.key'));
+
+    if ($token !== $validToken) {
+        abort(403);
+    }
+
+    app(\App\Services\EmailSequenceService::class)->unsubscribe($subscriber, 'user_clicked_link');
+
+    return view('email-sequences.unsubscribed', compact('subscriber'));
+})->name('email-sequence.unsubscribe');
+
+// Tracking pixel for email opens
+Route::get('/email/track/{send}', function ($sendId) {
+    $send = \App\Models\EmailSequenceSend::findOrFail($sendId);
+    $send->markAsOpened();
+
+    // Return a 1x1 transparent GIF
+    return response()->make(
+        base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'),
+        200,
+        ['Content-Type' => 'image/gif']
+    );
+})->name('email-sequence.track');
+
+// Click tracking for email links
+Route::get('/email/click/{send}', function ($sendId, \Illuminate\Http\Request $request) {
+    $send = \App\Models\EmailSequenceSend::findOrFail($sendId);
+    $send->markAsClicked();
+
+    // Get the original URL from query parameter
+    $url = $request->query('url');
+
+    if (! $url) {
+        abort(404);
+    }
+
+    // Redirect to the original URL
+    return redirect($url);
+})->name('email-sequence.click');
 Route::post('/api/events', [DataFastProxyController::class, 'events']);
 
 require __DIR__.'/auth.php';

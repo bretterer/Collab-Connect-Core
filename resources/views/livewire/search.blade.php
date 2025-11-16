@@ -42,8 +42,7 @@
                             <flux:icon.funnel class="w-5 h-5" />
                             Search Filters
                         </h3>
-                        <flux:button wire:click="clearFilters" variant="ghost" size="sm">
-                            <flux:icon.x-mark class="w-4 h-4" />
+                        <flux:button wire:click="clearFilters" variant="ghost" size="sm" icon="x-mark">
                             Clear
                         </flux:button>
                     </div>
@@ -246,7 +245,7 @@
                         <p class="text-gray-500 dark:text-gray-400 mb-6">
                             Try adjusting your search criteria or clearing some filters.
                         </p>
-                        <flux:button wire:click="clearFilters" variant="primary">
+                        <flux:button wire:click="clearFilters" variant="primary" icon="x-mark">
                             Clear All Filters
                         </flux:button>
                     </div>

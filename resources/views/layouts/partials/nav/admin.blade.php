@@ -32,6 +32,9 @@
         <flux:navlist.item href="{{ route('admin.marketing.forms.index') }}" icon="clipboard-document-list" :current="request()->routeIs('admin.marketing.forms.*')">
             Forms
         </flux:navlist.item>
+        <flux:navlist.item href="{{ route('admin.marketing.email-sequences.index') }}" icon="envelope" :current="request()->routeIs('admin.marketing.email-sequences.*')">
+            Email Sequences
+        </flux:navlist.item>
     </flux:navlist.group>
 
     <flux:navlist.item href="{{ route('chat.index') }}" icon="chat-bubble-left-right" :current="request()->routeIs('chat.*')" badge="{{ auth()->user()->hasUnreadMessages() ? ' ' : null }}">

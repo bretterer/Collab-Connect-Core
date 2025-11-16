@@ -115,8 +115,8 @@
                             }
                         "
                         class="flex-shrink-0"
+                        icon="clipboard"
                     >
-                        <flux:icon.clipboard class="w-4 h-4" />
                         <span x-text="copied ? 'Copied!' : 'Copy'"></span>
                     </flux:button>
                 </div>

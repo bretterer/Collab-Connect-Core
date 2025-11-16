@@ -129,18 +129,15 @@
 
     <!-- Action Buttons -->
     <div class="flex space-x-4">
-        <flux:button variant="outline" wire:navigate href="{{ route('search') }}">
-            <flux:icon.arrow-left class="w-4 h-4 mr-2" />
+        <flux:button variant="outline" wire:navigate href="{{ route('search') }}" icon="arrow-left">
             Back to Search
         </flux:button>
         @if($user->currentBusiness && $user->currentBusiness->campaigns()->exists())
-            <flux:button variant="primary" wire:navigate href="{{ route('business.campaigns', $user) }}">
-                <flux:icon.eye class="w-4 h-4 mr-2" />
+            <flux:button variant="primary" wire:navigate href="{{ route('business.campaigns', $user) }}" icon="eye">
                 View Campaigns
             </flux:button>
         @endif
-        <flux:button variant="ghost">
-            <flux:icon.chat-bubble-left class="w-4 h-4 mr-2" />
+        <flux:button variant="ghost" icon="chat-bubble-left">
             Contact Business
         </flux:button>
     </div>

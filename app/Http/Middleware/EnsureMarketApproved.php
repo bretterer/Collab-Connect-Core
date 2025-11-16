@@ -17,7 +17,7 @@ class EnsureMarketApproved
     public function handle(Request $request, Closure $next): Response
     {
         $registrationMarkets = app(RegistrationMarkets::class);
-        if (!$registrationMarkets->enabled) {
+        if (! $registrationMarkets->enabled) {
             return $next($request);
         }
         $user = $request->user();
