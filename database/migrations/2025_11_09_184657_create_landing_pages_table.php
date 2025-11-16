@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->json('blocks')->nullable(); // Array of block configurations
             $table->json('settings')->nullable(); // SEO, tracking scripts, custom CSS
-            $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
+            $table->string('status')->default('draft');
             $table->timestamp('published_at')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();

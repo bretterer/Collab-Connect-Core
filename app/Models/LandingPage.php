@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\LandingPageStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,6 +36,7 @@ class LandingPage extends Model
             'two_step_optin' => 'array',
             'exit_popup' => 'array',
             'published_at' => 'datetime',
+            'status' => LandingPageStatus::class,
         ];
     }
 
@@ -50,18 +52,18 @@ class LandingPage extends Model
 
     public function isPublished(): bool
     {
-        return $this->status === 'published' && $this->published_at?->isPast();
+        return $this->status === LandingPageStatus::PUBLISHED && $this->published_at?->isPast();
     }
 
     public function isDraft(): bool
     {
-        return $this->status === 'draft';
+        return $this->status === LandingPageStatus::DRAFT;
     }
 
     public function publish(): void
     {
         $this->update([
-            'status' => 'published',
+            'status' => LandingPageStatus::PUBLISHED,
             'published_at' => now(),
         ]);
     }
@@ -69,7 +71,7 @@ class LandingPage extends Model
     public function unpublish(): void
     {
         $this->update([
-            'status' => 'draft',
+            'status' => LandingPageStatus::DRAFT,
             'published_at' => null,
         ]);
     }

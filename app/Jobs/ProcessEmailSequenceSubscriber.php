@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enums\EmailSendStatus;
 use App\Models\EmailSequenceSend;
 use App\Models\EmailSequenceSubscriber;
 use Carbon\Carbon;
@@ -54,7 +55,7 @@ class ProcessEmailSequenceSubscriber implements ShouldQueue
                 'email_sequence_email_id' => $email->id,
                 'subscriber_id' => $this->subscriber->id,
                 'scheduled_at' => $scheduledAt,
-                'status' => 'pending',
+                'status' => EmailSendStatus::PENDING,
             ]);
         }
     }

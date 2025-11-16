@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('first_name')->nullable();
             $table->string('last_name')->nullable();
             $table->json('metadata')->nullable(); // Additional form data
-            $table->enum('status', ['active', 'unsubscribed', 'bounced', 'complained'])->default('active');
+            $table->string('status')->default('active');
             $table->timestamp('subscribed_at')->nullable();
             $table->timestamp('unsubscribed_at')->nullable();
             $table->string('unsubscribe_reason')->nullable();

@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enums\EmailSendStatus;
 use App\Mail\EmailSequenceMail;
 use App\Models\EmailSequenceSend;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -33,7 +34,7 @@ class SendEmailSequenceEmail implements ShouldQueue
 
         // Skip if subscriber is no longer active
         if (! $this->send->subscriber->isActive()) {
-            $this->send->update(['status' => 'cancelled']);
+            $this->send->update(['status' => EmailSendStatus::CANCELLED]);
 
             return;
         }

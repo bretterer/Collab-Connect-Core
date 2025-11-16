@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Jobs;
 
+use App\Enums\EmailSendStatus;
+use App\Enums\SubscriberStatus;
 use App\Jobs\SendEmailSequenceEmail;
 use App\Models\EmailSequence;
 use App\Models\EmailSequenceEmail;
@@ -50,7 +52,7 @@ class SendEmailSequenceEmailTest extends TestCase
                 'phone' => '555-1234',
                 'company' => 'Acme Corp',
             ],
-            'status' => 'active',
+            'status' => SubscriberStatus::ACTIVE,
             'subscribed_at' => now(),
         ]);
 
@@ -58,7 +60,7 @@ class SendEmailSequenceEmailTest extends TestCase
             'email_sequence_email_id' => $sequenceEmail->id,
             'subscriber_id' => $subscriber->id,
             'scheduled_at' => now()->subMinute(),
-            'status' => 'pending',
+            'status' => EmailSendStatus::PENDING,
         ]);
 
         // Execute the job
@@ -104,7 +106,7 @@ class SendEmailSequenceEmailTest extends TestCase
                 'first_name' => 'Jane',
                 // last_name is missing
             ],
-            'status' => 'active',
+            'status' => SubscriberStatus::ACTIVE,
             'subscribed_at' => now(),
         ]);
 
@@ -112,7 +114,7 @@ class SendEmailSequenceEmailTest extends TestCase
             'email_sequence_email_id' => $sequenceEmail->id,
             'subscriber_id' => $subscriber->id,
             'scheduled_at' => now()->subMinute(),
-            'status' => 'pending',
+            'status' => EmailSendStatus::PENDING,
         ]);
 
         // Execute the job
@@ -155,7 +157,7 @@ class SendEmailSequenceEmailTest extends TestCase
                 'email' => 'test@example.com',
                 'interests' => ['Sports', 'Music', 'Travel'],
             ],
-            'status' => 'active',
+            'status' => SubscriberStatus::ACTIVE,
             'subscribed_at' => now(),
         ]);
 
@@ -163,7 +165,7 @@ class SendEmailSequenceEmailTest extends TestCase
             'email_sequence_email_id' => $sequenceEmail->id,
             'subscriber_id' => $subscriber->id,
             'scheduled_at' => now()->subMinute(),
-            'status' => 'pending',
+            'status' => EmailSendStatus::PENDING,
         ]);
 
         // Execute the job
@@ -205,7 +207,7 @@ class SendEmailSequenceEmailTest extends TestCase
                 'email' => 'test@example.com',
                 'newsletter_opt_in' => true,
             ],
-            'status' => 'active',
+            'status' => SubscriberStatus::ACTIVE,
             'subscribed_at' => now(),
         ]);
 
@@ -213,7 +215,7 @@ class SendEmailSequenceEmailTest extends TestCase
             'email_sequence_email_id' => $sequenceEmail->id,
             'subscriber_id' => $subscriber->id,
             'scheduled_at' => now()->subMinute(),
-            'status' => 'pending',
+            'status' => EmailSendStatus::PENDING,
         ]);
 
         // Execute the job
@@ -252,7 +254,7 @@ class SendEmailSequenceEmailTest extends TestCase
             'email_sequence_id' => $sequence->id,
             'email' => 'subscriber@example.com',
             'metadata' => [],
-            'status' => 'active',
+            'status' => SubscriberStatus::ACTIVE,
             'subscribed_at' => now(),
         ]);
 
@@ -260,7 +262,7 @@ class SendEmailSequenceEmailTest extends TestCase
             'email_sequence_email_id' => $sequenceEmail->id,
             'subscriber_id' => $subscriber->id,
             'scheduled_at' => now()->subMinute(),
-            'status' => 'pending',
+            'status' => EmailSendStatus::PENDING,
         ]);
 
         // Execute the job

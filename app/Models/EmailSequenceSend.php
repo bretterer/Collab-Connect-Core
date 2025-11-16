@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\EmailSendStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +29,7 @@ class EmailSequenceSend extends Model
             'sent_at' => 'datetime',
             'opened_at' => 'datetime',
             'clicked_at' => 'datetime',
+            'status' => EmailSendStatus::class,
         ];
     }
 
@@ -44,7 +46,7 @@ class EmailSequenceSend extends Model
     public function markAsSent(): void
     {
         $this->update([
-            'status' => 'sent',
+            'status' => EmailSendStatus::SENT,
             'sent_at' => now(),
         ]);
     }
@@ -52,7 +54,7 @@ class EmailSequenceSend extends Model
     public function markAsFailed(string $errorMessage): void
     {
         $this->update([
-            'status' => 'failed',
+            'status' => EmailSendStatus::FAILED,
             'error_message' => $errorMessage,
         ]);
     }
@@ -78,11 +80,11 @@ class EmailSequenceSend extends Model
 
     public function isPending(): bool
     {
-        return $this->status === 'pending';
+        return $this->status === EmailSendStatus::PENDING;
     }
 
     public function isSent(): bool
     {
-        return $this->status === 'sent';
+        return $this->status === EmailSendStatus::SENT;
     }
 }

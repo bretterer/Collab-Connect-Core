@@ -19,7 +19,7 @@ return new class extends Migration
             $table->timestamp('sent_at')->nullable(); // When it was actually sent
             $table->timestamp('opened_at')->nullable();
             $table->timestamp('clicked_at')->nullable();
-            $table->enum('status', ['pending', 'sent', 'failed', 'cancelled'])->default('pending');
+            $table->string('status')->default('pending');
             $table->text('error_message')->nullable();
             $table->timestamps();
 

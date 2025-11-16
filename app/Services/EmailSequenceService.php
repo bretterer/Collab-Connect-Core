@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\EmailSendStatus;
+use App\Enums\SubscriberStatus;
 use App\Jobs\ProcessEmailSequenceSubscriber;
 use App\Jobs\SendEmailSequenceEmail;
 use App\Models\EmailSequence;
@@ -28,9 +30,9 @@ class EmailSequenceService
 
         if ($subscriber) {
             // If they were unsubscribed, reactivate them
-            if ($subscriber->status !== 'active') {
+            if ($subscriber->status !== SubscriberStatus::ACTIVE) {
                 $subscriber->update([
-                    'status' => 'active',
+                    'status' => SubscriberStatus::ACTIVE,
                     'subscribed_at' => now(),
                     'unsubscribed_at' => null,
                     'unsubscribe_reason' => null,
@@ -47,7 +49,7 @@ class EmailSequenceService
             'first_name' => $firstName,
             'last_name' => $lastName,
             'metadata' => $metadata,
-            'status' => 'active',
+            'status' => SubscriberStatus::ACTIVE,
             'subscribed_at' => now(),
             'source' => $source,
         ]);
@@ -70,8 +72,8 @@ class EmailSequenceService
 
         // Cancel any pending sends
         EmailSequenceSend::where('subscriber_id', $subscriber->id)
-            ->where('status', 'pending')
-            ->update(['status' => 'cancelled']);
+            ->where('status', EmailSendStatus::PENDING)
+            ->update(['status' => EmailSendStatus::CANCELLED]);
     }
 
     /**

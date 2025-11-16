@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\SubscriberStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,6 +31,7 @@ class EmailSequenceSubscriber extends Model
             'metadata' => 'array',
             'subscribed_at' => 'datetime',
             'unsubscribed_at' => 'datetime',
+            'status' => SubscriberStatus::class,
         ];
     }
 
@@ -46,7 +48,7 @@ class EmailSequenceSubscriber extends Model
     public function unsubscribe(?string $reason = null): void
     {
         $this->update([
-            'status' => 'unsubscribed',
+            'status' => SubscriberStatus::UNSUBSCRIBED,
             'unsubscribed_at' => now(),
             'unsubscribe_reason' => $reason,
         ]);
@@ -56,7 +58,7 @@ class EmailSequenceSubscriber extends Model
 
     public function isActive(): bool
     {
-        return $this->status === 'active';
+        return $this->status === SubscriberStatus::ACTIVE;
     }
 
     public function getFullNameAttribute(): string
