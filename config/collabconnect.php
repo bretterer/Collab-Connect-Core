@@ -67,4 +67,13 @@ return [
             'start_date' => env('SUBSCRIPTIONS_START_DATE', now()->toDateString()),
         ],
     ],
+
+    'referrals' => [
+        'default_percentage' => env('REFERRAL_DEFAULT_PERCENTAGE', 10),
+    ],
+
+    'pennant' => [
+        'global_enable' => explode('|', env('PENNANT_FEATURES_GLOBAL_ENABLE', '')),
+        'global_disable' => explode('|', env('PENNANT_FEATURES_GLOBAL_DISABLE', '')),
+    ],
 ];

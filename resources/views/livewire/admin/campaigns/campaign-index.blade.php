@@ -8,42 +8,35 @@
     </div>
 
     <!-- Filters and Search -->
-    <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
-        <div class="px-4 py-5 sm:p-6">
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <!-- Search -->
-                <div>
-                    <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Search Campaigns
-                    </label>
-                    <input type="text"
-                           wire:model.live.debounce.300ms="search"
-                           placeholder="Search by goal, description, or business..."
-                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm">
-                </div>
+    <flux:card class="mb-6">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+            <!-- Search -->
+            <flux:field>
+                <flux:label>Search Campaigns</flux:label>
+                <flux:input
+                    wire:model.live.debounce.300ms="search"
+                    placeholder="Search by goal, description, or business..."
+                />
+            </flux:field>
 
-                <!-- Status Filter -->
-                <div>
-                    <label for="statusFilter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Campaign Status
-                    </label>
-                    <select wire:model.live="statusFilter"
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm">
-                        @foreach($this->getStatusOptions() as $value => $label)
-                            <option value="{{ $value }}">{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
+            <!-- Status Filter -->
+            <flux:field>
+                <flux:label>Campaign Status</flux:label>
+                <flux:select wire:model.live="statusFilter">
+                    @foreach($this->getStatusOptions() as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </flux:select>
+            </flux:field>
 
-                <!-- Results Count -->
-                <div class="flex items-end">
-                    <div class="text-sm text-gray-600 dark:text-gray-400">
-                        Showing {{ $campaigns->count() }} of {{ $campaigns->total() }} campaigns
-                    </div>
-                </div>
+            <!-- Results Count -->
+            <div class="flex items-end pb-2">
+                <flux:text class="text-sm">
+                    Showing {{ $campaigns->count() }} of {{ $campaigns->total() }} campaigns
+                </flux:text>
             </div>
         </div>
-    </div>
+    </flux:card>
 
     <!-- Campaigns Table -->
     <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">

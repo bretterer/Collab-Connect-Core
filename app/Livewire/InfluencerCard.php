@@ -37,6 +37,9 @@ class InfluencerCard extends Component
                     </defs>
                     <rect width="100%" height="100%" fill="url(#grad)"/>
                 </svg>');
+
+        $this->isPromoted = rand(0, 1);
+        $this->isVerified = rand(0, 1);
     }
 
     public function getRandomRating()

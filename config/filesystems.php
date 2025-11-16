@@ -60,6 +60,20 @@ return [
             'report' => false,
         ],
 
+        'linode' => [
+            'driver' => 's3',
+            'key' => env('LINODE_ACCESS_KEY_ID'),
+            'secret' => env('LINODE_SECRET_ACCESS_KEY'),
+            'region' => env('LINODE_REGION', 'us-east-1'),
+            'bucket' => env('LINODE_BUCKET'),
+            'url' => env('LINODE_URL'),
+            'endpoint' => env('LINODE_ENDPOINT', 'https://us-east-1.linodeobjects.com'),
+            'use_path_style_endpoint' => false,
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*

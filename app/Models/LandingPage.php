@@ -1,0 +1,89 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\LandingPageStatus;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
+
+class LandingPage extends Model
+{
+    /** @use HasFactory<\Database\Factories\LandingPageFactory> */
+    use HasFactory, SoftDeletes;
+
+    protected $fillable = [
+        'title',
+        'slug',
+        'description',
+        'blocks',
+        'settings',
+        'two_step_optin',
+        'exit_popup',
+        'status',
+        'published_at',
+        'created_by',
+        'updated_by',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'blocks' => 'array',
+            'settings' => 'array',
+            'two_step_optin' => 'array',
+            'exit_popup' => 'array',
+            'published_at' => 'datetime',
+            'status' => LandingPageStatus::class,
+        ];
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->status === LandingPageStatus::PUBLISHED && $this->published_at?->isPast();
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->status === LandingPageStatus::DRAFT;
+    }
+
+    public function publish(): void
+    {
+        $this->update([
+            'status' => LandingPageStatus::PUBLISHED,
+            'published_at' => now(),
+        ]);
+    }
+
+    public function unpublish(): void
+    {
+        $this->update([
+            'status' => LandingPageStatus::DRAFT,
+            'published_at' => null,
+        ]);
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($page) {
+            if (empty($page->slug)) {
+                $page->slug = Str::slug($page->title);
+            }
+        });
+    }
+}

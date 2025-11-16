@@ -15,6 +15,11 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+// Landing Pages
+Route::get('/l/{slug}', [App\Http\Controllers\LandingPageController::class, 'show'])->name('landing.show');
+Route::post('/landing/stripe-checkout', [App\Http\Controllers\LandingPageStripeCheckoutController::class, 'createCheckoutSession'])->name('landing.stripe-checkout');
+Route::get('/thank-you', fn () => view('thank-you'))->name('thank-you');
+
 Route::get('/contact', function () {
     return view('contact');
 })->name('contact');
@@ -34,6 +39,40 @@ Route::get('/careers', function () {
 Route::get('/about', function () {
     return view('about');
 })->name('about');
+
+Route::get('/landing', function () {
+    return view('landing');
+})->name('landing');
+
+Route::get('/landing/thank-you', function () {
+    return view('landing-thank-you');
+})->name('landing.thank-you');
+
+Route::post('/landing/signup', function (Illuminate\Http\Request $request) {
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|max:255',
+    ]);
+
+    try {
+        // Store the email signup (you can create a model for this later)
+        // For now, we'll just send a notification email
+        \Illuminate\Support\Facades\Mail::to('hello@collabconnect.app')
+            ->send(new \App\Mail\LandingPageSignup(
+                name: $validated['name'],
+                email: $validated['email']
+            ));
+
+        return redirect()->route('landing.thank-you');
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Landing page signup failed', [
+            'error' => $e->getMessage(),
+            'email' => $validated['email'],
+        ]);
+
+        return back()->with('error', 'Sorry, there was an issue processing your request. Please try again later.');
+    }
+})->name('landing.signup');
 
 Route::get('/refer', function (Request $request) {
     if ($request->has('code')) {

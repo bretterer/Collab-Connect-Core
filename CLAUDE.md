@@ -4,82 +4,127 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-CollabConnect is a Laravel-based platform connecting local businesses with influencers for collaborative marketing campaigns. It's built using the TALL stack (Tailwind CSS, Alpine.js, Laravel, Livewire) with Laravel 12.
+CollabConnect is a Laravel-based two-sided marketplace platform connecting local businesses with influencers for collaborative marketing campaigns. Built with the TALL stack (Tailwind CSS, Alpine.js, Laravel, Livewire) using Laravel 12.
 
 **Key Business Logic:**
 - Businesses create campaigns with detailed requirements and compensation
 - Influencers discover campaigns through smart matching algorithms based on location, niche, and preferences
 - Match scoring uses weighted factors: Location (40%), Niche (30%), Campaign Type (20%), Compensation (10%)
-- Two-sided marketplace with subscription-based revenue model (no commission structure)
+- Subscription-based revenue model (no commission structure)
+- Multi-market system with market approval workflow
+- Referral program with configurable percentages and automated PayPal payouts
 
 ## Development Commands
 
 ### Essential Commands
 ```bash
 # Development server (via Laravel Herd - always running at https://collabconnect.test)
+# DO NOT run php artisan serve - Herd handles this
 
 # Database operations
 php artisan migrate
-php artisan db:seed
-php artisan db:seed --class=CampaignSeeder
-php artisan db:seed --class=BiggbysCampaignTemplateSeeder
+php artisan migrate:fresh --seed  # Full reset with data
+php artisan db:seed --class=StripeDataSeeder  # After migration reset
 
 # Testing
-php artisan test
-php artisan test tests/Feature/Livewire/InfluencerCampaignsTest.php
-php artisan config:clear --ansi && php artisan test
+php artisan test  # Run all tests
+php artisan test tests/Feature/Livewire/InfluencerCampaignsTest.php  # Specific test file
+php artisan test --filter=test_method_name  # Specific test method
+php artisan config:clear --ansi && php artisan test  # Clear config cache and test
 
 # Development tools
-composer dev
+composer dev  # Runs server, queue, logs, and vite concurrently
+npm run dev  # Vite development server
+npm run build  # Production build
+
+# Code quality
+vendor/bin/pint  # Format code (Laravel Pint)
+vendor/bin/pint --dirty  # Format only changed files
 
 # Stripe sync
 php artisan collabconnect:sync-stripe  # Sync all products and prices
 php artisan collabconnect:sync-stripe --products-only  # Only sync products
 php artisan collabconnect:sync-stripe --prices-only  # Only sync prices
-php artisan collabconnect:sync-stripe --limit=50  # Limit items synced
-php artisan collabconnect:sync-stripe --active-only  # Only sync active items
-php artisan collabconnect:sync-stripe --force  # Skip confirmation prompt
-
-# Frontend
-npm run dev
-npm run build
 ```
 
 ## Architecture Overview
 
 ### Core Models & Relationships
-- **User**: Central model with account_type enum (BUSINESS, INFLUENCER, ADMIN)
-  - hasOne BusinessProfile, InfluencerProfile
-  - hasMany Campaigns, CampaignApplications, Notifications, SocialMediaAccounts
+- **User**: Central model with `account_type` enum (BUSINESS, INFLUENCER, ADMIN)
+  - `hasOne`: `BusinessProfile` (via `currentBusiness()`), `InfluencerProfile` (via `influencer()`)
+  - `belongsToMany`: `businesses` (many-to-many through `business_users` pivot)
+  - `hasMany`: `campaigns`, `campaignApplications`, `socialMediaAccounts`, `messages`
+  - Uses `current_business` column to track active business for multi-business accounts
+
 - **Campaign**: Complex model with extensive fields for campaign management
-  - belongsTo User, hasMany CampaignApplications
+  - `belongsTo`: `User` (as business owner)
+  - `hasMany`: `campaignApplications`
   - Extensive enum-based fields (status, compensation_type, campaign_type)
+  - Array fields: `target_platforms`, `deliverables`, `success_metrics`, `compensation_details`
+
 - **PostalCode**: Geographic data for location-based matching
-- **CampaignApplication**: Junction model for influencer applications
+  - Contains lat/long coordinates for proximity searches
+  - `withinRadius()` method for finding nearby zip codes
+  - Used extensively in `SearchService` and `MatchScoreService`
+
+- **Market**: Geographic market system
+  - Markets can be enabled/disabled via settings
+  - Users require market approval to access main platform
+  - `belongsToMany` relationship with `PostalCode` through pivot table
+
+- **Referral System**: Complete referral tracking and payout system
+  - `ReferralEnrollment`: User enrollment in referral program
+  - `Referral`: Individual referral records with commission tracking
+  - `ReferralPayout`: PayPal payout batches with automated processing
+  - `ReferralSettings`: Singleton model for program configuration
 
 ### Livewire Architecture
-- **BaseComponent**: Abstract class providing common utilities for all Livewire components
-  - Authentication helpers, flash messaging, validation utilities
+- **BaseComponent** (`app/Livewire/BaseComponent.php`): Abstract class providing common utilities
+  - Authentication helpers, validation utilities
   - Enum handling, array manipulation, account type checks
-- **Wizard Pattern**: Uses HasWizardSteps trait for multi-step processes (onboarding, campaign creation)
-- **Component Organization**: Grouped by feature (Auth, Campaigns, Onboarding)
+  - **All Livewire components should extend BaseComponent**
+
+- **Volt Components**: Primary approach for new interactive pages
+  - Class-based Volt syntax (extends `Livewire\Volt\Component`)
+  - Co-located PHP logic and Blade templates in single file
+  - Create with: `php artisan make:volt [name]`
+
+- **Wizard Pattern**: Multi-step processes use `HasWizardSteps` trait
+  - Used in onboarding flows and campaign creation
+  - Provides `currentStep`, `nextStep()`, `previousStep()`, progress tracking
+  - Requires implementing `validateCurrentStep()` and `completeOnboarding()`
 
 ### Key Services
-- **CampaignService**: Campaign CRUD operations, status management, event dispatching
-- **ProfileService**: User profile management and onboarding completion checks
-- **SearchService**: Campaign discovery and matching algorithm implementation
-- **NotificationService**: User notification management
-- **ValidationService**: Centralized validation logic
-- **SubscriptionService**: Subscription plan management and billing
+- **SearchService**: User search (businesses finding influencers, vice versa)
+  - Complex filtering: location, niche, platforms, followers, engagement, price, quality
+  - Proximity-based search using `PostalCode::withinRadius()`
+  - Dynamic relationship loading based on search context
+
+- **MatchScoreService**: Campaign matching algorithm for influencers
+  - Weighted scoring: Location (40%), Niche (30%), Campaign Type (20%), Compensation (10%)
+  - Returns scores 0-100 for visual indicators (green/yellow/red)
+
+- **CampaignService**: Campaign CRUD operations and lifecycle management
+  - Status transitions, validation, event dispatching
+  - Handles scheduled vs. immediate publishing
+
+- **ProfileService**: User profile management
+  - Onboarding completion checks
+  - Multi-business profile switching logic
+
+- **PayPalPayoutsService**: Automated referral payout processing
+  - Creates PayPal payout batches
+  - Tracks payout status and updates records
+  - Requires PayPal API credentials
 
 ### Event System
-Events are dispatched for campaign lifecycle changes:
-- CampaignPublished, CampaignScheduled, CampaignArchived, CampaignEdited
-- BusinessJoined, InfluencerJoined, ProfileUpdated
-- CampaignApplicationSubmitted (creates notifications)
+Events dispatched for important lifecycle changes:
+- Campaign: `CampaignPublished`, `CampaignScheduled`, `CampaignArchived`, `CampaignEdited`
+- User: `BusinessJoined`, `InfluencerJoined`, `ProfileUpdated`, `AccountTypeSelected`
+- Applications: `CampaignApplicationSubmitted` (creates notifications)
 
 ### Enum System
-Extensive use of enums with HasFormOptions trait for form generation:
+Extensive use of enums with `HasFormOptions` trait for form generation:
 - **AccountType**: BUSINESS, INFLUENCER, ADMIN
 - **CampaignStatus**: DRAFT, PUBLISHED, SCHEDULED, ARCHIVED
 - **CompensationType**: MONETARY, PRODUCT, BARTER, DISCOUNT
@@ -88,176 +133,223 @@ Extensive use of enums with HasFormOptions trait for form generation:
 - **DeliverableType**: INSTAGRAM_POST, INSTAGRAM_REEL, INSTAGRAM_STORY, TIKTOK_VIDEO
 - **SuccessMetric**: IMPRESSIONS, ENGAGEMENT_RATE, CLICKS, CONVERSIONS
 
+All enums provide:
+- `toOptions()`: Form dropdown data
+- `validationRule()`: Validation rule string
+- `label()`: Human-readable label
+- `values()`: Array of all values
+
+### Landing Pages System
+Class-based block architecture for building marketing landing pages:
+- **BlockRegistry**: Central registry for block types
+- **BlockInterface**: All blocks must implement this interface
+- **BaseBlock**: Abstract class providing common block functionality
+- Block types: `TextBlock`, `ImageBlock`, `CTABlock` (with form actions)
+- Blocks registered in service provider, rendered dynamically
+
 ## Development Guidelines
 
 ### Livewire-First Approach
 - Always use Livewire components over traditional controllers
-- Extend BaseComponent for all Livewire components
-- Use Livewire navigation (wire:navigate) for better UX
+- Prefer Volt for new pages with interactivity
+- Extend `BaseComponent` for all class-based Livewire components
+- Use Livewire navigation (`wire:navigate`) for better UX
 
 ### Enum Usage
-- Always validate enum values in forms and APIs using HasFormOptions trait
-- Use toOptions() method for form dropdowns
-- Leverage validationRule() method for validation
+- Always validate enum values using `HasFormOptions` trait methods
+- Use `toOptions()` for form dropdowns
+- Use `validationRule()` for validation rules
+- Never hardcode enum values; use enum cases
 
 ### Route Structure
 ```
 /dashboard - Main dashboard (post-onboarding)
-/onboarding/* - Account setup flow
+/onboarding/* - Account setup flow (business/influencer)
 /campaigns/* - Campaign management (CRUD)
 /discover - Influencer campaign discovery
-/search - General search functionality
+/search - User search (businesses/influencers)
+/admin/* - Admin panel (requires admin account type)
+/market-waitlist - Market approval waitlist
 ```
 
 ### Database Patterns
-- Uses SQLite for development/testing, supports MySQL/PostgreSQL for production
-- Extensive use of casts for JSON fields and enums
-- Factory-based testing data generation
-- Array fields must be cast as 'array' in model $casts property
+- Uses MySQL for development/testing/production (configured in phpunit.xml)
+- Extensive use of `casts()` method for JSON fields and enums
+- Array fields must be cast as 'array' in model casts
+- Factory-based test data generation
+- **Can update existing migrations** - project not in production yet
 
 ### Authentication & Authorization
 - Standard Laravel authentication with Livewire auth components
-- Onboarding middleware (EnsureOnboardingCompleted) protects main routes
+- `EnsureOnboardingCompleted` middleware protects main application routes
+- `EnsureMarketApproved` middleware controls market access
+- `EnsureAdminAccess` middleware for admin panel
 - Account type-based access control throughout application
 
 ### Frontend Stack
-- Tailwind CSS 4.x with Vite plugin
-- Alpine.js for JavaScript interactivity
-- Livewire Flux Pro for UI components
-- All running through Vite with hot reload
+- **Tailwind CSS 4.x** (not v3 - different syntax)
+- **Flux UI Pro** - Component library for Livewire
+- Alpine.js (bundled with Livewire - do not include manually)
+- Vite with hot reload
+
+**CRITICAL - Flux Component Size Limitations:**
+- **DO NOT use `size="lg"`** - will cause UnhandledMatchError
+- `flux:heading` only supports: `xl`, `base`, `sm`
+- `flux:button` only supports: `base`, `sm`
+- Available components: accordion, autocomplete, avatar, badge, brand, breadcrumbs, button, calendar, callout, card, chart, checkbox, command, context, date-picker, dropdown, editor, field, heading, icon, input, modal, navbar, pagination, popover, profile, radio, select, separator, switch, table, tabs, text, textarea, toast, tooltip
+
+### Toast Messages
+- **DO NOT use `session()->flash()`** for toast messages
+- Use `Flux::toast()` or `Toaster::toast()` for user notifications
+- Available in both Livewire components and Volt components
 
 ### Testing Strategy
-- Feature tests for Livewire components and business logic
+- Feature tests for Livewire/Volt components and business logic
 - Unit tests for services, models, and enums
 - Factory-based test data generation
-- In-memory SQLite for test database
-- You must use the `#[Test]` attribute for all tests
+- MySQL test database (not SQLite)
+- **Must use `#[Test]` attribute** for all tests
+- Livewire testing: `Livewire::test(Component::class)` or `Volt::test('component-name')`
+
+### Settings System (spatie/laravel-settings)
+- Settings stored in database, cached for performance
+- Create settings classes extending `Spatie\LaravelSettings\Settings`
+- Must implement `group()` method returning unique identifier
+- Access via dependency injection: `function index(GeneralSettings $settings)`
+- Modify with `$settings->property = value; $settings->save();`
+- Create migrations: `php artisan make:settings-migration CreateGeneralSettings`
+- Use `encrypted: true` for sensitive values
 
 ## Key Files to Understand
 
+### Core Architecture
 - `app/Livewire/BaseComponent.php` - Foundation for all Livewire components
-- `app/Models/User.php` - Central user model with profile relationships
+- `app/Models/User.php` - Central user model with multi-business support
 - `app/Models/Campaign.php` - Complex campaign model with extensive business logic
-- `app/Services/SearchService.php` - Campaign matching and discovery algorithms
-- `routes/web.php` - Route structure and middleware configuration
-- `app/Enums/` - Business logic enums with form option generation
-- `app/Livewire/Traits/HasWizardSteps.php` - Multi-step form wizard implementation
 - `app/Enums/Traits/HasFormOptions.php` - Enum form option utilities
+- `app/Livewire/Traits/HasWizardSteps.php` - Multi-step form wizard implementation
+
+### Business Logic
+- `app/Services/SearchService.php` - User search with proximity filtering
+- `app/Services/MatchScoreService.php` - Campaign matching algorithm
+- `app/Services/CampaignService.php` - Campaign lifecycle management
+- `app/Services/PayPalPayoutsService.php` - Automated referral payouts
+
+### Configuration
+- `routes/web.php` - Route structure and middleware configuration
+- `phpunit.xml` - Test configuration (MySQL database)
+- `composer.json` - Package dependencies and scripts
+- `app/LandingPages/BlockRegistry.php` - Landing page block system
 
 ## Common Patterns
 
-### Form Handling
-- Multi-step wizards using HasWizardSteps trait
-- Real-time validation with Livewire
-- Extensive use of enums for dropdown options
-
-### Data Management
-- Array-based form fields with add/remove functionality
-- JSON casting for complex data structures
-- Event-driven architecture for state changes
-
-### User Experience
-- Smart campaign matching with visual indicators
-- Real-time filtering and search
-- Progressive disclosure in complex forms
-
-
-## General Information
-- This has not been sent to production or anywhere outside of my local computer and github, you can update existing migrations and just run `php artisan migrate:fresh`
-
-- Always use FluxUI where possible
-
-## Application Settings (spatie/laravel-settings)
-
-CollabConnect uses `spatie/laravel-settings` for managing application-wide configuration that can be changed at runtime.
-
-### Key Concepts
-- **Settings Classes**: Extend `Spatie\LaravelSettings\Settings` base class
-- **Database Storage**: Settings are stored in the `settings` table with key-value pairs
-- **Caching**: Settings are cached for performance (configurable in `config/settings.php`)
-- **Migrations**: Settings use migrations to define and update setting values
-
-### Creating Settings Classes
-
-Settings classes live in `app/Settings` and must:
-1. Extend `Spatie\LaravelSettings\Settings`
-2. Define a `group()` method returning a unique string identifier
-3. Use public properties for setting values
-
+### Multi-Step Wizards
 ```php
-use Spatie\LaravelSettings\Settings;
+use App\Livewire\Traits\HasWizardSteps;
 
-class GeneralSettings extends Settings
+class MyWizard extends Component
 {
-    public bool $market_enabled;
-    public string $site_name;
+    use HasWizardSteps;
 
-    public static function group(): string
-    {
-        return 'general';
+    public function getTotalSteps(): int { return 4; }
+
+    protected function validateCurrentStep(): void {
+        // Validate current step
+    }
+
+    public function completeOnboarding(): void {
+        // Final submission
     }
 }
 ```
 
-### Settings Migrations
-
-Create settings migrations using:
-```bash
-php artisan make:settings-migration CreateGeneralSettings
-```
-
-Migrations support operations in the `up()` method:
-- `$this->migrator->add('general.site_name', 'default_value')` - Add setting with default
-- `$this->migrator->add('general.api_key', 'secret', encrypted: true)` - Add encrypted setting
-- `$this->migrator->rename('old_key', 'new_key')` - Rename a setting
-- `$this->migrator->update('key', fn($value) => $modified)` - Update existing value
-- `$this->migrator->delete('key')` - Remove a setting
-- `$this->migrator->inGroup('general', function($migrator) {})` - Group operations
-
-### Accessing Settings
-
-Settings can be accessed via dependency injection or the service container:
-
+### Enum Form Options
 ```php
-// Dependency injection (preferred)
-public function index(GeneralSettings $settings)
-{
-    if ($settings->market_enabled) {
-        // ...
-    }
-}
+// In Livewire component
+$platforms = TargetPlatform::toOptions();
 
-// Via container
-$marketEnabled = app(GeneralSettings::class)->market_enabled;
+// In validation
+'platform' => ['required', TargetPlatform::validationRule()],
+
+// In Blade
+@foreach(TargetPlatform::toOptions() as $option)
+    <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
+@endforeach
 ```
 
-### Updating Settings
-
-Modify properties and call `save()`:
-
+### Proximity Search
 ```php
-$settings = app(GeneralSettings::class);
-$settings->market_enabled = false;
-$settings->save();
+$postalCode = PostalCode::where('postal_code', $zipCode)->first();
+$nearbyZips = $postalCode->withinRadius(50); // 50 mile radius
 ```
 
-### Property Types
+### Match Score Calculation
+```php
+use App\Facades\MatchScore;
 
-Supported types include:
-- Primitives: `string`, `bool`, `int`, `float`, `array`
-- DateTime: `DateTimeInterface`, `DateTimeZone`
-- Custom objects via casts
-- Nullable properties
+$score = MatchScore::calculate($campaign, $influencer);
+$color = MatchScore::getScoreColor($score); // green/yellow/red
+```
 
-### Important Notes
-- Settings classes must be registered in `config/settings.php`
-- Changes to settings are cached - clear cache if modifying settings structure
-- Settings are ideal for admin-configurable application behavior
-- Use `encrypted: true` for sensitive values like API keys
+## Important Notes
+- Application served via **Laravel Herd** at `https://collabconnect.test`
+- **Never run `php artisan serve`** - Herd handles this automatically
+- Use `get-absolute-url` MCP tool to generate URLs for the user
+- **Always run `vendor/bin/pint --dirty`** before committing code
+- Use Laravel Boost MCP tools for documentation, tinker, logs, and more
+- Do not use `$table->enum` ever. If you need an email in the table, use strings and create or use an existing enum class
 
 ===
 
 <laravel-boost-guidelines>
+=== foundation rules ===
+
+# Laravel Boost Guidelines
+
+The Laravel Boost guidelines are specifically curated by Laravel maintainers for this application. These guidelines should be followed closely to enhance the user's satisfaction building Laravel applications.
+
+## Foundational Context
+This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
+
+- php - 8.3.27
+- laravel/cashier (CASHIER) - v15
+- laravel/framework (LARAVEL) - v12
+- laravel/nightwatch (NIGHTWATCH) - v1
+- laravel/pennant (PENNANT) - v1
+- laravel/prompts (PROMPTS) - v0
+- laravel/reverb (REVERB) - v1
+- livewire/flux (FLUXUI_FREE) - v2
+- livewire/flux-pro (FLUXUI_PRO) - v2
+- livewire/livewire (LIVEWIRE) - v3
+- laravel/mcp (MCP) - v0
+- laravel/pint (PINT) - v1
+- laravel/sail (SAIL) - v1
+- phpunit/phpunit (PHPUNIT) - v11
+- tailwindcss (TAILWINDCSS) - v4
+- laravel-echo (ECHO) - v2
+
+## Conventions
+- You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, naming.
+- Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
+- Check for existing components to reuse before writing a new one.
+
+## Verification Scripts
+- Do not create verification scripts or tinker when tests cover that functionality and prove it works. Unit and feature tests are more important.
+
+## Application Structure & Architecture
+- Stick to existing directory structure - don't create new base folders without approval.
+- Do not change the application's dependencies without approval.
+
+## Frontend Bundling
+- If the user doesn't see a frontend change reflected in the UI, it could mean they need to run `npm run build`, `npm run dev`, or `composer run dev`. Ask them.
+
+## Replies
+- Be concise in your explanations - focus on what's important rather than explaining obvious details.
+
+## Documentation Files
+- You must only create documentation files if explicitly requested by the user.
+
+
 === boost rules ===
 
 ## Laravel Boost
@@ -283,6 +375,7 @@ Supported types include:
 - You must use this tool to search for Laravel-ecosystem documentation before falling back to other approaches.
 - Search the documentation before making code changes to ensure we are taking the correct approach.
 - Use multiple, broad, simple, topic based queries to start. For example: `['rate limiting', 'routing rate limiting', 'routing']`.
+- Do not add package names to queries - package information is already shared. For example, use `test resource table`, not `filament 4 test resource table`.
 
 ### Available Search Syntax
 - You can and should pass multiple queries at once. The most relevant results will be returned first.
@@ -292,6 +385,38 @@ Supported types include:
 3. Quoted Phrases (Exact Position) - query="infinite scroll" - Words must be adjacent and in that order
 4. Mixed Queries - query=middleware "rate limit" - "middleware" AND exact phrase "rate limit"
 5. Multiple Queries - queries=["authentication", "middleware"] - ANY of these terms
+
+
+=== php rules ===
+
+## PHP
+
+- Always use curly braces for control structures, even if it has one line.
+
+### Constructors
+- Use PHP 8 constructor property promotion in `__construct()`.
+    - <code-snippet>public function __construct(public GitHub $github) { }</code-snippet>
+- Do not allow empty `__construct()` methods with zero parameters.
+
+### Type Declarations
+- Always use explicit return type declarations for methods and functions.
+- Use appropriate PHP type hints for method parameters.
+
+<code-snippet name="Explicit Return Types and Method Params" lang="php">
+protected function isAccessible(User $user, ?string $path = null): bool
+{
+    ...
+}
+</code-snippet>
+
+## Comments
+- Prefer PHPDoc blocks over comments. Never use comments within the code itself unless there is something _very_ complex going on.
+
+## PHPDoc Blocks
+- Add useful array shape type definitions for arrays when appropriate.
+
+## Enums
+- Typically, keys in an Enum should be TitleCase. For example: `FavoritePerson`, `BestLake`, `Monthly`.
 
 
 === herd rules ===
@@ -370,28 +495,12 @@ Supported types include:
 - Casts can and likely should be set in a `casts()` method on a model rather than the `$casts` property. Follow existing conventions from other models.
 
 
-=== fluxui-free/core rules ===
+=== pennant/core rules ===
 
-## Flux UI Free
+## Laravel Pennant
 
-- This project is using the free edition of Flux UI. It has full access to the free components and variants, but does not have access to the Pro components.
-- Flux UI is a component library for Livewire. Flux is a robust, hand-crafted, UI component library for your Livewire applications. It's built using Tailwind CSS and provides a set of components that are easy to use and customize.
-- You should use Flux UI components when available.
-- Fallback to standard Blade components if Flux is unavailable.
-- If available, use Laravel Boost's `search-docs` tool to get the exact documentation and code snippets available for this project.
-- Flux UI components look like this:
-<code-snippet name="Flux UI Component Usage Example" lang="blade">
-    <button type="button" class="relative items-center font-medium justify-center gap-2 whitespace-nowrap disabled:opacity-75 dark:disabled:opacity-75 disabled:cursor-default disabled:pointer-events-none h-10 text-sm rounded-lg w-10 inline-flex  bg-[var(--color-accent)] hover:bg-[color-mix(in_oklab,_var(--color-accent),_transparent_10%)] text-[var(--color-accent-foreground)] border border-black/10 dark:border-0 shadow-[inset_0px_1px_--theme(--color-white/.2)] [[data-flux-button-group]_&amp;]:border-e-0 [:is([data-flux-button-group]&gt;&amp;:last-child,_[data-flux-button-group]_:last-child&gt;&amp;)]:border-e-[1px] dark:[:is([data-flux-button-group]&gt;&amp;:last-child,_[data-flux-button-group]_:last-child&gt;&amp;)]:border-e-0 dark:[:is([data-flux-button-group]&gt;&amp;:last-child,_[data-flux-button-group]_:last-child&gt;&amp;)]:border-s-[1px] [:is([data-flux-button-group]&gt;&amp;:not(:first-child),_[data-flux-button-group]_:not(:first-child)&gt;&amp;)]:border-s-[color-mix(in_srgb,var(--color-accent-foreground),transparent_85%)]" data-flux-button="data-flux-button" data-flux-group-target="data-flux-group-target">
-
-    </button>
-</code-snippet>
-
-### Available Components
-This is correct as of Boost installation, but there may be additional components within the codebase.
-
-<available-flux-components>
-avatar, badge, brand, breadcrumbs, button, callout, checkbox, dropdown, field, heading, icon, input, modal, navbar, profile, radio, select, separator, switch, text, textarea, tooltip
-</available-flux-components>
+- This application uses Laravel Pennant for feature flag management, providing a flexible system for controlling feature availability across different organizations and user types.
+- Use the `search-docs` tool if available, in combination with existing codebase conventions, to assist the user effectively with feature flags.
 
 
 === fluxui-pro/core rules ===
@@ -404,44 +513,18 @@ avatar, badge, brand, breadcrumbs, button, callout, checkbox, dropdown, field, h
 - Fallback to standard Blade components if Flux is unavailable.
 - If available, use Laravel Boost's `search-docs` tool to get the exact documentation and code snippets available for this project.
 - Flux UI components look like this:
-<code-snippet name="Flux UI component usage example" lang="blade">
-    <button type="button" class="relative items-center font-medium justify-center gap-2 whitespace-nowrap disabled:opacity-75 dark:disabled:opacity-75 disabled:cursor-default disabled:pointer-events-none h-10 text-sm rounded-lg w-10 inline-flex  bg-[var(--color-accent)] hover:bg-[color-mix(in_oklab,_var(--color-accent),_transparent_10%)] text-[var(--color-accent-foreground)] border border-black/10 dark:border-0 shadow-[inset_0px_1px_--theme(--color-white/.2)] [[data-flux-button-group]_&amp;]:border-e-0 [:is([data-flux-button-group]&gt;&amp;:last-child,_[data-flux-button-group]_:last-child&gt;&amp;)]:border-e-[1px] dark:[:is([data-flux-button-group]&gt;&amp;:last-child,_[data-flux-button-group]_:last-child&gt;&amp;)]:border-e-0 dark:[:is([data-flux-button-group]&gt;&amp;:last-child,_[data-flux-button-group]_:last-child&gt;&amp;)]:border-s-[1px] [:is([data-flux-button-group]&gt;&amp;:not(:first-child),_[data-flux-button-group]_:not(:first-child)&gt;&amp;)]:border-s-[color-mix(in_srgb,var(--color-accent-foreground),transparent_85%)]" data-flux-button="data-flux-button" data-flux-group-target="data-flux-group-target">
 
-    </button>
+<code-snippet name="Flux UI component usage example" lang="blade">
+    <flux:button variant="primary"/>
 </code-snippet>
+
 
 ### Available Components
 This is correct as of Boost installation, but there may be additional components within the codebase.
 
 <available-flux-components>
-accordion, autocomplete, avatar, badge, brand, breadcrumbs, button, calendar, callout, card, chart, checkbox, command, context, date-picker, dropdown, editor, field, heading, icon, input, modal, navbar, pagination, popover, profile, radio, select, separator, switch, table, tabs, text, textarea, toast, tooltip
+accordion, autocomplete, avatar, badge, brand, breadcrumbs, button, calendar, callout, card, chart, checkbox, command, context, date-picker, dropdown, editor, field, heading, file upload, icon, input, modal, navbar, pagination, pillbox, popover, profile, radio, select, separator, switch, table, tabs, text, textarea, toast, tooltip
 </available-flux-components>
-
-### CRITICAL: Flux Component Size Limitations
-
-**DO NOT use `size="lg"` with Flux components** - it will cause "UnhandledMatchError: Unhandled match case 'lg'"
-
-**Supported sizes for most Flux components:**
-- `flux:heading` - Only supports: `xl`, `base`, `sm` (NO 'lg' or other sizes)
-- `flux:button` - Only supports: `sm`, `base` (NO 'lg')
-- `flux:text` - Generally doesn't use size prop
-
-**Always use these safe size values:**
-- For headings: `xl` (largest), `base` (medium), `sm` (small)
-- For buttons: `base` (default), `sm` (small)
-
-**Examples of CORRECT usage:**
-```blade
-<flux:heading size="xl">Large Heading</flux:heading>
-<flux:heading size="base">Normal Heading</flux:heading>
-<flux:button size="base">Normal Button</flux:button>
-```
-
-**Examples of INCORRECT usage (will error):**
-```blade
-<flux:heading size="lg">Will Error!</flux:heading>
-<flux:button size="lg">Will Error!</flux:button>
-```
 
 
 === livewire/core rules ===
@@ -465,7 +548,7 @@ accordion, autocomplete, avatar, badge, brand, breadcrumbs, button, calendar, ca
     @endforeach
     ```
 
-- Prefer lifecycle hooks like `mount()`, `updatedFoo()`) for initialization and reactive side effects:
+- Prefer lifecycle hooks like `mount()`, `updatedFoo()` for initialization and reactive side effects:
 
 <code-snippet name="Lifecycle hook examples" lang="php">
     public function mount(User $user) { $this->user = $user; }
@@ -527,126 +610,30 @@ document.addEventListener('livewire:init', function () {
 </code-snippet>
 
 
-=== volt/core rules ===
-
-## Livewire Volt
-
-- This project uses Livewire Volt for interactivity within its pages. New pages requiring interactivity must also use Livewire Volt. There is documentation available for it.
-- Make new Volt components using `php artisan make:volt [name] [--test] [--pest]`
-- Volt is a **class-based** and **functional** API for Livewire that supports single-file components, allowing a component's PHP logic and Blade templates to co-exist in the same file
-- Livewire Volt allows PHP logic and Blade templates in one file. Components use the `@livewire("volt-anonymous-fragment-eyJuYW1lIjoidm9sdC1hbm9ueW1vdXMtZnJhZ21lbnQtNTNlNDRjOWRhZTNmZDZjOTJiN2M2OTU1ZmNlMDYzYzciLCJwYXRoIjoic3RvcmFnZVwvZnJhbWV3b3JrXC92aWV3c1wvMTE3MzI2YjJmNDg4NmViODZiNGFmZjZhNjRiNzY3MDEuYmxhZGUucGhwIn0=", Livewire\Volt\Precompilers\ExtractFragments::componentArguments([...get_defined_vars(), ...array (
-)]))
-</code-snippet>
-@endverbatim
-
-### Volt Class Based Component Example
-To get started, define an anonymous class that extends Livewire\Volt\Component. Within the class, you may utilize all of the features of Livewire using traditional Livewire syntax:
-
-
-<code-snippet name="Volt Class-based Volt Component Example" lang="php">
-use Livewire\Volt\Component;
-
-new class extends Component {
-    public $count = 0;
-
-    public function increment()
-    {
-        $this->count++;
-    }
-} ?>
-
-<div>
-    <h1>{{ $count }}</h1>
-    <button wire:click="increment">+</button>
-</div>
-</code-snippet>
-
-
-### Testing Volt & Volt Components
-- Use the existing directory for tests if it already exists. Otherwise, fallback to `tests/Feature/Volt`.
-
-<code-snippet name="Livewire Test Example" lang="php">
-use Livewire\Volt\Volt;
-
-test('counter increments', function () {
-    Volt::test('counter')
-        ->assertSee('Count: 0')
-        ->call('increment')
-        ->assertSee('Count: 1');
-});
-</code-snippet>
-
-
-<code-snippet name="Volt Component Test Using Pest" lang="php">
-declare(strict_types=1);
-
-use App\Models\{User, Product};
-use Livewire\Volt\Volt;
-
-test('product form creates product', function () {
-    $user = User::factory()->create();
-
-    Volt::test('pages.products.create')
-        ->actingAs($user)
-        ->set('form.name', 'Test Product')
-        ->set('form.description', 'Test Description')
-        ->set('form.price', 99.99)
-        ->call('create')
-        ->assertHasNoErrors();
-
-    expect(Product::where('name', 'Test Product')->exists())->toBeTrue();
-});
-</code-snippet>
-
-
-### Common Patterns
-
-
-<code-snippet name="CRUD With Volt" lang="php">
-<?php
-
-use App\Models\Product;
-use function Livewire\Volt\{state, computed};
-
-state(['editing' => null, 'search' => '']);
-
-$products = computed(fn() => Product::when($this->search,
-    fn($q) => $q->where('name', 'like', "%{$this->search}%")
-)->get());
-
-$edit = fn(Product $product) => $this->editing = $product->id;
-$delete = fn(Product $product) => $product->delete();
-
-?>
-
-<!-- HTML / UI Here -->
-</code-snippet>
-
-
-
-<code-snippet name="Real-Time Search With Volt" lang="php">
-    <flux:input
-        wire:model.live.debounce.300ms="search"
-        placeholder="Search..."
-    />
-</code-snippet>
-
-
-
-<code-snippet name="Loading States With Volt" lang="php">
-    <flux:button wire:click="save" wire:loading.attr="disabled">
-        <span wire:loading.remove>Save</span>
-        <span wire:loading>Saving...</span>
-    </flux:button>
-</code-snippet>
-
-
 === pint/core rules ===
 
 ## Laravel Pint Code Formatter
 
-- You must run `vendor/bin/pint --dirty` before finalizing changes to ensure your code matches the project's expected style.
+- You must run `vendor/bin/pint --dirty` before committing to ensure your code matches the project's expected style.
 - Do not run `vendor/bin/pint --test`, simply run `vendor/bin/pint` to fix any formatting issues.
+
+
+=== phpunit/core rules ===
+
+## PHPUnit Core
+
+- This application uses PHPUnit for testing. All tests must be written as PHPUnit classes. Use `php artisan make:test --phpunit <name>` to create a new test.
+- If you see a test using "Pest", convert it to PHPUnit.
+- Every time a test has been updated, run that singular test.
+- When the tests relating to your feature are passing, ask the user if they would like to also run the entire test suite to make sure everything is still passing.
+- Tests should test all of the happy paths, failure paths, and weird paths.
+- You must not remove any tests or test files from the tests directory without approval. These are not temporary or helper files, these are core to the application.
+
+### Running Tests
+- Run the minimal number of tests, using an appropriate filter, before finalizing.
+- To run all tests: `php artisan test`.
+- To run all tests in a file: `php artisan test tests/Feature/ExampleTest.php`.
+- To filter on a particular test name: `php artisan test --filter=testName` (recommended after making a change to a related file).
 
 
 === tailwindcss/core rules ===
@@ -680,9 +667,16 @@ $delete = fn(Product $product) => $product->delete();
 
 - Always use Tailwind CSS v4 - do not use the deprecated utilities.
 - `corePlugins` is not supported in Tailwind v4.
+- In Tailwind v4, configuration is CSS-first using the `@theme` directive — no separate `tailwind.config.js` file is needed.
+<code-snippet name="Extending Theme in CSS" lang="css">
+@theme {
+  --color-brand: oklch(0.72 0.11 178);
+}
+</code-snippet>
+
 - In Tailwind v4, you import Tailwind using a regular CSS `@import` statement, not using the `@tailwind` directives used in v3:
 
-<code-snippet name="Tailwind v4 Import Tailwind Diff" lang="diff"
+<code-snippet name="Tailwind v4 Import Tailwind Diff" lang="diff">
    - @tailwind base;
    - @tailwind components;
    - @tailwind utilities;

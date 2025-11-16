@@ -52,6 +52,12 @@ return [
         'webhook_tolerance' => env('STRIPE_WEBHOOK_TOLERANCE', 300),
     ],
 
+    'paypal' => [
+        'client_id' => env('PAYPAL_CLIENT_ID'),
+        'secret_key' => env('PAYPAL_SECRET_KEY'),
+        'mode' => env('PAYPAL_MODE', 'sandbox'), // 'sandbox' or 'live'
+    ],
+
     'datafast' => [
         'api_key' => env('DATAFAST_API_KEY'),
     ],
