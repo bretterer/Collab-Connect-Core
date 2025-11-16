@@ -297,6 +297,7 @@ $color = MatchScore::getScoreColor($score); // green/yellow/red
 - Use `get-absolute-url` MCP tool to generate URLs for the user
 - **Always run `vendor/bin/pint --dirty`** before committing code
 - Use Laravel Boost MCP tools for documentation, tinker, logs, and more
+- Do not use `$table->enum` ever. If you need an email in the table, use strings and create or use an existing enum class
 
 ===
 
