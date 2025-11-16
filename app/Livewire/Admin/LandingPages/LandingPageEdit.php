@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\LandingPages;
 
+use App\Enums\LandingPageStatus;
 use App\LandingPages\BlockRegistry;
 use App\Models\LandingPage;
 use Flux\Flux;
@@ -25,7 +26,7 @@ class LandingPageEdit extends Component
 
     public string $description = '';
 
-    public string $status = 'draft';
+    public LandingPageStatus $status = LandingPageStatus::DRAFT;
 
     public array $sections = [];
 
@@ -113,7 +114,7 @@ class LandingPageEdit extends Component
             'title' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', 'unique:landing_pages,slug,'.$this->landingPage->id, 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/'],
             'description' => ['nullable', 'string', 'max:500'],
-            'status' => ['required', 'in:draft,published,archived'],
+            'status' => ['required', LandingPageStatus::validationRule()],
             'sections' => ['array'],
         ];
     }
@@ -602,7 +603,7 @@ class LandingPageEdit extends Component
                 'enabled' => true,
                 'blocks' => $this->exitPopupBlocks,
             ] : null,
-            'status' => $publish ? 'published' : $this->status,
+            'status' => $publish ? LandingPageStatus::PUBLISHED : $this->status,
             'published_at' => $publish && ! $this->landingPage->isPublished() ? now() : $this->landingPage->published_at,
             'updated_by' => auth()->id(),
         ]);
@@ -630,12 +631,12 @@ class LandingPageEdit extends Component
                 'enabled' => true,
                 'blocks' => $this->exitPopupBlocks,
             ] : null,
-            'status' => 'draft',
+            'status' => LandingPageStatus::DRAFT,
             'published_at' => null,
             'updated_by' => auth()->id(),
         ]);
 
-        $this->status = 'draft';
+        $this->status = LandingPageStatus::DRAFT;
 
         Flux::toast(
             text: 'Landing page unpublished',
@@ -676,7 +677,7 @@ class LandingPageEdit extends Component
     {
         return view('livewire.admin.landing-pages.landing-page-edit', [
             'blockTypes' => BlockRegistry::all()->map(fn ($block) => (object) $block),
-            'publishedLandingPages' => LandingPage::where('status', 'published')
+            'publishedLandingPages' => LandingPage::where('status', LandingPageStatus::PUBLISHED)
                 ->where('id', '!=', $this->landingPage->id)
                 ->orderBy('title')
                 ->get(['id', 'title', 'slug']),
