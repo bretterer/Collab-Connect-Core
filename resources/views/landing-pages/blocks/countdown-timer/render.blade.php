@@ -41,18 +41,18 @@
 
                     if (this.removeOnCompletion) {
                         this.isHidden = true;
-                        if (this.interval) {
-                            clearInterval(this.interval);
-                        }
-                        return;
                     }
 
-                    // Count up from zero
-                    const elapsed = Math.abs(distance);
-                    this.days = Math.floor(elapsed / (1000 * 60 * 60 * 24));
-                    this.hours = Math.floor((elapsed % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    this.minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
-                    this.seconds = Math.floor((elapsed % (1000 * 60)) / 1000);
+                    // Stop the countdown and remain at 0
+                    this.days = 0;
+                    this.hours = 0;
+                    this.minutes = 0;
+                    this.seconds = 0;
+
+                    if (this.interval) {
+                        clearInterval(this.interval);
+                    }
+                    return;
                 } else {
                     // Countdown to target
                     this.days = Math.floor(distance / (1000 * 60 * 60 * 24));

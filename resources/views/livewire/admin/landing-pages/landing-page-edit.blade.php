@@ -16,7 +16,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                @if($status === \App\Enums\LandingPageStatus::PUBLISHED)
+                @if($status === \App\Enums\LandingPageStatus::PUBLISHED->value)
                     <flux:button variant="outline" wire:click="unpublish" size="sm">
                         Unpublish
                     </flux:button>
