@@ -26,7 +26,7 @@ class LandingPageEdit extends Component
 
     public string $description = '';
 
-    public LandingPageStatus $status = LandingPageStatus::DRAFT;
+    public string $status;
 
     public array $sections = [];
 
@@ -92,7 +92,7 @@ class LandingPageEdit extends Component
         $this->title = $landingPage->title;
         $this->slug = $landingPage->slug;
         $this->description = $landingPage->description ?? '';
-        $this->status = $landingPage->status;
+        $this->status = $landingPage->status->value;
         $this->sections = $landingPage->blocks ?? [];
 
         // Load Two Step Optin
@@ -603,7 +603,7 @@ class LandingPageEdit extends Component
                 'enabled' => true,
                 'blocks' => $this->exitPopupBlocks,
             ] : null,
-            'status' => $publish ? LandingPageStatus::PUBLISHED : $this->status,
+            'status' => $publish ? LandingPageStatus::PUBLISHED->value : $this->status,
             'published_at' => $publish && ! $this->landingPage->isPublished() ? now() : $this->landingPage->published_at,
             'updated_by' => auth()->id(),
         ]);
@@ -631,12 +631,12 @@ class LandingPageEdit extends Component
                 'enabled' => true,
                 'blocks' => $this->exitPopupBlocks,
             ] : null,
-            'status' => LandingPageStatus::DRAFT,
+            'status' => LandingPageStatus::DRAFT->value,
             'published_at' => null,
             'updated_by' => auth()->id(),
         ]);
 
-        $this->status = LandingPageStatus::DRAFT;
+        $this->status = LandingPageStatus::DRAFT->value;
 
         Flux::toast(
             text: 'Landing page unpublished',
@@ -677,7 +677,7 @@ class LandingPageEdit extends Component
     {
         return view('livewire.admin.landing-pages.landing-page-edit', [
             'blockTypes' => BlockRegistry::all()->map(fn ($block) => (object) $block),
-            'publishedLandingPages' => LandingPage::where('status', LandingPageStatus::PUBLISHED)
+            'publishedLandingPages' => LandingPage::where('status', LandingPageStatus::PUBLISHED->value)
                 ->where('id', '!=', $this->landingPage->id)
                 ->orderBy('title')
                 ->get(['id', 'title', 'slug']),

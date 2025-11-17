@@ -125,13 +125,9 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($page->status === 'published')
-                                        <flux:badge color="green" size="sm">Published</flux:badge>
-                                    @elseif($page->status === 'draft')
-                                        <flux:badge color="zinc" size="sm">Draft</flux:badge>
-                                    @else
-                                        <flux:badge color="orange" size="sm">Archived</flux:badge>
-                                    @endif
+                                    <flux:badge color="{{ $page->status->color() }}" size="sm">
+                                        {{ $page->status->label() }}
+                                    </flux:badge>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                     {{ is_array($page->blocks) ? count($page->blocks) : 0 }} blocks
