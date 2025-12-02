@@ -422,18 +422,21 @@ class ReferralReviewTest extends TestCase
         $admin = User::factory()->create(['account_type' => AccountType::ADMIN]);
         $this->actingAs($admin);
 
+        $nextMonth = now()->addMonth();
+
         $currentMonthItem = $this->createPayoutItemWithRelations([
             'scheduled_payout_date' => now()->day(15),
         ]);
 
         $nextMonthItem = $this->createPayoutItemWithRelations([
-            'scheduled_payout_date' => now()->addMonth()->day(15),
+            'scheduled_payout_date' => $nextMonth->copy()->day(15),
         ]);
 
         Livewire::test(ReferralReview::class)
             ->assertSee($currentMonthItem->fresh()->enrollment->user->name)
             ->assertDontSee($nextMonthItem->fresh()->enrollment->user->name)
-            ->set('selectedMonth', now()->addMonth()->month)
+            ->set('selectedYear', $nextMonth->year)
+            ->set('selectedMonth', $nextMonth->month)
             ->assertDontSee($currentMonthItem->fresh()->enrollment->user->name)
             ->assertSee($nextMonthItem->fresh()->enrollment->user->name);
     }
