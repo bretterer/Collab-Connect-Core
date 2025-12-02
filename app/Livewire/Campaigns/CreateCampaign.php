@@ -45,6 +45,8 @@ class CreateCampaign extends BaseComponent
 
     public string $applicationDeadline = '';
 
+    public string $campaignStartDate = '';
+
     public string $campaignCompletionDate = '';
 
     public string $additionalRequirements = '';
@@ -174,6 +176,7 @@ class CreateCampaign extends BaseComponent
             'influencer_count' => $this->influencerCount,
             'exclusivity_period' => $this->exclusivityPeriod,
             'application_deadline' => $this->applicationDeadline,
+            'campaign_start_date' => $this->campaignStartDate,
             'campaign_completion_date' => $this->campaignCompletionDate,
             'additional_requirements' => $this->additionalRequirements,
             'publish_action' => $this->publishAction,
@@ -237,6 +240,7 @@ class CreateCampaign extends BaseComponent
         $this->influencerCount = $campaign->influencer_count;
         $this->exclusivityPeriod = $campaign->exclusivity_period ?? 0; // New field for exclusivity period
         $this->applicationDeadline = $campaign->application_deadline ? $campaign->application_deadline->format('Y-m-d') : '';
+        $this->campaignStartDate = $campaign->campaign_start_date ? $campaign->campaign_start_date->format('Y-m-d') : '';
         $this->campaignCompletionDate = $campaign->campaign_completion_date ? $campaign->campaign_completion_date->format('Y-m-d') : '';
         $this->additionalRequirements = $campaign->additional_requirements ?? '';
         $this->publishAction = $campaign->status->value;
@@ -334,9 +338,10 @@ class CreateCampaign extends BaseComponent
                     'compensationType' => 'required|in:monetary,barter,free_product,discount,gift_card,experience,other',
                     'compensationDescription' => 'required|string|min:10',
                     'influencerCount' => 'required|integer|min:1|max:50',
-                    'exclusivityPeriod' => 'nullable|integer|min:0', // New field for exclusivity period
+                    'exclusivityPeriod' => 'nullable|integer|min:0',
                     'applicationDeadline' => 'required|date|after:today',
-                    'campaignCompletionDate' => 'required|date|after:applicationDeadline',
+                    'campaignStartDate' => 'required|date|after:applicationDeadline',
+                    'campaignCompletionDate' => 'required|date|after:campaignStartDate',
                 ]);
                 break;
             case 6:

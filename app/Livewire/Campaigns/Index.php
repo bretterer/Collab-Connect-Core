@@ -55,6 +55,11 @@ class Index extends BaseComponent
         return CampaignService::getUserArchived($this->getAuthenticatedUser());
     }
 
+    public function getCompleted()
+    {
+        return CampaignService::getUserCompleted($this->getAuthenticatedUser());
+    }
+
     public function confirmArchive($campaignId)
     {
         $this->campaignToArchive = $campaignId;
@@ -87,16 +92,44 @@ class Index extends BaseComponent
     {
         $campaign = Campaign::query()->find($campaignId);
 
-        if ($campaign->applications->isEmpty()) {
-            Toaster::error('You must have at least one influencer application to start this campaign.');
+        if (! $campaign) {
+            Toaster::error('Campaign not found.');
 
             return;
         }
 
-        if ($campaign) {
-            CampaignService::startCampaign($campaign);
-            session()->flash('message', 'Campaign started successfully!');
+        $acceptedApplications = $campaign->applications()
+            ->where('status', \App\Enums\CampaignApplicationStatus::ACCEPTED)
+            ->count();
+
+        if ($acceptedApplications === 0) {
+            Toaster::error('You must accept at least one influencer application before starting this campaign.');
+
+            return;
         }
+
+        CampaignService::startCampaign($campaign, $this->getAuthenticatedUser());
+        Toaster::success('Campaign started! Collaborations have been created for accepted influencers.');
+    }
+
+    public function completeCampaign($campaignId)
+    {
+        $campaign = Campaign::query()->find($campaignId);
+
+        if (! $campaign) {
+            Toaster::error('Campaign not found.');
+
+            return;
+        }
+
+        if (! $campaign->isInProgress()) {
+            Toaster::error('Only in-progress campaigns can be completed.');
+
+            return;
+        }
+
+        CampaignService::completeCampaign($campaign, $this->getAuthenticatedUser());
+        Toaster::success('Campaign completed successfully!');
     }
 
     public function render()

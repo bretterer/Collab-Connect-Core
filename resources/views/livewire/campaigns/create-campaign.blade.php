@@ -426,13 +426,22 @@
                                     <flux:input
                                         type="date"
                                         wire:model="applicationDeadline"
-                                        label="Application Deadline" />
+                                        label="Application Deadline"
+                                        description="Last day influencers can apply" />
                                     @error('applicationDeadline') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
 
                                     <flux:input
                                         type="date"
+                                        wire:model="campaignStartDate"
+                                        label="Campaign Start Date"
+                                        description="When influencers begin work" />
+                                    @error('campaignStartDate') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+
+                                    <flux:input
+                                        type="date"
                                         wire:model="campaignCompletionDate"
-                                        label="Campaign Completion Date" />
+                                        label="Campaign End Date"
+                                        description="When deliverables are due" />
                                     @error('campaignCompletionDate') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
 
                                     <!-- Compensation Details -->
@@ -527,7 +536,11 @@
                                             <p class="text-gray-900 dark:text-white">{{ $applicationDeadline ? \Carbon\Carbon::parse($applicationDeadline)->format('M j, Y') : 'Not set' }}</p>
                                         </div>
                                         <div>
-                                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Campaign Completion:</span>
+                                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Campaign Start:</span>
+                                            <p class="text-gray-900 dark:text-white">{{ $campaignStartDate ? \Carbon\Carbon::parse($campaignStartDate)->format('M j, Y') : 'Not set' }}</p>
+                                        </div>
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Campaign End:</span>
                                             <p class="text-gray-900 dark:text-white">{{ $campaignCompletionDate ? \Carbon\Carbon::parse($campaignCompletionDate)->format('M j, Y') : 'Not set' }}</p>
                                         </div>
                                         <div>

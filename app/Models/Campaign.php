@@ -28,12 +28,17 @@ class Campaign extends Model
         'target_area',
         'campaign_description',
         'influencer_count',
+        'exclusivity_period',
         'application_deadline',
+        'campaign_start_date',
         'campaign_completion_date',
         'publish_action',
         'scheduled_date',
         'current_step',
         'published_at',
+        'started_at',
+        'completed_at',
+        'archived_at',
         'compensation_type',
         'compensation_amount',
         'compensation_description',
@@ -66,11 +71,16 @@ class Campaign extends Model
     {
         return [
             'influencer_count' => 'integer',
+            'exclusivity_period' => 'integer',
             'application_deadline' => 'date',
+            'campaign_start_date' => 'date',
             'campaign_completion_date' => 'date',
             'scheduled_date' => 'date',
             'current_step' => 'integer',
             'published_at' => 'datetime',
+            'started_at' => 'datetime',
+            'completed_at' => 'datetime',
+            'archived_at' => 'datetime',
             'status' => CampaignStatus::class,
             'campaign_type' => AsEnumCollection::of(CampaignType::class),
             'compensation_type' => \App\Enums\CompensationType::class,
@@ -110,6 +120,16 @@ class Campaign extends Model
         return $this->hasMany(CampaignApplication::class);
     }
 
+    public function collaborations(): HasMany
+    {
+        return $this->hasMany(Collaboration::class);
+    }
+
+    public function activeCollaborations(): HasMany
+    {
+        return $this->collaborations()->where('status', \App\Enums\CollaborationStatus::ACTIVE);
+    }
+
     public function isDraft(): bool
     {
         return $this->status === CampaignStatus::DRAFT;
@@ -130,9 +150,43 @@ class Campaign extends Model
         return $this->status === CampaignStatus::IN_PROGRESS;
     }
 
+    public function isCompleted(): bool
+    {
+        return $this->status === CampaignStatus::COMPLETED;
+    }
+
     public function isArchived(): bool
     {
         return $this->status === CampaignStatus::ARCHIVED;
+    }
+
+    public function isAcceptingApplications(): bool
+    {
+        if (! $this->isPublished()) {
+            return false;
+        }
+
+        if ($this->application_deadline && $this->application_deadline->isPast()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function hasStarted(): bool
+    {
+        return $this->started_at !== null;
+    }
+
+    public function canStart(): bool
+    {
+        return $this->isPublished()
+            && $this->applications()->where('status', \App\Enums\CampaignApplicationStatus::ACCEPTED)->exists();
+    }
+
+    public function canComplete(): bool
+    {
+        return $this->isInProgress();
     }
 
     public function scopeDrafts($query)
@@ -155,9 +209,40 @@ class Campaign extends Model
         return $query->where('status', CampaignStatus::IN_PROGRESS);
     }
 
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', CampaignStatus::COMPLETED);
+    }
+
     public function scopeArchived($query)
     {
         return $query->where('status', CampaignStatus::ARCHIVED);
+    }
+
+    public function scopeReadyToStart($query)
+    {
+        return $query->where('status', CampaignStatus::PUBLISHED)
+            ->where(function ($q) {
+                $q->whereNull('campaign_start_date')
+                    ->orWhere('campaign_start_date', '<=', now()->toDateString());
+            })
+            ->whereHas('applications', function ($q) {
+                $q->where('status', \App\Enums\CampaignApplicationStatus::ACCEPTED);
+            });
+    }
+
+    public function scopeReadyToComplete($query)
+    {
+        return $query->where('status', CampaignStatus::IN_PROGRESS)
+            ->whereNotNull('campaign_completion_date')
+            ->where('campaign_completion_date', '<=', now()->toDateString());
+    }
+
+    public function scopeReadyToPublish($query)
+    {
+        return $query->where('status', CampaignStatus::SCHEDULED)
+            ->whereNotNull('scheduled_date')
+            ->where('scheduled_date', '<=', now()->toDateString());
     }
 
     /**

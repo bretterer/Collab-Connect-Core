@@ -166,7 +166,7 @@ class CreateCampaignTest extends TestCase
         $component = $this->setupComponentToStep5();
 
         $component->call('nextStep')
-            ->assertHasErrors(['compensationDescription', 'applicationDeadline', 'campaignCompletionDate']);
+            ->assertHasErrors(['compensationDescription', 'applicationDeadline', 'campaignStartDate', 'campaignCompletionDate']);
     }
 
     public function test_step_5_can_be_completed_with_valid_data()
@@ -176,13 +176,15 @@ class CreateCampaignTest extends TestCase
         $component = $this->setupComponentToStep5();
 
         $applicationDeadline = Carbon::now()->addDays(14)->format('Y-m-d');
-        $completionDate = Carbon::now()->addDays(30)->format('Y-m-d');
+        $startDate = Carbon::now()->addDays(21)->format('Y-m-d');
+        $completionDate = Carbon::now()->addDays(45)->format('Y-m-d');
 
         $component
             ->set('compensationType', 'barter')
             ->set('compensationDescription', 'Free coffee products worth $50 plus additional merchandise')
             ->set('influencerCount', 5)
             ->set('applicationDeadline', $applicationDeadline)
+            ->set('campaignStartDate', $startDate)
             ->set('campaignCompletionDate', $completionDate)
             ->set('additionalRequirements', 'Must be located within 25 miles of Grand Rapids')
             ->call('nextStep')
@@ -390,13 +392,15 @@ class CreateCampaignTest extends TestCase
     private function setupCompleteComponent()
     {
         $applicationDeadline = Carbon::now()->addDays(14)->format('Y-m-d');
-        $completionDate = Carbon::now()->addDays(30)->format('Y-m-d');
+        $startDate = Carbon::now()->addDays(21)->format('Y-m-d');
+        $completionDate = Carbon::now()->addDays(45)->format('Y-m-d');
 
         return $this->setupComponentToStep5()
             ->set('compensationType', 'barter')
             ->set('compensationDescription', 'Free coffee products worth $50 plus additional merchandise')
             ->set('influencerCount', 5)
             ->set('applicationDeadline', $applicationDeadline)
+            ->set('campaignStartDate', $startDate)
             ->set('campaignCompletionDate', $completionDate)
             ->set('currentStep', 6); // Skip autoSave by directly setting step
     }

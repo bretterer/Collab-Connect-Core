@@ -127,6 +127,12 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
             Route::get('/{application}', App\Livewire\Applications\ViewApplication::class)->name('show');
         });
 
+        // Collaboration review routes
+        Route::prefix('collaborations')->name('collaborations.')->group(function () {
+            Route::get('/{collaboration}/review', App\Livewire\Reviews\SubmitReview::class)->name('review');
+            Route::get('/{collaboration}/reviews', App\Livewire\Reviews\ViewReviews::class)->name('reviews');
+        });
+
         // Influencer campaign discovery
         Route::get('/discover', App\Livewire\Campaigns\InfluencerCampaigns::class)->name('discover');
 
@@ -158,7 +164,9 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
 
         // Public profile route (supports both username and ID)
         Route::get('/influencer/{username}', App\Livewire\ViewInfluencerProfile::class)->name('influencer.profile');
+        Route::get('/influencer/{username}/reviews', App\Livewire\Reviews\UserReviews::class)->name('influencer.reviews')->defaults('type', 'influencer');
         Route::get('/business/{username}', App\Livewire\ViewBusinessProfile::class)->name('business.profile');
+        Route::get('/business/{username}/reviews', App\Livewire\Reviews\UserReviews::class)->name('business.reviews')->defaults('type', 'business');
 
         // Business routes
         Route::prefix('business')->name('business.')->group(function () {

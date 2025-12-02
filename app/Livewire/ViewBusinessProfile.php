@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Enums\AccountType;
 use App\Models\User;
+use App\Services\ReviewService;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -27,8 +28,14 @@ class ViewBusinessProfile extends Component
     {
         // Determine which profile view to show based on account type
         if ($this->user->account_type === AccountType::BUSINESS) {
+            $reviewService = app(ReviewService::class);
+            $business = $this->user->currentBusiness;
+
             return view('livewire.profiles.business-profile', [
                 'user' => $this->user,
+                'averageRating' => $business ? $reviewService->getAverageRatingForBusiness($business) : null,
+                'reviewCount' => $business ? $reviewService->getReviewCountForBusiness($business) : 0,
+                'reviews' => $business ? $reviewService->getReviewsForBusiness($business) : collect(),
             ]);
         }
 

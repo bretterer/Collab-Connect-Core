@@ -86,13 +86,23 @@
                     <div class="text-sm text-gray-500 dark:text-gray-400">Member Since</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                        @php
-                            $rating = round(rand(35, 50) / 10, 1);
-                        @endphp
-                        {{ $rating }}/5
-                    </div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400">Rating</div>
+                    @if($averageRating !== null)
+                        <div class="flex items-center justify-center gap-0.5 mb-1">
+                            @php $fullStars = floor($averageRating); @endphp
+                            @for($i = 1; $i <= 5; $i++)
+                                @if($i <= $fullStars)
+                                    <flux:icon.star class="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                @else
+                                    <flux:icon.star class="w-4 h-4 text-gray-300 fill-gray-300" />
+                                @endif
+                            @endfor
+                        </div>
+                        <div class="text-xl font-bold text-gray-900 dark:text-white">{{ $averageRating }}/5</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ $reviewCount }} {{ Str::plural('review', $reviewCount) }}</div>
+                    @else
+                        <div class="text-lg text-gray-400 dark:text-gray-500">-</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">No reviews</div>
+                    @endif
                 </div>
             </div>
 
@@ -123,6 +133,52 @@
                     @endif
                 </div>
             </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-8">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Reviews</h3>
+                @if($reviewCount > 0)
+                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ $reviewCount }} {{ Str::plural('review', $reviewCount) }}</span>
+                @endif
+            </div>
+
+            @if($reviews->count() > 0)
+                <div class="space-y-4">
+                    @foreach($reviews->take(5) as $review)
+                        <div class="pb-4 border-b border-gray-200 dark:border-gray-700 last:border-0 last:pb-0">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-medium">
+                                        {{ $review->reviewer->initials() }}
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900 dark:text-white">{{ $review->reviewer->name }}</p>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ $review->submitted_at->format('M j, Y') }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-0.5">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        @if($i <= $review->rating)
+                                            <flux:icon.star class="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                        @else
+                                            <flux:icon.star class="w-4 h-4 text-gray-300 fill-gray-300" />
+                                        @endif
+                                    @endfor
+                                </div>
+                            </div>
+                            @if($review->comment)
+                                <p class="text-gray-600 dark:text-gray-300 mt-2">{{ $review->comment }}</p>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="text-gray-500 dark:text-gray-400">No reviews yet.</p>
             @endif
         </div>
     </div>

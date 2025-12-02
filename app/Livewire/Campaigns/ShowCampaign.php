@@ -3,14 +3,17 @@
 namespace App\Livewire\Campaigns;
 
 use App\Enums\AccountType;
+use App\Enums\CampaignApplicationStatus;
 use App\Models\Campaign;
 use App\Models\Chat;
 use App\Models\User;
 use App\Services\CampaignService;
+use App\Services\CollaborationService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Masmerise\Toaster\Toaster;
 
 #[Layout('layouts.app')]
 class ShowCampaign extends Component
@@ -84,6 +87,75 @@ class ShowCampaign extends Component
         session()->flash('message', 'Campaign archived successfully!');
     }
 
+    public function startCampaign()
+    {
+        $this->authorize('update', $this->campaign);
+
+        $acceptedCount = $this->campaign->applications()
+            ->where('status', CampaignApplicationStatus::ACCEPTED)
+            ->count();
+
+        if ($acceptedCount === 0) {
+            Toaster::error('You must accept at least one influencer application before starting this campaign.');
+
+            return;
+        }
+
+        CampaignService::startCampaign($this->campaign, Auth::user());
+        $this->campaign->refresh();
+        Toaster::success('Campaign started! Collaborations have been created for accepted influencers.');
+    }
+
+    public function completeCampaign()
+    {
+        $this->authorize('update', $this->campaign);
+
+        if (! $this->campaign->isInProgress()) {
+            Toaster::error('Only in-progress campaigns can be completed.');
+
+            return;
+        }
+
+        CampaignService::completeCampaign($this->campaign, Auth::user());
+        $this->campaign->refresh();
+        Toaster::success('Campaign completed successfully!');
+    }
+
+    public function completeCollaboration(int $collaborationId)
+    {
+        $this->authorize('update', $this->campaign);
+
+        $collaboration = $this->campaign->collaborations()->findOrFail($collaborationId);
+
+        if (! $collaboration->isActive()) {
+            Toaster::error('This collaboration is not active.');
+
+            return;
+        }
+
+        CollaborationService::complete($collaboration);
+        $this->campaign->refresh();
+        Toaster::success("Collaboration with {$collaboration->influencer->name} has been completed. Review requests have been sent.");
+    }
+
+    public function getAcceptedApplicationsCount()
+    {
+        if (! $this->isOwner) {
+            return 0;
+        }
+
+        return $this->campaign->applications()->where('status', CampaignApplicationStatus::ACCEPTED)->count();
+    }
+
+    public function getCollaborations()
+    {
+        if (! $this->isOwner) {
+            return collect();
+        }
+
+        return $this->campaign->collaborations()->with('influencer.influencer')->get();
+    }
+
     public function applyToCampaign()
     {
         $this->authorize('apply', $this->campaign);
@@ -108,6 +180,26 @@ class ShowCampaign extends Component
         }
 
         return $this->campaign->applications()->where('status', 'pending')->count();
+    }
+
+    public function getSortedApplications(int $limit = 5)
+    {
+        if (! $this->isOwner) {
+            return collect();
+        }
+
+        // Sort: accepted first, then pending, then others. Within each group, sort by submitted_at desc
+        return $this->campaign->applications()
+            ->with(['user.influencer'])
+            ->orderByRaw("CASE
+                WHEN status = 'accepted' THEN 1
+                WHEN status = 'pending' THEN 2
+                WHEN status = 'contracted' THEN 3
+                ELSE 4
+            END")
+            ->orderBy('submitted_at', 'desc')
+            ->take($limit)
+            ->get();
     }
 
     public function backToDiscover()

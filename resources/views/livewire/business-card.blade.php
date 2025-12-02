@@ -99,14 +99,10 @@
                     </div>
                     <div class="text-xs text-gray-500 dark:text-gray-400">Campaigns</div>
                 </div>
-                @if(false === true)
                 <div>
+                    @if($averageRating !== null)
                     <div class="flex items-center justify-center gap-0.5 mb-1">
-                        @php
-                            $rating = $this->getRandomRating();
-                            $fullStars = floor($rating);
-                        @endphp
-
+                        @php $fullStars = floor($averageRating); @endphp
                         @for($i = 1; $i <= 5; $i++)
                             @if($i <= $fullStars)
                                 <flux:icon.star class="w-3 h-3 text-yellow-400 fill-yellow-400" />
@@ -116,11 +112,13 @@
                         @endfor
                     </div>
                     <div class="text-xs font-medium text-gray-900 dark:text-white">
-                        {{ $rating }}/5
+                        {{ $averageRating }}/5
                     </div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">Rating</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ $reviewCount }} {{ Str::plural('review', $reviewCount) }}</div>
+                    @else
+                    <div class="text-sm text-gray-400 dark:text-gray-500">No reviews yet</div>
+                    @endif
                 </div>
-                @endif
             </div>
 
             <!-- Action Buttons -->
