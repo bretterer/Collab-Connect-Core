@@ -120,7 +120,7 @@ class FormBlockRenderer extends Component
             if ($landingPageId) {
                 $landingPage = LandingPage::find($landingPageId);
                 if ($landingPage) {
-                    return redirect()->to('/'.$landingPage->slug);
+                    return redirect()->to('/l/'.$landingPage->slug);
                 }
             }
         } elseif ($thankYouAction === 'url') {

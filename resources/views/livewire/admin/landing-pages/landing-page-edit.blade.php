@@ -17,6 +17,9 @@
             </div>
             <div class="flex items-center gap-3">
                 @if($status === \App\Enums\LandingPageStatus::PUBLISHED->value)
+                    <flux:button href="{{ route('landing.show', $slug) }}" target="_blank" size="sm">
+                        View
+                    </flux:button>
                     <flux:button variant="outline" wire:click="unpublish" size="sm">
                         Unpublish
                     </flux:button>
