@@ -30,7 +30,9 @@
                 <option value="all">All Applications</option>
                 <option value="pending">Pending</option>
                 <option value="accepted">Accepted</option>
+                <option value="contracted">Contracted</option>
                 <option value="rejected">Rejected</option>
+                <option value="withdrawn">Withdrawn</option>
             </select>
         </div>
     </div>
@@ -110,7 +112,7 @@
                             </div>
 
                             <!-- Action Buttons -->
-                            @if($application->status === 'pending')
+                            @if($application->status->value === 'pending')
                                 <div class="flex items-center space-x-3">
                                     <button
                                         wire:click="updateStatus({{ $application->id }}, 'accepted')"
@@ -125,13 +127,28 @@
                                         Reject Application
                                     </button>
                                 </div>
-                            @elseif($application->status === 'accepted')
-                                <div class="text-sm text-green-600 dark:text-green-400 font-medium">
-                                    ✓ Application accepted{{ $application->reviewed_at ? ' on ' . $application->reviewed_at->format('M j, Y') : '' }}
+                            @elseif($application->status->value === 'accepted')
+                                <div class="flex items-center space-x-3">
+                                    <div class="text-sm text-green-600 dark:text-green-400 font-medium">
+                                        ✓ Application accepted{{ $application->reviewed_at ? ' on ' . $application->reviewed_at->format('M j, Y') : '' }}
+                                    </div>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">
+                                        • Will be contracted when campaign starts
+                                    </span>
                                 </div>
-                            @elseif($application->status === 'rejected')
+                            @elseif($application->status->value === 'contracted')
+                                <div class="flex items-center space-x-3">
+                                    <div class="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                                        ✓ Contracted - actively working on campaign
+                                    </div>
+                                </div>
+                            @elseif($application->status->value === 'rejected')
                                 <div class="text-sm text-red-600 dark:text-red-400 font-medium">
                                     ✗ Application rejected{{ $application->reviewed_at ? ' on ' . $application->reviewed_at->format('M j, Y') : '' }}
+                                </div>
+                            @elseif($application->status->value === 'withdrawn')
+                                <div class="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                                    Application withdrawn by influencer
                                 </div>
                             @endif
                         </div>

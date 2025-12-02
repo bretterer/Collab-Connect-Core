@@ -71,12 +71,41 @@ class CampaignFactory extends Factory
     }
 
     /**
+     * Indicate that the campaign is in progress.
+     */
+    public function inProgress(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => CampaignStatus::IN_PROGRESS,
+            'published_at' => now()->subDays(14),
+            'started_at' => now(),
+            'campaign_start_date' => now()->toDateString(),
+        ]);
+    }
+
+    /**
+     * Indicate that the campaign is completed.
+     */
+    public function completed(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => CampaignStatus::COMPLETED,
+            'published_at' => now()->subDays(60),
+            'started_at' => now()->subDays(30),
+            'completed_at' => now(),
+            'campaign_start_date' => now()->subDays(30)->toDateString(),
+            'campaign_completion_date' => now()->toDateString(),
+        ]);
+    }
+
+    /**
      * Indicate that the campaign is archived.
      */
     public function archived(): static
     {
         return $this->state(fn (array $attributes) => [
             'status' => CampaignStatus::ARCHIVED,
+            'archived_at' => now(),
         ]);
     }
 

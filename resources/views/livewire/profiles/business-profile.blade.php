@@ -147,7 +147,75 @@
                             <flux:text class="text-gray-600 dark:text-gray-400">Completed Campaigns</flux:text>
                             <flux:text class="font-semibold">{{ $completedCampaigns->count() }}</flux:text>
                         </div>
+                        <div class="flex justify-between items-center">
+                            <flux:text class="text-gray-600 dark:text-gray-400">Rating</flux:text>
+                            @if($averageRating !== null)
+                                <div class="flex items-center gap-1">
+                                    <div class="flex items-center gap-0.5">
+                                        @php $fullStars = floor($averageRating); @endphp
+                                        @for($i = 1; $i <= 5; $i++)
+                                            @if($i <= $fullStars)
+                                                <flux:icon.star class="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                            @else
+                                                <flux:icon.star class="w-4 h-4 text-gray-300 fill-gray-300" />
+                                            @endif
+                                        @endfor
+                                    </div>
+                                    <flux:text class="font-semibold">{{ $averageRating }}</flux:text>
+                                </div>
+                            @else
+                                <flux:text class="text-gray-400">No reviews</flux:text>
+                            @endif
+                        </div>
                     </div>
+                </flux:card>
+
+                {{-- Reviews --}}
+                <flux:card>
+                    <div class="flex items-center justify-between mb-4">
+                        <flux:heading size="lg">Reviews</flux:heading>
+                        @if($reviewCount > 0)
+                            <flux:badge>{{ $reviewCount }} {{ Str::plural('review', $reviewCount) }}</flux:badge>
+                        @endif
+                    </div>
+                    @if($reviews->count() > 0)
+                        <div class="space-y-4">
+                            @foreach($reviews->take(3) as $review)
+                                <div class="pb-4 border-b border-gray-200 dark:border-gray-700 last:border-0 last:pb-0">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-medium">
+                                                {{ $review->reviewer->initials() }}
+                                            </div>
+                                            <div>
+                                                <flux:text class="font-medium text-sm">{{ $review->reviewer->name }}</flux:text>
+                                                <flux:text class="text-xs text-gray-500">{{ $review->submitted_at->diffForHumans() }}</flux:text>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-0.5">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                @if($i <= $review->rating)
+                                                    <flux:icon.star class="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                                                @else
+                                                    <flux:icon.star class="w-3 h-3 text-gray-300 fill-gray-300" />
+                                                @endif
+                                            @endfor
+                                        </div>
+                                    </div>
+                                    @if($review->comment)
+                                        <flux:text class="text-sm text-gray-600 dark:text-gray-400">{{ Str::limit($review->comment, 150) }}</flux:text>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <a href="{{ route('business.reviews', ['username' => $business?->username ?? $business?->id]) }}" wire:navigate class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                                View all {{ $reviewCount }} {{ Str::plural('review', $reviewCount) }} →
+                            </a>
+                        </div>
+                    @else
+                        <flux:text class="text-gray-500 dark:text-gray-400">No reviews yet.</flux:text>
+                    @endif
                 </flux:card>
 
                 {{-- Business Details --}}

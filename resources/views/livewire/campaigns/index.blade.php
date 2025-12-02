@@ -63,6 +63,11 @@
                     In Progress ({{ $this->getInProgress()->count() }})
                 </button>
                 <button
+                    wire:click="setActiveTab('completed')"
+                    class="px-3 py-2 font-medium text-sm rounded-md {{ $activeTab === 'completed' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}">
+                    Completed ({{ $this->getCompleted()->count() }})
+                </button>
+                <button
                     wire:click="setActiveTab('archived')"
                     class="px-3 py-2 font-medium text-sm rounded-md {{ $activeTab === 'archived' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}">
                     Archived ({{ $this->getArchived()->count() }})
@@ -235,7 +240,7 @@
                                 <div class="flex items-center justify-between">
                                     <div class="flex-1">
                                         <div class="flex items-center space-x-3">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
                                                 In Progress
                                             </span>
                                             <h3 class="text-lg font-medium text-gray-900 dark:text-white">
@@ -247,13 +252,24 @@
                                         </p>
                                         <div class="mt-3 flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
                                             <span>Compensation: {{ $campaign->compensation_display }}</span>
-                                            <span>Influencers: {{ $campaign->influencer_count }}</span>
+                                            <span class="text-blue-600 font-medium">{{ $campaign->collaborations->count() }} Active Collaborations</span>
+                                            @if($campaign->started_at)
+                                                <span>Started {{ $campaign->started_at->diffForHumans() }}</span>
+                                            @endif
+                                            @if($campaign->campaign_completion_date)
+                                                <span>Ends {{ $campaign->campaign_completion_date->format('M j, Y') }}</span>
+                                            @endif
                                         </div>
                                     </div>
                                     <div class="flex items-center space-x-3">
                                         <a href="{{ route('campaigns.show', $campaign) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
                                             View Details
                                         </a>
+                                        <button
+                                            wire:click="completeCampaign({{ $campaign->id }})"
+                                            class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300">
+                                            Complete Campaign
+                                        </button>
                                         <button
                                             wire:click="confirmArchive({{ $campaign->id }})"
                                             class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
@@ -271,6 +287,51 @@
                         </svg>
                         <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No In Progress campaigns</h3>
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Start a campaign with influencers to see it here.</p>
+                    </div>
+                @endif
+
+            @elseif($activeTab === 'completed')
+                @if($this->getCompleted()->count() > 0)
+                    <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                        @foreach($this->getCompleted() as $campaign)
+                            <div class="p-6" wire:key="campaign-{{ $campaign->id }}">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-3">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-lime-100 text-lime-800 dark:bg-lime-900 dark:text-lime-200">
+                                                Completed
+                                            </span>
+                                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                                                {{ Str::limit($campaign->campaign_goal, 60) }}
+                                            </h3>
+                                        </div>
+                                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                            {{ Str::limit($campaign->campaign_description, 120) }}
+                                        </p>
+                                        <div class="mt-3 flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
+                                            <span>Compensation: {{ $campaign->compensation_display }}</span>
+                                            <span>{{ $campaign->collaborations->count() }} Collaborations</span>
+                                            @if($campaign->completed_at)
+                                                <span>Completed {{ $campaign->completed_at->diffForHumans() }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-3">
+                                        <a href="{{ route('campaigns.show', $campaign) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                                            View Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="p-12 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No completed campaigns</h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Completed campaigns will appear here.</p>
                     </div>
                 @endif
 

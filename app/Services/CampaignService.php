@@ -33,7 +33,9 @@ class CampaignService
                 'target_area' => $data['target_area'] ?? '',
                 'campaign_description' => $data['campaign_description'] ?? '',
                 'influencer_count' => $data['influencer_count'] ?? 1,
+                'exclusivity_period' => $data['exclusivity_period'] ?? null,
                 'application_deadline' => ! empty($data['application_deadline']) ? $data['application_deadline'] : null,
+                'campaign_start_date' => ! empty($data['campaign_start_date']) ? $data['campaign_start_date'] : null,
                 'campaign_completion_date' => ! empty($data['campaign_completion_date']) ? $data['campaign_completion_date'] : null,
                 'publish_action' => $data['publish_action'] ?? 'publish',
                 'scheduled_date' => ! empty($data['scheduled_date']) ? $data['scheduled_date'] : null,
@@ -121,7 +123,17 @@ class CampaignService
     {
         $campaign->update([
             'status' => CampaignStatus::ARCHIVED,
+            'archived_at' => now(),
         ]);
+
+        // Cancel all active collaborations
+        $campaign->collaborations()
+            ->where('status', \App\Enums\CollaborationStatus::ACTIVE)
+            ->update([
+                'status' => \App\Enums\CollaborationStatus::CANCELLED,
+                'cancelled_at' => now(),
+                'cancellation_reason' => 'Campaign was archived',
+            ]);
 
         // Fire the CampaignArchived event
         if ($archiver) {
@@ -131,13 +143,59 @@ class CampaignService
         return $campaign;
     }
 
-    public static function startCampaign(Campaign $campaign): Campaign
+    public static function startCampaign(Campaign $campaign, ?User $starter = null): Campaign
     {
         $campaign->update([
             'status' => CampaignStatus::IN_PROGRESS,
+            'started_at' => now(),
         ]);
 
+        // Create collaborations for all accepted applications
+        self::createCollaborationsFromAcceptedApplications($campaign);
+
         return $campaign;
+    }
+
+    public static function completeCampaign(Campaign $campaign, ?User $completer = null): Campaign
+    {
+        $campaign->update([
+            'status' => CampaignStatus::COMPLETED,
+            'completed_at' => now(),
+        ]);
+
+        // Complete all remaining active collaborations (those not already completed individually)
+        // This uses CollaborationService which handles starting review periods
+        $campaign->collaborations()
+            ->where('status', \App\Enums\CollaborationStatus::ACTIVE)
+            ->each(function ($collaboration) {
+                CollaborationService::complete($collaboration);
+            });
+
+        return $campaign;
+    }
+
+    protected static function createCollaborationsFromAcceptedApplications(Campaign $campaign): void
+    {
+        $acceptedApplications = $campaign->applications()
+            ->where('status', \App\Enums\CampaignApplicationStatus::ACCEPTED)
+            ->get();
+
+        foreach ($acceptedApplications as $application) {
+            // Update application status to CONTRACTED
+            $application->update([
+                'status' => \App\Enums\CampaignApplicationStatus::CONTRACTED,
+            ]);
+
+            // Create collaboration record
+            \App\Models\Collaboration::create([
+                'campaign_id' => $campaign->id,
+                'campaign_application_id' => $application->id,
+                'influencer_id' => $application->user_id,
+                'business_id' => $campaign->business_id,
+                'status' => \App\Enums\CollaborationStatus::ACTIVE,
+                'started_at' => now(),
+            ]);
+        }
     }
 
     public static function unpublishCampaign(Campaign $campaign, ?User $unpublisher = null): Campaign
@@ -241,7 +299,15 @@ class CampaignService
 
     public static function getUserInProgress(User $user)
     {
-        return $user->currentBusiness->campaigns()->inProgress()->orderBy('updated_at', 'desc')->get();
+        return $user->currentBusiness->campaigns()->inProgress()->orderBy('started_at', 'desc')->get();
+    }
+
+    /**
+     * Get user's completed campaigns
+     */
+    public static function getUserCompleted(User $user)
+    {
+        return $user->currentBusiness->campaigns()->completed()->orderBy('completed_at', 'desc')->get();
     }
 
     /**
@@ -249,7 +315,7 @@ class CampaignService
      */
     public static function getUserArchived(User $user)
     {
-        return $user->currentBusiness->campaigns()->archived()->orderBy('updated_at', 'desc')->get();
+        return $user->currentBusiness->campaigns()->archived()->orderBy('archived_at', 'desc')->get();
     }
 
     private static function arrayRecursiveDiff($array1, $array2)

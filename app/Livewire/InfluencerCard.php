@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\User;
+use App\Services\ReviewService;
 use Illuminate\Support\Facades\Vite;
 use Livewire\Component;
 
@@ -19,6 +20,10 @@ class InfluencerCard extends Component
     public string $profileImageUrl;
 
     public string $coverImageUrl;
+
+    public ?float $averageRating = null;
+
+    public int $reviewCount = 0;
 
     public function mount()
     {
@@ -38,14 +43,10 @@ class InfluencerCard extends Component
                     <rect width="100%" height="100%" fill="url(#grad)"/>
                 </svg>');
 
-        $this->isPromoted = rand(0, 1);
-        $this->isVerified = rand(0, 1);
-    }
-
-    public function getRandomRating()
-    {
-        // Generate random rating between 3.0 and 5.0
-        return round(rand(30, 50) / 10, 1);
+        // Get real review data
+        $reviewService = app(ReviewService::class);
+        $this->averageRating = $reviewService->getAverageRating($this->user);
+        $this->reviewCount = $reviewService->getReviewCount($this->user);
     }
 
     public function getUsername(): string

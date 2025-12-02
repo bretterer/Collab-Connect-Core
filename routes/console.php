@@ -5,6 +5,14 @@ use Illuminate\Support\Facades\Schedule;
 Schedule::command('schedule:publish-campaigns')->everyMinute();
 Schedule::command('email-sequences:process')->everyMinute();
 
+// Campaign lifecycle transitions - run daily at 1am
+Schedule::command('campaigns:process-scheduled')->dailyAt('01:00');
+Schedule::command('campaigns:start-due')->dailyAt('01:05');
+Schedule::command('campaigns:complete-due')->dailyAt('01:10');
+
+// Review period expiration - run daily at 1:15am
+Schedule::command('reviews:expire-periods')->dailyAt('01:15');
+
 Schedule::job(new \App\Jobs\NotifyUsersOfStaleUnreadMessages)->hourly();
 
 Schedule::job(new \App\Jobs\CalculateReferralPayouts)->monthlyOn(1, '06:00');
