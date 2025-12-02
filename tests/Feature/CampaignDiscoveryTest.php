@@ -276,17 +276,30 @@ class CampaignDiscoveryTest extends TestCase
     {
         $this->actingAs($this->influencerUser);
 
+        // Get the influencer's zip code to ensure the campaign is within range
+        $influencerZip = $this->influencerUser->influencer->postal_code;
+
+        // Create postal code record for the influencer's location if it doesn't exist
+        if (! PostalCode::where('postal_code', $influencerZip)->exists()) {
+            PostalCode::factory()->create([
+                'postal_code' => $influencerZip,
+                'latitude' => 39.7589,
+                'longitude' => -84.1916,
+            ]);
+        }
+
         $detailedCampaign = Campaign::factory()->published()->withFullDetails()->create([
             'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Detailed campaign with all info',
-            'target_zip_code' => '49503',
+            'target_zip_code' => $influencerZip,
             'influencer_count' => 3,
+            'application_deadline' => now()->addDays(30),
         ]);
 
         $component = Livewire::test('campaigns.influencer-campaigns');
 
         $component->assertSee('Detailed campaign with all info')
-            ->assertSee('49503');
+            ->assertSee($influencerZip);
     }
 
     public function test_influencer_cannot_apply_to_own_business_campaigns()

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\SequenceMode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,6 +16,13 @@ class EmailSequence extends Model
     protected $fillable = [
         'name',
         'description',
+        'sequence_mode',
+        'anchor_datetime',
+        'anchor_timezone',
+        'send_welcome_email',
+        'welcome_email_subject',
+        'welcome_email_body',
+        'welcome_email_preview_text',
         'subscribe_triggers',
         'unsubscribe_triggers',
         'funnel_id',
@@ -28,7 +36,20 @@ class EmailSequence extends Model
         return [
             'subscribe_triggers' => 'array',
             'unsubscribe_triggers' => 'array',
+            'sequence_mode' => SequenceMode::class,
+            'anchor_datetime' => 'datetime',
+            'send_welcome_email' => 'boolean',
         ];
+    }
+
+    public function isBeforeAnchorMode(): bool
+    {
+        return $this->sequence_mode === SequenceMode::BEFORE_ANCHOR_DATE;
+    }
+
+    public function isAfterSubscriptionMode(): bool
+    {
+        return $this->sequence_mode === SequenceMode::AFTER_SUBSCRIPTION;
     }
 
     public function funnel(): BelongsTo

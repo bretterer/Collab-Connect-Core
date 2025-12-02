@@ -17,6 +17,7 @@ class EmailSequenceEmail extends Model
         'subject',
         'body',
         'delay_days',
+        'delay_hours',
         'send_time',
         'timezone',
         'order',
