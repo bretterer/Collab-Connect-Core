@@ -28,6 +28,67 @@
                 </div>
             </flux:card>
 
+            <!-- Sequence Mode -->
+            <flux:card>
+                <flux:heading size="base" class="mb-4">Timing Mode</flux:heading>
+
+                <div class="space-y-4">
+                    <flux:field>
+                        <flux:label>When should emails be sent?</flux:label>
+                        <flux:radio.group wire:model.live="sequenceMode">
+                            @foreach($sequenceModes as $mode)
+                                <flux:radio
+                                    value="{{ $mode['value'] }}"
+                                    label="{{ $mode['label'] }}"
+                                    description="{{ \App\Enums\SequenceMode::from($mode['value'])->description() }}"
+                                />
+                            @endforeach
+                        </flux:radio.group>
+                        <flux:error name="sequenceMode" />
+                    </flux:field>
+
+                    @if($this->isBeforeAnchorMode())
+                        <div class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                            <div class="flex items-start gap-3">
+                                <flux:icon.calendar-days class="size-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+                                <div class="flex-1">
+                                    <flux:heading size="sm" class="text-amber-800 dark:text-amber-200 mb-3">
+                                        Anchor Date & Time
+                                    </flux:heading>
+                                    <flux:text class="text-sm text-amber-700 dark:text-amber-300 mb-4">
+                                        Set the target date/time for this countdown sequence. Emails will be sent X days/hours before this date.
+                                    </flux:text>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <flux:field>
+                                            <flux:label>Date</flux:label>
+                                            <flux:input type="date" wire:model="anchorDate" />
+                                            <flux:error name="anchorDate" />
+                                        </flux:field>
+
+                                        <flux:field>
+                                            <flux:label>Time</flux:label>
+                                            <flux:input type="time" wire:model="anchorTime" />
+                                            <flux:error name="anchorTime" />
+                                        </flux:field>
+
+                                        <flux:field>
+                                            <flux:label>Timezone</flux:label>
+                                            <flux:select wire:model="anchorTimezone">
+                                                @foreach($timezones as $tz)
+                                                    <option value="{{ $tz['value'] }}">{{ $tz['label'] }}</option>
+                                                @endforeach
+                                            </flux:select>
+                                            <flux:error name="anchorTimezone" />
+                                        </flux:field>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </flux:card>
+
             <!-- Subscribe Triggers -->
             <flux:card>
                 <div class="flex items-center justify-between mb-4">
@@ -123,11 +184,57 @@
                 @endif
             </flux:card>
             @endif
+            <!-- Welcome Email -->
+            <flux:card>
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <flux:heading size="base">Welcome Email</flux:heading>
+                        <flux:text class="text-sm">Optional email sent immediately when someone subscribes</flux:text>
+                    </div>
+                    <flux:switch wire:model.live="sendWelcomeEmail" />
+                </div>
+
+                @if($sendWelcomeEmail)
+                    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                        @if($welcomeEmailSubject)
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <flux:badge color="green">Immediate</flux:badge>
+                                        <div class="font-medium">Welcome Email</div>
+                                    </div>
+                                    <div class="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
+                                        Subject: {{ $welcomeEmailSubject }}
+                                    </div>
+                                    <div class="text-xs text-zinc-500">
+                                        Sent immediately when subscriber joins
+                                    </div>
+                                </div>
+                                <flux:button wire:click="editWelcomeEmail" size="sm" variant="ghost" icon="pencil">
+                                </flux:button>
+                            </div>
+                        @else
+                            <div class="text-center py-6">
+                                <flux:icon.envelope class="size-8 mx-auto text-zinc-400 mb-2" />
+                                <flux:text class="text-sm mb-3">Configure your welcome email</flux:text>
+                                <flux:button wire:click="editWelcomeEmail" variant="primary" size="sm">
+                                    Set Up Welcome Email
+                                </flux:button>
+                            </div>
+                        @endif
+                    </div>
+                @else
+                    <div class="text-center py-4 text-sm text-zinc-500 dark:text-zinc-400 border border-dashed border-zinc-300 dark:border-zinc-600 rounded-lg">
+                        Enable the toggle above to send a welcome email immediately when someone subscribes
+                    </div>
+                @endif
+            </flux:card>
+
             <!-- Emails List -->
             <flux:card>
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <flux:heading size="base">Email Sequence</flux:heading>
+                        <flux:heading size="base">Scheduled Emails</flux:heading>
                         <flux:text class="text-sm">{{ count($emails) }} {{ Str::plural('email', count($emails)) }} in sequence</flux:text>
                     </div>
                     <flux:button wire:click="addEmail" variant="primary" icon="plus">
@@ -142,14 +249,38 @@
                                 <div class="flex items-start justify-between">
                                     <div class="flex-1">
                                         <div class="flex items-center gap-2 mb-1">
-                                            <flux:badge color="blue">Day {{ $email['delay_days'] }}</flux:badge>
+                                            @if($this->isBeforeAnchorMode())
+                                                @php
+                                                    $days = $email['delay_days'];
+                                                    $hours = $email['delay_hours'] ?? 0;
+                                                    $parts = [];
+                                                    if ($days > 0) $parts[] = $days . ' ' . Str::plural('day', $days);
+                                                    if ($hours > 0) $parts[] = $hours . ' ' . Str::plural('hour', $hours);
+                                                    $timing = count($parts) > 0 ? implode(' ', $parts) : '0 hours';
+                                                @endphp
+                                                <flux:badge color="amber">{{ $timing }} before</flux:badge>
+                                            @else
+                                                @php
+                                                    $days = $email['delay_days'];
+                                                    $hours = $email['delay_hours'] ?? 0;
+                                                    $parts = [];
+                                                    if ($days > 0) $parts[] = 'Day ' . $days;
+                                                    if ($hours > 0) $parts[] = ($days > 0 ? '+' : '') . $hours . 'h';
+                                                    $timing = count($parts) > 0 ? implode(' ', $parts) : 'Day 0';
+                                                @endphp
+                                                <flux:badge color="blue">{{ $timing }}</flux:badge>
+                                            @endif
                                             <div class="font-medium">{{ $email['name'] }}</div>
                                         </div>
                                         <div class="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
                                             Subject: {{ $email['subject'] }}
                                         </div>
                                         <div class="text-xs text-zinc-500">
-                                            Sends at {{ Carbon\Carbon::parse($email['send_time'])->format('g:i A') }} {{ $email['timezone'] }}
+                                            @if($this->isBeforeAnchorMode())
+                                                Sends {{ $timing }} before anchor date
+                                            @else
+                                                Sends at {{ Carbon\Carbon::parse($email['send_time'])->format('g:i A') }} {{ $email['timezone'] }}
+                                            @endif
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-1">
@@ -319,21 +450,66 @@
                 </flux:heading>
 
                 <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <flux:field>
-                            <flux:label>Day</flux:label>
-                            <flux:input type="number" wire:model="emailData.delay_days" min="0" placeholder="0" />
-                            <flux:description>Number of days after trigger</flux:description>
-                            <flux:error name="emailData.delay_days" />
-                        </flux:field>
+                    @if($this->isBeforeAnchorMode())
+                        <!-- Before Anchor Date Mode: Days and Hours before -->
+                        <div class="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg mb-4">
+                            <flux:text class="text-sm text-amber-700 dark:text-amber-300">
+                                <flux:icon.clock class="size-4 inline mr-1" />
+                                Configure how long before the anchor date this email should be sent.
+                            </flux:text>
+                        </div>
 
-                        <flux:field>
-                            <flux:label>Time</flux:label>
-                            <flux:input type="time" wire:model="emailData.send_time" />
-                            <flux:description>Time of day to send</flux:description>
-                            <flux:error name="emailData.send_time" />
-                        </flux:field>
-                    </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <flux:field>
+                                <flux:label>Days Before</flux:label>
+                                <flux:input type="number" wire:model.live="emailData.delay_days" min="0" placeholder="0" />
+                                <flux:description>Number of days before anchor date</flux:description>
+                                <flux:error name="emailData.delay_days" />
+                            </flux:field>
+
+                            <flux:field>
+                                <flux:label>Hours Before</flux:label>
+                                <flux:input type="number" wire:model.live="emailData.delay_hours" min="0" max="23" placeholder="0" />
+                                <flux:description>Additional hours before (0-23)</flux:description>
+                                <flux:error name="emailData.delay_hours" />
+                            </flux:field>
+                        </div>
+
+                        @if($this->getCalculatedSendDateTime())
+                            <div class="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <flux:icon.calendar-days class="size-5 text-green-600 dark:text-green-400" />
+                                    <div>
+                                        <flux:text class="text-sm font-medium text-green-800 dark:text-green-200">
+                                            Scheduled Send Date
+                                        </flux:text>
+                                        <flux:text class="text-sm text-green-700 dark:text-green-300">
+                                            {{ $this->getCalculatedSendDateTime() }} ({{ $anchorTimezone }})
+                                        </flux:text>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        <input type="hidden" wire:model="emailData.send_time" value="00:00:00" />
+                    @else
+                        <!-- After Subscription Mode: Days after + Send Time -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <flux:field>
+                                <flux:label>Days After Subscription</flux:label>
+                                <flux:input type="number" wire:model="emailData.delay_days" min="0" placeholder="0" />
+                                <flux:description>Number of days after subscribing</flux:description>
+                                <flux:error name="emailData.delay_days" />
+                            </flux:field>
+
+                            <flux:field>
+                                <flux:label>Send Time</flux:label>
+                                <flux:input type="time" wire:model="emailData.send_time" />
+                                <flux:description>Time of day to send</flux:description>
+                                <flux:error name="emailData.send_time" />
+                            </flux:field>
+                        </div>
+                    @endif
 
                     <flux:field>
                         <flux:label>Internal Title</flux:label>
@@ -369,6 +545,55 @@
                     </flux:button>
                     <flux:button wire:click="saveEmail" variant="primary">
                         Save Email
+                    </flux:button>
+                </div>
+            </div>
+        </flux:modal>
+    @endif
+
+    <!-- Welcome Email Editor Modal -->
+    @if($showWelcomeEmailEditor)
+        <flux:modal name="welcome-email-editor" class="max-w-4xl" wire:model="showWelcomeEmailEditor">
+            <div class="p-6">
+                <flux:heading size="base" class="mb-6">
+                    Configure Welcome Email
+                </flux:heading>
+
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg mb-4">
+                    <flux:text class="text-sm text-green-700 dark:text-green-300">
+                        <flux:icon.bolt class="size-4 inline mr-1" />
+                        This email will be sent immediately when someone subscribes to this sequence.
+                    </flux:text>
+                </div>
+
+                <div class="space-y-4">
+                    <flux:field>
+                        <flux:label>Subject</flux:label>
+                        <flux:input wire:model="welcomeEmailSubject" placeholder="Welcome! Here's what to expect..." maxlength="140" />
+                        <flux:description>Max 140 characters</flux:description>
+                        <flux:error name="welcomeEmailSubject" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>Preview Text</flux:label>
+                        <flux:input wire:model="welcomeEmailPreviewText" placeholder="This appears in the inbox preview..." maxlength="140" />
+                        <flux:description>Max 140 characters - appears in email client preview</flux:description>
+                        <flux:error name="welcomeEmailPreviewText" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>Email Body</flux:label>
+                        <flux:editor wire:model="welcomeEmailBody" placeholder="Write your welcome email content here. Use merge tags like {first_name} to personalize." />
+                        <flux:error name="welcomeEmailBody" />
+                    </flux:field>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-2">
+                    <flux:button wire:click="cancelWelcomeEmailEdit" variant="ghost">
+                        Cancel
+                    </flux:button>
+                    <flux:button wire:click="saveWelcomeEmail" variant="primary">
+                        Save Welcome Email
                     </flux:button>
                 </div>
             </div>

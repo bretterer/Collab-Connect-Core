@@ -20,6 +20,7 @@ class EmailSequenceSend extends Model
         'clicked_at',
         'status',
         'error_message',
+        'is_welcome_email',
     ];
 
     protected function casts(): array
@@ -30,6 +31,7 @@ class EmailSequenceSend extends Model
             'opened_at' => 'datetime',
             'clicked_at' => 'datetime',
             'status' => EmailSendStatus::class,
+            'is_welcome_email' => 'boolean',
         ];
     }
 
