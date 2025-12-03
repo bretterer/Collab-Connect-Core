@@ -45,19 +45,18 @@
     @livewireStyles
 
     @if(!app()->environment('local'))
-            <script
-                defer
-                data-website-id="68953b233e0aad41246ad8b4"
-                data-domain="collabconnect.app"
-                src="https://datafa.st/js/script.js">
-            </script>
-        @endif
+    <script
+        defer
+        data-website-id="68953b233e0aad41246ad8b4"
+        data-domain="collabconnect.app"
+        src="https://datafa.st/js/script.js">
+    </script>
+    @endif
 </head>
 
 <body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 transition-colors duration-300"
     x-cloak
-    x-data="{ sidebarOpen: false, sidebarExpanded: window.innerWidth >= 1400 ? (localStorage.getItem('sidebarExpanded') !== 'false') : false }"
-    x-init="$watch('sidebarExpanded', value => localStorage.setItem('sidebarExpanded', value))">
+    x-data="{ sidebarOpen: false }">
 
     <!-- Off-canvas menu for mobile -->
     <div x-show="sidebarOpen"
@@ -79,7 +78,7 @@
             x-transition:leave="transition ease-in-out duration-300 transform"
             x-transition:leave-start="translate-x-0"
             x-transition:leave-end="-translate-x-full"
-            class="relative flex w-full max-w-xs flex-1 flex-col bg-white dark:bg-gray-900">
+            class="fixed inset-y-0 left-0 flex w-full max-w-xs flex-col bg-white dark:bg-gray-900">
 
             <div class="absolute top-0 right-0 -mr-12 pt-2">
                 <button x-on:click="sidebarOpen = false" class="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
@@ -94,13 +93,12 @@
     </div>
 
     <!-- Desktop sidebar -->
-    <div class="hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:flex-col"
-        x-bind:class="sidebarExpanded ? 'lg:w-64' : 'lg:w-20'">
+    <div class="hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:w-58 lg:flex-col">
         @include('layouts.partials.app-sidebar')
     </div>
 
     <!-- Main content -->
-    <div class="lg:pl-20" x-bind:class="{ 'lg:pl-64': sidebarExpanded, 'lg:pl-20': !sidebarExpanded }">
+    <div class="lg:pl-58">
         <!-- Top bar -->
         <div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm px-4 shadow-sm sm:px-6 lg:px-8">
             <!-- Mobile menu button -->
@@ -164,92 +162,111 @@
                 </button>
 
                 <!-- Profile dropdown -->
-                <div x-data="{ open: false }" class="relative">
-                    <button x-on:click="open = !open" class="flex items-center gap-x-2 -m-1.5 p-1.5">
-                        <div class="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                            {{ substr(auth()->user()->name, 0, 1) }}
-                        </div>
-                        <div class="hidden lg:flex lg:items-center">
-                            <span class="text-sm font-semibold leading-6 text-gray-900 dark:text-white">{{ auth()->user()->name }}</span>
-                            <svg class="ml-2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                            </svg>
-                        </div>
-                    </button>
+                <flux:dropdown align="end" class="max-w-[14rem]">
+                    <flux:profile
+                        circle
+                        :name="auth()->user()->name"
+                        avatar:color="purple"
+                    />
 
-                    <div x-show="open"
-                        x-on:click.away="open = false"
-                        x-transition:enter="transition ease-out duration-100"
-                        x-transition:enter-start="transform opacity-0 scale-95"
-                        x-transition:enter-end="transform opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-75"
-                        x-transition:leave-start="transform opacity-100 scale-100"
-                        x-transition:leave-end="transform opacity-0 scale-95"
-                        class="absolute right-0 z-10 mt-2.5 w-48 origin-top-right rounded-md bg-white dark:bg-gray-800 py-2 shadow-lg ring-1 ring-gray-900/5 dark:ring-gray-700 focus:outline-none"
-                        style="display: none;">
-                        <a href="{{ route('profile.edit') }}" class="block px-3 py-1 text-sm leading-6 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">Your profile</a>
+                    <flux:navmenu>
+                        <div class="px-2 py-1.5">
+                            <flux:heading class="truncate">{{ auth()->user()->name }}</flux:heading>
+                            <flux:text size="sm" class="truncate">{{ auth()->user()->email }}</flux:text>
+                        </div>
 
-                        @if(auth()->user()->isBusinessAccount() && auth()->user()->businesses()->count() > 1)
-                            <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
-                            <div class="px-3 py-2">
-                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Switch Business</p>
-                                @foreach(auth()->user()->businesses as $business)
-                                    <form method="POST" action="{{ route('switch-business', $business->id) }}" class="mb-1">
-                                        @csrf
-                                        <button type="submit" class="block w-full text-left px-2 py-1 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded {{ auth()->user()->currentBusiness?->id == $business->id ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : '' }}">
-                                            <div class="flex items-center">
-                                                <div class="w-2 h-2 rounded-full {{ auth()->user()->currentBusiness?->id == $business->id ? 'bg-blue-500' : 'bg-gray-300' }} mr-2"></div>
-                                                <div>
-                                                    <div class="font-medium">{{ $business->name }}</div>
-                                                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ ucfirst($business->pivot->role) }}</div>
-                                                </div>
-                                            </div>
-                                        </button>
-                                    </form>
-                                @endforeach
-                            </div>
-                            <div class="border-t border-gray-100 dark:border-gray-700"></div>
-                        @endif
+                        <flux:navmenu.separator />
+
+                        <flux:navmenu.item href="{{ route('profile.edit') }}" icon="user">
+                            Your Profile
+                        </flux:navmenu.item>
 
                         @if(auth()->user()->isAdmin())
-                            <a href="{{ route('admin.dashboard') }}" class="block px-3 py-1 text-sm leading-6 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">Admin Dashboard</a>
+                            <flux:navmenu.item href="{{ route('admin.dashboard') }}" icon="shield-check">
+                                Admin Dashboard
+                            </flux:navmenu.item>
                         @endif
 
+                        @if(auth()->user()->isBusinessAccount() && auth()->user()->businesses()->count() >= 1)
+                            <flux:navmenu.separator />
+
+                            <div class="px-2 py-1.5">
+                                <flux:text size="sm" class="text-zinc-500 dark:text-zinc-400">Your Businesses</flux:text>
+                            </div>
+
+                            @foreach(auth()->user()->businesses as $business)
+                                <form method="POST" action="{{ route('switch-business', $business) }}" class="contents" wire:key="switch-business-{{ $business->id }}">
+                                    @method('PUT')
+                                    @csrf
+                                    <button type="submit" class="cursor-pointer flex items-center gap-2 w-full py-2 px-1.5 text-sm text-left text-zinc-800 dark:text-white hover:bg-zinc-800/5 dark:hover:bg-white/10 rounded-lg {{ auth()->user()->isCurrentBusiness($business) ? 'font-medium' : '' }}">
+                                        @if(auth()->user()->isCurrentBusiness($business))
+                                            <flux:icon.check-circle variant="solid" class="size-5 shrink-0 text-green-500" />
+                                        @else
+                                            <flux:icon.building-storefront class="size-5 shrink-0 text-zinc-400 dark:text-zinc-500" />
+                                        @endif
+                                        <span class="truncate">{{ $business->name }}</span>
+                                    </button>
+                                </form>
+                            @endforeach
+
+                            <flux:navmenu.item href="#" icon="cog-6-tooth">
+                                Business Settings
+                            </flux:navmenu.item>
+
+                            @if(false === true)
+                            <flux:navmenu.item href="#" icon="plus-circle">
+                                Create New Business
+                            </flux:navmenu.item>
+                            @endif
+                        @endif
+
+                        <flux:navmenu.separator />
+
+                        <div class="px-2 py-1">
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="block w-full text-left px-3 py-1 text-sm leading-6 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">Sign out</button>
+                                <flux:navmenu.item type="submit" class="!px-1" icon="arrow-right-start-on-rectangle">
+                                    Sign out
+                                </flux:navmenu.item>
                         </form>
-
-                        @if (app()->environment('local'))
-                        <div class="border-t border-gray-100 dark:border-gray-700"></div>
-                        <!-- Local Development Helpers -->
-                        <div
-                            class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700">
-                            <x-login-link class="text-sm/6 font-semibold"
-                                :email="config('collabconnect.init_user_email')"
-                                label="Login as Admin"
-                                redirect-url="{{ route('dashboard') }}" />
                         </div>
 
-                        <div
-                            class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700">
-                            <x-login-link class="text-sm/6 font-semibold"
-                                :email="config('collabconnect.init_business_email')"
-                                label="Login as Business"
-                                redirect-url="{{ route('dashboard') }}" />
-                        </div>
+                        @if(app()->environment('local'))
+                            <flux:navmenu.separator />
 
-                        <div
-                            class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700">
-                            <x-login-link class="text-sm/6 font-semibold"
-                                :email="config('collabconnect.init_influencer_email')"
-                                label="Login as Influencer"
-                                redirect-url="{{ route('dashboard') }}" />
-                        </div>
+                            <div class="px-2 py-1.5">
+                                <flux:text size="sm" class="text-zinc-500 dark:text-zinc-400">Dev Shortcuts</flux:text>
+                            </div>
+
+                            <div class="px-2 py-1">
+                                <x-login-link
+                                    class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white"
+                                    :email="config('collabconnect.init_user_email')"
+                                    label="Login as Admin"
+                                    redirect-url="{{ route('dashboard') }}"
+                                />
+                            </div>
+
+                            <div class="px-2 py-1">
+                                <x-login-link
+                                    class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white"
+                                    :email="config('collabconnect.init_business_email')"
+                                    label="Login as Business"
+                                    redirect-url="{{ route('dashboard') }}"
+                                />
+                            </div>
+
+                            <div class="px-2 py-1">
+                                <x-login-link
+                                    class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white"
+                                    :email="config('collabconnect.init_influencer_email')"
+                                    label="Login as Influencer"
+                                    redirect-url="{{ route('dashboard') }}"
+                                />
+                            </div>
                         @endif
-
-                    </div>
-                </div>
+                    </flux:navmenu>
+                </flux:dropdown>
             </div>
         </div>
 
