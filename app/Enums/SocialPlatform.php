@@ -12,9 +12,9 @@ enum SocialPlatform: string
     case TIKTOK = 'tiktok';
     case YOUTUBE = 'youtube';
     case FACEBOOK = 'facebook';
-    case X = 'x';
-    case SNAPCHAT = 'snapchat';
-    case BLUESKY = 'bluesky';
+    // case X = 'x';
+    // case SNAPCHAT = 'snapchat';
+    // case BLUESKY = 'bluesky';
 
     public function label(): string
     {

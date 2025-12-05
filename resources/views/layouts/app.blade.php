@@ -162,27 +162,23 @@
                 </button>
 
                 <!-- Profile dropdown -->
-                <flux:dropdown align="end" class="max-w-[14rem]">
-                    <flux:profile
-                        circle
-                        :name="auth()->user()->name"
-                        avatar:color="purple"
-                    />
+                <flux:dropdown align="end">
+                    <flux:profile circle :name="auth()->user()->name" avatar:color="purple" />
 
-                    <flux:navmenu>
+                    <flux:navmenu class="max-w-[14rem]">
                         <div class="px-2 py-1.5">
-                            <flux:heading class="truncate">{{ auth()->user()->name }}</flux:heading>
-                            <flux:text size="sm" class="truncate">{{ auth()->user()->email }}</flux:text>
+                            <flux:text size="sm">Signed in as</flux:text>
+                            <flux:heading class="mt-1! truncate">{{ auth()->user()->email }}</flux:heading>
                         </div>
 
                         <flux:navmenu.separator />
 
-                        <flux:navmenu.item href="{{ route('profile.edit') }}" icon="user">
+                        <flux:navmenu.item href="{{ route('profile.edit') }}" icon="user" class="text-zinc-800 dark:text-white">
                             Your Profile
                         </flux:navmenu.item>
 
                         @if(auth()->user()->isAdmin())
-                            <flux:navmenu.item href="{{ route('admin.dashboard') }}" icon="shield-check">
+                            <flux:navmenu.item href="{{ route('admin.dashboard') }}" icon="shield-check" class="text-zinc-800 dark:text-white">
                                 Admin Dashboard
                             </flux:navmenu.item>
                         @endif
@@ -191,79 +187,73 @@
                             <flux:navmenu.separator />
 
                             <div class="px-2 py-1.5">
-                                <flux:text size="sm" class="text-zinc-500 dark:text-zinc-400">Your Businesses</flux:text>
+                                <flux:text size="sm" class="pl-7">Businesses</flux:text>
                             </div>
 
                             @foreach(auth()->user()->businesses as $business)
                                 <form method="POST" action="{{ route('switch-business', $business) }}" class="contents" wire:key="switch-business-{{ $business->id }}">
                                     @method('PUT')
                                     @csrf
-                                    <button type="submit" class="cursor-pointer flex items-center gap-2 w-full py-2 px-1.5 text-sm text-left text-zinc-800 dark:text-white hover:bg-zinc-800/5 dark:hover:bg-white/10 rounded-lg {{ auth()->user()->isCurrentBusiness($business) ? 'font-medium' : '' }}">
-                                        @if(auth()->user()->isCurrentBusiness($business))
-                                            <flux:icon.check-circle variant="solid" class="size-5 shrink-0 text-green-500" />
-                                        @else
-                                            <flux:icon.building-storefront class="size-5 shrink-0 text-zinc-400 dark:text-zinc-500" />
-                                        @endif
-                                        <span class="truncate">{{ $business->name }}</span>
-                                    </button>
+                                    @if(auth()->user()->isCurrentBusiness($business))
+                                        <flux:navmenu.item type="submit" icon="check" class="text-zinc-800 dark:text-white truncate">{{ $business->name }}</flux:navmenu.item>
+                                    @else
+                                        <flux:navmenu.item type="submit" indent class="text-zinc-800 dark:text-white truncate">{{ $business->name }}</flux:navmenu.item>
+                                    @endif
                                 </form>
                             @endforeach
 
-                            <flux:navmenu.item href="#" icon="cog-6-tooth">
+                            <flux:navmenu.separator />
+
+                            <flux:navmenu.item href="{{ route('business.settings') }}" icon="cog-6-tooth" class="text-zinc-800 dark:text-white">
                                 Business Settings
                             </flux:navmenu.item>
-
-                            @if(false === true)
-                            <flux:navmenu.item href="#" icon="plus-circle">
-                                Create New Business
-                            </flux:navmenu.item>
-                            @endif
                         @endif
 
                         <flux:navmenu.separator />
 
-                        <div class="px-2 py-1">
-                        <form method="POST" action="{{ route('logout') }}">
+                        <form method="POST" action="{{ route('logout') }}" class="contents">
                             @csrf
-                                <flux:navmenu.item type="submit" class="!px-1" icon="arrow-right-start-on-rectangle">
-                                    Sign out
-                                </flux:navmenu.item>
+                            <flux:navmenu.item type="submit" icon="arrow-right-start-on-rectangle" class="text-zinc-800 dark:text-white">
+                                Sign out
+                            </flux:navmenu.item>
                         </form>
-                        </div>
 
                         @if(app()->environment('local'))
                             <flux:navmenu.separator />
 
                             <div class="px-2 py-1.5">
-                                <flux:text size="sm" class="text-zinc-500 dark:text-zinc-400">Dev Shortcuts</flux:text>
+                                <flux:text size="sm" class="pl-7">Dev Shortcuts</flux:text>
                             </div>
 
-                            <div class="px-2 py-1">
+                            <flux:navmenu.item indent href="#" x-data @click.prevent="document.getElementById('dev-login-admin').click()">
                                 <x-login-link
-                                    class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white"
+                                    id="dev-login-admin"
+                                    class="text-zinc-800 dark:text-white"
                                     :email="config('collabconnect.init_user_email')"
                                     label="Login as Admin"
                                     redirect-url="{{ route('dashboard') }}"
                                 />
-                            </div>
+                            </flux:navmenu.item>
 
-                            <div class="px-2 py-1">
+                            <flux:navmenu.item indent href="#" x-data @click.prevent="document.getElementById('dev-login-business').click()">
                                 <x-login-link
-                                    class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white"
+                                    id="dev-login-business"
+                                    class="text-zinc-800 dark:text-white"
                                     :email="config('collabconnect.init_business_email')"
                                     label="Login as Business"
                                     redirect-url="{{ route('dashboard') }}"
                                 />
-                            </div>
+                            </flux:navmenu.item>
 
-                            <div class="px-2 py-1">
+                            <flux:navmenu.item indent href="#" x-data @click.prevent="document.getElementById('dev-login-influencer').click()">
                                 <x-login-link
-                                    class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white"
+                                    id="dev-login-influencer"
+                                    class="text-zinc-800 dark:text-white"
                                     :email="config('collabconnect.init_influencer_email')"
                                     label="Login as Influencer"
                                     redirect-url="{{ route('dashboard') }}"
                                 />
-                            </div>
+                            </flux:navmenu.item>
                         @endif
                     </flux:navmenu>
                 </flux:dropdown>

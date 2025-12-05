@@ -1,390 +1,484 @@
 <div>
     @if(!auth()->user()->profile->subscribed('default'))
-    <livewire:components.subscription-prompt
-        variant="blue"
-        heading="Create Campaigns with CollabConnect"
-        description="Subscribe to a plan to unlock powerful campaign management features."
-        :features="[
-            'Create and manage unlimited campaigns',
-            'Track campaign performance and analytics',
-            'Collaborate with influencers seamlessly',
-            'Access premium support and resources'
-        ]"
-    />
+        <livewire:components.subscription-prompt
+            variant="blue"
+            heading="Create Campaigns with CollabConnect"
+            description="Subscribe to a plan to unlock powerful campaign management features."
+            :features="[
+                'Create and manage unlimited campaigns',
+                'Track campaign performance and analytics',
+                'Collaborate with influencers seamlessly',
+                'Access premium support and resources'
+            ]"
+        />
     @endif
+
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Header -->
-        <div class="mb-8">
-            <div class="bg-gradient-to-r from-blue-600 to-purple-600 overflow-hidden shadow rounded-lg">
-                <div class="px-4 py-5 sm:p-6 text-white">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h1 class="text-3xl font-bold mb-2">
-                                My Campaigns 📊
-                            </h1>
-                            <p class="text-blue-100 text-lg">
-                                Manage your campaigns and track their performance
-                            </p>
-                        </div>
-                        @if(auth()->user()->profile->subscribed('default'))
-                        <a href="{{ route('campaigns.create') }}" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
-                            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            Create Campaign
-                        </a>
-                        @endif
-                    </div>
-                </div>
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <flux:heading size="xl">Campaigns</flux:heading>
+                <flux:text class="mt-1">Create and manage your influencer marketing campaigns</flux:text>
             </div>
-        </div>
-
-        <!-- Tabs -->
-        <div class="mb-6">
-            <nav class="flex space-x-8" aria-label="Tabs">
-                <button
-                    wire:click="setActiveTab('drafts')"
-                    class="px-3 py-2 font-medium text-sm rounded-md {{ $activeTab === 'drafts' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}">
-                    Drafts ({{ $this->getDrafts()->count() }})
-                </button>
-                <button
-                    wire:click="setActiveTab('scheduled')"
-                    class="px-3 py-2 font-medium text-sm rounded-md {{ $activeTab === 'scheduled' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}">
-                    Scheduled ({{ $this->getScheduled()->count() }})
-                </button>
-                <button
-                    wire:click="setActiveTab('published')"
-                    class="px-3 py-2 font-medium text-sm rounded-md {{ $activeTab === 'published' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}">
-                    Published ({{ $this->getPublished()->count() }})
-                </button>
-                <button
-                    wire:click="setActiveTab('in_progress')"
-                    class="px-3 py-2 font-medium text-sm rounded-md {{ $activeTab === 'in_progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}">
-                    In Progress ({{ $this->getInProgress()->count() }})
-                </button>
-                <button
-                    wire:click="setActiveTab('completed')"
-                    class="px-3 py-2 font-medium text-sm rounded-md {{ $activeTab === 'completed' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}">
-                    Completed ({{ $this->getCompleted()->count() }})
-                </button>
-                <button
-                    wire:click="setActiveTab('archived')"
-                    class="px-3 py-2 font-medium text-sm rounded-md {{ $activeTab === 'archived' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}">
-                    Archived ({{ $this->getArchived()->count() }})
-                </button>
-            </nav>
-        </div>
-
-        <!-- Campaigns List -->
-        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
-            @if($activeTab === 'drafts')
-                @if($this->getDrafts()->count() > 0)
-                    <div class="divide-y divide-gray-200 dark:divide-gray-700">
-                        @foreach($this->getDrafts() as $campaign)
-                            <div class="p-6" wire:key="campaign-{{ $campaign->id }}">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1">
-                                        <div class="flex items-center space-x-3">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
-                                                Draft
-                                            </span>
-                                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                                                {{ Str::limit($campaign->campaign_goal, 60) }}
-                                            </h3>
-                                        </div>
-                                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                            {{ Str::limit($campaign->campaign_description, 120) }}
-                                        </p>
-                                        <div class="mt-3 flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
-                                            <span>Compensation: {{ $campaign->compensation_display }}</span>
-                                            <span>Influencers: {{ $campaign->influencer_count }}</span>
-                                            <span>Step {{ $campaign->current_step }} of 4</span>
-                                            <span>Updated {{ $campaign->updated_at->diffForHumans() }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center space-x-3">
-                                        <a href="{{ route('campaigns.edit', $campaign) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                                            Continue Editing
-                                        </a>
-                                        <button
-                                            wire:click="confirmArchive({{ $campaign->id }})"
-                                            class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                                            Archive
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="p-12 text-center">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No draft campaigns</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating a new campaign.</p>
-                        <div class="mt-6">
-                            <a href="{{ route('campaigns.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                                Create Campaign
-                            </a>
-                        </div>
-                    </div>
-                @endif
-
-            @elseif($activeTab === 'published')
-                @if($this->getPublished()->count() > 0)
-                    <div class="divide-y divide-gray-200 dark:divide-gray-700">
-                        @foreach($this->getPublished() as $campaign)
-                            <div class="p-6" wire:key="campaign-{{ $campaign->id }}">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1">
-                                        <div class="flex items-center space-x-3">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                                Published
-                                            </span>
-                                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                                                {{ Str::limit($campaign->campaign_goal, 60) }}
-                                            </h3>
-                                        </div>
-                                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                            {{ Str::limit($campaign->campaign_description, 120) }}
-                                        </p>
-                                        <div class="mt-3 flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
-                                            <span>Compensation: {{ $campaign->compensation_display }}</span>
-                                            <span>Influencers: {{ $campaign->influencer_count }}</span>
-                                            <span>Published {{ $campaign->published_at->diffForHumans() }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center space-x-3">
-                                        <a href="{{ route('campaigns.show', $campaign) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                                            View Details
-                                        </a>
-                                        <button
-                                            wire:click="startCampaign({{ $campaign->id }})"
-                                            class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300">
-                                            Start Campaign
-                                        </button>
-                                        <button
-                                            wire:click="confirmArchive({{ $campaign->id }})"
-                                            class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                                            Archive
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="p-12 text-center">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No published campaigns</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Publish a campaign to see it here.</p>
-                    </div>
-                @endif
-
-            @elseif($activeTab === 'scheduled')
-                @if($this->getScheduled()->count() > 0)
-                    <div class="divide-y divide-gray-200 dark:divide-gray-700">
-                        @foreach($this->getScheduled() as $campaign)
-                            <div class="p-6" wire:key="campaign-{{ $campaign->id }}">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1">
-                                        <div class="flex items-center space-x-3">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                                Scheduled
-                                            </span>
-                                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                                                {{ Str::limit($campaign->campaign_goal, 60) }}
-                                            </h3>
-                                        </div>
-                                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                            {{ Str::limit($campaign->campaign_description, 120) }}
-                                        </p>
-                                        <div class="mt-3 flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
-                                            <span>Compensation: {{ $campaign->compensation_display }}</span>
-                                            <span>Influencers: {{ $campaign->influencer_count }}</span>
-                                            <span>Scheduled for {{ $campaign->scheduled_date->format('M j, Y') }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center space-x-3">
-                                        <a href="{{ route('campaigns.show', $campaign) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                                            View Details
-                                        </a>
-                                        <button
-                                            wire:click="confirmArchive({{ $campaign->id }})"
-                                            class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                                            Archive
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="p-12 text-center">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No scheduled campaigns</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Schedule a campaign to see it here.</p>
-                    </div>
-                @endif
-
-            @elseif($activeTab === 'in_progress')
-                @if($this->getInProgress()->count() > 0)
-                    <div class="divide-y divide-gray-200 dark:divide-gray-700">
-                        @foreach($this->getInProgress() as $campaign)
-                            <div class="p-6" wire:key="campaign-{{ $campaign->id }}">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1">
-                                        <div class="flex items-center space-x-3">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
-                                                In Progress
-                                            </span>
-                                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                                                {{ Str::limit($campaign->campaign_goal, 60) }}
-                                            </h3>
-                                        </div>
-                                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                            {{ Str::limit($campaign->campaign_description, 120) }}
-                                        </p>
-                                        <div class="mt-3 flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
-                                            <span>Compensation: {{ $campaign->compensation_display }}</span>
-                                            <span class="text-blue-600 font-medium">{{ $campaign->collaborations->count() }} Active Collaborations</span>
-                                            @if($campaign->started_at)
-                                                <span>Started {{ $campaign->started_at->diffForHumans() }}</span>
-                                            @endif
-                                            @if($campaign->campaign_completion_date)
-                                                <span>Ends {{ $campaign->campaign_completion_date->format('M j, Y') }}</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center space-x-3">
-                                        <a href="{{ route('campaigns.show', $campaign) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                                            View Details
-                                        </a>
-                                        <button
-                                            wire:click="completeCampaign({{ $campaign->id }})"
-                                            class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300">
-                                            Complete Campaign
-                                        </button>
-                                        <button
-                                            wire:click="confirmArchive({{ $campaign->id }})"
-                                            class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                                            Archive
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="p-12 text-center">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No In Progress campaigns</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Start a campaign with influencers to see it here.</p>
-                    </div>
-                @endif
-
-            @elseif($activeTab === 'completed')
-                @if($this->getCompleted()->count() > 0)
-                    <div class="divide-y divide-gray-200 dark:divide-gray-700">
-                        @foreach($this->getCompleted() as $campaign)
-                            <div class="p-6" wire:key="campaign-{{ $campaign->id }}">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1">
-                                        <div class="flex items-center space-x-3">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-lime-100 text-lime-800 dark:bg-lime-900 dark:text-lime-200">
-                                                Completed
-                                            </span>
-                                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                                                {{ Str::limit($campaign->campaign_goal, 60) }}
-                                            </h3>
-                                        </div>
-                                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                            {{ Str::limit($campaign->campaign_description, 120) }}
-                                        </p>
-                                        <div class="mt-3 flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
-                                            <span>Compensation: {{ $campaign->compensation_display }}</span>
-                                            <span>{{ $campaign->collaborations->count() }} Collaborations</span>
-                                            @if($campaign->completed_at)
-                                                <span>Completed {{ $campaign->completed_at->diffForHumans() }}</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center space-x-3">
-                                        <a href="{{ route('campaigns.show', $campaign) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                                            View Details
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="p-12 text-center">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No completed campaigns</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Completed campaigns will appear here.</p>
-                    </div>
-                @endif
-
-            @elseif($activeTab === 'archived')
-                @if($this->getArchived()->count() > 0)
-                    <div class="divide-y divide-gray-200 dark:divide-gray-700">
-                        @foreach($this->getArchived() as $campaign)
-                            <div class="p-6" wire:key="campaign-{{ $campaign->id }}">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1">
-                                        <div class="flex items-center space-x-3">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-                                                Archived
-                                            </span>
-                                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                                                {{ Str::limit($campaign->campaign_goal, 60) }}
-                                            </h3>
-                                        </div>
-                                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                            {{ Str::limit($campaign->campaign_description, 120) }}
-                                        </p>
-                                        <div class="mt-3 flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
-                                            <span>Compensation: {{ $campaign->compensation_display }}</span>
-                                            <span>Influencers: {{ $campaign->influencer_count }}</span>
-                                            <span>Archived {{ $campaign->updated_at->diffForHumans() }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center space-x-3">
-                                        <a href="{{ route('campaigns.show', $campaign) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                                            View Details
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="p-12 text-center">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-14 0h14"></path>
-                        </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No archived campaigns</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Archived campaigns will appear here.</p>
-                    </div>
-                @endif
+            @if(auth()->user()->profile->subscribed('default'))
+                <flux:button variant="primary" icon="plus" href="{{ route('campaigns.create') }}">
+                    Create Campaign
+                </flux:button>
             @endif
         </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <flux:card class="!p-4">
+                <flux:text size="sm" class="text-zinc-500">Active</flux:text>
+                <flux:heading size="xl" class="!mt-1">{{ $this->getPublished()->count() + $this->getInProgress()->count() }}</flux:heading>
+            </flux:card>
+            <flux:card class="!p-4">
+                <flux:text size="sm" class="text-zinc-500">Drafts</flux:text>
+                <flux:heading size="xl" class="!mt-1">{{ $this->getDrafts()->count() }}</flux:heading>
+            </flux:card>
+            <flux:card class="!p-4">
+                <flux:text size="sm" class="text-zinc-500">Completed</flux:text>
+                <flux:heading size="xl" class="!mt-1">{{ $this->getCompleted()->count() }}</flux:heading>
+            </flux:card>
+            <flux:card class="!p-4">
+                <flux:text size="sm" class="text-zinc-500">Total</flux:text>
+                <flux:heading size="xl" class="!mt-1">{{ $this->getDrafts()->count() + $this->getPublished()->count() + $this->getScheduled()->count() + $this->getInProgress()->count() + $this->getCompleted()->count() + $this->getArchived()->count() }}</flux:heading>
+            </flux:card>
+        </div>
+
+        <!-- Tabs and Content -->
+        <flux:card class="!p-0 overflow-hidden">
+            <flux:tab.group>
+                <flux:tabs wire:model="activeTab" class="border-b border-zinc-200 dark:border-zinc-700 px-4">
+                    <flux:tab name="drafts" icon="pencil-square">
+                        Drafts
+                        @if($this->getDrafts()->count() > 0)
+                            <flux:badge size="sm" color="zinc" class="ml-1.5">{{ $this->getDrafts()->count() }}</flux:badge>
+                        @endif
+                    </flux:tab>
+                    <flux:tab name="scheduled" icon="clock">
+                        Scheduled
+                        @if($this->getScheduled()->count() > 0)
+                            <flux:badge size="sm" color="blue" class="ml-1.5">{{ $this->getScheduled()->count() }}</flux:badge>
+                        @endif
+                    </flux:tab>
+                    <flux:tab name="published" icon="globe-alt">
+                        Published
+                        @if($this->getPublished()->count() > 0)
+                            <flux:badge size="sm" color="green" class="ml-1.5">{{ $this->getPublished()->count() }}</flux:badge>
+                        @endif
+                    </flux:tab>
+                    <flux:tab name="in_progress" icon="play">
+                        In Progress
+                        @if($this->getInProgress()->count() > 0)
+                            <flux:badge size="sm" color="orange" class="ml-1.5">{{ $this->getInProgress()->count() }}</flux:badge>
+                        @endif
+                    </flux:tab>
+                    <flux:tab name="completed" icon="check-circle">
+                        Completed
+                        @if($this->getCompleted()->count() > 0)
+                            <flux:badge size="sm" color="lime" class="ml-1.5">{{ $this->getCompleted()->count() }}</flux:badge>
+                        @endif
+                    </flux:tab>
+                    <flux:tab name="archived" icon="archive-box">
+                        Archived
+                        @if($this->getArchived()->count() > 0)
+                            <flux:badge size="sm" color="zinc" class="ml-1.5">{{ $this->getArchived()->count() }}</flux:badge>
+                        @endif
+                    </flux:tab>
+                </flux:tabs>
+
+                <!-- Drafts Panel -->
+                <flux:tab.panel name="drafts" class="p-4">
+                    @if($this->getDrafts()->count() > 0)
+                        <flux:table>
+                            <flux:table.columns>
+                                <flux:table.column class="w-full">Campaign</flux:table.column>
+                                <flux:table.column class="whitespace-nowrap">Progress</flux:table.column>
+                                <flux:table.column class="whitespace-nowrap">Updated</flux:table.column>
+                                <flux:table.column class="w-px"></flux:table.column>
+                            </flux:table.columns>
+                            <flux:table.rows>
+                                @foreach($this->getDrafts() as $campaign)
+                                    <flux:table.row wire:key="draft-{{ $campaign->id }}">
+                                        <flux:table.cell>
+                                            <div>
+                                                <div class="font-medium text-zinc-900 dark:text-white">
+                                                    {{ Str::limit($campaign->campaign_goal, 60) ?: 'Untitled Campaign' }}
+                                                </div>
+                                                <div class="text-sm text-zinc-500 mt-0.5">
+                                                    {{ $campaign->compensation_display ?: 'No compensation set' }}
+                                                </div>
+                                            </div>
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-20 h-1.5 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
+                                                    <div class="h-full bg-blue-500 rounded-full" style="width: {{ ($campaign->current_step / 4) * 100 }}%"></div>
+                                                </div>
+                                                <span class="text-sm text-zinc-500">{{ $campaign->current_step }}/4</span>
+                                            </div>
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap text-sm text-zinc-500">
+                                            {{ $campaign->updated_at->diffForHumans() }}
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap">
+                                            <div class="flex items-center gap-1">
+                                                <flux:button size="sm" href="{{ route('campaigns.edit', $campaign) }}">
+                                                    Continue
+                                                </flux:button>
+                                                <flux:dropdown position="bottom" align="end">
+                                                    <flux:button size="sm" variant="ghost" icon="ellipsis-vertical" />
+                                                    <flux:menu>
+                                                        <flux:menu.item icon="trash" variant="danger" wire:click="confirmArchive({{ $campaign->id }})">
+                                                            Archive
+                                                        </flux:menu.item>
+                                                    </flux:menu>
+                                                </flux:dropdown>
+                                            </div>
+                                        </flux:table.cell>
+                                    </flux:table.row>
+                                @endforeach
+                            </flux:table.rows>
+                        </flux:table>
+                    @else
+                        <div class="py-16 text-center">
+                            <flux:icon.pencil-square class="size-12 mx-auto text-zinc-300 dark:text-zinc-600" />
+                            <flux:heading class="mt-4">No draft campaigns</flux:heading>
+                            <flux:text class="mt-2 text-zinc-500">Get started by creating a new campaign.</flux:text>
+                            @if(auth()->user()->profile->subscribed('default'))
+                                <div class="mt-6">
+                                    <flux:button variant="primary" icon="plus" href="{{ route('campaigns.create') }}">
+                                        Create Campaign
+                                    </flux:button>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+                </flux:tab.panel>
+
+                <!-- Scheduled Panel -->
+                <flux:tab.panel name="scheduled" class="p-4">
+                    @if($this->getScheduled()->count() > 0)
+                        <flux:table>
+                            <flux:table.columns>
+                                <flux:table.column class="w-full">Campaign</flux:table.column>
+                                <flux:table.column class="whitespace-nowrap">Influencers</flux:table.column>
+                                <flux:table.column class="whitespace-nowrap">Scheduled</flux:table.column>
+                                <flux:table.column class="w-px"></flux:table.column>
+                            </flux:table.columns>
+                            <flux:table.rows>
+                                @foreach($this->getScheduled() as $campaign)
+                                    <flux:table.row wire:key="scheduled-{{ $campaign->id }}">
+                                        <flux:table.cell>
+                                            <div>
+                                                <div class="font-medium text-zinc-900 dark:text-white">
+                                                    {{ Str::limit($campaign->campaign_goal, 60) }}
+                                                </div>
+                                                <div class="text-sm text-zinc-500 mt-0.5">
+                                                    {{ $campaign->compensation_display }}
+                                                </div>
+                                            </div>
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap text-zinc-600 dark:text-zinc-400">
+                                            {{ $campaign->influencer_count }}
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap">
+                                            <flux:badge color="blue" size="sm" icon="clock">
+                                                {{ $campaign->scheduled_date->format('M j, Y') }}
+                                            </flux:badge>
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap">
+                                            <div class="flex items-center gap-1">
+                                                <flux:button size="sm" href="{{ route('campaigns.show', $campaign) }}">
+                                                    View
+                                                </flux:button>
+                                                <flux:dropdown position="bottom" align="end">
+                                                    <flux:button size="sm" variant="ghost" icon="ellipsis-vertical" />
+                                                    <flux:menu>
+                                                        <flux:menu.item icon="pencil" href="{{ route('campaigns.edit', $campaign) }}">
+                                                            Edit
+                                                        </flux:menu.item>
+                                                        <flux:menu.separator />
+                                                        <flux:menu.item icon="archive-box" variant="danger" wire:click="confirmArchive({{ $campaign->id }})">
+                                                            Archive
+                                                        </flux:menu.item>
+                                                    </flux:menu>
+                                                </flux:dropdown>
+                                            </div>
+                                        </flux:table.cell>
+                                    </flux:table.row>
+                                @endforeach
+                            </flux:table.rows>
+                        </flux:table>
+                    @else
+                        <div class="py-16 text-center">
+                            <flux:icon.clock class="size-12 mx-auto text-zinc-300 dark:text-zinc-600" />
+                            <flux:heading class="mt-4">No scheduled campaigns</flux:heading>
+                            <flux:text class="mt-2 text-zinc-500">Schedule a campaign to see it here.</flux:text>
+                        </div>
+                    @endif
+                </flux:tab.panel>
+
+                <!-- Published Panel -->
+                <flux:tab.panel name="published" class="p-4">
+                    @if($this->getPublished()->count() > 0)
+                        <flux:table>
+                            <flux:table.columns>
+                                <flux:table.column class="w-full">Campaign</flux:table.column>
+                                <flux:table.column class="whitespace-nowrap">Applications</flux:table.column>
+                                <flux:table.column class="whitespace-nowrap">Published</flux:table.column>
+                                <flux:table.column class="w-px"></flux:table.column>
+                            </flux:table.columns>
+                            <flux:table.rows>
+                                @foreach($this->getPublished() as $campaign)
+                                    <flux:table.row wire:key="published-{{ $campaign->id }}">
+                                        <flux:table.cell>
+                                            <div>
+                                                <div class="font-medium text-zinc-900 dark:text-white">
+                                                    {{ Str::limit($campaign->campaign_goal, 60) }}
+                                                </div>
+                                                <div class="text-sm text-zinc-500 mt-0.5">
+                                                    {{ $campaign->compensation_display }}
+                                                </div>
+                                            </div>
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap">
+                                            @php
+                                                $pendingCount = $campaign->applications()->where('status', \App\Enums\CampaignApplicationStatus::PENDING)->count();
+                                                $acceptedCount = $campaign->applications()->where('status', \App\Enums\CampaignApplicationStatus::ACCEPTED)->count();
+                                            @endphp
+                                            <div class="flex items-center gap-1.5">
+                                                @if($pendingCount > 0)
+                                                    <flux:badge color="amber" size="sm">{{ $pendingCount }} pending</flux:badge>
+                                                @endif
+                                                @if($acceptedCount > 0)
+                                                    <flux:badge color="green" size="sm">{{ $acceptedCount }} accepted</flux:badge>
+                                                @endif
+                                                @if($pendingCount === 0 && $acceptedCount === 0)
+                                                    <span class="text-sm text-zinc-500">No applications yet</span>
+                                                @endif
+                                            </div>
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap text-sm text-zinc-500">
+                                            {{ $campaign->published_at->diffForHumans() }}
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap">
+                                            <div class="flex items-center gap-1">
+                                                <flux:button size="sm" variant="primary" wire:click="startCampaign({{ $campaign->id }})">
+                                                    Start
+                                                </flux:button>
+                                                <flux:dropdown position="bottom" align="end">
+                                                    <flux:button size="sm" variant="ghost" icon="ellipsis-vertical" />
+                                                    <flux:menu>
+                                                        <flux:menu.item icon="eye" href="{{ route('campaigns.show', $campaign) }}">
+                                                            View Details
+                                                        </flux:menu.item>
+                                                        <flux:menu.item icon="users" href="{{ route('campaigns.applications', $campaign) }}">
+                                                            Applications
+                                                        </flux:menu.item>
+                                                        <flux:menu.item icon="pencil" href="{{ route('campaigns.edit', $campaign) }}">
+                                                            Edit
+                                                        </flux:menu.item>
+                                                        <flux:menu.separator />
+                                                        <flux:menu.item icon="archive-box" variant="danger" wire:click="confirmArchive({{ $campaign->id }})">
+                                                            Archive
+                                                        </flux:menu.item>
+                                                    </flux:menu>
+                                                </flux:dropdown>
+                                            </div>
+                                        </flux:table.cell>
+                                    </flux:table.row>
+                                @endforeach
+                            </flux:table.rows>
+                        </flux:table>
+                    @else
+                        <div class="py-16 text-center">
+                            <flux:icon.globe-alt class="size-12 mx-auto text-zinc-300 dark:text-zinc-600" />
+                            <flux:heading class="mt-4">No published campaigns</flux:heading>
+                            <flux:text class="mt-2 text-zinc-500">Publish a campaign to start receiving applications.</flux:text>
+                        </div>
+                    @endif
+                </flux:tab.panel>
+
+                <!-- In Progress Panel -->
+                <flux:tab.panel name="in_progress" class="p-4">
+                    @if($this->getInProgress()->count() > 0)
+                        <flux:table>
+                            <flux:table.columns>
+                                <flux:table.column class="w-full">Campaign</flux:table.column>
+                                <flux:table.column class="whitespace-nowrap">Collaborations</flux:table.column>
+                                <flux:table.column class="whitespace-nowrap">Timeline</flux:table.column>
+                                <flux:table.column class="w-px"></flux:table.column>
+                            </flux:table.columns>
+                            <flux:table.rows>
+                                @foreach($this->getInProgress() as $campaign)
+                                    <flux:table.row wire:key="in-progress-{{ $campaign->id }}">
+                                        <flux:table.cell>
+                                            <div>
+                                                <div class="font-medium text-zinc-900 dark:text-white">
+                                                    {{ Str::limit($campaign->campaign_goal, 60) }}
+                                                </div>
+                                                <div class="text-sm text-zinc-500 mt-0.5">
+                                                    {{ $campaign->compensation_display }}
+                                                </div>
+                                            </div>
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap">
+                                            <flux:badge color="blue" size="sm" icon="users">
+                                                {{ $campaign->collaborations->count() }} active
+                                            </flux:badge>
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap">
+                                            <div class="text-sm text-zinc-500">
+                                                @if($campaign->started_at)
+                                                    Started {{ $campaign->started_at->diffForHumans() }}
+                                                @endif
+                                                @if($campaign->campaign_completion_date)
+                                                    <span class="block">Ends {{ $campaign->campaign_completion_date->format('M j') }}</span>
+                                                @endif
+                                            </div>
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap">
+                                            <div class="flex items-center gap-1">
+                                                <flux:button size="sm" variant="primary" wire:click="completeCampaign({{ $campaign->id }})">
+                                                    Complete
+                                                </flux:button>
+                                                <flux:dropdown position="bottom" align="end">
+                                                    <flux:button size="sm" variant="ghost" icon="ellipsis-vertical" />
+                                                    <flux:menu>
+                                                        <flux:menu.item icon="eye" href="{{ route('campaigns.show', $campaign) }}">
+                                                            View Details
+                                                        </flux:menu.item>
+                                                        <flux:menu.separator />
+                                                        <flux:menu.item icon="archive-box" variant="danger" wire:click="confirmArchive({{ $campaign->id }})">
+                                                            Archive
+                                                        </flux:menu.item>
+                                                    </flux:menu>
+                                                </flux:dropdown>
+                                            </div>
+                                        </flux:table.cell>
+                                    </flux:table.row>
+                                @endforeach
+                            </flux:table.rows>
+                        </flux:table>
+                    @else
+                        <div class="py-16 text-center">
+                            <flux:icon.play class="size-12 mx-auto text-zinc-300 dark:text-zinc-600" />
+                            <flux:heading class="mt-4">No campaigns in progress</flux:heading>
+                            <flux:text class="mt-2 text-zinc-500">Start a published campaign to begin collaborating with influencers.</flux:text>
+                        </div>
+                    @endif
+                </flux:tab.panel>
+
+                <!-- Completed Panel -->
+                <flux:tab.panel name="completed" class="p-4">
+                    @if($this->getCompleted()->count() > 0)
+                        <flux:table>
+                            <flux:table.columns>
+                                <flux:table.column class="w-full">Campaign</flux:table.column>
+                                <flux:table.column class="whitespace-nowrap">Collaborations</flux:table.column>
+                                <flux:table.column class="whitespace-nowrap">Completed</flux:table.column>
+                                <flux:table.column class="w-px"></flux:table.column>
+                            </flux:table.columns>
+                            <flux:table.rows>
+                                @foreach($this->getCompleted() as $campaign)
+                                    <flux:table.row wire:key="completed-{{ $campaign->id }}">
+                                        <flux:table.cell>
+                                            <div>
+                                                <div class="font-medium text-zinc-900 dark:text-white">
+                                                    {{ Str::limit($campaign->campaign_goal, 60) }}
+                                                </div>
+                                                <div class="text-sm text-zinc-500 mt-0.5">
+                                                    {{ $campaign->compensation_display }}
+                                                </div>
+                                            </div>
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap">
+                                            <flux:badge color="lime" size="sm" icon="check-circle">
+                                                {{ $campaign->collaborations->count() }} completed
+                                            </flux:badge>
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap text-sm text-zinc-500">
+                                            @if($campaign->completed_at)
+                                                {{ $campaign->completed_at->diffForHumans() }}
+                                            @endif
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap">
+                                            <flux:button size="sm" href="{{ route('campaigns.show', $campaign) }}">
+                                                View
+                                            </flux:button>
+                                        </flux:table.cell>
+                                    </flux:table.row>
+                                @endforeach
+                            </flux:table.rows>
+                        </flux:table>
+                    @else
+                        <div class="py-16 text-center">
+                            <flux:icon.check-circle class="size-12 mx-auto text-zinc-300 dark:text-zinc-600" />
+                            <flux:heading class="mt-4">No completed campaigns</flux:heading>
+                            <flux:text class="mt-2 text-zinc-500">Completed campaigns will appear here.</flux:text>
+                        </div>
+                    @endif
+                </flux:tab.panel>
+
+                <!-- Archived Panel -->
+                <flux:tab.panel name="archived" class="p-4">
+                    @if($this->getArchived()->count() > 0)
+                        <flux:table>
+                            <flux:table.columns>
+                                <flux:table.column class="w-full">Campaign</flux:table.column>
+                                <flux:table.column class="whitespace-nowrap">Influencers</flux:table.column>
+                                <flux:table.column class="whitespace-nowrap">Archived</flux:table.column>
+                                <flux:table.column class="w-px"></flux:table.column>
+                            </flux:table.columns>
+                            <flux:table.rows>
+                                @foreach($this->getArchived() as $campaign)
+                                    <flux:table.row wire:key="archived-{{ $campaign->id }}">
+                                        <flux:table.cell>
+                                            <div>
+                                                <div class="font-medium text-zinc-900 dark:text-white">
+                                                    {{ Str::limit($campaign->campaign_goal, 60) }}
+                                                </div>
+                                                <div class="text-sm text-zinc-500 mt-0.5">
+                                                    {{ $campaign->compensation_display }}
+                                                </div>
+                                            </div>
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap text-zinc-600 dark:text-zinc-400">
+                                            {{ $campaign->influencer_count }}
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap text-sm text-zinc-500">
+                                            {{ $campaign->updated_at->diffForHumans() }}
+                                        </flux:table.cell>
+                                        <flux:table.cell class="whitespace-nowrap">
+                                            <flux:button size="sm" href="{{ route('campaigns.show', $campaign) }}">
+                                                View
+                                            </flux:button>
+                                        </flux:table.cell>
+                                    </flux:table.row>
+                                @endforeach
+                            </flux:table.rows>
+                        </flux:table>
+                    @else
+                        <div class="py-16 text-center">
+                            <flux:icon.archive-box class="size-12 mx-auto text-zinc-300 dark:text-zinc-600" />
+                            <flux:heading class="mt-4">No archived campaigns</flux:heading>
+                            <flux:text class="mt-2 text-zinc-500">Archived campaigns will appear here.</flux:text>
+                        </div>
+                    @endif
+                </flux:tab.panel>
+            </flux:tab.group>
+        </flux:card>
     </div>
 
     <!-- Archive Confirmation Modal -->
     <flux:modal wire:model="showArchiveModal" class="space-y-6">
         <div class="flex items-center gap-3">
-            <flux:icon.exclamation-triangle class="size-6 text-red-500" />
+            <div class="flex items-center justify-center size-10 rounded-full bg-red-100 dark:bg-red-900/30">
+                <flux:icon.exclamation-triangle class="size-5 text-red-600 dark:text-red-400" />
+            </div>
             <flux:heading size="lg">Archive Campaign</flux:heading>
         </div>
 
