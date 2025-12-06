@@ -107,16 +107,6 @@ class AccountSeeder extends Seeder
                 $baseUsername.fake()->numberBetween(1, 99),
                 fake()->firstName().fake()->randomNumber(2),
             ]),
-            SocialPlatform::YOUTUBE => fake()->randomElement([
-                $baseUsername,
-                fake()->firstName().'TV',
-                fake()->word().'Channel',
-            ]),
-            SocialPlatform::X => fake()->randomElement([
-                $baseUsername,
-                fake()->firstName().fake()->randomNumber(2),
-                fake()->word().fake()->randomNumber(3),
-            ]),
             default => $baseUsername,
         };
     }

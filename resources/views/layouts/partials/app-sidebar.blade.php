@@ -1,16 +1,13 @@
 <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-gray-900 px-6 pb-4 ring-1 ring-gray-900/10 dark:ring-gray-800">
     <!-- Logo -->
     <div class="flex h-16 shrink-0 items-center">
-        <div x-show="sidebarExpanded || window.innerWidth < 1024" x-transition class="flex items-center space-x-3">
+        <div class="flex items-center space-x-3">
             <img class="block h-8 w-auto dark:hidden"
                 src="{{ Vite::asset('resources/images/CollabConnect.png') }}"
                 alt="CollabConnect Logo" />
             <img class="hidden h-8 w-auto dark:block"
                 src="{{ Vite::asset('resources/images/CollabConnectDark.png') }}"
                 alt="CollabConnect Logo" />
-        </div>
-        <div x-show="!sidebarExpanded && window.innerWidth >= 1024" class="flex items-center justify-center mx-auto">
-            <img class="h-auto w-10" src="{{ Vite::asset('resources/images/CollabConnectMark.png') }}" alt="CollabConnect Icon" />
         </div>
     </div>
 
@@ -34,7 +31,7 @@
                     <div class="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
                         {{ substr(auth()->user()->name, 0, 1) }}
                     </div>
-                    <div x-show="sidebarExpanded || window.innerWidth < 1024" x-transition class="flex flex-col">
+                    <div class="flex flex-col">
                         <span class="text-sm">{{ auth()->user()->name }}</span>
                         <span class="text-xs text-gray-500 dark:text-gray-400">{{ auth()->user()->account_type->label() }}</span>
                     </div>

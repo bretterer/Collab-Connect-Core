@@ -61,6 +61,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Business::class, 'id', 'current_business');
     }
 
+    public function isCurrentBusiness(Business $business): bool
+    {
+        return $this->current_business === $business->id;
+    }
+
     public function setCurrentBusiness(Business $business): void
     {
         if ($this->isBusinessAccount()) {

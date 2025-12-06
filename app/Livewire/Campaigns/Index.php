@@ -76,7 +76,7 @@ class Index extends BaseComponent
 
         if ($campaign) {
             CampaignService::archiveCampaign($campaign);
-            session()->flash('message', 'Campaign archived successfully!');
+            Toaster::success('Campaign archived successfully!');
         }
 
         $this->closeArchiveModal();
