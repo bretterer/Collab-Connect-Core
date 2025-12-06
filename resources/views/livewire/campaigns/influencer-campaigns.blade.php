@@ -258,7 +258,7 @@
 
                     <!-- Campaign Title -->
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                        {{ Str::limit($campaign->campaign_goal, 60) }}
+                        {{ Str::limit($campaign->project_name ?: $campaign->campaign_goal, 60) }}
                     </h3>
 
                     <!-- Campaign Description -->

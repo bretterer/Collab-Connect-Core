@@ -115,7 +115,7 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
         // Campaign routes
         Route::prefix('campaigns')->name('campaigns.')->group(function () {
             Route::get('/', App\Livewire\Campaigns\Index::class)->name('index');
-            Route::get('/create', App\Livewire\Campaigns\CreateCampaign::class)->name('create');
+            Route::get('/create', App\Livewire\Campaigns\EditCampaign::class)->name('create');
             Route::get('/{campaign}', App\Livewire\Campaigns\ShowCampaign::class)->name('show');
             Route::get('/{campaign}/edit', App\Livewire\Campaigns\EditCampaign::class)->name('edit');
             Route::get('/{campaign}/applications', App\Livewire\Campaigns\CampaignApplications::class)->name('applications');
@@ -162,16 +162,22 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
             return redirect()->back()->with('success', 'Switched to '.$business->name);
         })->name('switch-business');
 
+        // Business routes (must come before wildcard routes)
+        Route::prefix('business')->name('business.')->group(function () {
+            Route::get('/settings', App\Livewire\Business\BusinessSettings::class)->name('settings');
+            Route::get('/{user}/campaigns', App\Livewire\Business\BusinessCampaigns::class)->name('campaigns');
+        });
+
+        // Influencer routes (must come before wildcard routes)
+        Route::prefix('influencer')->name('influencer.')->group(function () {
+            Route::get('/settings', App\Livewire\Influencer\InfluencerSettings::class)->name('settings');
+        });
+
         // Public profile route (supports both username and ID)
         Route::get('/influencer/{username}', App\Livewire\ViewInfluencerProfile::class)->name('influencer.profile');
         Route::get('/influencer/{username}/reviews', App\Livewire\Reviews\UserReviews::class)->name('influencer.reviews')->defaults('type', 'influencer');
         Route::get('/business/{username}', App\Livewire\ViewBusinessProfile::class)->name('business.profile');
         Route::get('/business/{username}/reviews', App\Livewire\Reviews\UserReviews::class)->name('business.reviews')->defaults('type', 'business');
-
-        // Business routes
-        Route::prefix('business')->name('business.')->group(function () {
-            Route::get('/{user}/campaigns', App\Livewire\Business\BusinessCampaigns::class)->name('campaigns');
-        });
 
         // Analytics route (business users only)
         Route::get('/analytics', App\Livewire\Analytics::class)->name('analytics');

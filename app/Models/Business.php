@@ -37,6 +37,7 @@ class Business extends Model implements HasMedia
         'target_gender',
         'business_goals',
         'platforms',
+        'campaign_defaults',
     ];
 
     public function casts(): array
@@ -48,6 +49,7 @@ class Business extends Model implements HasMedia
             'target_gender' => 'array',
             'business_goals' => 'array',
             'platforms' => 'array',
+            'campaign_defaults' => 'array',
         ];
     }
 
@@ -143,5 +145,45 @@ class Business extends Model implements HasMedia
         return $this->belongsToMany(User::class, 'business_users')
             ->withPivot('role')
             ->wherePivot('role', 'owner');
+    }
+
+    /**
+     * Get campaign defaults with fallbacks.
+     *
+     * @return array<string, mixed>
+     */
+    public function getCampaignDefaults(): array
+    {
+        return $this->campaign_defaults ?? [];
+    }
+
+    /**
+     * Check if business has brand defaults configured.
+     */
+    public function hasBrandDefaults(): bool
+    {
+        $defaults = $this->getCampaignDefaults();
+
+        return ! empty($defaults['brand_overview']);
+    }
+
+    /**
+     * Check if business has briefing defaults configured.
+     */
+    public function hasBriefingDefaults(): bool
+    {
+        $defaults = $this->getCampaignDefaults();
+
+        return ! empty($defaults['default_key_insights'])
+            || ! empty($defaults['default_fan_motivator'])
+            || ! empty($defaults['default_posting_restrictions']);
+    }
+
+    /**
+     * Get specific default value.
+     */
+    public function getCampaignDefault(string $key, mixed $default = null): mixed
+    {
+        return $this->getCampaignDefaults()[$key] ?? $default;
     }
 }

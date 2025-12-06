@@ -25,9 +25,13 @@
         Messages
     </flux:navlist.item>
 
-    <flux:navlist.group heading="Account" expandable :expanded="request()->routeIs('profile.*') || request()->routeIs('help')">
+    <flux:navlist.group heading="Account" expandable :expanded="request()->routeIs('profile.*') || request()->routeIs('business.settings') || request()->routeIs('help')">
         <flux:navlist.item href="{{ route('profile.edit') }}" icon="user" :current="request()->routeIs('profile.edit')">
             Profile
+        </flux:navlist.item>
+
+        <flux:navlist.item href="{{ route('business.settings') }}" icon="building-office" :current="request()->routeIs('business.settings')">
+            Business Settings
         </flux:navlist.item>
 
         <flux:navlist.item href="{{ route('help') }}" icon="question-mark-circle" :current="request()->routeIs('help')">
