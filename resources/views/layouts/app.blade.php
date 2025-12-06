@@ -225,35 +225,32 @@
                                 <flux:text size="sm" class="pl-7">Dev Shortcuts</flux:text>
                             </div>
 
-                            <flux:navmenu.item indent href="#" x-data @click.prevent="document.getElementById('dev-login-admin').click()">
+                            <div class="pl-7">
                                 <x-login-link
-                                    id="dev-login-admin"
-                                    class="text-zinc-800 dark:text-white"
+                                    class="flex w-full items-center gap-2 px-2 py-1.5 text-left text-sm text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md"
                                     :email="config('collabconnect.init_user_email')"
                                     label="Login as Admin"
                                     redirect-url="{{ route('dashboard') }}"
                                 />
-                            </flux:navmenu.item>
+                            </div>
 
-                            <flux:navmenu.item indent href="#" x-data @click.prevent="document.getElementById('dev-login-business').click()">
+                            <div class="pl-7">
                                 <x-login-link
-                                    id="dev-login-business"
-                                    class="text-zinc-800 dark:text-white"
+                                    class="flex w-full items-center gap-2 px-2 py-1.5 text-left text-sm text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md"
                                     :email="config('collabconnect.init_business_email')"
                                     label="Login as Business"
                                     redirect-url="{{ route('dashboard') }}"
                                 />
-                            </flux:navmenu.item>
+                            </div>
 
-                            <flux:navmenu.item indent href="#" x-data @click.prevent="document.getElementById('dev-login-influencer').click()">
+                            <div class="pl-7">
                                 <x-login-link
-                                    id="dev-login-influencer"
-                                    class="text-zinc-800 dark:text-white"
+                                    class="flex w-full items-center gap-2 px-2 py-1.5 text-left text-sm text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md"
                                     :email="config('collabconnect.init_influencer_email')"
                                     label="Login as Influencer"
                                     redirect-url="{{ route('dashboard') }}"
                                 />
-                            </flux:navmenu.item>
+                            </div>
                         @endif
                     </flux:navmenu>
                 </flux:dropdown>
