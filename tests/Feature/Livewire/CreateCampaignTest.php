@@ -9,6 +9,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CreateCampaignTest extends TestCase
@@ -25,17 +26,19 @@ class CreateCampaignTest extends TestCase
         $this->businessUser = User::factory()->business()->withProfile()->subscribed()->create();
     }
 
-    public function test_business_user_can_access_create_campaign_page()
+    #[Test]
+    public function business_user_can_access_create_campaign_page(): void
     {
         $this->actingAs($this->businessUser);
 
         $response = $this->get(route('campaigns.create'));
 
         $response->assertStatus(200);
-        $response->assertSeeLivewire('campaigns.create-campaign');
+        $response->assertSeeLivewire('campaigns.edit-campaign');
     }
 
-    public function test_influencer_cannot_access_create_campaign_page()
+    #[Test]
+    public function influencer_cannot_access_create_campaign_page(): void
     {
         $influencerUser = User::factory()->influencer()->withProfile()->create();
         $this->actingAs($influencerUser);
@@ -45,18 +48,20 @@ class CreateCampaignTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function test_guest_cannot_access_create_campaign_page()
+    #[Test]
+    public function guest_cannot_access_create_campaign_page(): void
     {
         $response = $this->get(route('campaigns.create'));
 
         $response->assertRedirect(route('login'));
     }
 
-    public function test_create_campaign_component_initializes_correctly()
+    #[Test]
+    public function create_campaign_component_initializes_correctly(): void
     {
         $this->actingAs($this->businessUser);
 
-        Livewire::test('campaigns.create-campaign')
+        Livewire::test('campaigns.edit-campaign')
             ->assertSet('currentStep', 1)
             ->assertSet('compensationType', 'monetary')
             ->assertSet('influencerCount', 1)
@@ -64,20 +69,34 @@ class CreateCampaignTest extends TestCase
             ->assertSee('Campaign Goal');
     }
 
-    public function test_step_1_validation_works()
+    #[Test]
+    public function wizard_has_four_steps(): void
     {
         $this->actingAs($this->businessUser);
 
-        Livewire::test('campaigns.create-campaign')
+        $component = Livewire::test('campaigns.edit-campaign');
+
+        $this->assertEquals(4, $component->instance()->getTotalSteps());
+    }
+
+    #[Test]
+    public function step_1_validation_works(): void
+    {
+        $this->actingAs($this->businessUser);
+
+        // Clear any auto-filled values to test validation
+        Livewire::test('campaigns.edit-campaign')
+            ->set('targetZipCode', '') // Clear auto-filled zip code to test validation
             ->call('nextStep')
             ->assertHasErrors(['campaignGoal', 'campaignType', 'targetZipCode']);
     }
 
-    public function test_step_1_can_be_completed_with_valid_data()
+    #[Test]
+    public function step_1_can_be_completed_with_valid_data(): void
     {
         $this->actingAs($this->businessUser);
 
-        Livewire::test('campaigns.create-campaign')
+        Livewire::test('campaigns.edit-campaign')
             ->set('campaignGoal', 'Promote our new coffee blend to local coffee enthusiasts')
             ->set('campaignType', ['user_generated'])
             ->set('targetZipCode', '49503')
@@ -87,123 +106,93 @@ class CreateCampaignTest extends TestCase
             ->assertHasNoErrors();
     }
 
-    public function test_step_2_validation_works()
+    #[Test]
+    public function step_2_validation_works_for_brand_and_briefing(): void
     {
         $this->actingAs($this->businessUser);
 
-        $component = Livewire::test('campaigns.create-campaign')
+        $component = Livewire::test('campaigns.edit-campaign')
             ->set('campaignGoal', 'Promote our new coffee blend to local coffee enthusiasts')
             ->set('campaignType', ['user_generated'])
             ->set('targetZipCode', '49503')
             ->call('nextStep');
 
+        // Step 2 now validates briefing fields
         $component->call('nextStep')
-            ->assertHasErrors(['brandOverview']);
+            ->assertHasErrors(['campaignObjective', 'keyInsights', 'fanMotivator']);
     }
 
-    public function test_step_2_can_be_completed_with_valid_data()
+    #[Test]
+    public function step_2_can_be_completed_with_valid_data(): void
     {
         $this->actingAs($this->businessUser);
 
-        Livewire::test('campaigns.create-campaign')
+        Livewire::test('campaigns.edit-campaign')
             ->set('campaignGoal', 'Promote our new coffee blend to local coffee enthusiasts')
             ->set('campaignType', ['user_generated'])
             ->set('targetZipCode', '49503')
-            ->set('currentStep', 2) // Skip autoSave by directly setting step
-            ->set('brandOverview', 'We are a local coffee roaster with over 15 years of experience in the Grand Rapids area. Our mission is to bring exceptional coffee experiences to our community while supporting sustainable farming practices.')
-            ->set('brandStory', 'Founded in 2008 by coffee enthusiasts who wanted to share their passion for quality coffee.')
+            ->set('currentStep', 2)
+            // Briefing
+            ->set('campaignObjective', 'Increase brand awareness for our new coffee blend and drive foot traffic to our local coffee shops.')
+            ->set('keyInsights', 'Coffee enthusiasts value authenticity and local connections. They prefer to support businesses that align with their values.')
+            ->set('fanMotivator', 'The opportunity to discover a unique local coffee blend and be part of a community of coffee lovers.')
             ->call('nextStep')
             ->assertSet('currentStep', 3)
             ->assertHasNoErrors();
     }
 
-    public function test_step_3_validation_works()
+    #[Test]
+    public function step_3_validation_works_for_deliverables_and_settings(): void
     {
         $this->actingAs($this->businessUser);
 
         $component = $this->setupComponentToStep3();
 
-        $component->call('nextStep')
-            ->assertHasErrors(['campaignObjective', 'keyInsights', 'fanMotivator', 'creativeConnection']);
-    }
-
-    public function test_step_3_can_be_completed_with_valid_data()
-    {
-        $this->actingAs($this->businessUser);
-
-        $component = $this->setupComponentToStep3();
-
-        $component
-            ->set('campaignObjective', 'Increase brand awareness for our new coffee blend and drive foot traffic to our local coffee shops.')
-            ->set('keyInsights', 'Coffee enthusiasts value authenticity and local connections. They prefer to support businesses that align with their values.')
-            ->set('fanMotivator', 'The opportunity to discover a unique local coffee blend and be part of a community of coffee lovers.')
-            ->set('creativeConnection', 'Show authentic moments of enjoying our coffee in your daily routine - whether it\'s your morning ritual or afternoon pick-me-up.')
-            ->call('nextStep')
-            ->assertSet('currentStep', 4)
-            ->assertHasNoErrors();
-    }
-
-    public function test_step_4_deliverables_and_metrics()
-    {
-        $this->actingAs($this->businessUser);
-
-        $component = $this->setupComponentToStep4();
-
-        $component
-            ->set('targetPlatforms', ['instagram', 'tiktok'])
-            ->set('deliverables', ['post', 'story'])
-            ->set('successMetrics', ['engagement_rate', 'reach'])
-            ->set('timingDetails', 'Post within 2 weeks of receiving product')
-            ->call('nextStep')
-            ->assertSet('currentStep', 5)
-            ->assertHasNoErrors();
-    }
-
-    public function test_step_5_validation_works()
-    {
-        $this->actingAs($this->businessUser);
-
-        $component = $this->setupComponentToStep5();
-
+        // Step 3 now validates deliverables AND settings together
         $component->call('nextStep')
             ->assertHasErrors(['compensationDescription', 'applicationDeadline', 'campaignStartDate', 'campaignCompletionDate']);
     }
 
-    public function test_step_5_can_be_completed_with_valid_data()
+    #[Test]
+    public function step_3_can_be_completed_with_valid_data(): void
     {
         $this->actingAs($this->businessUser);
 
-        $component = $this->setupComponentToStep5();
+        $component = $this->setupComponentToStep3();
 
         $applicationDeadline = Carbon::now()->addDays(14)->format('Y-m-d');
         $startDate = Carbon::now()->addDays(21)->format('Y-m-d');
         $completionDate = Carbon::now()->addDays(45)->format('Y-m-d');
 
         $component
-            ->set('compensationType', 'barter')
+            ->set('targetPlatforms', ['instagram', 'tiktok'])
+            ->set('deliverables', ['post', 'story'])
+            ->set('successMetrics', ['engagement_rate', 'reach'])
+            ->set('compensationType', 'free_product')
             ->set('compensationDescription', 'Free coffee products worth $50 plus additional merchandise')
             ->set('influencerCount', 5)
             ->set('applicationDeadline', $applicationDeadline)
             ->set('campaignStartDate', $startDate)
             ->set('campaignCompletionDate', $completionDate)
-            ->set('additionalRequirements', 'Must be located within 25 miles of Grand Rapids')
             ->call('nextStep')
-            ->assertSet('currentStep', 6)
+            ->assertSet('currentStep', 4)
             ->assertHasNoErrors();
     }
 
-    public function test_can_navigate_to_review_step()
+    #[Test]
+    public function can_navigate_to_review_step(): void
     {
         $this->actingAs($this->businessUser);
 
         $component = $this->setupCompleteComponent();
 
-        $component->assertSet('currentStep', 6)
+        $component->assertSet('currentStep', 4)
             ->assertSee('Review & Publish')
             ->assertSee('Promote our new coffee blend');
     }
 
-    public function test_can_publish_campaign_immediately()
+    #[Test]
+    public function can_publish_campaign_immediately(): void
     {
         $this->actingAs($this->businessUser);
 
@@ -212,7 +201,7 @@ class CreateCampaignTest extends TestCase
         $component
             ->set('publishAction', 'publish')
             ->call('publishCampaign')
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirectContains('/campaigns/');
 
         // Verify campaign was created and published
         $this->assertDatabaseHas('campaigns', [
@@ -222,7 +211,8 @@ class CreateCampaignTest extends TestCase
         ]);
     }
 
-    public function test_can_schedule_campaign_for_later()
+    #[Test]
+    public function can_schedule_campaign_for_later(): void
     {
         $this->actingAs($this->businessUser);
 
@@ -233,7 +223,7 @@ class CreateCampaignTest extends TestCase
             ->set('publishAction', 'schedule')
             ->set('scheduledDate', $scheduledDate)
             ->call('publishCampaign')
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirectContains('/campaigns/');
 
         // Verify campaign was created and scheduled
         $this->assertDatabaseHas('campaigns', [
@@ -244,11 +234,12 @@ class CreateCampaignTest extends TestCase
         ]);
     }
 
-    public function test_can_save_draft()
+    #[Test]
+    public function can_save_draft(): void
     {
         $this->actingAs($this->businessUser);
 
-        Livewire::test('campaigns.create-campaign')
+        Livewire::test('campaigns.edit-campaign')
             ->set('campaignGoal', 'Test campaign goal')
             ->set('campaignType', ['user_generated'])
             ->set('targetZipCode', '49503')
@@ -262,11 +253,12 @@ class CreateCampaignTest extends TestCase
         ]);
     }
 
-    public function test_can_save_and_exit()
+    #[Test]
+    public function can_save_and_exit(): void
     {
         $this->actingAs($this->businessUser);
 
-        Livewire::test('campaigns.create-campaign')
+        Livewire::test('campaigns.edit-campaign')
             ->set('campaignGoal', 'Test campaign goal')
             ->set('campaignType', ['user_generated'])
             ->set('targetZipCode', '49503')
@@ -274,11 +266,12 @@ class CreateCampaignTest extends TestCase
             ->assertRedirect(route('campaigns.index'));
     }
 
-    public function test_auto_save_functionality()
+    #[Test]
+    public function auto_save_functionality(): void
     {
         $this->actingAs($this->businessUser);
 
-        $component = Livewire::test('campaigns.create-campaign')
+        $component = Livewire::test('campaigns.edit-campaign')
             ->set('campaignGoal', 'Test campaign for auto-save')
             ->set('campaignType', ['user_generated'])
             ->set('targetZipCode', '49503');
@@ -294,7 +287,8 @@ class CreateCampaignTest extends TestCase
         ]);
     }
 
-    public function test_can_edit_existing_campaign()
+    #[Test]
+    public function can_edit_existing_campaign(): void
     {
         $this->actingAs($this->businessUser);
 
@@ -308,7 +302,7 @@ class CreateCampaignTest extends TestCase
         ]);
 
         // Test editing the campaign
-        Livewire::test('campaigns.create-campaign', ['campaignId' => $campaign->id])
+        Livewire::test('campaigns.edit-campaign', ['campaign' => $campaign->id])
             ->assertSet('campaignId', $campaign->id)
             ->assertSet('campaignGoal', 'Original campaign goal')
             ->assertSet('campaignType', [CampaignType::USER_GENERATED->value])
@@ -323,15 +317,16 @@ class CreateCampaignTest extends TestCase
         ]);
     }
 
-    public function test_step_navigation_works()
+    #[Test]
+    public function step_navigation_works(): void
     {
         $this->actingAs($this->businessUser);
 
-        $component = Livewire::test('campaigns.create-campaign')
+        $component = Livewire::test('campaigns.edit-campaign')
             ->set('campaignGoal', 'Test navigation')
             ->set('campaignType', ['user_generated'])
             ->set('targetZipCode', '49503')
-            ->set('currentStep', 2) // Skip autoSave by directly setting step
+            ->set('currentStep', 2)
             ->assertSet('currentStep', 2);
 
         // Test going back
@@ -343,7 +338,8 @@ class CreateCampaignTest extends TestCase
             ->assertSet('currentStep', 2);
     }
 
-    public function test_schedule_validation_requires_future_date()
+    #[Test]
+    public function schedule_validation_requires_future_date(): void
     {
         $this->actingAs($this->businessUser);
 
@@ -357,36 +353,66 @@ class CreateCampaignTest extends TestCase
             ->assertHasErrors(['scheduledDate']);
     }
 
+    #[Test]
+    public function business_defaults_are_applied_for_new_campaigns(): void
+    {
+        // Set up business with campaign defaults
+        $this->businessUser->currentBusiness->update([
+            'postal_code' => '12345',
+            'campaign_defaults' => [
+                'brand_overview' => 'Default brand overview text that is long enough.',
+                'brand_story' => 'Default brand story',
+                'default_key_insights' => 'Default key insights about our audience.',
+            ],
+        ]);
+
+        $this->actingAs($this->businessUser);
+
+        Livewire::test('campaigns.edit-campaign')
+            ->assertSet('targetZipCode', '12345')
+            ->assertSet('brandOverview', 'Default brand overview text that is long enough.')
+            ->assertSet('brandStory', 'Default brand story')
+            ->assertSet('keyInsights', 'Default key insights about our audience.')
+            ->assertSet('hasAppliedDefaults', true)
+            ->assertSet('canSkipBrandStep', true);
+    }
+
+    #[Test]
+    public function can_skip_brand_step_when_defaults_exist(): void
+    {
+        // Set up business with campaign defaults
+        $this->businessUser->currentBusiness->update([
+            'campaign_defaults' => [
+                'brand_overview' => 'Default brand overview text that is long enough.',
+            ],
+        ]);
+
+        $this->actingAs($this->businessUser);
+
+        Livewire::test('campaigns.edit-campaign')
+            ->set('campaignGoal', 'Test campaign goal for skipping')
+            ->set('campaignType', ['user_generated'])
+            ->set('targetZipCode', '49503')
+            ->call('nextStep')
+            ->assertSet('currentStep', 2)
+            ->call('skipStep')
+            ->assertSet('currentStep', 3);
+    }
+
     // Helper methods for setting up components at different steps
 
     private function setupComponentToStep3()
     {
-        return Livewire::test('campaigns.create-campaign')
+        return Livewire::test('campaigns.edit-campaign')
             ->set('campaignGoal', 'Promote our new coffee blend to local coffee enthusiasts')
             ->set('campaignType', ['user_generated'])
             ->set('targetZipCode', '49503')
-            ->set('currentStep', 2) // Skip autoSave by directly setting step
-            ->set('brandOverview', 'We are a local coffee roaster with over 15 years of experience in the Grand Rapids area.')
-            ->set('currentStep', 3); // Skip autoSave by directly setting step
-    }
-
-    private function setupComponentToStep4()
-    {
-        return $this->setupComponentToStep3()
+            ->set('currentStep', 2)
+            // Briefing
             ->set('campaignObjective', 'Increase brand awareness for our new coffee blend and drive foot traffic to our local coffee shops.')
             ->set('keyInsights', 'Coffee enthusiasts value authenticity and local connections.')
             ->set('fanMotivator', 'The opportunity to discover a unique local coffee blend and be part of a community of coffee lovers.')
-            ->set('creativeConnection', 'Show authentic moments of enjoying our coffee in your daily routine.')
-            ->set('currentStep', 4); // Skip autoSave by directly setting step
-    }
-
-    private function setupComponentToStep5()
-    {
-        return $this->setupComponentToStep4()
-            ->set('targetPlatforms', ['instagram', 'tiktok'])
-            ->set('deliverables', ['post', 'story'])
-            ->set('successMetrics', ['engagement_rate', 'reach'])
-            ->set('currentStep', 5); // Skip autoSave by directly setting step
+            ->set('currentStep', 3);
     }
 
     private function setupCompleteComponent()
@@ -395,13 +421,16 @@ class CreateCampaignTest extends TestCase
         $startDate = Carbon::now()->addDays(21)->format('Y-m-d');
         $completionDate = Carbon::now()->addDays(45)->format('Y-m-d');
 
-        return $this->setupComponentToStep5()
-            ->set('compensationType', 'barter')
+        return $this->setupComponentToStep3()
+            ->set('targetPlatforms', ['instagram', 'tiktok'])
+            ->set('deliverables', ['post', 'story'])
+            ->set('successMetrics', ['engagement_rate', 'reach'])
+            ->set('compensationType', 'free_product')
             ->set('compensationDescription', 'Free coffee products worth $50 plus additional merchandise')
             ->set('influencerCount', 5)
             ->set('applicationDeadline', $applicationDeadline)
             ->set('campaignStartDate', $startDate)
             ->set('campaignCompletionDate', $completionDate)
-            ->set('currentStep', 6); // Skip autoSave by directly setting step
+            ->set('currentStep', 4);
     }
 }

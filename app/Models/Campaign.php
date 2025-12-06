@@ -254,7 +254,6 @@ class Campaign extends Model
         if ($this->compensation_type && $this->compensation_amount) {
             return match ($this->compensation_type) {
                 \App\Enums\CompensationType::MONETARY => '$'.number_format($this->compensation_amount),
-                \App\Enums\CompensationType::BARTER => 'Barter (worth $'.number_format($this->compensation_amount).')',
                 \App\Enums\CompensationType::FREE_PRODUCT => 'Free Products (worth $'.number_format($this->compensation_amount).')',
                 \App\Enums\CompensationType::DISCOUNT => $this->compensation_amount.'% Discount',
                 \App\Enums\CompensationType::GIFT_CARD => '$'.number_format($this->compensation_amount).' Gift Card',

@@ -7,7 +7,7 @@ use App\Enums\CompensationType;
 use App\Enums\DeliverableType;
 use App\Enums\SuccessMetric;
 use App\Enums\TargetPlatform;
-use App\Livewire\Campaigns\CreateCampaign;
+use App\Livewire\Campaigns\EditCampaign;
 use App\Models\User;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
@@ -22,9 +22,9 @@ class CreateCampaignTest extends TestCase
         $business = $businessOwner->businesses()->first();
         $this->actingAs($businessOwner);
 
-        Livewire::test(CreateCampaign::class)
-            ->assertSee('Create a New Campaign')
-            ->assertSee('Step 1 of 6')
+        Livewire::test(EditCampaign::class)
+            ->assertSee('Create Campaign')
+            ->assertSee('Step 1 of 4')
             ->assertSet('currentStep', 1)
             ->set('projectName', 'New Campaign')
             ->set('campaignGoal', 'Increase Awareness')
@@ -32,30 +32,26 @@ class CreateCampaignTest extends TestCase
             ->set('targetZipCode', '45066')
             ->call('nextStep')
             ->assertSet('currentStep', 2)
-            ->assertSee('Step 2 of 6')
-            ->set('brandOverview', 'This is a great brand.')
+            ->assertSee('Step 2 of 4')
+            // Step 2: Brand & Briefing (combined)
+            ->set('brandOverview', 'This is a great brand with excellent products and services.')
             ->set('currentAdvertisingCampaign', 'We advertise on social media.')
             ->set('brandStory', 'Our brand story is compelling.')
-            ->call('nextStep')
-            ->assertSet('currentStep', 3)
-            ->assertSee('Step 3 of 6')
-            ->set('campaignObjective', 'Our objective is to grow.')
-            ->set('keyInsights', 'Key insights are important.')
+            ->set('campaignObjective', 'Our objective is to grow brand awareness and engagement.')
+            ->set('keyInsights', 'Key insights are important for target audience understanding.')
             ->set('fanMotivator', 'Our fans are motivated by quality and value.')
-            ->set('creativeConnection', 'We connect through storytelling.')
+            ->set('creativeConnection', 'We connect through storytelling and authentic moments.')
             ->set('specificProducts', 'We offer a range of products.')
             ->set('postingRestrictions', 'No posting restrictions.')
             ->set('additionalConsiderations', 'We value authenticity.')
             ->call('nextStep')
-            ->assertSet('currentStep', 4)
-            ->assertSee('Step 4 of 6')
+            ->assertSet('currentStep', 3)
+            ->assertSee('Step 3 of 4')
+            // Step 3: Deliverables & Settings (combined)
             ->set('targetPlatforms', [TargetPlatform::INSTAGRAM->value, TargetPlatform::YOUTUBE->value])
-            ->set('deliverables', [DeliverableType::VIDEO_CONTENT->value, DeliverableType::BLOG_POST->value])
+            ->set('deliverables', [DeliverableType::INSTAGRAM_POST->value, DeliverableType::YOUTUBE_VIDEO->value])
             ->set('successMetrics', [SuccessMetric::BRAND_AWARENESS->value, SuccessMetric::CLICKS->value])
             ->set('timingDetails', 'We want to launch in Q2.')
-            ->call('nextStep')
-            ->assertSet('currentStep', 5)
-            ->assertSee('Step 5 of 6')
             ->set('compensationType', CompensationType::MONETARY->value)
             ->set('applicationDeadline', now()->addWeeks(2)->format('Y-m-d'))
             ->set('campaignStartDate', now()->addWeeks(3)->format('Y-m-d'))
@@ -65,8 +61,8 @@ class CreateCampaignTest extends TestCase
             ->set('exclusivityPeriod', '30')
             ->set('additionalRequirements', 'Must have at least 10k followers.')
             ->call('nextStep')
-            ->assertSet('currentStep', 6)
-            ->assertSee('Step 6 of 6')
+            ->assertSet('currentStep', 4)
+            ->assertSee('Step 4 of 4')
             ->set('publishAction', 'schedule')
             ->assertSee('Schedule Campaign')
             ->set('publishAction', 'publish')
@@ -79,13 +75,13 @@ class CreateCampaignTest extends TestCase
             'campaign_goal' => 'Increase Awareness',
             'campaign_type' => '["brand_partnerships"]',
             'target_zip_code' => '45066',
-            'brand_overview' => 'This is a great brand.',
+            'brand_overview' => 'This is a great brand with excellent products and services.',
             'current_advertising_campaign' => 'We advertise on social media.',
             'brand_story' => 'Our brand story is compelling.',
-            'campaign_objective' => 'Our objective is to grow.',
-            'key_insights' => 'Key insights are important.',
+            'campaign_objective' => 'Our objective is to grow brand awareness and engagement.',
+            'key_insights' => 'Key insights are important for target audience understanding.',
             'fan_motivator' => 'Our fans are motivated by quality and value.',
-            'creative_connection' => 'We connect through storytelling.',
+            'creative_connection' => 'We connect through storytelling and authentic moments.',
             'specific_products' => 'We offer a range of products.',
             'posting_restrictions' => 'No posting restrictions.',
             'additional_considerations' => 'We value authenticity.',
@@ -111,9 +107,9 @@ class CreateCampaignTest extends TestCase
 
         $this->actingAs($businessMember);
 
-        Livewire::test(CreateCampaign::class)
-            ->assertSee('Create a New Campaign')
-            ->assertSee('Step 1 of 6')
+        Livewire::test(EditCampaign::class)
+            ->assertSee('Create Campaign')
+            ->assertSee('Step 1 of 4')
             ->assertSet('currentStep', 1)
             ->set('projectName', 'New Campaign')
             ->set('campaignGoal', 'Increase Awareness')
@@ -121,30 +117,26 @@ class CreateCampaignTest extends TestCase
             ->set('targetZipCode', '45066')
             ->call('nextStep')
             ->assertSet('currentStep', 2)
-            ->assertSee('Step 2 of 6')
-            ->set('brandOverview', 'This is a great brand.')
+            ->assertSee('Step 2 of 4')
+            // Step 2: Brand & Briefing (combined)
+            ->set('brandOverview', 'This is a great brand with excellent products and services.')
             ->set('currentAdvertisingCampaign', 'We advertise on social media.')
             ->set('brandStory', 'Our brand story is compelling.')
-            ->call('nextStep')
-            ->assertSet('currentStep', 3)
-            ->assertSee('Step 3 of 6')
-            ->set('campaignObjective', 'Our objective is to grow.')
-            ->set('keyInsights', 'Key insights are important.')
+            ->set('campaignObjective', 'Our objective is to grow brand awareness and engagement.')
+            ->set('keyInsights', 'Key insights are important for target audience understanding.')
             ->set('fanMotivator', 'Our fans are motivated by quality and value.')
-            ->set('creativeConnection', 'We connect through storytelling.')
+            ->set('creativeConnection', 'We connect through storytelling and authentic moments.')
             ->set('specificProducts', 'We offer a range of products.')
             ->set('postingRestrictions', 'No posting restrictions.')
             ->set('additionalConsiderations', 'We value authenticity.')
             ->call('nextStep')
-            ->assertSet('currentStep', 4)
-            ->assertSee('Step 4 of 6')
+            ->assertSet('currentStep', 3)
+            ->assertSee('Step 3 of 4')
+            // Step 3: Deliverables & Settings (combined)
             ->set('targetPlatforms', [TargetPlatform::INSTAGRAM->value, TargetPlatform::YOUTUBE->value])
-            ->set('deliverables', [DeliverableType::VIDEO_CONTENT->value, DeliverableType::BLOG_POST->value])
+            ->set('deliverables', [DeliverableType::INSTAGRAM_POST->value, DeliverableType::YOUTUBE_VIDEO->value])
             ->set('successMetrics', [SuccessMetric::BRAND_AWARENESS->value, SuccessMetric::CLICKS->value])
             ->set('timingDetails', 'We want to launch in Q2.')
-            ->call('nextStep')
-            ->assertSet('currentStep', 5)
-            ->assertSee('Step 5 of 6')
             ->set('compensationType', CompensationType::MONETARY->value)
             ->set('applicationDeadline', now()->addWeeks(2)->format('Y-m-d'))
             ->set('campaignStartDate', now()->addWeeks(3)->format('Y-m-d'))
@@ -154,8 +146,8 @@ class CreateCampaignTest extends TestCase
             ->set('exclusivityPeriod', '30')
             ->set('additionalRequirements', 'Must have at least 10k followers.')
             ->call('nextStep')
-            ->assertSet('currentStep', 6)
-            ->assertSee('Step 6 of 6')
+            ->assertSet('currentStep', 4)
+            ->assertSee('Step 4 of 4')
             ->set('publishAction', 'schedule')
             ->assertSee('Schedule Campaign')
             ->set('publishAction', 'publish')
@@ -168,13 +160,13 @@ class CreateCampaignTest extends TestCase
             'campaign_goal' => 'Increase Awareness',
             'campaign_type' => '["brand_partnerships"]',
             'target_zip_code' => '45066',
-            'brand_overview' => 'This is a great brand.',
+            'brand_overview' => 'This is a great brand with excellent products and services.',
             'current_advertising_campaign' => 'We advertise on social media.',
             'brand_story' => 'Our brand story is compelling.',
-            'campaign_objective' => 'Our objective is to grow.',
-            'key_insights' => 'Key insights are important.',
+            'campaign_objective' => 'Our objective is to grow brand awareness and engagement.',
+            'key_insights' => 'Key insights are important for target audience understanding.',
             'fan_motivator' => 'Our fans are motivated by quality and value.',
-            'creative_connection' => 'We connect through storytelling.',
+            'creative_connection' => 'We connect through storytelling and authentic moments.',
             'specific_products' => 'We offer a range of products.',
             'posting_restrictions' => 'No posting restrictions.',
             'additional_considerations' => 'We value authenticity.',

@@ -105,7 +105,7 @@
                                         <flux:table.cell>
                                             <div>
                                                 <div class="font-medium text-zinc-900 dark:text-white">
-                                                    {{ Str::limit($campaign->campaign_goal, 60) ?: 'Untitled Campaign' }}
+                                                    {{ Str::limit($campaign->project_name ?: $campaign->campaign_goal, 60) ?: 'Untitled Campaign' }}
                                                 </div>
                                                 <div class="text-sm text-zinc-500 mt-0.5">
                                                     {{ $campaign->compensation_display ?: 'No compensation set' }}
@@ -174,7 +174,7 @@
                                         <flux:table.cell>
                                             <div>
                                                 <div class="font-medium text-zinc-900 dark:text-white">
-                                                    {{ Str::limit($campaign->campaign_goal, 60) }}
+                                                    {{ Str::limit($campaign->project_name ?: $campaign->campaign_goal, 60) }}
                                                 </div>
                                                 <div class="text-sm text-zinc-500 mt-0.5">
                                                     {{ $campaign->compensation_display }}
@@ -237,7 +237,7 @@
                                         <flux:table.cell>
                                             <div>
                                                 <div class="font-medium text-zinc-900 dark:text-white">
-                                                    {{ Str::limit($campaign->campaign_goal, 60) }}
+                                                    {{ Str::limit($campaign->project_name ?: $campaign->campaign_goal, 60) }}
                                                 </div>
                                                 <div class="text-sm text-zinc-500 mt-0.5">
                                                     {{ $campaign->compensation_display }}
@@ -318,7 +318,7 @@
                                         <flux:table.cell>
                                             <div>
                                                 <div class="font-medium text-zinc-900 dark:text-white">
-                                                    {{ Str::limit($campaign->campaign_goal, 60) }}
+                                                    {{ Str::limit($campaign->project_name ?: $campaign->campaign_goal, 60) }}
                                                 </div>
                                                 <div class="text-sm text-zinc-500 mt-0.5">
                                                     {{ $campaign->compensation_display }}
@@ -388,7 +388,7 @@
                                         <flux:table.cell>
                                             <div>
                                                 <div class="font-medium text-zinc-900 dark:text-white">
-                                                    {{ Str::limit($campaign->campaign_goal, 60) }}
+                                                    {{ Str::limit($campaign->project_name ?: $campaign->campaign_goal, 60) }}
                                                 </div>
                                                 <div class="text-sm text-zinc-500 mt-0.5">
                                                     {{ $campaign->compensation_display }}
@@ -439,7 +439,7 @@
                                         <flux:table.cell>
                                             <div>
                                                 <div class="font-medium text-zinc-900 dark:text-white">
-                                                    {{ Str::limit($campaign->campaign_goal, 60) }}
+                                                    {{ Str::limit($campaign->project_name ?: $campaign->campaign_goal, 60) }}
                                                 </div>
                                                 <div class="text-sm text-zinc-500 mt-0.5">
                                                     {{ $campaign->compensation_display }}

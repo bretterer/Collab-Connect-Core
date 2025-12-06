@@ -77,6 +77,23 @@ class BusinessSettings extends BaseComponent
 
     public string $invite_email = '';
 
+    public string $activeTab = 'profile';
+
+    // Campaign Defaults
+    public string $default_brand_overview = '';
+
+    public string $default_brand_story = '';
+
+    public string $default_brand_guidelines = '';
+
+    public string $default_current_advertising_campaign = '';
+
+    public string $default_key_insights = '';
+
+    public string $default_fan_motivator = '';
+
+    public string $default_posting_restrictions = '';
+
     public function mount()
     {
         /** @var User $user */
@@ -86,7 +103,18 @@ class BusinessSettings extends BaseComponent
             return $this->redirect(route('dashboard'));
         }
 
+        // Handle URL tab parameter
+        $tab = request()->query('tab');
+        if ($tab && in_array($tab, ['profile', 'branding', 'location', 'social', 'campaigns', 'team'])) {
+            $this->activeTab = $tab;
+        }
+
         $this->loadBusinessProfile($user);
+    }
+
+    public function setActiveTab(string $tab): void
+    {
+        $this->activeTab = $tab;
     }
 
     private function loadBusinessProfile(User $user)
@@ -149,6 +177,16 @@ class BusinessSettings extends BaseComponent
         if (empty($this->target_gender)) {
             $this->target_gender = [''];
         }
+
+        // Load campaign defaults
+        $defaults = $profile->getCampaignDefaults();
+        $this->default_brand_overview = $defaults['brand_overview'] ?? '';
+        $this->default_brand_story = $defaults['brand_story'] ?? '';
+        $this->default_brand_guidelines = $defaults['brand_guidelines'] ?? '';
+        $this->default_current_advertising_campaign = $defaults['current_advertising_campaign'] ?? '';
+        $this->default_key_insights = $defaults['default_key_insights'] ?? '';
+        $this->default_fan_motivator = $defaults['default_fan_motivator'] ?? '';
+        $this->default_posting_restrictions = $defaults['default_posting_restrictions'] ?? '';
     }
 
     public function updatedUsername($value)
@@ -280,6 +318,15 @@ class BusinessSettings extends BaseComponent
             'target_age_range' => array_filter($this->target_age_range),
             'business_goals' => array_filter($this->business_goals),
             'platforms' => array_filter($this->platforms),
+            'campaign_defaults' => [
+                'brand_overview' => $this->default_brand_overview,
+                'brand_story' => $this->default_brand_story,
+                'brand_guidelines' => $this->default_brand_guidelines,
+                'current_advertising_campaign' => $this->default_current_advertising_campaign,
+                'default_key_insights' => $this->default_key_insights,
+                'default_fan_motivator' => $this->default_fan_motivator,
+                'default_posting_restrictions' => $this->default_posting_restrictions,
+            ],
         ];
 
         $business->update($profileData);

@@ -204,9 +204,6 @@ class MatchScoreService
             case CompensationType::GIFT_CARD:
                 $variation = 8;
                 break;
-            case CompensationType::BARTER:
-                $variation = 3;
-                break;
             case CompensationType::DISCOUNT:
                 $variation = 2;
                 break;
