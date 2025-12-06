@@ -100,7 +100,6 @@ class CreateCampaignTest extends TestCase
             ->set('campaignGoal', 'Promote our new coffee blend to local coffee enthusiasts')
             ->set('campaignType', ['user_generated'])
             ->set('targetZipCode', '49503')
-            ->set('targetArea', 'Grand Rapids, MI')
             ->call('nextStep')
             ->assertSet('currentStep', 2)
             ->assertHasNoErrors();
