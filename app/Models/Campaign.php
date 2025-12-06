@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Casts\SafeEnumCast;
 use App\Enums\BusinessIndustry;
 use App\Enums\CampaignStatus;
 use App\Enums\CampaignType;
+use App\Enums\CompensationType;
 use App\Facades\MatchScore;
 use App\Jobs\SendCampaignNotifications;
 use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
@@ -83,7 +85,7 @@ class Campaign extends Model
             'archived_at' => 'datetime',
             'status' => CampaignStatus::class,
             'campaign_type' => AsEnumCollection::of(CampaignType::class),
-            'compensation_type' => \App\Enums\CompensationType::class,
+            'compensation_type' => SafeEnumCast::class.':'.CompensationType::class,
             'compensation_details' => 'array',
             'social_requirements' => 'array',
             'placement_requirements' => 'array',

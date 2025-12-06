@@ -249,15 +249,15 @@
                     <flux:error name="bio" />
                 </flux:field>
 
-                <!-- Primary Niche -->
+                <!-- Primary Industry -->
                 <flux:field class="mb-4">
-                    <flux:label>Primary Content Niche</flux:label>
+                    <flux:label>Primary Industry</flux:label>
                     <flux:select
-                        wire:model="primary_niche"
+                        wire:model="primary_industry"
                         variant="listbox"
-                        placeholder="Select your primary niche">
-                        @foreach ($nicheOptions as $niche)
-                        <flux:select.option value="{{ $niche['value'] }}">{{ $niche['label'] }}</flux:select.option>
+                        placeholder="Select your primary industry">
+                        @foreach ($businessIndustryOptions as $option)
+                        <flux:select.option value="{{ $option['value'] }}">{{ $option['label'] }}</flux:select.option>
                         @endforeach
                     </flux:select>
                 </flux:field>

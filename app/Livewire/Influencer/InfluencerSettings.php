@@ -5,7 +5,6 @@ namespace App\Livewire\Influencer;
 use App\Enums\BusinessIndustry;
 use App\Enums\BusinessType;
 use App\Enums\CompensationType;
-use App\Enums\Niche;
 use App\Enums\SocialPlatform;
 use App\Livewire\BaseComponent;
 use App\Models\User;
@@ -25,7 +24,7 @@ class InfluencerSettings extends BaseComponent
 
     public $bio = '';
 
-    public $primary_niche = '';
+    public $primary_industry = '';
 
     public $content_types = [];
 
@@ -83,7 +82,7 @@ class InfluencerSettings extends BaseComponent
         $this->username = $profile->username ?? '';
         $this->creator_name = $user->name ?? '';
         $this->bio = $profile->bio ?? '';
-        $this->primary_niche = $profile->primary_niche?->value ?? '';
+        $this->primary_industry = $profile->primary_industry?->value ?? '';
         $this->content_types = $profile->content_types ?? [];
         $this->preferred_business_types = $profile->preferred_business_types ?? [];
         $this->address = $profile->address ?? '';
@@ -229,7 +228,7 @@ class InfluencerSettings extends BaseComponent
         $rules = [
             'username' => ['nullable', 'string', 'max:255', 'alpha_dash', new UniqueUsername(null, $influencer?->id)],
             'bio' => 'nullable|string|max:1000',
-            'primary_niche' => ['nullable', Niche::validationRule()],
+            'primary_industry' => ['nullable', BusinessIndustry::validationRule()],
             'content_types' => 'nullable|array|max:3',
             'preferred_business_types' => 'nullable|array|max:2',
             'address' => 'nullable|string|max:255',
@@ -254,7 +253,7 @@ class InfluencerSettings extends BaseComponent
         $profileData = [
             'username' => $this->username,
             'bio' => $this->bio,
-            'primary_niche' => ! empty($this->primary_niche) ? Niche::from($this->primary_niche) : null,
+            'primary_industry' => ! empty($this->primary_industry) ? BusinessIndustry::from($this->primary_industry) : null,
             'content_types' => array_filter($this->content_types),
             'preferred_business_types' => array_filter($this->preferred_business_types),
             'address' => $this->address,
@@ -324,7 +323,6 @@ class InfluencerSettings extends BaseComponent
 
         return view('livewire.influencer.influencer-settings', [
             'user' => $user,
-            'nicheOptions' => Niche::toOptions(),
             'businessIndustryOptions' => BusinessIndustry::toOptions(),
             'businessTypeOptions' => BusinessType::toOptions(),
             'compensationTypeOptions' => CompensationType::toOptions(),

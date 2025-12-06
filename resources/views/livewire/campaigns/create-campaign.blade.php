@@ -57,7 +57,7 @@
 
         <!-- Defaults Applied Notice -->
         @if($hasAppliedDefaults && $currentStep <= 2)
-            <flux:callout icon="sparkles" class="mb-6">
+            <flux:callout icon="sparkles" class="mb-6 dark:bg-zinc-800 dark:text-zinc-300">
                 <div class="flex items-center justify-between">
                     <span>Brand defaults applied from your business profile settings.</span>
                     <flux:link href="{{ route('business.settings') }}" wire:navigate class="text-sm">Manage defaults</flux:link>
