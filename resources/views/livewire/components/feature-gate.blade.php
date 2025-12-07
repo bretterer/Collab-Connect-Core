@@ -1,0 +1,22 @@
+<div>
+    @if($this->isAccessible())
+        {{ $slot ?? '' }}
+    @elseif($this->isComingSoon())
+        <livewire:components.coming-soon
+            :title="$title"
+            :description="$description"
+            :features="$features"
+            :icon="$icon"
+            :expected-date="$expectedDate"
+            :show-notify-button="$showNotifyButton"
+        />
+    @elseif($this->isSubscriptionRequired())
+        <livewire:components.subscription-prompt
+            :variant="$subscriptionVariant"
+            :heading="$subscriptionHeading"
+            :description="$subscriptionDescription"
+            :features="$subscriptionFeatures"
+            :button-text="$subscriptionButtonText"
+        />
+    @endif
+</div>
