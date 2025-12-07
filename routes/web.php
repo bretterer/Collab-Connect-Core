@@ -95,6 +95,9 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
             Route::get('/{user}', App\Livewire\Admin\Referrals\ReferralShow::class)->name('show');
         });
 
+        // Component Preview (dev tools)
+        Route::get('/component-preview', App\Livewire\Admin\ComponentPreview::class)->name('component-preview');
+
     });
 
     Route::middleware(['auth', EnsureNeedsOnboarding::class])->group(function () {
