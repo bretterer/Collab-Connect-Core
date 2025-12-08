@@ -1,8 +1,18 @@
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<form wire:submit="updateBusinessSettings" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Page Header -->
-    <div class="mb-6">
-        <flux:heading size="xl">Business Settings</flux:heading>
-        <flux:text class="text-zinc-500">Manage your business profile, team members, and preferences</flux:text>
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <flux:heading size="xl">Business Settings</flux:heading>
+            <flux:text class="text-zinc-500">Manage your business profile, team members, and preferences</flux:text>
+        </div>
+        <div class="flex items-center gap-3">
+            <flux:button type="button" variant="ghost" href="{{ route('dashboard') }}">
+                Cancel
+            </flux:button>
+            <flux:button type="submit" variant="primary" icon="check">
+                Save Settings
+            </flux:button>
+        </div>
     </div>
 
     <!-- Navigation Tabs -->
@@ -45,9 +55,8 @@
         </flux:navbar.item>
     </flux:navbar>
 
-    <!-- Main Form -->
+    <!-- Main Content -->
     <flux:card>
-        <form wire:submit="updateBusinessSettings">
             <!-- Profile Tab -->
             @if($activeTab === 'profile')
                 <div class="space-y-8">
@@ -785,38 +794,5 @@
                     </div>
                 </div>
             @endif
-
-            <!-- Submit Section -->
-            <div class="pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="h-8 w-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                            <flux:icon.check-circle class="h-4 w-4 text-green-600 dark:text-green-400" />
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-900 dark:text-white">Ready to save your changes?</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">All changes will be saved immediately</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center space-x-4">
-                        <flux:button
-                            type="button"
-                            variant="ghost"
-                            href="{{ route('dashboard') }}"
-                            icon="arrow-long-left">
-                            Cancel
-                        </flux:button>
-
-                        <flux:button
-                            type="submit"
-                            variant="primary"
-                            icon="check">
-                            Update Business Settings
-                        </flux:button>
-                    </div>
-                </div>
-            </div>
-        </form>
     </flux:card>
-</div>
+</form>

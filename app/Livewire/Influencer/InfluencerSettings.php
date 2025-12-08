@@ -4,7 +4,9 @@ namespace App\Livewire\Influencer;
 
 use App\Enums\BusinessIndustry;
 use App\Enums\BusinessType;
+use App\Enums\CampaignType;
 use App\Enums\CompensationType;
+use App\Enums\DeliverableType;
 use App\Enums\SocialPlatform;
 use App\Livewire\BaseComponent;
 use App\Models\User;
@@ -18,87 +20,135 @@ class InfluencerSettings extends BaseComponent
 {
     use WithFileUploads;
 
-    public $username = '';
+    public string $activeTab = 'account';
 
-    public $creator_name = '';
+    // Account Settings
+    public bool $is_campaign_active = true;
 
-    public $bio = '';
+    public bool $is_accepting_invitations = true;
 
-    public $primary_industry = '';
+    // Profile
+    public string $username = '';
 
-    public $content_types = [];
+    public string $bio = '';
 
-    public $preferred_business_types = [];
+    public string $about_yourself = '';
 
-    public $address = '';
-
-    public $city = '';
-
-    public $state = '';
-
-    public $county = '';
-
-    public $postal_code = '';
-
-    public $phone_number = '';
-
-    public $compensation_types = [];
-
-    public $typical_lead_time_days = null;
-
-    public $social_accounts = [];
-
-    public $media_kit_url = '';
-
-    public $has_media_kit = false;
-
-    public $collaboration_preferences = [''];
-
-    public $preferred_brands = [''];
+    public string $passions = '';
 
     public $profile_image;
 
     public $banner_image;
 
-    public function mount()
+    // Match Profile - Industry & Content
+    public string $primary_industry = '';
+
+    public array $content_types = [];
+
+    public array $preferred_business_types = [];
+
+    public array $preferred_campaign_types = [];
+
+    public array $deliverable_types = [];
+
+    // Match Profile - Compensation
+    public array $compensation_types = [];
+
+    public ?int $typical_lead_time_days = null;
+
+    // Location
+    public string $address = '';
+
+    public string $city = '';
+
+    public string $state = '';
+
+    public string $county = '';
+
+    public string $postal_code = '';
+
+    public string $phone_number = '';
+
+    // Social accounts
+    public array $social_accounts = [];
+
+    public function mount(): void
     {
         /** @var User $user */
         $user = $this->getAuthenticatedUser();
 
         if (! $user->isInfluencerAccount()) {
-            return $this->redirect(route('dashboard'));
+            $this->redirect(route('dashboard'));
+
+            return;
+        }
+
+        // Handle URL tab parameter
+        $tab = request()->query('tab');
+        if ($tab && in_array($tab, ['account', 'match', 'social', 'portfolio'])) {
+            $this->activeTab = $tab;
         }
 
         $this->loadInfluencerProfile($user);
     }
 
-    private function loadInfluencerProfile(User $user)
+    public function setActiveTab(string $tab): void
+    {
+        $this->activeTab = $tab;
+    }
+
+    private function loadInfluencerProfile(User $user): void
     {
         $profile = $user->influencer;
         if (! $profile) {
             return;
         }
 
+        // Account Settings
+        $this->is_campaign_active = $profile->is_campaign_active ?? true;
+        $this->is_accepting_invitations = $profile->is_accepting_invitations ?? true;
+
+        // Profile
         $this->username = $profile->username ?? '';
-        $this->creator_name = $user->name ?? '';
         $this->bio = $profile->bio ?? '';
+        $this->about_yourself = $profile->about_yourself ?? '';
+        $this->passions = $profile->passions ?? '';
+
+        // Match Profile - Industry & Content
         $this->primary_industry = $profile->primary_industry?->value ?? '';
-        $this->content_types = $profile->content_types ?? [];
+        // Filter out any invalid content types that don't exist in the enum
+        $validCampaignTypes = array_column(CampaignType::cases(), 'value');
+        $this->content_types = array_values(array_filter(
+            $profile->content_types ?? [],
+            fn ($type) => in_array($type, $validCampaignTypes)
+        ));
         $this->preferred_business_types = $profile->preferred_business_types ?? [];
+        $this->preferred_campaign_types = $profile->preferred_campaign_types ?? [];
+        $this->deliverable_types = $profile->deliverable_types ?? [];
+
+        // Match Profile - Compensation
+        // Filter out any invalid compensation types that don't exist in the enum
+        $validCompensationTypes = array_column(CompensationType::cases(), 'value');
+        $this->compensation_types = array_values(array_filter(
+            $profile->compensation_types ?? [],
+            fn ($type) => in_array($type, $validCompensationTypes)
+        ));
+        $this->typical_lead_time_days = $profile->typical_lead_time_days;
+
+        // Location
         $this->address = $profile->address ?? '';
         $this->city = $profile->city ?? '';
         $this->state = $profile->state ?? '';
         $this->county = $profile->county ?? '';
         $this->postal_code = $profile->postal_code ?? '';
         $this->phone_number = $profile->phone_number ?? '';
-        $this->compensation_types = $profile->compensation_types ?? [];
-        $this->typical_lead_time_days = $profile->typical_lead_time_days;
-        $this->media_kit_url = '';
-        $this->has_media_kit = false;
-        $this->collaboration_preferences = [''];
-        $this->preferred_brands = [''];
 
         // Load social accounts
+        $this->loadSocialAccounts($profile);
+    }
+
+    private function loadSocialAccounts($profile): void
+    {
         $this->social_accounts = [];
         foreach (SocialPlatform::cases() as $platform) {
             $this->social_accounts[$platform->value] = [
@@ -108,7 +158,7 @@ class InfluencerSettings extends BaseComponent
             ];
         }
 
-        if ($profile->socialAccounts) {
+        if ($profile?->socialAccounts) {
             foreach ($profile->socialAccounts as $account) {
                 $this->social_accounts[$account->platform->value] = [
                     'platform' => $account->platform->value,
@@ -117,20 +167,9 @@ class InfluencerSettings extends BaseComponent
                 ];
             }
         }
-
-        // Initialize arrays if empty
-        if (empty($this->content_types)) {
-            $this->content_types = [''];
-        }
-        if (empty($this->preferred_business_types)) {
-            $this->preferred_business_types = [''];
-        }
-        if (empty($this->compensation_types)) {
-            $this->compensation_types = [''];
-        }
     }
 
-    public function updatedUsername($value)
+    public function updatedUsername(): void
     {
         /** @var User $user */
         $user = $this->getAuthenticatedUser();
@@ -141,78 +180,23 @@ class InfluencerSettings extends BaseComponent
         ]);
     }
 
-    public function addContentType()
+    public function updatedContentTypes(): void
     {
-        if (count($this->content_types) < 3) {
-            $this->content_types[] = '';
+        if (count($this->content_types) > 3) {
+            $this->content_types = array_slice($this->content_types, 0, 3);
+            \Flux::toast('You can only select up to 3 content types.', variant: 'danger', position: 'bottom right');
         }
     }
 
-    public function removeContentType($index)
+    public function updatedCompensationTypes(): void
     {
-        if (count($this->content_types) > 1) {
-            unset($this->content_types[$index]);
-            $this->content_types = array_values($this->content_types);
+        if (count($this->compensation_types) > 3) {
+            $this->compensation_types = array_slice($this->compensation_types, 0, 3);
+            \Flux::toast('You can only select up to 3 compensation types.', variant: 'danger', position: 'bottom right');
         }
     }
 
-    public function addBusinessType()
-    {
-        if (count($this->preferred_business_types) < 2) {
-            $this->preferred_business_types[] = '';
-        }
-    }
-
-    public function removeBusinessType($index)
-    {
-        if (count($this->preferred_business_types) > 1) {
-            unset($this->preferred_business_types[$index]);
-            $this->preferred_business_types = array_values($this->preferred_business_types);
-        }
-    }
-
-    public function addCompensationType()
-    {
-        if (count($this->compensation_types) < 3) {
-            $this->compensation_types[] = '';
-        }
-    }
-
-    public function removeCompensationType($index)
-    {
-        if (count($this->compensation_types) > 1) {
-            unset($this->compensation_types[$index]);
-            $this->compensation_types = array_values($this->compensation_types);
-        }
-    }
-
-    public function addCollaborationPreference()
-    {
-        $this->collaboration_preferences[] = '';
-    }
-
-    public function removeCollaborationPreference($index)
-    {
-        if (count($this->collaboration_preferences) > 1) {
-            unset($this->collaboration_preferences[$index]);
-            $this->collaboration_preferences = array_values($this->collaboration_preferences);
-        }
-    }
-
-    public function addPreferredBrand()
-    {
-        $this->preferred_brands[] = '';
-    }
-
-    public function removePreferredBrand($index)
-    {
-        if (count($this->preferred_brands) > 1) {
-            unset($this->preferred_brands[$index]);
-            $this->preferred_brands = array_values($this->preferred_brands);
-        }
-    }
-
-    public function updateInfluencerSettings()
+    public function updateInfluencerSettings(): void
     {
         /** @var User $user */
         $user = $this->getAuthenticatedUser();
@@ -228,9 +212,13 @@ class InfluencerSettings extends BaseComponent
         $rules = [
             'username' => ['nullable', 'string', 'max:255', 'alpha_dash', new UniqueUsername(null, $influencer?->id)],
             'bio' => 'nullable|string|max:1000',
+            'about_yourself' => 'nullable|string|max:2000',
+            'passions' => 'nullable|string|max:2000',
             'primary_industry' => ['nullable', BusinessIndustry::validationRule()],
             'content_types' => 'nullable|array|max:3',
             'preferred_business_types' => 'nullable|array|max:2',
+            'preferred_campaign_types' => 'nullable|array',
+            'deliverable_types' => 'nullable|array',
             'address' => 'nullable|string|max:255',
             'city' => 'required|string|max:100',
             'state' => 'required|string|max:100',
@@ -239,6 +227,8 @@ class InfluencerSettings extends BaseComponent
             'phone_number' => 'required|string|max:20',
             'compensation_types' => 'nullable|array|max:3',
             'typical_lead_time_days' => 'required|integer|min:1|max:365',
+            'is_campaign_active' => 'boolean',
+            'is_accepting_invitations' => 'boolean',
         ];
 
         if ($this->profile_image) {
@@ -253,9 +243,13 @@ class InfluencerSettings extends BaseComponent
         $profileData = [
             'username' => $this->username,
             'bio' => $this->bio,
+            'about_yourself' => $this->about_yourself,
+            'passions' => $this->passions,
             'primary_industry' => ! empty($this->primary_industry) ? BusinessIndustry::from($this->primary_industry) : null,
             'content_types' => array_filter($this->content_types),
             'preferred_business_types' => array_filter($this->preferred_business_types),
+            'preferred_campaign_types' => array_filter($this->preferred_campaign_types),
+            'deliverable_types' => array_filter($this->deliverable_types),
             'address' => $this->address,
             'city' => $this->city,
             'state' => $this->state,
@@ -264,6 +258,8 @@ class InfluencerSettings extends BaseComponent
             'phone_number' => $this->phone_number,
             'compensation_types' => array_filter($this->compensation_types),
             'typical_lead_time_days' => $this->typical_lead_time_days,
+            'is_campaign_active' => $this->is_campaign_active,
+            'is_accepting_invitations' => $this->is_accepting_invitations,
         ];
 
         $influencer = $user->influencer()->updateOrCreate(['user_id' => $user->id], $profileData);
@@ -286,12 +282,10 @@ class InfluencerSettings extends BaseComponent
         if ($this->profile_image) {
             try {
                 $influencer->clearMediaCollection('profile_image');
-
                 $influencer->addMedia($this->profile_image->getRealPath())
                     ->usingName('Profile Image')
                     ->usingFileName($this->profile_image->getClientOriginalName())
                     ->toMediaCollection('profile_image');
-
                 $this->profile_image = null;
             } catch (\Exception $e) {
                 $this->addError('profile_image', 'Failed to upload profile image: '.$e->getMessage());
@@ -301,12 +295,10 @@ class InfluencerSettings extends BaseComponent
         if ($this->banner_image) {
             try {
                 $influencer->clearMediaCollection('banner_image');
-
                 $influencer->addMedia($this->banner_image->getRealPath())
                     ->usingName('Banner Image')
                     ->usingFileName($this->banner_image->getClientOriginalName())
                     ->toMediaCollection('banner_image');
-
                 $this->banner_image = null;
             } catch (\Exception $e) {
                 $this->addError('banner_image', 'Failed to upload banner image: '.$e->getMessage());
@@ -314,6 +306,28 @@ class InfluencerSettings extends BaseComponent
         }
 
         Toaster::success('Influencer settings updated successfully!');
+    }
+
+    /**
+     * Check which tabs need attention (have incomplete fields).
+     *
+     * @return array<string, bool>
+     */
+    public function getTabNeedsAttentionProperty(): array
+    {
+        return [
+            'account' => false,
+            'match' => false,
+            'social' => false,
+            'portfolio' => false,
+        ];
+
+        // [
+        //     'account' => empty($this->username),
+        //     'match' => empty($this->about_yourself) && empty($this->passions) && empty(array_filter($this->content_types ?? [])),
+        //     'social' => collect($this->social_accounts)->filter(fn ($a) => ! empty($a['username']))->count() === 0,
+        //     'portfolio' => false,
+        // ];
     }
 
     public function render()
@@ -327,6 +341,8 @@ class InfluencerSettings extends BaseComponent
             'businessTypeOptions' => BusinessType::toOptions(),
             'compensationTypeOptions' => CompensationType::toOptions(),
             'socialPlatformOptions' => SocialPlatform::toOptions(),
+            'campaignTypeOptions' => CampaignType::toOptions(),
+            'deliverableTypeOptions' => DeliverableType::toOptions(),
         ]);
     }
 }

@@ -23,6 +23,8 @@ class Influencer extends Model implements HasMedia
         'user_id',
         'username',
         'bio',
+        'about_yourself',
+        'passions',
         'address',
         'city',
         'state',
@@ -34,7 +36,13 @@ class Influencer extends Model implements HasMedia
         'compensation_types',
         'primary_industry',
         'typical_lead_time_days',
+        'min_rate',
+        'max_rate',
         'onboarding_complete',
+        'is_campaign_active',
+        'is_accepting_invitations',
+        'preferred_campaign_types',
+        'deliverable_types',
     ];
 
     protected function casts(): array
@@ -45,6 +53,10 @@ class Influencer extends Model implements HasMedia
             'compensation_types' => 'array',
             'primary_industry' => BusinessIndustry::class,
             'onboarding_complete' => 'boolean',
+            'is_campaign_active' => 'boolean',
+            'is_accepting_invitations' => 'boolean',
+            'preferred_campaign_types' => 'array',
+            'deliverable_types' => 'array',
         ];
     }
 

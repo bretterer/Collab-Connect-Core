@@ -12,24 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('influencers', function (Blueprint $table) {
-            // Account Settings
+            // Account Settings - visibility controls
             $table->boolean('is_campaign_active')->default(true)->after('onboarding_complete');
             $table->boolean('is_accepting_invitations')->default(true)->after('is_campaign_active');
 
-            // Match Profile - About
+            // Match Profile - About (helps businesses understand the influencer)
             $table->text('about_yourself')->nullable()->after('bio');
             $table->text('passions')->nullable()->after('about_yourself');
 
-            // Match Profile - Creator Account
-            $table->json('topics')->nullable()->after('passions');
-            $table->json('account_niches')->nullable()->after('topics');
+            // Match Profile - Preferred campaign types (helps match scoring)
+            $table->json('preferred_campaign_types')->nullable()->after('passions');
 
-            // Match Profile - Brands
-            $table->json('preferred_companies')->nullable()->after('account_niches');
-            $table->json('interested_brand_types')->nullable()->after('preferred_companies');
-
-            // Match Profile - Collaboration deliverables
-            $table->json('collaboration_deliverables')->nullable()->after('interested_brand_types');
+            // Match Profile - Deliverables the influencer can provide
+            $table->json('deliverable_types')->nullable()->after('preferred_campaign_types');
         });
     }
 
@@ -44,11 +39,8 @@ return new class extends Migration
                 'is_accepting_invitations',
                 'about_yourself',
                 'passions',
-                'topics',
-                'account_niches',
-                'preferred_companies',
-                'interested_brand_types',
-                'collaboration_deliverables',
+                'preferred_campaign_types',
+                'deliverable_types',
             ]);
         });
     }

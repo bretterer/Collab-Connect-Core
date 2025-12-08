@@ -35,15 +35,17 @@ class HighMatchScoreTest extends TestCase
         $influencerUser = User::factory()->influencer()->withProfile([
             'postal_code' => '49503', // Exact location match
             'primary_industry' => BusinessIndustry::FITNESS_WELLNESS, // Exact industry match
+            'content_types' => [CampaignType::BRAND_PARTNERSHIPS->value], // Matches campaign type
+            'compensation_types' => [CompensationType::MONETARY->value], // Matches compensation type
         ])->create();
 
         $campaign = $businessUser->currentBusiness->campaigns()->create(
             Campaign::factory()->make([
                 'target_zip_code' => '49503', // Exact match = 100 points
-                'campaign_type' => CampaignType::BRAND_PARTNERSHIPS, // +15 variation = 85 base
-                'compensation_type' => CompensationType::MONETARY, // +10 variation = 80 base
-                'compensation_amount' => 1000, // +10 amount factor = 90 base
-                'campaign_goal' => 'Amazing fitness brand partnership', // Good for randomness
+                'campaign_type' => CampaignType::BRAND_PARTNERSHIPS,
+                'compensation_type' => CompensationType::MONETARY,
+                'compensation_amount' => 1000,
+                'campaign_goal' => 'Amazing fitness brand partnership',
             ])->toArray()
         );
 
@@ -78,14 +80,16 @@ class HighMatchScoreTest extends TestCase
         $influencerUser = User::factory()->influencer()->withProfile([
             'postal_code' => '49504', // Close location
             'primary_industry' => BusinessIndustry::FASHION_APPAREL, // Related industry = 80 points
+            'content_types' => [CampaignType::PRODUCT_REVIEWS->value], // Matches campaign type
+            'compensation_types' => [CompensationType::GIFT_CARD->value], // Matches compensation type
         ])->create();
 
         $campaign = $businessUser->currentBusiness->campaigns()->create(
             Campaign::factory()->make([
                 'target_zip_code' => '49503', // Close match ~95+ points within radius
-                'campaign_type' => CampaignType::PRODUCT_REVIEWS, // +10 variation = 80 base
-                'compensation_type' => CompensationType::GIFT_CARD, // +8 variation = 78 base
-                'compensation_amount' => 500, // +5 amount factor = 83 base
+                'campaign_type' => CampaignType::PRODUCT_REVIEWS,
+                'compensation_type' => CompensationType::GIFT_CARD,
+                'compensation_amount' => 500,
                 'campaign_goal' => 'Beauty product review campaign',
             ])->toArray()
         );
@@ -108,14 +112,16 @@ class HighMatchScoreTest extends TestCase
         $influencerUser = User::factory()->influencer()->withProfile([
             'postal_code' => null, // No location data
             'primary_industry' => BusinessIndustry::FITNESS_WELLNESS, // Exact match = 100 points
+            'content_types' => [CampaignType::SPONSORED_POSTS->value], // Matches campaign type
+            'compensation_types' => [CompensationType::FREE_PRODUCT->value], // Matches compensation type
         ])->create();
 
         $campaign = $businessUser->currentBusiness->campaigns()->create(
             Campaign::factory()->make([
                 'target_zip_code' => '00000', // Dummy zip that doesn't exist in PostalCode table = 50 points
-                'campaign_type' => CampaignType::SPONSORED_POSTS, // +5 variation = 75 base
-                'compensation_type' => CompensationType::FREE_PRODUCT, // +5 variation = 75 base
-                'compensation_amount' => 200, // +2 amount factor = 77 base
+                'campaign_type' => CampaignType::SPONSORED_POSTS,
+                'compensation_type' => CompensationType::FREE_PRODUCT,
+                'compensation_amount' => 200,
                 'campaign_goal' => 'Fitness lifestyle sponsored content',
                 'campaign_description' => 'fitness wellness lifestyle health',
             ])->toArray()
@@ -130,12 +136,12 @@ class HighMatchScoreTest extends TestCase
 
     public function test_create_campaign_with_target_score(): void
     {
-        // Target: 85% match
-        // Location: 35% * 90 = 31.5 points (close proximity)
+        // Target: 90%+ match
+        // Location: 35% * ~95 = ~33 points (close proximity)
         // Industry: 35% * 100 = 35 points (exact match)
-        // Campaign: 20% * 75 = 15 points (decent type)
-        // Compensation: 10% * 85 = 8.5 points (good compensation)
-        // Total: ~90 points
+        // Campaign: 20% * 100 = 20 points (exact type match)
+        // Compensation: 10% * 100 = 10 points (exact compensation match)
+        // Total: ~98 points
 
         PostalCode::factory()->create([
             'postal_code' => '49503',
@@ -159,12 +165,14 @@ class HighMatchScoreTest extends TestCase
         $influencerUser = User::factory()->influencer()->withProfile([
             'postal_code' => '49505',
             'primary_industry' => BusinessIndustry::FITNESS_WELLNESS,
+            'content_types' => [CampaignType::BRAND_PARTNERSHIPS->value], // Matches campaign type
+            'compensation_types' => [CompensationType::MONETARY->value], // Matches compensation type
         ])->create();
 
         $campaign = $businessUser->currentBusiness->campaigns()->create(
             Campaign::factory()->make([
                 'target_zip_code' => '49503',
-                'campaign_type' => CampaignType::BRAND_PARTNERSHIPS, // High variation
+                'campaign_type' => CampaignType::BRAND_PARTNERSHIPS,
                 'compensation_type' => CompensationType::MONETARY,
                 'compensation_amount' => 800,
                 'campaign_goal' => 'Premium fitness brand collaboration',
