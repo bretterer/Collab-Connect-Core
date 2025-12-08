@@ -19,17 +19,37 @@ class ApplyToCampaign extends BaseComponent
 
     public string $buttonText = 'Apply Now';
 
+    public string $buttonVariant = 'primary';
+
     public ?CampaignApplication $existingApplication = null;
 
-    public function mount(Campaign $campaign, string $buttonText = 'Apply Now')
-    {
-        $this->campaign = $campaign->load(['business']);
-        $this->buttonText = $buttonText;
+    public function mount(
+        Campaign $campaign,
+        string $buttonText = 'Apply Now',
+        string $buttonVariant = 'primary',
+        mixed $existingApplication = null,
+        bool $applicationPreloaded = false
+    ) {
+        // Only load business if not already loaded
+        $this->campaign = $campaign->relationLoaded('business')
+            ? $campaign
+            : $campaign->load(['business']);
 
-        // Check if user already applied
-        $this->existingApplication = CampaignApplication::where('campaign_id', $this->campaign->id)
-            ->where('user_id', Auth::user()->id)
-            ->first();
+        $this->buttonText = $buttonText;
+        $this->buttonVariant = $buttonVariant;
+
+        // Handle the existing application - could be a model instance or null
+        if ($existingApplication instanceof CampaignApplication) {
+            $this->existingApplication = $existingApplication;
+        } elseif ($applicationPreloaded) {
+            // Data was pre-loaded, null means no application exists
+            $this->existingApplication = null;
+        } else {
+            // Query if not provided (fallback for other usages)
+            $this->existingApplication = CampaignApplication::where('campaign_id', $this->campaign->id)
+                ->where('user_id', Auth::id())
+                ->first();
+        }
     }
 
     public function openModal()

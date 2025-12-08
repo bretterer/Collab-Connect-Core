@@ -294,13 +294,23 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Cached unread message count for the current request
+     */
+    private ?int $cachedUnreadMessageCount = null;
+
+    /**
      * Get the total count of unread messages across all chats for this user.
+     * Result is cached for the duration of the request.
      */
     public function getUnreadMessageCount(): int
     {
-        return Message::whereIn('chat_id', $this->chats()->pluck('id'))
-            ->unreadFor($this)
-            ->count();
+        if ($this->cachedUnreadMessageCount === null) {
+            $this->cachedUnreadMessageCount = Message::whereIn('chat_id', $this->chats()->pluck('id'))
+                ->unreadFor($this)
+                ->count();
+        }
+
+        return $this->cachedUnreadMessageCount;
     }
 
     /**
@@ -312,11 +322,53 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Clear the cached unread message count (call after marking messages as read)
+     */
+    public function clearUnreadMessageCountCache(): void
+    {
+        $this->cachedUnreadMessageCount = null;
+    }
+
+    /**
      * Get the user's market waitlist entry
      */
     public function marketWaitlist(): HasOne
     {
         return $this->hasOne(MarketWaitlist::class);
+    }
+
+    /**
+     * Get the campaigns saved by this user
+     */
+    public function savedCampaigns(): BelongsToMany
+    {
+        return $this->belongsToMany(Campaign::class, 'saved_campaigns')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the campaigns hidden by this user
+     */
+    public function hiddenCampaigns(): BelongsToMany
+    {
+        return $this->belongsToMany(Campaign::class, 'hidden_campaigns')
+            ->withTimestamps();
+    }
+
+    /**
+     * Check if a campaign is saved by this user
+     */
+    public function hasSavedCampaign(Campaign $campaign): bool
+    {
+        return $this->savedCampaigns()->where('campaign_id', $campaign->id)->exists();
+    }
+
+    /**
+     * Check if a campaign is hidden by this user
+     */
+    public function hasHiddenCampaign(Campaign $campaign): bool
+    {
+        return $this->hiddenCampaigns()->where('campaign_id', $campaign->id)->exists();
     }
 
     /**

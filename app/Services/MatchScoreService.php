@@ -7,9 +7,110 @@ use App\Enums\CampaignType;
 use App\Enums\CompensationType;
 use App\Models\Campaign;
 use App\Models\PostalCode;
+use Illuminate\Support\Collection;
 
 class MatchScoreService
 {
+    /**
+     * Cache of postal codes keyed by postal_code string
+     */
+    private array $postalCodeCache = [];
+
+    /**
+     * Pre-load postal codes for a batch of campaigns and an influencer.
+     * This reduces N+1 queries when calculating scores for multiple campaigns.
+     *
+     * @param  Collection<Campaign>  $campaigns
+     */
+    public function preloadPostalCodes(Collection $campaigns, $influencerProfile): void
+    {
+        $postalCodes = collect();
+
+        // Collect all unique postal codes we need
+        $campaignPostalCodes = $campaigns->pluck('target_zip_code')->filter()->unique();
+        $postalCodes = $postalCodes->merge($campaignPostalCodes);
+
+        if ($influencerProfile->postal_code) {
+            $postalCodes->push($influencerProfile->postal_code);
+        }
+
+        $postalCodes = $postalCodes->unique()->values();
+
+        if ($postalCodes->isEmpty()) {
+            return;
+        }
+
+        // Single query to load all postal codes
+        $loaded = PostalCode::whereIn('postal_code', $postalCodes)->get();
+
+        // Cache them by postal_code
+        foreach ($loaded as $postalCode) {
+            $this->postalCodeCache[$postalCode->postal_code] = $postalCode;
+        }
+    }
+
+    /**
+     * Get a postal code from cache or database
+     */
+    private function getPostalCode(?string $postalCode): ?PostalCode
+    {
+        if (! $postalCode) {
+            return null;
+        }
+
+        if (isset($this->postalCodeCache[$postalCode])) {
+            return $this->postalCodeCache[$postalCode];
+        }
+
+        // Fallback to database if not cached (shouldn't happen if preload was called)
+        $loaded = PostalCode::where('postal_code', $postalCode)->first();
+        if ($loaded) {
+            $this->postalCodeCache[$postalCode] = $loaded;
+        }
+
+        return $loaded;
+    }
+
+    /**
+     * Pre-load postal codes for one campaign and multiple influencer profiles.
+     * This reduces N+1 queries when calculating scores for multiple influencers.
+     */
+    public function preloadPostalCodesForInfluencers(Campaign $campaign, Collection $influencerProfiles): void
+    {
+        $postalCodes = collect();
+
+        // Add campaign postal code
+        if ($campaign->target_zip_code) {
+            $postalCodes->push($campaign->target_zip_code);
+        }
+
+        // Collect all unique influencer postal codes
+        $influencerPostalCodes = $influencerProfiles->pluck('postal_code')->filter()->unique();
+        $postalCodes = $postalCodes->merge($influencerPostalCodes);
+
+        $postalCodes = $postalCodes->unique()->values();
+
+        if ($postalCodes->isEmpty()) {
+            return;
+        }
+
+        // Single query to load all postal codes
+        $loaded = PostalCode::whereIn('postal_code', $postalCodes)->get();
+
+        // Cache them by postal_code
+        foreach ($loaded as $postalCode) {
+            $this->postalCodeCache[$postalCode->postal_code] = $postalCode;
+        }
+    }
+
+    /**
+     * Clear the postal code cache
+     */
+    public function clearCache(): void
+    {
+        $this->postalCodeCache = [];
+    }
+
     public function calculateMatchScore(Campaign $campaign, $influencerProfile, int $searchRadius = 50): float
     {
         $score = 0.0;
@@ -36,8 +137,8 @@ class MatchScoreService
             return 100.0;
         }
 
-        $campaignPostalCode = PostalCode::where('postal_code', $campaignZipCode)->first();
-        $influencerPostalCode = PostalCode::where('postal_code', $influencerZipCode)->first();
+        $campaignPostalCode = $this->getPostalCode($campaignZipCode);
+        $influencerPostalCode = $this->getPostalCode($influencerZipCode);
 
         if ($campaignPostalCode && $influencerPostalCode) {
             $distance = $campaignPostalCode->distanceTo($influencerPostalCode);

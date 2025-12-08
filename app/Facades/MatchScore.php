@@ -6,6 +6,9 @@ use App\Services\MatchScoreService;
 use Illuminate\Support\Facades\Facade;
 
 /**
+ * @method static void preloadPostalCodes(\Illuminate\Support\Collection $campaigns, $influencerProfile)
+ * @method static void preloadPostalCodesForInfluencers(\App\Models\Campaign $campaign, \Illuminate\Support\Collection $influencerProfiles)
+ * @method static void clearCache()
  * @method static float calculateMatchScore(\App\Models\Campaign $campaign, $influencerProfile, int $searchRadius = 50)
  * @method static float calculateLocationScore(\App\Models\Campaign $campaign, $influencerProfile, int $searchRadius)
  * @method static float calculateIndustryScore(\App\Models\Campaign $campaign, $influencerProfile)
