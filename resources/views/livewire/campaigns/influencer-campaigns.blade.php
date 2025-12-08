@@ -2,10 +2,10 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Header -->
         <div class="mb-8">
-            <div class="bg-gradient-to-r from-pink-500 to-purple-600 overflow-hidden shadow rounded-lg">
+            <div class="bg-gradient-to-r from-pink-500 to-purple-600 dark:from-pink-600 dark:to-purple-700 overflow-hidden shadow rounded-lg">
                 <div class="px-4 py-5 sm:p-6 text-white">
                     <h1 class="text-3xl font-bold mb-2">
-                        Discover Campaigns ✨
+                        Discover Campaigns
                     </h1>
                     <p class="text-pink-100 text-lg">
                         Find the perfect collaboration opportunities that match your profile and interests.
@@ -14,65 +14,76 @@
             </div>
         </div>
 
-        <!-- Filters -->
-        <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6" x-data="{ filtersOpen: false }">
-            <div class="p-6">
+        <!-- Tabs -->
+        <div class="mb-6">
+            <flux:tabs wire:model.live="activeTab" variant="segmented">
+                <flux:tab name="all" icon="magnifying-glass">
+                    All Campaigns
+                </flux:tab>
+                <flux:tab name="saved" icon="heart">
+                    Saved
+                    @if($savedCount > 0)
+                        <flux:badge size="sm" color="pink" class="ml-1">{{ $savedCount }}</flux:badge>
+                    @endif
+                </flux:tab>
+                <flux:tab name="hidden" icon="eye-slash">
+                    Hidden
+                    @if($hiddenCount > 0)
+                        <flux:badge size="sm" color="zinc" class="ml-1">{{ $hiddenCount }}</flux:badge>
+                    @endif
+                </flux:tab>
+            </flux:tabs>
+        </div>
+
+        <!-- Filters (not shown on hidden tab) -->
+        @if($activeTab !== 'hidden')
+        <div class="bg-white dark:bg-zinc-800 shadow rounded-lg mb-6" x-data="{ filtersOpen: false }">
+            <div class="p-4 sm:p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center space-x-3">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Filters</h3>
+                    <div class="flex items-center gap-3">
+                        <h3 class="text-lg font-medium text-zinc-900 dark:text-white">Filters</h3>
                         <!-- Active Filter Badges (when collapsed) -->
-                        <div x-show="!filtersOpen" class="flex items-center space-x-2">
+                        <div x-show="!filtersOpen" class="flex items-center gap-2 flex-wrap">
                             @if($search)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+                            <flux:badge color="blue" size="sm">
                                 Search: {{ Str::limit($search, 15) }}
-                            </span>
+                                <button wire:click="$set('search', '')" class="ml-1 hover:text-blue-200">&times;</button>
+                            </flux:badge>
                             @endif
                             @if(count($selectedNiches) > 0)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
-                                {{ count($selectedNiches) }} Industry{{ count($selectedNiches) > 1 ? 'ies' : 'y' }}
-                            </span>
+                            <flux:badge color="green" size="sm">
+                                {{ count($selectedNiches) }} Industry{{ count($selectedNiches) > 1 ? 'ies' : '' }}
+                                <button wire:click="$set('selectedNiches', [])" class="ml-1 hover:text-green-200">&times;</button>
+                            </flux:badge>
                             @endif
                             @if(count($selectedCampaignTypes) > 0)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400">
+                            <flux:badge color="purple" size="sm">
                                 {{ count($selectedCampaignTypes) }} Type{{ count($selectedCampaignTypes) > 1 ? 's' : '' }}
-                            </span>
+                                <button wire:click="$set('selectedCampaignTypes', [])" class="ml-1 hover:text-purple-200">&times;</button>
+                            </flux:badge>
                             @endif
                             @if($sortBy !== 'match_score')
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400">
+                            <flux:badge color="amber" size="sm">
                                 Sort: {{ ucfirst(str_replace('_', ' ', $sortBy)) }}
-                            </span>
-                            @endif
-                            @if($perPage !== '6')
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400">
-                                {{ $perPage }} per page
-                            </span>
+                            </flux:badge>
                             @endif
 
-                            <!-- Clear Filters Button (when collapsed and filters exist) -->
                             @if($search || count($selectedNiches) > 0 || count($selectedCampaignTypes) > 0 || $sortBy !== 'match_score')
-                            <button
-                                wire:click="clearFilters"
-                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors duration-200"
-                                title="Clear all filters">
-                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                </svg>
-                                Clear
-                            </button>
+                            <flux:button wire:click="clearFilters" size="sm" variant="ghost">
+                                Clear All
+                            </flux:button>
                             @endif
                         </div>
                     </div>
                     <button
                         @click="filtersOpen = !filtersOpen"
-                        class="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200">
+                        type="button"
+                        class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg transition-colors">
                         <span x-text="filtersOpen ? 'Hide Filters' : 'Show Filters'"></span>
-                        <svg
-                            class="w-4 h-4 transition-transform duration-200"
-                            :class="{ 'rotate-180': filtersOpen }"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                             class="w-4 h-4 transition-transform duration-200"
+                             :class="{ 'rotate-180': filtersOpen }">
+                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                         </svg>
                     </button>
                 </div>
@@ -82,118 +93,96 @@
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                         <!-- Search -->
                         <div>
-                            <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                🔍 Search Campaigns
-                            </label>
-                            <input
-                                type="text"
-                                id="search"
+                            <flux:input
                                 wire:model.live.debounce.300ms="search"
-                                placeholder="Search by campaign goal or description..."
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                placeholder="Search campaigns..."
+                                icon="magnifying-glass"
+                                clearable />
                         </div>
 
                         <!-- Sort By -->
                         <div>
-                            <label for="sortBy" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                📊 Sort By
-                            </label>
-                            <select
-                                id="sortBy"
-                                wire:model.live="sortBy"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
-                                <option value="match_score">Best Match</option>
-                                <option value="newest">Newest First</option>
-                                <option value="compensation">Highest Compensation</option>
-                                <option value="deadline">Application Deadline</option>
-                            </select>
+                            <flux:select wire:model.live="sortBy">
+                                <flux:select.option value="match_score">Best Match</flux:select.option>
+                                <flux:select.option value="newest">Newest First</flux:select.option>
+                                <flux:select.option value="compensation">Highest Compensation</flux:select.option>
+                                <flux:select.option value="deadline">Application Deadline</flux:select.option>
+                            </flux:select>
                         </div>
 
                         <!-- Results Per Page -->
                         <div>
-                            <label for="perPage" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                📄 Results Per Page
-                            </label>
-                            <select
-                                id="perPage"
-                                wire:model.live="perPage"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
-                                <option value="6">6 per page</option>
-                                <option value="12">12 per page</option>
-                                <option value="24">24 per page</option>
-                                <option value="48">48 per page</option>
-                            </select>
+                            <flux:select wire:model.live="perPage">
+                                <flux:select.option value="6">6 per page</flux:select.option>
+                                <flux:select.option value="12">12 per page</flux:select.option>
+                                <flux:select.option value="24">24 per page</flux:select.option>
+                                <flux:select.option value="48">48 per page</flux:select.option>
+                            </flux:select>
                         </div>
 
                         <!-- Clear Filters -->
                         <div class="flex items-end">
-                            <button
-                                type="button"
+                            <flux:button
                                 wire:click="clearFilters"
-                                class="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md transition-colors duration-200">
-                                🗑️ Clear All Filters
-                            </button>
+                                variant="filled"
+                                class="w-full">
+                                Clear All Filters
+                            </flux:button>
                         </div>
                     </div>
 
                     <!-- Filter Categories Row -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <!-- Industries Filter -->
-                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                            <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                                🏭 Industries
-                                <span class="ml-2 text-xs text-gray-500">({{ count($selectedNiches) }} selected)</span>
+                        <div class="bg-zinc-50 dark:bg-zinc-700/50 rounded-lg p-4">
+                            <h4 class="text-sm font-semibold text-zinc-900 dark:text-white mb-3 flex items-center">
+                                <flux:icon name="building-office" class="w-4 h-4 mr-2" />
+                                Industries
+                                <span class="ml-2 text-xs text-zinc-500">({{ count($selectedNiches) }} selected)</span>
                             </h4>
                             <div class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
                                 @foreach($nicheOptions as $niche)
-                                <label class="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        wire:model.live="selectedNiches"
-                                        value="{{ $niche->value }}"
-                                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ $niche->label() }}</span>
-                                </label>
+                                <flux:checkbox
+                                    wire:model.live="selectedNiches"
+                                    value="{{ $niche->value }}"
+                                    label="{{ $niche->label() }}" />
                                 @endforeach
                             </div>
                             @if(count($selectedNiches) > 0)
-                            <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
-                                <button
-                                    type="button"
+                            <div class="mt-3 pt-3 border-t border-zinc-200 dark:border-zinc-600">
+                                <flux:button
                                     wire:click="$set('selectedNiches', [])"
-                                    class="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                                    variant="ghost"
+                                    size="sm">
                                     Clear Industries
-                                </button>
+                                </flux:button>
                             </div>
                             @endif
                         </div>
 
                         <!-- Campaign Types Filter -->
-                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                            <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                                📢 Campaign Types
-                                <span class="ml-2 text-xs text-gray-500">({{ count($selectedCampaignTypes) }} selected)</span>
+                        <div class="bg-zinc-50 dark:bg-zinc-700/50 rounded-lg p-4">
+                            <h4 class="text-sm font-semibold text-zinc-900 dark:text-white mb-3 flex items-center">
+                                <flux:icon name="megaphone" class="w-4 h-4 mr-2" />
+                                Campaign Types
+                                <span class="ml-2 text-xs text-zinc-500">({{ count($selectedCampaignTypes) }} selected)</span>
                             </h4>
                             <div class="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
                                 @foreach($campaignTypeOptions as $campaignType)
-                                <label class="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        wire:model.live="selectedCampaignTypes"
-                                        value="{{ $campaignType->value }}"
-                                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ $campaignType->label() }}</span>
-                                </label>
+                                <flux:checkbox
+                                    wire:model.live="selectedCampaignTypes"
+                                    value="{{ $campaignType->value }}"
+                                    label="{{ $campaignType->label() }}" />
                                 @endforeach
                             </div>
                             @if(count($selectedCampaignTypes) > 0)
-                            <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
-                                <button
-                                    type="button"
+                            <div class="mt-3 pt-3 border-t border-zinc-200 dark:border-zinc-600">
+                                <flux:button
                                     wire:click="$set('selectedCampaignTypes', [])"
-                                    class="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                                    variant="ghost"
+                                    size="sm">
                                     Clear Campaign Types
-                                </button>
+                                </flux:button>
                             </div>
                             @endif
                         </div>
@@ -201,55 +190,97 @@
                 </div>
             </div>
         </div>
+        @endif
+
+        <!-- Hidden Tab Message -->
+        @if($activeTab === 'hidden')
+        <flux:callout icon="eye-slash" class="mb-6">
+            <flux:callout.heading>Hidden Campaigns</flux:callout.heading>
+            <flux:callout.text>These campaigns won't appear in your main feed. Click "Restore" to show them again.</flux:callout.text>
+        </flux:callout>
+        @endif
 
         <!-- Campaigns Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @forelse($campaigns as $campaign)
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
-                <!-- Match Score Badge -->
+            @php
+                $isSaved = in_array($campaign->id, $savedCampaignIds);
+                $isHidden = in_array($campaign->id, $hiddenCampaignIds);
+            @endphp
+            <div wire:key="campaign-{{ $campaign->id }}" class="bg-white dark:bg-zinc-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 flex flex-col">
+                <!-- Match Score Badge & Actions -->
                 <div class="relative">
-                    <div class="absolute top-3 right-3 z-10">
-                        <div class="flex items-center space-x-1 bg-white dark:bg-gray-700 rounded-full px-3 py-1 shadow-md">
+                    <div class="absolute top-3 left-3 z-10">
+                        <div class="flex items-center gap-1 bg-white dark:bg-zinc-700 rounded-full px-3 py-1 shadow-md">
                             <div class="w-2 h-2 rounded-full {{ $campaign->match_score >= 80 ? 'bg-green-500' : ($campaign->match_score >= 60 ? 'bg-yellow-500' : 'bg-red-500') }}"></div>
-                            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            <span class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
                                 {{ number_format($campaign->match_score, 0) }}% Match
                             </span>
                         </div>
                     </div>
 
-                    <!-- Campaign Image Placeholder -->
-                    <div class="h-48 bg-gradient-to-br from-blue-400 to-purple-500 rounded-t-lg flex items-center justify-center">
-                        <svg class="w-12 h-12 text-white opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
+                    <!-- Actions Dropdown -->
+                    <div class="absolute top-3 right-3 z-10">
+                        <flux:dropdown position="bottom" align="end">
+                            <flux:button variant="filled" size="sm" icon="ellipsis-vertical" />
+                            <flux:menu>
+                                <flux:menu.item wire:click="openQuickView({{ $campaign->id }})" icon="eye">
+                                    Quick View
+                                </flux:menu.item>
+                                <flux:menu.item href="{{ route('campaigns.show', $campaign) }}" icon="arrow-top-right-on-square">
+                                    View Full Details
+                                </flux:menu.item>
+                                <flux:menu.separator />
+                                @if($activeTab === 'hidden')
+                                <flux:menu.item wire:click="unhideCampaign({{ $campaign->id }})" icon="eye">
+                                    Restore to Feed
+                                </flux:menu.item>
+                                @else
+                                <flux:menu.item wire:click="toggleSaveCampaign({{ $campaign->id }})" icon="{{ $isSaved ? 'heart' : 'heart' }}">
+                                    {{ $isSaved ? 'Remove from Saved' : 'Save for Later' }}
+                                </flux:menu.item>
+                                <flux:menu.item wire:click="hideCampaign({{ $campaign->id }})" icon="eye-slash" variant="danger">
+                                    Not Interested
+                                </flux:menu.item>
+                                @endif
+                            </flux:menu>
+                        </flux:dropdown>
                     </div>
+
+                    <!-- Campaign Image Placeholder -->
+                    <div class="h-32 bg-gradient-to-br from-blue-400 to-purple-500 dark:from-blue-500 dark:to-purple-600 rounded-t-lg flex items-center justify-center">
+                        <flux:icon name="document-text" class="w-10 h-10 text-white/75" />
+                    </div>
+
+                    <!-- Save indicator -->
+                    @if($isSaved && $activeTab !== 'saved')
+                    <div class="absolute bottom-2 right-2">
+                        <flux:badge color="pink" size="sm" icon="heart">Saved</flux:badge>
+                    </div>
+                    @endif
                 </div>
 
                 <!-- Campaign Content -->
-                <div class="p-6">
+                <div class="p-4 flex-1 flex flex-col">
                     <!-- Business Info -->
                     <div class="flex items-center mb-3">
                         @if(auth()->user()->profile->subscribed('default'))
-                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                            {{ substr($campaign->business->name ?? 'N/A', 0, 2) }}
-                        </div>
+                        <flux:avatar size="sm" name="{{ $campaign->business->name ?? 'N/A' }}" />
                         <div class="ml-3">
-                            <p class="text-sm font-medium text-gray-900 dark:text-white">
+                            <p class="text-sm font-medium text-zinc-900 dark:text-white">
                                 {{ $campaign->business->name ?? 'Unknown Business' }}
                             </p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">
-                                {{ $campaign->industry?->label() ?? 'Business' }}
+                            <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                {{ $campaign->business->industry?->label() ?? 'Business' }}
                             </p>
                         </div>
                         @else
-                        <div class="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                            ??
-                        </div>
+                        <flux:avatar size="sm" name="??" />
                         <div class="ml-3">
-                            <p class="text-sm font-medium text-gray-900 dark:text-white">
+                            <p class="text-sm font-medium text-zinc-900 dark:text-white">
                                 Subscribe to View
                             </p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                            <p class="text-xs text-zinc-500 dark:text-zinc-400">
                                 Business Info Hidden
                             </p>
                         </div>
@@ -257,81 +288,78 @@
                     </div>
 
                     <!-- Campaign Title -->
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                    <h3 class="text-lg font-semibold text-zinc-900 dark:text-white mb-2 line-clamp-2">
                         {{ Str::limit($campaign->project_name ?: $campaign->campaign_goal, 60) }}
                     </h3>
 
                     <!-- Campaign Description -->
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
-                        {{ Str::limit($campaign->campaign_description, 120) }}
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400 mb-4 line-clamp-2 flex-1">
+                        {{ Str::limit($campaign->campaign_description, 100) }}
                     </p>
 
                     <!-- Campaign Details -->
-                    <div class="space-y-2 mb-4">
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-gray-500 dark:text-gray-400">Campaign Type:</span>
-                            <span class="font-medium text-gray-900 dark:text-white">
-                                @if($campaign->campaign_type && count($campaign->campaign_type) > 0)
-                                {{ $campaign->campaign_type->take(2)->map(fn($type) => $type->label())->join(', ') }}{{ count($campaign->campaign_type) > 2 ? ' +' . (count($campaign->campaign_type) - 2) . ' more' : '' }}
-                                @else
-                                N/A
-                                @endif
-                            </span>
-                        </div>
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-gray-500 dark:text-gray-400">Compensation:</span>
-                            <span class="font-medium text-gray-900 dark:text-white">{{ $campaign->compensation_display }}</span>
-                        </div>
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-gray-500 dark:text-gray-400">Influencers Needed:</span>
-                            <span class="font-medium text-gray-900 dark:text-white">{{ $campaign->influencer_count }}</span>
+                    <div class="space-y-2 mb-4 text-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="text-zinc-500 dark:text-zinc-400">Compensation:</span>
+                            <flux:badge color="green" size="sm">{{ $campaign->compensation_display }}</flux:badge>
                         </div>
                         @if($campaign->application_deadline)
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-gray-500 dark:text-gray-400">Deadline:</span>
-                            <span class="font-medium {{ $campaign->application_deadline->isPast() ? 'text-red-600' : 'text-gray-900 dark:text-white' }}">
+                        <div class="flex items-center justify-between">
+                            <span class="text-zinc-500 dark:text-zinc-400">Deadline:</span>
+                            <span class="font-medium {{ $campaign->application_deadline->isPast() ? 'text-red-600' : 'text-zinc-900 dark:text-white' }}">
                                 {{ $campaign->application_deadline->format('M j, Y') }}
                             </span>
                         </div>
                         @endif
                         @if($campaign->target_zip_code)
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-gray-500 dark:text-gray-400">Location:</span>
-                            <span class="font-medium text-gray-900 dark:text-white">{{ $campaign->target_zip_code }}</span>
+                        <div class="flex items-center justify-between">
+                            <span class="text-zinc-500 dark:text-zinc-400">Location:</span>
+                            <span class="font-medium text-zinc-900 dark:text-white">{{ $campaign->target_zip_code }}</span>
                         </div>
                         @endif
                     </div>
 
                     <!-- Action Buttons -->
-                    @if(auth()->user()->profile->subscribed('default'))
-                    <div class="space-y-2">
-                        <a href="{{ route('campaigns.show', $campaign) }}" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors duration-200 text-center block">
-                            View Details
-                        </a>
-                        @livewire('campaigns.apply-to-campaign', ['campaign' => $campaign, 'buttonText' => 'Apply Now'], key($campaign->id))
+                    @if($activeTab !== 'hidden')
+                    <div class="flex gap-2 mt-auto">
+                        <flux:button wire:click="openQuickView({{ $campaign->id }})" variant="ghost" class="flex-1">
+                            Quick View
+                        </flux:button>
+                        @if(auth()->user()->profile->subscribed('default'))
+                        @livewire('campaigns.apply-to-campaign', [
+                            'campaign' => $campaign,
+                            'buttonText' => 'Apply',
+                            'existingApplication' => $userApplications->get($campaign->id),
+                            'applicationPreloaded' => true
+                        ], key('apply-'.$campaign->id))
+                        @else
+                        <flux:button href="{{ route('billing') }}" variant="primary" class="flex-1">
+                            Subscribe
+                        </flux:button>
+                        @endif
                     </div>
                     @else
-                    <div>
-                        <a href="{{ route('billing') }}" class="w-full bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors duration-200 text-center block">
-                            Subscribe to Apply
-                        </a>
+                    <div class="mt-auto">
+                        <flux:button wire:click="unhideCampaign({{ $campaign->id }})" variant="filled" class="w-full" icon="eye">
+                            Restore to Feed
+                        </flux:button>
                     </div>
                     @endif
                 </div>
 
                 @if($showDebug)
                 <!-- Debug Information -->
-                <div class="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600">
-                    <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">🔍 Debug Information (Local Only)</h4>
+                <div class="mt-4 p-4 bg-zinc-100 dark:bg-zinc-900 rounded-b-lg border-t border-zinc-200 dark:border-zinc-700">
+                    <h4 class="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">Debug Information (Local Only)</h4>
 
                     @php
                     $debugData = $this->getDebugData($campaign);
                     @endphp
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-700 dark:text-gray-300">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-zinc-700 dark:text-zinc-300">
                         <!-- Influencer Data -->
                         <div>
-                            <h5 class="font-medium text-gray-600 dark:text-gray-400 mb-2">👤 Influencer Profile</h5>
+                            <h5 class="font-medium text-zinc-600 dark:text-zinc-400 mb-2">Influencer Profile</h5>
                             <div class="space-y-1">
                                 <div><span class="font-medium">Name:</span> {{ $debugData['influencer']['name'] }}</div>
                                 <div><span class="font-medium">Email:</span> {{ $debugData['influencer']['email'] }}</div>
@@ -343,7 +371,7 @@
 
                         <!-- Campaign Data -->
                         <div>
-                            <h5 class="font-medium text-gray-600 dark:text-gray-400 mb-2">📋 Campaign Data</h5>
+                            <h5 class="font-medium text-zinc-600 dark:text-zinc-400 mb-2">Campaign Data</h5>
                             <div class="space-y-1">
                                 <div><span class="font-medium">Business:</span> {{ $debugData['campaign']['name'] }}</div>
                                 <div><span class="font-medium">Industry:</span> {{ $debugData['campaign']['business_industry'] }}</div>
@@ -357,43 +385,43 @@
 
                     <!-- Score Breakdown -->
                     <div class="mt-4">
-                        <h5 class="font-medium text-gray-600 dark:text-gray-400 mb-2">📊 Score Breakdown</h5>
+                        <h5 class="font-medium text-zinc-600 dark:text-zinc-400 mb-2">Score Breakdown</h5>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <div class="bg-white dark:bg-gray-700 p-2 rounded border">
+                            <div class="bg-white dark:bg-zinc-800 p-2 rounded border border-zinc-200 dark:border-zinc-700">
                                 <div class="text-center">
                                     <div class="text-lg font-bold text-blue-600">{{ $debugData['scores']['location']['raw'] }}%</div>
-                                    <div class="text-xs text-gray-500">Location</div>
-                                    <div class="text-xs text-gray-400">({{ $debugData['scores']['location']['weight'] }})</div>
-                                    <div class="text-xs text-gray-400">→ {{ $debugData['scores']['location']['weighted'] }}</div>
+                                    <div class="text-xs text-zinc-500">Location</div>
+                                    <div class="text-xs text-zinc-400">({{ $debugData['scores']['location']['weight'] }})</div>
+                                    <div class="text-xs text-zinc-400">{{ $debugData['scores']['location']['weighted'] }}</div>
                                 </div>
                             </div>
-                            <div class="bg-white dark:bg-gray-700 p-2 rounded border">
+                            <div class="bg-white dark:bg-zinc-800 p-2 rounded border border-zinc-200 dark:border-zinc-700">
                                 <div class="text-center">
                                     <div class="text-lg font-bold text-green-600">{{ $debugData['scores']['industry']['raw'] }}%</div>
-                                    <div class="text-xs text-gray-500">Industry</div>
-                                    <div class="text-xs text-gray-400">({{ $debugData['scores']['industry']['weight'] }})</div>
-                                    <div class="text-xs text-gray-400">→ {{ $debugData['scores']['industry']['weighted'] }}</div>
+                                    <div class="text-xs text-zinc-500">Industry</div>
+                                    <div class="text-xs text-zinc-400">({{ $debugData['scores']['industry']['weight'] }})</div>
+                                    <div class="text-xs text-zinc-400">{{ $debugData['scores']['industry']['weighted'] }}</div>
                                 </div>
                             </div>
-                            <div class="bg-white dark:bg-gray-700 p-2 rounded border">
+                            <div class="bg-white dark:bg-zinc-800 p-2 rounded border border-zinc-200 dark:border-zinc-700">
                                 <div class="text-center">
                                     <div class="text-lg font-bold text-purple-600">{{ $debugData['scores']['campaign_type']['raw'] }}%</div>
-                                    <div class="text-xs text-gray-500">Type</div>
-                                    <div class="text-xs text-gray-400">({{ $debugData['scores']['campaign_type']['weight'] }})</div>
-                                    <div class="text-xs text-gray-400">→ {{ $debugData['scores']['campaign_type']['weighted'] }}</div>
+                                    <div class="text-xs text-zinc-500">Type</div>
+                                    <div class="text-xs text-zinc-400">({{ $debugData['scores']['campaign_type']['weight'] }})</div>
+                                    <div class="text-xs text-zinc-400">{{ $debugData['scores']['campaign_type']['weighted'] }}</div>
                                 </div>
                             </div>
-                            <div class="bg-white dark:bg-gray-700 p-2 rounded border">
+                            <div class="bg-white dark:bg-zinc-800 p-2 rounded border border-zinc-200 dark:border-zinc-700">
                                 <div class="text-center">
                                     <div class="text-lg font-bold text-orange-600">{{ $debugData['scores']['compensation']['raw'] }}%</div>
-                                    <div class="text-xs text-gray-500">Compensation</div>
-                                    <div class="text-xs text-gray-400">({{ $debugData['scores']['compensation']['weight'] }})</div>
-                                    <div class="text-xs text-gray-400">→ {{ $debugData['scores']['compensation']['weighted'] }}</div>
+                                    <div class="text-xs text-zinc-500">Compensation</div>
+                                    <div class="text-xs text-zinc-400">({{ $debugData['scores']['compensation']['weight'] }})</div>
+                                    <div class="text-xs text-zinc-400">{{ $debugData['scores']['compensation']['weighted'] }}</div>
                                 </div>
                             </div>
                         </div>
                         <div class="mt-3 text-center">
-                            <div class="text-2xl font-bold text-gray-800 dark:text-white">
+                            <div class="text-2xl font-bold text-zinc-800 dark:text-white">
                                 Total: {{ $debugData['scores']['total'] }}%
                             </div>
                         </div>
@@ -404,13 +432,30 @@
             @empty
             <div class="col-span-full">
                 <div class="text-center py-12">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No campaigns found</h3>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    @if($activeTab === 'saved')
+                    <flux:icon name="heart" class="mx-auto h-12 w-12 text-zinc-400" />
+                    <h3 class="mt-2 text-sm font-medium text-zinc-900 dark:text-white">No saved campaigns</h3>
+                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                        Save campaigns you're interested in to review them later.
+                    </p>
+                    <div class="mt-4">
+                        <flux:button wire:click="setActiveTab('all')" variant="primary">
+                            Browse Campaigns
+                        </flux:button>
+                    </div>
+                    @elseif($activeTab === 'hidden')
+                    <flux:icon name="eye-slash" class="mx-auto h-12 w-12 text-zinc-400" />
+                    <h3 class="mt-2 text-sm font-medium text-zinc-900 dark:text-white">No hidden campaigns</h3>
+                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                        Campaigns you mark as "Not Interested" will appear here.
+                    </p>
+                    @else
+                    <flux:icon name="document-text" class="mx-auto h-12 w-12 text-zinc-400" />
+                    <h3 class="mt-2 text-sm font-medium text-zinc-900 dark:text-white">No campaigns found</h3>
+                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                         Try adjusting your filters or check back later for new opportunities.
                     </p>
+                    @endif
                 </div>
             </div>
             @endforelse
@@ -421,7 +466,7 @@
         <div class="mt-8">
             <!-- Results Summary -->
             <div class="text-center mb-6">
-                <p class="text-sm text-gray-500 dark:text-gray-400">
+                <p class="text-sm text-zinc-500 dark:text-zinc-400">
                     Showing {{ $campaigns->firstItem() ?? 0 }}-{{ $campaigns->lastItem() ?? 0 }} of {{ $campaigns->total() }} campaign{{ $campaigns->total() !== 1 ? 's' : '' }}
                     @if($search || !empty($selectedNiches) || !empty($selectedCampaignTypes))
                     matching your criteria
@@ -431,78 +476,166 @@
 
             <!-- Pagination Controls -->
             <div class="flex items-center justify-center">
-                <nav class="flex items-center space-x-2" role="navigation" aria-label="Pagination Navigation">
+                <nav class="flex items-center gap-2" role="navigation" aria-label="Pagination Navigation">
                     <!-- Previous Page -->
                     @if($campaigns->onFirstPage())
-                    <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 cursor-default rounded-md">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                        </svg>
-                    </span>
+                    <flux:button disabled variant="ghost" icon="chevron-left" />
                     @else
-                    <button wire:click="previousPage" wire:loading.attr="disabled" class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
+                    <flux:button wire:click="previousPage" wire:loading.attr="disabled" variant="ghost" icon="chevron-left" />
                     @endif
 
                     <!-- Page Numbers -->
-                    <div class="flex items-center space-x-1">
+                    <div class="flex items-center gap-1">
                         @foreach(range(1, min(5, $campaigns->lastPage())) as $page)
                         @if($page == $campaigns->currentPage())
-                        <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md">
-                            {{ $page }}
-                        </span>
+                        <flux:button variant="primary">{{ $page }}</flux:button>
                         @else
-                        <button wire:click="gotoPage({{ $page }})" wire:loading.attr="disabled" class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50">
-                            {{ $page }}
-                        </button>
+                        <flux:button wire:click="gotoPage({{ $page }})" wire:loading.attr="disabled" variant="ghost">{{ $page }}</flux:button>
                         @endif
                         @endforeach
 
                         @if($campaigns->lastPage() > 5)
                         @if($campaigns->currentPage() < $campaigns->lastPage() - 2)
-                            <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md">
-                                ...
-                            </span>
-                            @endif
+                        <span class="px-2 text-zinc-500">...</span>
+                        @endif
 
-                            @if($campaigns->currentPage() >= $campaigns->lastPage() - 2)
-                            @foreach(range(max(6, $campaigns->lastPage() - 1), $campaigns->lastPage()) as $page)
-                            @if($page == $campaigns->currentPage())
-                            <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md">
-                                {{ $page }}
-                            </span>
-                            @else
-                            <button wire:click="gotoPage({{ $page }})" wire:loading.attr="disabled" class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50">
-                                {{ $page }}
-                            </button>
-                            @endif
-                            @endforeach
-                            @endif
-                            @endif
+                        @if($campaigns->currentPage() >= $campaigns->lastPage() - 2)
+                        @foreach(range(max(6, $campaigns->lastPage() - 1), $campaigns->lastPage()) as $page)
+                        @if($page == $campaigns->currentPage())
+                        <flux:button variant="primary">{{ $page }}</flux:button>
+                        @else
+                        <flux:button wire:click="gotoPage({{ $page }})" wire:loading.attr="disabled" variant="ghost">{{ $page }}</flux:button>
+                        @endif
+                        @endforeach
+                        @endif
+                        @endif
                     </div>
 
                     <!-- Next Page -->
                     @if($campaigns->hasMorePages())
-                    <button wire:click="nextPage" wire:loading.attr="disabled" class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
+                    <flux:button wire:click="nextPage" wire:loading.attr="disabled" variant="ghost" icon="chevron-right" />
                     @else
-                    <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 cursor-default rounded-md">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                        </svg>
-                    </span>
+                    <flux:button disabled variant="ghost" icon="chevron-right" />
                     @endif
                 </nav>
             </div>
         </div>
         @endif
     </div>
+
+    <!-- Quick View Modal -->
+    <flux:modal wire:model="showQuickViewModal" name="quick-view-campaign" class="md:w-2xl" @close="$wire.closeQuickView()">
+        @if($quickViewCampaign)
+        <div class="space-y-6">
+            <!-- Header -->
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-700 rounded-full px-3 py-1">
+                        <div class="w-2 h-2 rounded-full {{ $quickViewCampaign->match_score >= 80 ? 'bg-green-500' : ($quickViewCampaign->match_score >= 60 ? 'bg-yellow-500' : 'bg-red-500') }}"></div>
+                        <span class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                            {{ number_format($quickViewCampaign->match_score, 0) }}% Match
+                        </span>
+                    </div>
+                </div>
+                <flux:heading size="xl">{{ $quickViewCampaign->project_name ?: $quickViewCampaign->campaign_goal }}</flux:heading>
+                @if(auth()->user()->profile->subscribed('default'))
+                <flux:text class="mt-1">
+                    by <strong>{{ $quickViewCampaign->business->name }}</strong>
+                    <flux:badge size="sm" class="ml-2">{{ $quickViewCampaign->business->industry?->label() ?? 'Business' }}</flux:badge>
+                </flux:text>
+                @endif
+            </div>
+
+            <!-- Description -->
+            <div>
+                <flux:heading size="sm" class="mb-2">About this Campaign</flux:heading>
+                <flux:text>{{ $quickViewCampaign->campaign_description }}</flux:text>
+            </div>
+
+            <!-- Key Details -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4">
+                    <flux:text class="text-xs text-zinc-500 mb-1">Compensation</flux:text>
+                    <flux:badge color="green">{{ $quickViewCampaign->compensation_display }}</flux:badge>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4">
+                    <flux:text class="text-xs text-zinc-500 mb-1">Influencers Needed</flux:text>
+                    <p class="font-semibold text-zinc-900 dark:text-white">{{ $quickViewCampaign->influencer_count }}</p>
+                </div>
+                @if($quickViewCampaign->application_deadline)
+                <div class="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4">
+                    <flux:text class="text-xs text-zinc-500 mb-1">Application Deadline</flux:text>
+                    <p class="font-semibold {{ $quickViewCampaign->application_deadline->isPast() ? 'text-red-600' : 'text-zinc-900 dark:text-white' }}">
+                        {{ $quickViewCampaign->application_deadline->format('M j, Y') }}
+                    </p>
+                </div>
+                @endif
+                @if($quickViewCampaign->target_zip_code)
+                <div class="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4">
+                    <flux:text class="text-xs text-zinc-500 mb-1">Location</flux:text>
+                    <p class="font-semibold text-zinc-900 dark:text-white">{{ $quickViewCampaign->target_zip_code }}</p>
+                </div>
+                @endif
+            </div>
+
+            <!-- Campaign Types -->
+            @if($quickViewCampaign->campaign_type && count($quickViewCampaign->campaign_type) > 0)
+            <div>
+                <flux:heading size="sm" class="mb-2">Campaign Types</flux:heading>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($quickViewCampaign->campaign_type as $type)
+                    <flux:badge>{{ $type->label() }}</flux:badge>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            <!-- Deliverables -->
+            @if($quickViewCampaign->deliverables && count($quickViewCampaign->deliverables) > 0)
+            <div>
+                <flux:heading size="sm" class="mb-2">Deliverables</flux:heading>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($quickViewCampaign->deliverables as $deliverable)
+                    @php
+                        $deliverableLabel = is_string($deliverable)
+                            ? ucwords(str_replace('_', ' ', $deliverable))
+                            : $deliverable->label();
+                    @endphp
+                    <flux:badge variant="outline">{{ $deliverableLabel }}</flux:badge>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            <!-- Actions -->
+            <div class="flex gap-2 pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                @php
+                    $isQuickViewSaved = in_array($quickViewCampaign->id, $savedCampaignIds);
+                @endphp
+                <flux:button wire:click="toggleSaveCampaign({{ $quickViewCampaign->id }})" variant="ghost" icon="{{ $isQuickViewSaved ? 'heart' : 'heart' }}">
+                    {{ $isQuickViewSaved ? 'Saved' : 'Save' }}
+                </flux:button>
+                <flux:spacer />
+                <flux:button href="{{ route('campaigns.show', $quickViewCampaign) }}" variant="ghost">
+                    View Full Details
+                </flux:button>
+                @if(auth()->user()->profile->subscribed('default'))
+                @livewire('campaigns.apply-to-campaign', [
+                    'campaign' => $quickViewCampaign,
+                    'buttonText' => 'Apply Now',
+                    'buttonVariant' => 'primary',
+                    'existingApplication' => $userApplications->get($quickViewCampaign->id),
+                    'applicationPreloaded' => true
+                ], key('modal-apply-'.$quickViewCampaign->id))
+                @else
+                <flux:button href="{{ route('billing') }}" variant="primary">
+                    Subscribe to Apply
+                </flux:button>
+                @endif
+            </div>
+        </div>
+        @endif
+    </flux:modal>
 
     <style>
         .line-clamp-2 {

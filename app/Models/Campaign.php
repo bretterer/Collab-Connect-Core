@@ -311,6 +311,9 @@ class Campaign extends Model
         $candidates = $query->get();
         $matchingInfluencers = collect();
 
+        // Pre-load all postal codes in a single query to avoid N+1
+        MatchScore::preloadPostalCodesForInfluencers($this, $candidates);
+
         foreach ($candidates as $influencer) {
             $matchScore = MatchScore::calculateMatchScore($this, $influencer);
 

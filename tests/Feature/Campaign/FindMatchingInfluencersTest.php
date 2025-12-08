@@ -205,6 +205,8 @@ class FindMatchingInfluencersTest extends TestCase
             'primary_industry' => BusinessIndustry::FITNESS_WELLNESS, // Exact match
             'postal_code' => '49503', // Exact location
             'onboarding_complete' => true,
+            'content_types' => [CampaignType::BRAND_PARTNERSHIPS->value], // Matches campaign type
+            'compensation_types' => [CompensationType::MONETARY->value], // Matches compensation type
         ])->create();
 
         // Create influencer with good match (should have lower score)
@@ -319,6 +321,9 @@ class FindMatchingInfluencersTest extends TestCase
         // Mock the MatchScore facade to count calls
         $mockService = $this->mock(MatchScoreService::class);
         $callCount = 0;
+
+        $mockService->shouldReceive('preloadPostalCodesForInfluencers')
+            ->andReturnNull();
 
         $mockService->shouldReceive('calculateMatchScore')
             ->andReturnUsing(function () use (&$callCount) {

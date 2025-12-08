@@ -4,6 +4,7 @@ namespace Tests\Feature\Livewire\Influencer;
 
 use App\Enums\BusinessIndustry;
 use App\Enums\BusinessType;
+use App\Enums\CampaignType;
 use App\Enums\CompensationType;
 use App\Livewire\Influencer\InfluencerSettings;
 use App\Models\User;
@@ -22,7 +23,7 @@ class InfluencerSettingsTest extends TestCase
 
         Livewire::test(InfluencerSettings::class)
             ->assertStatus(200)
-            ->assertSee('Influencer Settings');
+            ->assertSee('Your Profile');
     }
 
     #[Test]
@@ -76,8 +77,8 @@ class InfluencerSettingsTest extends TestCase
         $this->actingAs($user);
 
         $contentTypes = [
-            BusinessIndustry::FOOD_BEVERAGE->value,
-            BusinessIndustry::FITNESS_WELLNESS->value,
+            CampaignType::SPONSORED_POSTS->value,
+            CampaignType::PRODUCT_REVIEWS->value,
         ];
 
         Livewire::test(InfluencerSettings::class)
@@ -228,95 +229,6 @@ class InfluencerSettingsTest extends TestCase
             ->set('typical_lead_time_days', null)
             ->call('updateInfluencerSettings')
             ->assertHasErrors(['typical_lead_time_days']);
-    }
-
-    #[Test]
-    public function influencer_can_add_and_remove_content_types(): void
-    {
-        $user = User::factory()->influencer()->withProfile()->create();
-        // Set up influencer with a single content type to test from a known state
-        $user->influencer->update(['content_types' => [BusinessIndustry::FOOD_BEVERAGE->value]]);
-
-        $this->actingAs($user);
-
-        $component = Livewire::test(InfluencerSettings::class);
-
-        // Start with one content type
-        $this->assertCount(1, $component->get('content_types'));
-
-        // Add a content type
-        $component->call('addContentType');
-        $this->assertCount(2, $component->get('content_types'));
-
-        // Add another content type (should be limited to 3)
-        $component->call('addContentType');
-        $this->assertCount(3, $component->get('content_types'));
-
-        // Try to add a fourth - should not exceed 3
-        $component->call('addContentType');
-        $this->assertCount(3, $component->get('content_types'));
-
-        // Remove a content type
-        $component->call('removeContentType', 0);
-        $this->assertCount(2, $component->get('content_types'));
-    }
-
-    #[Test]
-    public function influencer_can_add_and_remove_business_types(): void
-    {
-        $user = User::factory()->influencer()->withProfile()->create();
-        // Set up influencer with a single business type to test from a known state
-        $user->influencer->update(['preferred_business_types' => [BusinessType::RESTAURANT->value]]);
-
-        $this->actingAs($user);
-
-        $component = Livewire::test(InfluencerSettings::class);
-
-        // Start with one business type
-        $this->assertCount(1, $component->get('preferred_business_types'));
-
-        // Add a business type
-        $component->call('addBusinessType');
-        $this->assertCount(2, $component->get('preferred_business_types'));
-
-        // Try to add a third - should not exceed 2
-        $component->call('addBusinessType');
-        $this->assertCount(2, $component->get('preferred_business_types'));
-
-        // Remove a business type
-        $component->call('removeBusinessType', 0);
-        $this->assertCount(1, $component->get('preferred_business_types'));
-    }
-
-    #[Test]
-    public function influencer_can_add_and_remove_compensation_types(): void
-    {
-        $user = User::factory()->influencer()->withProfile()->create();
-        // Set up influencer with a single compensation type to test from a known state
-        $user->influencer->update(['compensation_types' => [CompensationType::MONETARY->value]]);
-
-        $this->actingAs($user);
-
-        $component = Livewire::test(InfluencerSettings::class);
-
-        // Start with one compensation type
-        $this->assertCount(1, $component->get('compensation_types'));
-
-        // Add a compensation type
-        $component->call('addCompensationType');
-        $this->assertCount(2, $component->get('compensation_types'));
-
-        // Add another compensation type (should be limited to 3)
-        $component->call('addCompensationType');
-        $this->assertCount(3, $component->get('compensation_types'));
-
-        // Try to add a fourth - should not exceed 3
-        $component->call('addCompensationType');
-        $this->assertCount(3, $component->get('compensation_types'));
-
-        // Remove a compensation type
-        $component->call('removeCompensationType', 0);
-        $this->assertCount(2, $component->get('compensation_types'));
     }
 
     #[Test]

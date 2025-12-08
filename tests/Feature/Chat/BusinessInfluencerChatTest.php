@@ -268,7 +268,8 @@ class BusinessInfluencerChatTest extends TestCase
         // Create a message from business to influencer
         Message::create(['chat_id' => $chat->id, 'user_id' => $member->id, 'body' => 'Reply from business']);
 
-        // Influencer should now see 1 unread message
+        // Influencer should now see 1 unread message (clear cache first since we modified data)
+        $influencerUser->clearUnreadMessageCountCache();
         $this->assertEquals(1, $influencerUser->getUnreadMessageCount());
     }
 

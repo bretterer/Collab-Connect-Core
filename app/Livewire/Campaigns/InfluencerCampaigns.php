@@ -8,8 +8,10 @@ use App\Enums\CampaignStatus;
 use App\Facades\MatchScore;
 use App\Livewire\BaseComponent;
 use App\Models\Campaign;
+use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\WithPagination;
 
 #[Layout('layouts.app')]
@@ -29,12 +31,34 @@ class InfluencerCampaigns extends BaseComponent
 
     public int $perPage = 12;
 
+    public string $activeTab = 'all';
+
+    public ?int $quickViewCampaignId = null;
+
+    public bool $showQuickViewModal = false;
+
+    /**
+     * Cached saved campaign IDs to avoid multiple queries per request
+     */
+    private ?array $cachedSavedCampaignIds = null;
+
+    /**
+     * Cached hidden campaign IDs to avoid multiple queries per request
+     */
+    private ?array $cachedHiddenCampaignIds = null;
+
+    /**
+     * Cached user campaign applications keyed by campaign_id
+     */
+    private ?\Illuminate\Support\Collection $cachedUserApplications = null;
+
     protected $queryString = [
         'search' => ['except' => ''],
         'selectedNiches' => ['except' => []],
         'selectedCampaignTypes' => ['except' => []],
         'sortBy' => ['except' => 'match_score'],
         'perPage' => ['except' => 12],
+        'activeTab' => ['except' => 'all'],
     ];
 
     public function mount()
@@ -55,11 +79,32 @@ class InfluencerCampaigns extends BaseComponent
             return collect();
         }
 
-        $query = Campaign::query()
-            ->where('status', CampaignStatus::PUBLISHED)
-            ->where('business_id', '!=', $user->current_business) // Exclude own business campaigns
-            ->where('application_deadline', '>', now())
-            ->with(['business']);
+        // Get hidden campaign IDs to exclude
+        $hiddenCampaignIds = $this->getHiddenCampaignIds();
+
+        // Handle saved campaigns tab
+        if ($this->activeTab === 'saved') {
+            $savedCampaignIds = $this->getSavedCampaignIds();
+
+            $query = Campaign::query()
+                ->whereIn('id', $savedCampaignIds)
+                ->where('status', CampaignStatus::PUBLISHED)
+                ->where('application_deadline', '>', now())
+                ->with(['business']);
+        } elseif ($this->activeTab === 'hidden') {
+            // Show hidden campaigns so user can unhide them
+            $query = Campaign::query()
+                ->whereIn('id', $hiddenCampaignIds)
+                ->with(['business']);
+        } else {
+            // All campaigns tab - exclude hidden
+            $query = Campaign::query()
+                ->where('status', CampaignStatus::PUBLISHED)
+                ->where('business_id', '!=', $user->current_business)
+                ->where('application_deadline', '>', now())
+                ->whereNotIn('id', $hiddenCampaignIds)
+                ->with(['business']);
+        }
 
         // Apply search filter
         if (! empty($this->search)) {
@@ -69,19 +114,22 @@ class InfluencerCampaigns extends BaseComponent
             });
         }
 
-        // Apply niche filter
-        if (! empty($this->selectedNiches)) {
+        // Apply niche filter (not for hidden tab)
+        if (! empty($this->selectedNiches) && $this->activeTab !== 'hidden') {
             $query->whereHas('business', function ($q) {
                 $q->whereIn('industry', $this->selectedNiches);
             });
         }
 
-        // Apply campaign type filter
-        if (! empty($this->selectedCampaignTypes)) {
+        // Apply campaign type filter (not for hidden tab)
+        if (! empty($this->selectedCampaignTypes) && $this->activeTab !== 'hidden') {
             $query->whereIn('campaign_type', $this->selectedCampaignTypes);
         }
 
         $campaigns = $query->get();
+
+        // Pre-load all postal codes in a single query to avoid N+1
+        MatchScore::preloadPostalCodes($campaigns, $influencerProfile);
 
         // Calculate match scores and sort
         $campaigns = $campaigns->map(function ($campaign) use ($influencerProfile) {
@@ -168,6 +216,147 @@ class InfluencerCampaigns extends BaseComponent
         $this->resetPage();
     }
 
+    public function setActiveTab(string $tab): void
+    {
+        $this->activeTab = $tab;
+        $this->resetPage();
+    }
+
+    public function toggleSaveCampaign(int $campaignId): void
+    {
+        $user = Auth::user();
+        $campaign = Campaign::find($campaignId);
+
+        if (! $campaign) {
+            return;
+        }
+
+        if ($user->hasSavedCampaign($campaign)) {
+            $user->savedCampaigns()->detach($campaignId);
+            Flux::toast('Campaign removed from saved list');
+        } else {
+            $user->savedCampaigns()->attach($campaignId);
+            Flux::toast('Campaign saved for later');
+        }
+
+        $this->clearCaches();
+    }
+
+    public function hideCampaign(int $campaignId): void
+    {
+        $user = Auth::user();
+        $campaign = Campaign::find($campaignId);
+
+        if (! $campaign) {
+            return;
+        }
+
+        if (! $user->hasHiddenCampaign($campaign)) {
+            $user->hiddenCampaigns()->attach($campaignId);
+            // Also remove from saved if it was saved
+            $user->savedCampaigns()->detach($campaignId);
+            Flux::toast('Campaign hidden from your feed');
+        }
+
+        $this->clearCaches();
+    }
+
+    public function unhideCampaign(int $campaignId): void
+    {
+        $user = Auth::user();
+        $user->hiddenCampaigns()->detach($campaignId);
+        Flux::toast('Campaign restored to your feed');
+
+        $this->clearCaches();
+    }
+
+    public function openQuickView(int $campaignId): void
+    {
+        $this->quickViewCampaignId = $campaignId;
+        $this->showQuickViewModal = true;
+    }
+
+    public function closeQuickView(): void
+    {
+        $this->showQuickViewModal = false;
+        $this->quickViewCampaignId = null;
+    }
+
+    #[On('campaign-applied')]
+    public function handleCampaignApplied(): void
+    {
+        $this->closeQuickView();
+    }
+
+    public function getQuickViewCampaignProperty(): ?Campaign
+    {
+        if (! $this->quickViewCampaignId) {
+            return null;
+        }
+
+        $campaign = Campaign::with(['business'])->find($this->quickViewCampaignId);
+
+        if ($campaign) {
+            $influencerProfile = Auth::user()->influencer;
+            if ($influencerProfile) {
+                $campaign->match_score = MatchScore::calculateMatchScore($campaign, $influencerProfile, $this->searchRadius);
+            }
+        }
+
+        return $campaign;
+    }
+
+    public function getSavedCampaignIds(): array
+    {
+        if ($this->cachedSavedCampaignIds === null) {
+            $this->cachedSavedCampaignIds = Auth::user()->savedCampaigns()->pluck('campaigns.id')->toArray();
+        }
+
+        return $this->cachedSavedCampaignIds;
+    }
+
+    public function getHiddenCampaignIds(): array
+    {
+        if ($this->cachedHiddenCampaignIds === null) {
+            $this->cachedHiddenCampaignIds = Auth::user()->hiddenCampaigns()->pluck('campaigns.id')->toArray();
+        }
+
+        return $this->cachedHiddenCampaignIds;
+    }
+
+    /**
+     * Get user's campaign applications keyed by campaign_id (as model instances)
+     *
+     * @return \Illuminate\Support\Collection<int, \App\Models\CampaignApplication>
+     */
+    public function getUserApplications(): \Illuminate\Support\Collection
+    {
+        if ($this->cachedUserApplications === null) {
+            $this->cachedUserApplications = \App\Models\CampaignApplication::where('user_id', Auth::id())
+                ->get()
+                ->keyBy('campaign_id');
+        }
+
+        return $this->cachedUserApplications;
+    }
+
+    /**
+     * Get user's application for a specific campaign
+     */
+    public function getUserApplicationForCampaign(int $campaignId): ?\App\Models\CampaignApplication
+    {
+        return $this->getUserApplications()->get($campaignId);
+    }
+
+    /**
+     * Clear caches when save/hide actions modify the data
+     */
+    private function clearCaches(): void
+    {
+        $this->cachedSavedCampaignIds = null;
+        $this->cachedHiddenCampaignIds = null;
+    }
+
     public function getDebugData(Campaign $campaign): array
     {
         $user = Auth::user();
@@ -218,11 +407,22 @@ class InfluencerCampaigns extends BaseComponent
             ]
         );
 
+        // Get cached values once
+        $savedCampaignIds = $this->getSavedCampaignIds();
+        $hiddenCampaignIds = $this->getHiddenCampaignIds();
+        $userApplications = $this->getUserApplications();
+
         return view('livewire.campaigns.influencer-campaigns', [
             'campaigns' => $paginator,
             'nicheOptions' => $this->getNicheOptions(),
             'campaignTypeOptions' => $this->getCampaignTypeOptions(),
             'showDebug' => config('app.debug', false),
+            'savedCampaignIds' => $savedCampaignIds,
+            'hiddenCampaignIds' => $hiddenCampaignIds,
+            'savedCount' => count($savedCampaignIds),
+            'hiddenCount' => count($hiddenCampaignIds),
+            'userApplications' => $userApplications,
+            'quickViewCampaign' => $this->quickViewCampaign,
         ]);
     }
 }

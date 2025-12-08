@@ -3,13 +3,112 @@
 namespace App\Services;
 
 use App\Enums\BusinessIndustry;
-use App\Enums\CampaignType;
-use App\Enums\CompensationType;
 use App\Models\Campaign;
 use App\Models\PostalCode;
+use Illuminate\Support\Collection;
 
 class MatchScoreService
 {
+    /**
+     * Cache of postal codes keyed by postal_code string
+     */
+    private array $postalCodeCache = [];
+
+    /**
+     * Pre-load postal codes for a batch of campaigns and an influencer.
+     * This reduces N+1 queries when calculating scores for multiple campaigns.
+     *
+     * @param  Collection<Campaign>  $campaigns
+     */
+    public function preloadPostalCodes(Collection $campaigns, $influencerProfile): void
+    {
+        $postalCodes = collect();
+
+        // Collect all unique postal codes we need
+        $campaignPostalCodes = $campaigns->pluck('target_zip_code')->filter()->unique();
+        $postalCodes = $postalCodes->merge($campaignPostalCodes);
+
+        if ($influencerProfile->postal_code) {
+            $postalCodes->push($influencerProfile->postal_code);
+        }
+
+        $postalCodes = $postalCodes->unique()->values();
+
+        if ($postalCodes->isEmpty()) {
+            return;
+        }
+
+        // Single query to load all postal codes
+        $loaded = PostalCode::whereIn('postal_code', $postalCodes)->get();
+
+        // Cache them by postal_code
+        foreach ($loaded as $postalCode) {
+            $this->postalCodeCache[$postalCode->postal_code] = $postalCode;
+        }
+    }
+
+    /**
+     * Get a postal code from cache or database
+     */
+    private function getPostalCode(?string $postalCode): ?PostalCode
+    {
+        if (! $postalCode) {
+            return null;
+        }
+
+        if (isset($this->postalCodeCache[$postalCode])) {
+            return $this->postalCodeCache[$postalCode];
+        }
+
+        // Fallback to database if not cached (shouldn't happen if preload was called)
+        $loaded = PostalCode::where('postal_code', $postalCode)->first();
+        if ($loaded) {
+            $this->postalCodeCache[$postalCode] = $loaded;
+        }
+
+        return $loaded;
+    }
+
+    /**
+     * Pre-load postal codes for one campaign and multiple influencer profiles.
+     * This reduces N+1 queries when calculating scores for multiple influencers.
+     */
+    public function preloadPostalCodesForInfluencers(Campaign $campaign, Collection $influencerProfiles): void
+    {
+        $postalCodes = collect();
+
+        // Add campaign postal code
+        if ($campaign->target_zip_code) {
+            $postalCodes->push($campaign->target_zip_code);
+        }
+
+        // Collect all unique influencer postal codes
+        $influencerPostalCodes = $influencerProfiles->pluck('postal_code')->filter()->unique();
+        $postalCodes = $postalCodes->merge($influencerPostalCodes);
+
+        $postalCodes = $postalCodes->unique()->values();
+
+        if ($postalCodes->isEmpty()) {
+            return;
+        }
+
+        // Single query to load all postal codes
+        $loaded = PostalCode::whereIn('postal_code', $postalCodes)->get();
+
+        // Cache them by postal_code
+        foreach ($loaded as $postalCode) {
+            $this->postalCodeCache[$postalCode->postal_code] = $postalCode;
+        }
+    }
+
+    /**
+     * Clear the postal code cache
+     */
+    public function clearCache(): void
+    {
+        $this->postalCodeCache = [];
+    }
+
     public function calculateMatchScore(Campaign $campaign, $influencerProfile, int $searchRadius = 50): float
     {
         $score = 0.0;
@@ -36,8 +135,8 @@ class MatchScoreService
             return 100.0;
         }
 
-        $campaignPostalCode = PostalCode::where('postal_code', $campaignZipCode)->first();
-        $influencerPostalCode = PostalCode::where('postal_code', $influencerZipCode)->first();
+        $campaignPostalCode = $this->getPostalCode($campaignZipCode);
+        $influencerPostalCode = $this->getPostalCode($influencerZipCode);
 
         if ($campaignPostalCode && $influencerPostalCode) {
             $distance = $campaignPostalCode->distanceTo($influencerPostalCode);
@@ -151,75 +250,60 @@ class MatchScoreService
 
     public function calculateCampaignTypeScore(Campaign $campaign, $influencerProfile): float
     {
-        $baseScore = 70.0;
         $campaignTypes = $campaign->campaign_type ?: collect();
-        $maxVariation = 0;
+        $influencerContentTypes = $influencerProfile->content_types ?? [];
 
-        // Calculate the best variation from all campaign types
-        foreach ($campaignTypes as $typeEnum) {
-            $variation = 0;
-
-            switch ($typeEnum) {
-                case CampaignType::PRODUCT_REVIEWS:
-                    $variation = 10;
-                    break;
-                case CampaignType::SPONSORED_POSTS:
-                    $variation = 5;
-                    break;
-                case CampaignType::EVENT_COVERAGE:
-                    $variation = -5;
-                    break;
-                case CampaignType::BRAND_PARTNERSHIPS:
-                    $variation = 15;
-                    break;
-                default:
-                    $variation = 0;
-            }
-
-            $maxVariation = max($maxVariation, $variation);
+        // If influencer has no content type preferences, return neutral score
+        if (empty($influencerContentTypes)) {
+            return 50.0;
         }
 
-        $randomFactor = (ord(substr($campaign->campaign_goal, -1)) % 20) - 10;
-        $finalScore = max(50.0, min(90.0, $baseScore + $maxVariation + $randomFactor));
+        // If campaign has no types set, return neutral score
+        if ($campaignTypes->isEmpty()) {
+            return 50.0;
+        }
 
-        return $finalScore;
+        // Convert campaign types to values for comparison
+        $campaignTypeValues = $campaignTypes->map(fn ($type) => $type->value)->toArray();
+
+        // Check for exact matches between campaign types and influencer's preferred content types
+        $matches = array_intersect($campaignTypeValues, $influencerContentTypes);
+
+        if (count($matches) > 0) {
+            // At least one match - score based on how many matches
+            $matchRatio = count($matches) / count($campaignTypeValues);
+
+            return 70.0 + ($matchRatio * 30.0); // 70-100 based on match ratio
+        }
+
+        // No direct matches - return lower score
+        return 40.0;
     }
 
     public function calculateCompensationScore(Campaign $campaign, $influencerProfile): float
     {
-        $baseScore = 70.0;
-        $compensationType = $campaign->compensation_type;
-        $variation = 0;
+        $campaignCompensationType = $campaign->compensation_type;
+        $influencerCompensationTypes = $influencerProfile->compensation_types ?? [];
 
-        switch ($compensationType) {
-            case CompensationType::MONETARY:
-                $variation = 10;
-                break;
-            case CompensationType::FREE_PRODUCT:
-                $variation = 5;
-                break;
-            case CompensationType::EXPERIENCE:
-                $variation = -5;
-                break;
-            case CompensationType::GIFT_CARD:
-                $variation = 8;
-                break;
-            case CompensationType::DISCOUNT:
-                $variation = 2;
-                break;
-            default:
-                $variation = 0;
+        // If influencer has no compensation preferences, return neutral score
+        if (empty($influencerCompensationTypes)) {
+            return 50.0;
         }
 
-        if ($campaign->compensation_amount) {
-            $amountFactor = min(20, $campaign->compensation_amount / 100);
-            $variation += $amountFactor;
+        // If campaign has no compensation type, return neutral score
+        if (! $campaignCompensationType) {
+            return 50.0;
         }
 
-        $randomFactor = (ord(substr($campaign->campaign_goal, 1, 1)) % 15) - 7;
-        $finalScore = max(50.0, min(90.0, $baseScore + $variation + $randomFactor));
+        $campaignCompensationValue = $campaignCompensationType->value ?? $campaignCompensationType;
 
-        return $finalScore;
+        // Check if campaign's compensation type matches influencer's preferences
+        if (in_array($campaignCompensationValue, $influencerCompensationTypes)) {
+            return 100.0;
+        }
+
+        // No match - return lower score
+        return 40.0;
     }
 
     public function getDetailedScoreBreakdown(Campaign $campaign, $influencerProfile, int $searchRadius = 50): array

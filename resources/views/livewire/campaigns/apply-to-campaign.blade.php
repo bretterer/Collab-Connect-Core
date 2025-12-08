@@ -16,9 +16,9 @@
         </div>
     @else
         <!-- Apply Button -->
-        <button wire:click="openModal" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+        <flux:button wire:click="openModal" variant="{{ $buttonVariant }}" class="flex-1">
             {{ $buttonText }}
-        </button>
+        </flux:button>
     @endif
 
     <!-- Application Modal -->
