@@ -33,6 +33,14 @@
 
                     <flux:checkbox wire:model="is_active" label="Market is Active" />
 
+                    <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <flux:checkbox
+                            wire:model="sendNotification"
+                            label="Send notifications to approved users"
+                            description="When adding zipcodes to this market, notify waitlisted users that their market is now available."
+                        />
+                    </div>
+
                     <flux:button type="submit" variant="primary" class="w-full">Update Market</flux:button>
                 </form>
             </div>

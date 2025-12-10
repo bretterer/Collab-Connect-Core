@@ -118,6 +118,7 @@
     <script>
         let paymentformInitialized = false;
 
+        document.addEventListener('livewire:init', function() {
         (function() {
             let timeoutId;
             let stripeElementsInstance = null;
@@ -315,6 +316,7 @@
                 }
             });
         })();
+        });
     </script>
     @endpush
 </div>

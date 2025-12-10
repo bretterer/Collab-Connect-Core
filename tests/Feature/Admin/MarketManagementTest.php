@@ -3,12 +3,16 @@
 namespace Tests\Feature\Admin;
 
 use App\Enums\AccountType;
+use App\Livewire\Admin\Markets\MarketEdit;
 use App\Livewire\Admin\Markets\MarketIndex;
 use App\Models\Market;
+use App\Models\MarketWaitlist;
 use App\Models\MarketZipcode;
 use App\Models\PostalCode;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -218,5 +222,117 @@ class MarketManagementTest extends TestCase
         $this->assertTrue(MarketZipcode::isInActiveMarket('12345'));
         $this->assertFalse(MarketZipcode::isInActiveMarket('54321')); // Inactive market
         $this->assertFalse(MarketZipcode::isInActiveMarket('99999')); // No market
+    }
+
+    #[Test]
+    public function activating_market_approves_waitlisted_users(): void
+    {
+        Event::fake([Registered::class]);
+
+        $admin = User::factory()->create([
+            'account_type' => AccountType::ADMIN,
+        ]);
+
+        $postalCode = PostalCode::factory()->withPostalCode('12345')->create();
+        $market = Market::factory()->inactive()->create();
+
+        MarketZipcode::create([
+            'market_id' => $market->id,
+            'postal_code' => '12345',
+        ]);
+
+        $waitlistedUser = User::factory()->create([
+            'postal_code' => '12345',
+            'market_approved' => false,
+        ]);
+
+        MarketWaitlist::create([
+            'user_id' => $waitlistedUser->id,
+            'postal_code' => '12345',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(MarketIndex::class)
+            ->set('sendNotification', false)
+            ->call('toggleActive', $market->id)
+            ->assertHasNoErrors();
+
+        $market->refresh();
+        $waitlistedUser->refresh();
+
+        $this->assertTrue($market->is_active);
+        $this->assertTrue($waitlistedUser->market_approved);
+        $this->assertDatabaseMissing('market_waitlist', ['user_id' => $waitlistedUser->id]);
+    }
+
+    #[Test]
+    public function adding_zipcode_to_active_market_approves_waitlisted_users(): void
+    {
+        Event::fake([Registered::class]);
+
+        $admin = User::factory()->create([
+            'account_type' => AccountType::ADMIN,
+        ]);
+
+        $postalCode = PostalCode::factory()->withPostalCode('12345')->create();
+        $market = Market::factory()->active()->create();
+
+        $waitlistedUser = User::factory()->create([
+            'postal_code' => '12345',
+            'market_approved' => false,
+        ]);
+
+        MarketWaitlist::create([
+            'user_id' => $waitlistedUser->id,
+            'postal_code' => '12345',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(MarketEdit::class, ['market' => $market])
+            ->set('manualZipcode', '12345')
+            ->set('sendNotification', false)
+            ->call('addManualZipcode')
+            ->assertHasNoErrors();
+
+        $waitlistedUser->refresh();
+
+        $this->assertTrue($waitlistedUser->market_approved);
+        $this->assertDatabaseMissing('market_waitlist', ['user_id' => $waitlistedUser->id]);
+        $this->assertDatabaseHas('market_zipcodes', [
+            'market_id' => $market->id,
+            'postal_code' => '12345',
+        ]);
+    }
+
+    #[Test]
+    public function adding_zipcode_to_inactive_market_does_not_approve_users(): void
+    {
+        $admin = User::factory()->create([
+            'account_type' => AccountType::ADMIN,
+        ]);
+
+        $postalCode = PostalCode::factory()->withPostalCode('12345')->create();
+        $market = Market::factory()->inactive()->create();
+
+        $waitlistedUser = User::factory()->create([
+            'postal_code' => '12345',
+            'market_approved' => false,
+        ]);
+
+        MarketWaitlist::create([
+            'user_id' => $waitlistedUser->id,
+            'postal_code' => '12345',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(MarketEdit::class, ['market' => $market])
+            ->set('manualZipcode', '12345')
+            ->call('addManualZipcode')
+            ->assertHasNoErrors();
+
+        $waitlistedUser->refresh();
+
+        $this->assertFalse($waitlistedUser->market_approved);
+        $this->assertDatabaseHas('market_waitlist', ['user_id' => $waitlistedUser->id]);
     }
 }

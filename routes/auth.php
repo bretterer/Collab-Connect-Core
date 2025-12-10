@@ -11,6 +11,7 @@ Route::middleware('guest')->group(function () {
     Route::get('login', Auth\Login::class)->name('login')->middleware(ProtectAgainstSpam::class);
     Route::get('forgot-password', Auth\ForgotPassword::class)->name('password.request');
     Route::get('reset-password/{token}', Auth\ResetPassword::class)->name('password.reset');
+    Route::get('register', Auth\Register::class)->name('register');
 });
 
 Route::middleware('auth', App\Http\Middleware\EnsureMarketApproved::class)->group(function () {
@@ -21,14 +22,6 @@ Route::middleware('auth', App\Http\Middleware\EnsureMarketApproved::class)->grou
         ->middleware(['signed', 'throttle:6,1'])
         ->name('verification.verify');
 });
-
-if (config('collabconnect.registration_enabled')) {
-    if (config('collabconnect.beta_registration_only')) {
-        Route::get('register', Auth\Register::class)->name('register')->middleware('signed');
-    } else {
-        Route::get('register', Auth\Register::class)->name('register');
-    }
-}
 
 Route::get('accept-business-invite', Auth\AcceptInvite::class)->name('accept-business-invite')->middleware('signed');
 

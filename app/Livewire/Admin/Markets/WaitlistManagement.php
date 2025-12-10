@@ -3,9 +3,8 @@
 namespace App\Livewire\Admin\Markets;
 
 use App\Models\MarketWaitlist;
-use App\Models\User;
+use App\Services\MarketService;
 use Flux\Flux;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Livewire\Component;
@@ -109,32 +108,14 @@ class WaitlistManagement extends Component
             }
         }
 
-        // Approve users from ALL zipcodes and send notifications
-        $totalUsers = 0;
-        foreach ($allZipcodes as $postalCode) {
-            $users = User::where('postal_code', $postalCode)
-                ->where('market_approved', false)
-                ->get();
-
-            foreach ($users as $user) {
-                $user->update(['market_approved' => true]);
-
-                // Remove from waitlist
-                MarketWaitlist::where('user_id', $user->id)->delete();
-
-                // Trigger email verification for newly approved users
-                if (! $user->hasVerifiedEmail()) {
-                    event(new Registered($user));
-                }
-
-                // Queue welcome notification if enabled
-                if ($this->sendNotification) {
-                    $user->notify(new \App\Notifications\MarketOpenedNotification($market));
-                }
-
-                $totalUsers++;
-            }
-        }
+        // Approve users from ALL zipcodes using MarketService (handles subscriptions via job)
+        $marketService = app(MarketService::class);
+        $result = $marketService->approveWaitlistedUsersForPostalCodes(
+            $allZipcodes,
+            $market,
+            $this->sendNotification
+        );
+        $totalUsers = $result['approved_count'];
 
         $this->showApprovalModal = false;
 
@@ -211,31 +192,17 @@ class WaitlistManagement extends Component
             return;
         }
 
-        $totalCount = 0;
-
-        foreach ($this->selectedPostalCodes as $postalCode) {
-            $users = User::where('postal_code', $postalCode)
-                ->where('market_approved', false)
-                ->get();
-
-            foreach ($users as $user) {
-                $user->update(['market_approved' => true]);
-
-                // Remove from waitlist
-                MarketWaitlist::where('user_id', $user->id)->delete();
-
-                // Trigger email verification for newly approved users
-                if (! $user->hasVerifiedEmail()) {
-                    event(new Registered($user));
-                }
-
-                $totalCount++;
-            }
-        }
+        // Approve users using MarketService (handles subscriptions via job)
+        $marketService = app(MarketService::class);
+        $result = $marketService->approveWaitlistedUsersForPostalCodes(
+            $this->selectedPostalCodes,
+            null,
+            false
+        );
 
         $this->selectedPostalCodes = [];
 
-        Flux::toast("{$totalCount} users approved!");
+        Flux::toast("{$result['approved_count']} users approved!");
     }
 
     public function togglePostalCodeSelection($postalCode)
