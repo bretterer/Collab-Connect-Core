@@ -10,6 +10,9 @@ require __DIR__.'/marketing.php';
 
 Route::get('/r/{code}', App\Livewire\ReferralRedirect::class)->name('referral.redirect');
 
+// Custom signup pages (public routes for webinar signups)
+Route::get('/signup/{slug}', App\Livewire\CustomSignup::class)->name('signup.show');
+
 // Broadcasting routes
 Broadcast::routes(['middleware' => ['web', 'auth']]);
 
@@ -97,6 +100,13 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
 
         // Component Preview (dev tools)
         Route::get('/component-preview', App\Livewire\Admin\ComponentPreview::class)->name('component-preview');
+
+        // Custom Signup Pages
+        Route::prefix('custom-signup-pages')->name('custom-signup-pages.')->group(function () {
+            Route::get('/', App\Livewire\Admin\CustomSignupPages\CustomSignupPageIndex::class)->name('index');
+            Route::get('/create', App\Livewire\Admin\CustomSignupPages\CustomSignupPageCreate::class)->name('create');
+            Route::get('/{customSignupPage}/edit', App\Livewire\Admin\CustomSignupPages\CustomSignupPageEdit::class)->name('edit');
+        });
 
     });
 

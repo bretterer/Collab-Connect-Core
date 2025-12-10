@@ -1,10 +1,15 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <flux:heading size="xl" class="mb-6">Market Management</flux:heading>
 
-    <div class="mb-6">
+    <div class="mb-6 flex items-center justify-between">
         <flux:button wire:click="$set('showCreateModal', true)" variant="primary">
             Create New Market
         </flux:button>
+
+        <flux:checkbox
+            wire:model="sendNotification"
+            label="Send notifications when activating markets"
+        />
     </div>
 
     @if($markets->isEmpty())

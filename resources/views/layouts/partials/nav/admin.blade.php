@@ -25,6 +25,10 @@
         Referrals
     </flux:navlist.item>
 
+    <flux:navlist.item href="{{ route('admin.custom-signup-pages.index') }}" icon="user-plus" :current="request()->routeIs('admin.custom-signup-pages.*')">
+        Custom Signup Pages
+    </flux:navlist.item>
+
     <flux:navlist.group heading="Marketing" expandable :expanded="request()->routeIs('admin.marketing.*')">
         <flux:navlist.item href="{{ route('admin.marketing.landing-pages.index') }}" icon="document" :current="request()->routeIs('admin.marketing.landing-pages.*')">
             Landing Pages

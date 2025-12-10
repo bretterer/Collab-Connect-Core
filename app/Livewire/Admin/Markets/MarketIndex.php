@@ -3,7 +3,9 @@
 namespace App\Livewire\Admin\Markets;
 
 use App\Models\Market;
+use App\Services\MarketService;
 use Flux\Flux;
+use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -18,6 +20,9 @@ class MarketIndex extends Component
     public $description = '';
 
     public $editingMarket = null;
+
+    // Whether to send notification to approved waitlist users
+    public $sendNotification = true;
 
     public function createMarket()
     {
@@ -37,12 +42,24 @@ class MarketIndex extends Component
         Flux::toast('Market created successfully!');
     }
 
-    public function toggleActive(Market $market)
+    public function toggleActive(Market $market, MarketService $marketService)
     {
+        $wasActive = $market->is_active;
         $market->update(['is_active' => ! $market->is_active]);
 
         $status = $market->is_active ? 'activated' : 'deactivated';
-        Flux::toast("Market {$status} successfully!");
+        $message = "Market {$status} successfully!";
+
+        // If market was just activated, approve waitlisted users
+        if (! $wasActive && $market->is_active) {
+            $approvalResult = $marketService->approveWaitlistedUsersForMarket($market, $this->sendNotification);
+
+            if ($approvalResult['approved_count'] > 0) {
+                $message .= " {$approvalResult['approved_count']} ".Str::plural('user', $approvalResult['approved_count']).' approved from waitlist.';
+            }
+        }
+
+        Flux::toast($message);
     }
 
     public function deleteMarket(Market $market)

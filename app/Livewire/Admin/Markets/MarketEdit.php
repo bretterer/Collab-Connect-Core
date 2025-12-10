@@ -5,7 +5,9 @@ namespace App\Livewire\Admin\Markets;
 use App\Models\Market;
 use App\Models\MarketZipcode;
 use App\Models\PostalCode;
+use App\Services\MarketService;
 use Flux\Flux;
+use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -45,6 +47,9 @@ class MarketEdit extends Component
     // Loading state for map zipcode detection
     public $loadingZipcodes = false;
 
+    // Whether to send notification to approved waitlist users
+    public $sendNotification = true;
+
     public function mount(Market $market)
     {
         $this->market = $market;
@@ -70,7 +75,7 @@ class MarketEdit extends Component
         Flux::toast('Market updated successfully!');
     }
 
-    public function uploadCsv()
+    public function uploadCsv(MarketService $marketService)
     {
         $this->validate([
             'csvFile' => 'required|file|mimes:csv,txt|max:10240',
@@ -81,6 +86,7 @@ class MarketEdit extends Component
         $header = fgetcsv($handle);
 
         $zipcodes = [];
+        $postalCodes = [];
         $added = 0;
 
         while (($row = fgetcsv($handle)) !== false) {
@@ -94,6 +100,7 @@ class MarketEdit extends Component
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
+                $postalCodes[] = $zipcode;
                 $added++;
             }
         }
@@ -107,7 +114,15 @@ class MarketEdit extends Component
 
         $this->csvFile = null;
 
-        Flux::toast("{$added} zipcodes added successfully!");
+        // Approve waitlisted users if the market is active
+        $approvalResult = $this->approveWaitlistedUsers($marketService, $postalCodes);
+
+        $message = "{$added} ".Str::plural('zipcode', $added).' added successfully!';
+        if ($approvalResult['approved_count'] > 0) {
+            $message .= " {$approvalResult['approved_count']} ".Str::plural('user', $approvalResult['approved_count']).' approved from waitlist.';
+        }
+
+        Flux::toast($message);
     }
 
     public function updatedSearchQuery()
@@ -142,7 +157,7 @@ class MarketEdit extends Component
         }
     }
 
-    public function addSelectedZipcodes()
+    public function addSelectedZipcodes(MarketService $marketService)
     {
         if (empty($this->selectedZipcodes)) {
             Flux::toast('No zipcodes selected.');
@@ -151,11 +166,13 @@ class MarketEdit extends Component
         }
 
         $added = 0;
+        $postalCodes = [];
         foreach ($this->selectedZipcodes as $zipcode) {
             MarketZipcode::firstOrCreate([
                 'market_id' => $this->market->id,
                 'postal_code' => $zipcode,
             ]);
+            $postalCodes[] = $zipcode;
             $added++;
         }
 
@@ -163,10 +180,18 @@ class MarketEdit extends Component
         $this->searchResults = [];
         $this->searchQuery = '';
 
-        Flux::toast("{$added} zipcodes added successfully!");
+        // Approve waitlisted users if the market is active
+        $approvalResult = $this->approveWaitlistedUsers($marketService, $postalCodes);
+
+        $message = "{$added} ".Str::plural('zipcode', $added).' added successfully!';
+        if ($approvalResult['approved_count'] > 0) {
+            $message .= " {$approvalResult['approved_count']} ".Str::plural('user', $approvalResult['approved_count']).' approved from waitlist.';
+        }
+
+        Flux::toast($message);
     }
 
-    public function addManualZipcode()
+    public function addManualZipcode(MarketService $marketService)
     {
         $this->validate([
             'manualZipcode' => ['required', 'string', function ($attribute, $value, $fail) {
@@ -181,9 +206,18 @@ class MarketEdit extends Component
             'postal_code' => $this->manualZipcode,
         ]);
 
+        $postalCode = $this->manualZipcode;
         $this->manualZipcode = '';
 
-        Flux::toast('Zipcode added successfully!');
+        // Approve waitlisted users if the market is active
+        $approvalResult = $this->approveWaitlistedUsers($marketService, [$postalCode]);
+
+        $message = 'Zipcode added successfully!';
+        if ($approvalResult['approved_count'] > 0) {
+            $message .= " {$approvalResult['approved_count']} ".Str::plural('user', $approvalResult['approved_count']).' approved from waitlist.';
+        }
+
+        Flux::toast($message);
     }
 
     public function removeZipcode($zipcodeId)
@@ -256,7 +290,7 @@ class MarketEdit extends Component
         return count($this->previewZipcodes);
     }
 
-    public function addBoundaryZipcodes()
+    public function addBoundaryZipcodes(MarketService $marketService)
     {
         if (empty($this->previewZipcodes)) {
             Flux::toast('No zipcodes found in the drawn area.');
@@ -265,18 +299,28 @@ class MarketEdit extends Component
         }
 
         $added = 0;
+        $postalCodes = [];
         foreach ($this->previewZipcodes as $zipcode) {
             MarketZipcode::firstOrCreate([
                 'market_id' => $this->market->id,
                 'postal_code' => $zipcode['postal_code'],
             ]);
+            $postalCodes[] = $zipcode['postal_code'];
             $added++;
         }
 
         $this->previewZipcodes = [];
         $this->drawnBoundary = null;
 
-        Flux::toast("{$added} zipcodes added successfully!");
+        // Approve waitlisted users if the market is active
+        $approvalResult = $this->approveWaitlistedUsers($marketService, $postalCodes);
+
+        $message = "{$added} ".Str::plural('zipcode', $added).' added successfully!';
+        if ($approvalResult['approved_count'] > 0) {
+            $message .= " {$approvalResult['approved_count']} ".Str::plural('user', $approvalResult['approved_count']).' approved from waitlist.';
+        }
+
+        Flux::toast($message);
     }
 
     private function isPointInPolygon($lng, $lat, $polygon)
@@ -371,6 +415,26 @@ class MarketEdit extends Component
 
             return $this->haversineDistance($px, $py, $closestX, $closestY);
         }
+    }
+
+    /**
+     * Approve waitlisted users for the given postal codes if the market is active.
+     *
+     * @param  array<string>  $postalCodes
+     * @return array{approved_count: int, users: \Illuminate\Support\Collection}
+     */
+    private function approveWaitlistedUsers(MarketService $marketService, array $postalCodes): array
+    {
+        // Only approve users if the market is active
+        if (! $this->market->is_active) {
+            return ['approved_count' => 0, 'users' => collect()];
+        }
+
+        return $marketService->approveWaitlistedUsersForPostalCodes(
+            $postalCodes,
+            $this->market,
+            $this->sendNotification
+        );
     }
 
     public function render()

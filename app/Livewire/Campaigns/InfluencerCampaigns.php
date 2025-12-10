@@ -100,10 +100,14 @@ class InfluencerCampaigns extends BaseComponent
             // All campaigns tab - exclude hidden
             $query = Campaign::query()
                 ->where('status', CampaignStatus::PUBLISHED)
-                ->where('business_id', '!=', $user->current_business)
                 ->where('application_deadline', '>', now())
                 ->whereNotIn('id', $hiddenCampaignIds)
                 ->with(['business']);
+
+            // Exclude user's own business campaigns if they have a business
+            if ($user->current_business) {
+                $query->where('business_id', '!=', $user->current_business);
+            }
         }
 
         // Apply search filter
