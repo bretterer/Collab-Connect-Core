@@ -3,83 +3,93 @@
 namespace App\Services;
 
 use App\Enums\AccountType;
+use App\Models\Influencer;
 use App\Models\PostalCode;
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class SearchService
 {
     /**
-     * Search for users based on criteria
+     * Search for influencers based on criteria.
+     * This is the primary search method for businesses finding influencers.
      */
-    public static function searchUsers(array $criteria, User $currentUser, int $perPage = 12): LengthAwarePaginator
+    public static function searchInfluencers(array $criteria, User $currentUser, int $perPage = 12): LengthAwarePaginator
     {
-        $targetAccountType = self::getTargetAccountType($currentUser);
-        $query = self::buildBaseQuery($currentUser, $targetAccountType);
+        $query = Influencer::query()
+            ->where('onboarding_complete', true)
+            ->whereHas('user', function ($q) use ($currentUser, $criteria) {
+                $q->where('account_type', AccountType::INFLUENCER)
+                    ->where('id', '!=', $currentUser->id);
+
+                // Filter by saved/hidden users
+                $showSavedOnly = $criteria['showSavedOnly'] ?? false;
+                $hideHidden = $criteria['hideHidden'] ?? true;
+
+                if ($showSavedOnly) {
+                    $savedUserIds = $currentUser->savedUsers()->pluck('saved_user_id')->toArray();
+                    $q->whereIn('id', $savedUserIds);
+                }
+
+                if ($hideHidden) {
+                    $hiddenUserIds = $currentUser->hiddenUsers()->pluck('saved_user_id')->toArray();
+                    if (! empty($hiddenUserIds)) {
+                        $q->whereNotIn('id', $hiddenUserIds);
+                    }
+                }
+            });
 
         // Apply filters
-        $query = self::applySearchFilter($query, $criteria['search'] ?? '');
-        $query = self::applyLocationFilter($query, $criteria, $targetAccountType);
-        $query = self::applyNicheFilter($query, $criteria['selectedNiches'] ?? [], $targetAccountType);
-        $query = self::applyPlatformFilter($query, $criteria['selectedPlatforms'] ?? [], $targetAccountType);
-        $query = self::applyFollowerFilter($query, $criteria, $targetAccountType);
-        $query = self::applyEngagementFilter($query, $criteria, $targetAccountType);
-        $query = self::applyPriceFilter($query, $criteria, $targetAccountType);
-        $query = self::applyQualityFilter($query, $criteria, $targetAccountType);
-        $query = self::applySorting($query, $criteria['sortBy'] ?? 'relevance', $targetAccountType);
+        $query = self::applyInfluencerSearchFilter($query, $criteria['search'] ?? '');
+        $query = self::applyInfluencerLocationFilter($query, $criteria);
+        $query = self::applyInfluencerNicheFilter($query, $criteria['selectedNiches'] ?? []);
+        $query = self::applyInfluencerPlatformFilter($query, $criteria['selectedPlatforms'] ?? []);
+        $query = self::applyInfluencerFollowerFilter($query, $criteria);
+        $query = self::applyInfluencerSorting($query, $criteria['sortBy'] ?? 'relevance', $criteria);
 
-        // Load relationships
-        $query = self::loadRelationships($query, $targetAccountType);
+        // Eager load relationships for the cards
+        $query->with([
+            'user',
+            'socialAccounts',
+            'postalCodeInfo' => fn ($q) => $q->select(['postal_code', 'place_name', 'admin_name1', 'admin_code1', 'latitude', 'longitude']),
+            'media',
+        ]);
 
         $results = $query->paginate($perPage);
 
-        // Handle proximity search calculations
-        if (! empty($criteria['location'])) {
-            $results = self::handleProximitySearch($results, $criteria);
+        // Calculate distances if location search is active
+        if (! empty($criteria['location']) && preg_match('/^\d{5}$/', $criteria['location'])) {
+            $results = self::calculateInfluencerDistances($results, $criteria['location']);
         }
 
         return $results;
     }
 
     /**
-     * Get the target account type for search
+     * Apply text search filter to influencer query.
      */
-    private static function getTargetAccountType(User $currentUser): AccountType
-    {
-        return $currentUser->account_type === AccountType::BUSINESS
-            ? AccountType::INFLUENCER
-            : AccountType::BUSINESS;
-    }
-
-    /**
-     * Build the base query
-     */
-    private static function buildBaseQuery(User $currentUser, AccountType $targetAccountType): Builder
-    {
-        return User::query()->where('account_type', $targetAccountType)
-            ->where('id', '!=', $currentUser->id);
-    }
-
-    /**
-     * Apply search filter
-     */
-    private static function applySearchFilter(Builder $query, string $search): Builder
+    private static function applyInfluencerSearchFilter(Builder $query, string $search): Builder
     {
         if (empty($search)) {
             return $query;
         }
 
+        $search = trim($search);
+
         return $query->where(function ($q) use ($search) {
-            $q->where('name', 'like', '%'.$search.'%')
-                ->orWhere('email', 'like', '%'.$search.'%');
+            $q->where('username', 'like', "%{$search}%")
+                ->orWhere('bio', 'like', "%{$search}%")
+                ->orWhereHas('user', function ($userQuery) use ($search) {
+                    $userQuery->where('name', 'like', "%{$search}%");
+                });
         });
     }
 
     /**
-     * Apply location filter
+     * Apply location/proximity filter to influencer query.
      */
-    private static function applyLocationFilter(Builder $query, array $criteria, AccountType $targetAccountType): Builder
+    private static function applyInfluencerLocationFilter(Builder $query, array $criteria): Builder
     {
         $location = $criteria['location'] ?? '';
 
@@ -87,29 +97,130 @@ class SearchService
             return $query;
         }
 
-        $nearbyZipCodes = self::getNearbyZipCodes($location, $criteria['searchRadius'] ?? 50);
+        // For 5-digit zip codes, use proximity search
+        if (preg_match('/^\d{5}$/', $location)) {
+            $radius = (int) ($criteria['searchRadius'] ?? 50);
+            $nearbyZipCodes = self::getNearbyZipCodes($location, $radius);
 
-        if (! empty($nearbyZipCodes)) {
-            // Use proximity search
-            $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencer' : 'currentBusiness';
-            $zipCodeColumn = 'postal_code';
-
-            return $query->whereHas($relationshipMethod, function ($q) use ($nearbyZipCodes, $zipCodeColumn) {
-                $q->whereIn($zipCodeColumn, $nearbyZipCodes);
-            });
-        } else {
-            // Fallback to text search
-            $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencer' : 'currentBusiness';
-            $zipCodeColumn = 'postal_code';
-
-            return $query->whereHas($relationshipMethod, function ($q) use ($location, $zipCodeColumn) {
-                $q->where($zipCodeColumn, 'like', '%'.$location.'%');
-            });
+            if (! empty($nearbyZipCodes)) {
+                return $query->whereIn('postal_code', $nearbyZipCodes);
+            }
         }
+
+        // Fallback to text search on postal_code
+        return $query->where('postal_code', 'like', "%{$location}%");
     }
 
     /**
-     * Get nearby zip codes for proximity search
+     * Apply niche/content type filter to influencer query.
+     */
+    private static function applyInfluencerNicheFilter(Builder $query, array $selectedNiches): Builder
+    {
+        if (empty($selectedNiches)) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($selectedNiches) {
+            foreach ($selectedNiches as $niche) {
+                $q->orWhereJsonContains('content_types', $niche);
+            }
+        });
+    }
+
+    /**
+     * Apply social platform filter to influencer query.
+     */
+    private static function applyInfluencerPlatformFilter(Builder $query, array $selectedPlatforms): Builder
+    {
+        if (empty($selectedPlatforms)) {
+            return $query;
+        }
+
+        return $query->whereHas('socialAccounts', function ($q) use ($selectedPlatforms) {
+            $q->whereIn('platform', $selectedPlatforms);
+        });
+    }
+
+    /**
+     * Apply follower count filter to influencer query.
+     * Filters by TOTAL followers across all social accounts using a subquery.
+     */
+    private static function applyInfluencerFollowerFilter(Builder $query, array $criteria): Builder
+    {
+        $minFollowers = $criteria['minFollowers'] ?? null;
+        $maxFollowers = $criteria['maxFollowers'] ?? null;
+
+        if (empty($minFollowers) && empty($maxFollowers)) {
+            return $query;
+        }
+
+        // Use whereRaw with a correlated subquery to filter by total followers
+        $subquery = '(SELECT COALESCE(SUM(followers), 0) FROM influencer_socials WHERE influencer_socials.influencer_id = influencers.id)';
+
+        if (! empty($minFollowers) && ! empty($maxFollowers)) {
+            $query->whereRaw("{$subquery} BETWEEN ? AND ?", [(int) $minFollowers, (int) $maxFollowers]);
+        } elseif (! empty($minFollowers)) {
+            $query->whereRaw("{$subquery} >= ?", [(int) $minFollowers]);
+        } else {
+            $query->whereRaw("{$subquery} <= ?", [(int) $maxFollowers]);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Apply sorting to influencer query.
+     */
+    private static function applyInfluencerSorting(Builder $query, string $sortBy, array $criteria): Builder
+    {
+        return match ($sortBy) {
+            'name' => $query->join('users', 'influencers.user_id', '=', 'users.id')
+                ->orderBy('users.name')
+                ->select('influencers.*'),
+            'newest' => $query->orderBy('created_at', 'desc'),
+            'oldest' => $query->orderBy('created_at', 'asc'),
+            'followers' => $query->withSum('socialAccounts', 'followers')
+                ->orderByDesc('social_accounts_sum_followers'),
+            'quality' => $query->orderByDesc('content_quality_score'),
+            'distance' => $query->orderBy('id'), // Distance sorting happens after pagination
+            default => $query->orderBy('created_at', 'desc'),
+        };
+    }
+
+    /**
+     * Calculate distances for paginated influencer results.
+     */
+    private static function calculateInfluencerDistances(LengthAwarePaginator $results, string $zipCode): LengthAwarePaginator
+    {
+        $searchPostalCode = PostalCode::where('postal_code', $zipCode)
+            ->where('country_code', 'US')
+            ->first();
+
+        if (! $searchPostalCode) {
+            return $results;
+        }
+
+        $results->getCollection()->transform(function ($influencer) use ($searchPostalCode) {
+            $influencerPostalCode = $influencer->postalCodeInfo;
+            $influencer->distance = $influencerPostalCode
+                ? $searchPostalCode->distanceTo($influencerPostalCode)
+                : null;
+
+            return $influencer;
+        });
+
+        // Re-sort by distance if that's the selected sort
+        $sorted = $results->getCollection()->sortBy(function ($influencer) {
+            return $influencer->distance ?? 99999;
+        })->values();
+
+        $results->setCollection($sorted);
+
+        return $results;
+    }
+
+    /**
+     * Get nearby zip codes for proximity search.
      */
     private static function getNearbyZipCodes(string $location, int $radius): array
     {
@@ -129,236 +240,14 @@ class SearchService
     }
 
     /**
-     * Apply niche filter
+     * Get search metadata for the UI.
      */
-    private static function applyNicheFilter(Builder $query, array $selectedNiches, AccountType $targetAccountType): Builder
-    {
-        if (empty($selectedNiches)) {
-            return $query;
-        }
-
-        $relationshipMethod = $targetAccountType === AccountType::INFLUENCER ? 'influencer' : 'currentBusiness';
-        $nicheColumn = $targetAccountType === AccountType::INFLUENCER ? 'content_types' : 'industry';
-
-        return $query->whereHas($relationshipMethod, function ($q) use ($selectedNiches, $nicheColumn, $targetAccountType) {
-            if ($targetAccountType === AccountType::INFLUENCER) {
-                // Searching for influencers - content_types is JSON array - use JSON contains
-                $q->where(function ($query) use ($selectedNiches, $nicheColumn) {
-                    foreach ($selectedNiches as $niche) {
-                        $query->orWhereJsonContains($nicheColumn, $niche);
-                    }
-                });
-            } else {
-                // Searching for businesses - industry is a single string value - use whereIn
-                $q->whereIn($nicheColumn, $selectedNiches);
-            }
-        });
-    }
-
-    /**
-     * Apply platform filter (influencers only)
-     */
-    private static function applyPlatformFilter(Builder $query, array $selectedPlatforms, AccountType $targetAccountType): Builder
-    {
-        if (empty($selectedPlatforms) || $targetAccountType !== AccountType::INFLUENCER) {
-            return $query;
-        }
-
-        return $query->whereHas('socialMediaAccounts', function ($q) use ($selectedPlatforms) {
-            $q->whereIn('platform', $selectedPlatforms);
-        });
-    }
-
-    /**
-     * Apply follower count filter (influencers only)
-     */
-    private static function applyFollowerFilter(Builder $query, array $criteria, AccountType $targetAccountType): Builder
-    {
-        if ($targetAccountType !== AccountType::INFLUENCER) {
-            return $query;
-        }
-
-        $minFollowers = $criteria['minFollowers'] ?? null;
-        $maxFollowers = $criteria['maxFollowers'] ?? null;
-
-        if (! $minFollowers && ! $maxFollowers) {
-            return $query;
-        }
-
-        return $query->whereHas('socialMediaAccounts', function ($q) use ($minFollowers, $maxFollowers) {
-            if ($minFollowers) {
-                $q->where('follower_count', '>=', $minFollowers);
-            }
-            if ($maxFollowers) {
-                $q->where('follower_count', '<=', $maxFollowers);
-            }
-        });
-    }
-
-    /**
-     * Apply sorting
-     */
-    /**
-     * Apply engagement rate filter (influencers only)
-     */
-    private static function applyEngagementFilter(Builder $query, array $criteria, AccountType $targetAccountType): Builder
-    {
-        if ($targetAccountType !== AccountType::INFLUENCER) {
-            return $query;
-        }
-
-        $minEngagement = $criteria['minEngagementRate'] ?? null;
-        $maxEngagement = $criteria['maxEngagementRate'] ?? null;
-
-        if (! $minEngagement && ! $maxEngagement) {
-            return $query;
-        }
-
-        return $query->whereHas('socialMediaAccounts', function ($q) use ($minEngagement, $maxEngagement) {
-            if ($minEngagement) {
-                $q->where('engagement_rate', '>=', $minEngagement);
-            }
-            if ($maxEngagement) {
-                $q->where('engagement_rate', '<=', $maxEngagement);
-            }
-        });
-    }
-
-    /**
-     * Apply price range filter (influencers only)
-     */
-    private static function applyPriceFilter(Builder $query, array $criteria, AccountType $targetAccountType): Builder
-    {
-        if ($targetAccountType !== AccountType::INFLUENCER) {
-            return $query;
-        }
-
-        $minPrice = $criteria['minPriceRange'] ?? null;
-        $maxPrice = $criteria['maxPriceRange'] ?? null;
-
-        if (! $minPrice && ! $maxPrice) {
-            return $query;
-        }
-
-        return $query->whereHas('influencer', function ($q) use ($minPrice, $maxPrice) {
-            if ($minPrice) {
-                $q->where('min_rate', '>=', $minPrice);
-            }
-            if ($maxPrice) {
-                $q->where('max_rate', '<=', $maxPrice);
-            }
-        });
-    }
-
-    /**
-     * Apply content quality filter (influencers only)
-     */
-    private static function applyQualityFilter(Builder $query, array $criteria, AccountType $targetAccountType): Builder
-    {
-        if ($targetAccountType !== AccountType::INFLUENCER || empty($criteria['contentQuality'])) {
-            return $query;
-        }
-
-        return $query->whereHas('influencer', function ($q) use ($criteria) {
-            $q->where('content_quality_score', '>=', $criteria['contentQuality']);
-        });
-    }
-
-    private static function applySorting(Builder $query, string $sortBy, AccountType $targetAccountType): Builder
-    {
-        return match ($sortBy) {
-            'name' => $query->orderBy('name'),
-            'newest' => $query->orderBy('created_at', 'desc'),
-            'oldest' => $query->orderBy('created_at', 'asc'),
-            'followers' => $targetAccountType === AccountType::INFLUENCER
-                ? $query->leftJoin('social_media_accounts', 'users.id', '=', 'social_media_accounts.user_id')
-                    ->orderBy('social_media_accounts.follower_count', 'desc')
-                    ->select('users.*')
-                : $query->orderBy('id'),
-            'engagement' => $targetAccountType === AccountType::INFLUENCER
-                ? $query->leftJoin('social_media_accounts', 'users.id', '=', 'social_media_accounts.user_id')
-                    ->orderBy('social_media_accounts.engagement_rate', 'desc')
-                    ->select('users.*')
-                : $query->orderBy('id'),
-            'quality' => $targetAccountType === AccountType::INFLUENCER
-                ? $query->leftJoin('influencers', 'users.id', '=', 'influencers.user_id')
-                    ->orderBy('influencers.content_quality_score', 'desc')
-                    ->select('users.*')
-                : $query->orderBy('id'),
-            'relevance' => $query->orderBy('created_at', 'desc'), // Default relevance sorting
-            'distance' => $query->orderBy('id'), // Will be handled after pagination
-            default => $query->orderBy('created_at', 'desc'),
-        };
-    }
-
-    /**
-     * Load relationships based on account type
-     */
-    private static function loadRelationships(Builder $query, AccountType $targetAccountType): Builder
-    {
-        if ($targetAccountType === AccountType::INFLUENCER) {
-            return $query->with([
-                'influencer',
-                'socialMediaAccounts',
-                'influencer.postalCodeInfo' => function ($query) {
-                    $query->select(['postal_code', 'place_name', 'admin_name1', 'admin_code1']);
-                },
-            ]);
-        } else {
-            return $query->with(['currentBusiness']);
-        }
-    }
-
-    /**
-     * Handle proximity search calculations
-     */
-    private static function handleProximitySearch(LengthAwarePaginator $results, array $criteria): LengthAwarePaginator
+    public static function getSearchMetadata(array $criteria): array
     {
         $location = $criteria['location'] ?? '';
-        $sortBy = $criteria['sortBy'] ?? 'name';
-
-        if (! preg_match('/^\d{5}$/', $location)) {
-            return $results;
-        }
-
-        $searchPostalCode = PostalCode::where('postal_code', $location)
-            ->where('country_code', 'US')
-            ->first();
-
-        if (! $searchPostalCode) {
-            return $results;
-        }
-
-        // Calculate distances
-        $results->getCollection()->transform(function ($user) use ($searchPostalCode) {
-            $userPostalCode = $user->getPostalCodeInfo();
-            $user->distance = $userPostalCode ? $searchPostalCode->distanceTo($userPostalCode) : null;
-
-            return $user;
-        });
-
-        // Sort by distance if requested
-        if ($sortBy === 'distance') {
-            $sorted = $results->getCollection()->sortBy(function ($user) {
-                return $user->distance ?? 9999; // Put users without distance at the end
-            })->values();
-
-            $results->setCollection($sorted);
-        }
-
-        return $results;
-    }
-
-    /**
-     * Get search metadata
-     */
-    public static function getSearchMetadata(array $criteria, User $currentUser): array
-    {
-        $targetAccountType = self::getTargetAccountType($currentUser);
-        $location = $criteria['location'] ?? '';
-        $nearbyZipCodes = [];
         $searchPostalCode = null;
         $isProximitySearch = false;
+        $nearbyCount = 0;
 
         if (! empty($location) && preg_match('/^\d{5}$/', $location)) {
             $searchPostalCode = PostalCode::where('postal_code', $location)
@@ -368,15 +257,154 @@ class SearchService
             if ($searchPostalCode) {
                 $nearbyZipCodes = self::getNearbyZipCodes($location, $criteria['searchRadius'] ?? 50);
                 $isProximitySearch = ! empty($nearbyZipCodes);
+                $nearbyCount = count($nearbyZipCodes);
             }
         }
 
         return [
-            'targetAccountType' => $targetAccountType,
-            'searchingFor' => $targetAccountType === AccountType::INFLUENCER ? 'influencers' : 'businesses',
             'searchPostalCode' => $searchPostalCode,
             'isProximitySearch' => $isProximitySearch,
-            'nearbyZipCodes' => $nearbyZipCodes,
+            'nearbyZipCodesCount' => $nearbyCount,
         ];
+    }
+
+    /**
+     * Get available filter options for the UI.
+     */
+    public static function getFilterOptions(): array
+    {
+        return [
+            'radiusOptions' => [
+                ['value' => 10, 'label' => '10 miles'],
+                ['value' => 25, 'label' => '25 miles'],
+                ['value' => 50, 'label' => '50 miles'],
+                ['value' => 100, 'label' => '100 miles'],
+                ['value' => 250, 'label' => '250 miles'],
+            ],
+            'followerPresets' => [
+                ['min' => null, 'max' => 1000, 'label' => 'Nano (< 1K)'],
+                ['min' => 1000, 'max' => 10000, 'label' => 'Micro (1K - 10K)'],
+                ['min' => 10000, 'max' => 100000, 'label' => 'Mid (10K - 100K)'],
+                ['min' => 100000, 'max' => 1000000, 'label' => 'Macro (100K - 1M)'],
+                ['min' => 1000000, 'max' => null, 'label' => 'Mega (1M+)'],
+            ],
+            'sortOptions' => [
+                ['value' => 'relevance', 'label' => 'Most Relevant'],
+                ['value' => 'newest', 'label' => 'Newest First'],
+                ['value' => 'followers', 'label' => 'Most Followers'],
+                ['value' => 'quality', 'label' => 'Highest Quality'],
+                ['value' => 'name', 'label' => 'Name (A-Z)'],
+            ],
+        ];
+    }
+
+    // ==========================================
+    // Legacy methods for backwards compatibility
+    // ==========================================
+
+    /**
+     * Legacy method - search for users based on criteria.
+     *
+     * @deprecated Use searchInfluencers() instead for business->influencer searches
+     */
+    public static function searchUsers(array $criteria, User $currentUser, int $perPage = 12): LengthAwarePaginator
+    {
+        // If business is searching for influencers, use the new optimized method
+        if ($currentUser->account_type === AccountType::BUSINESS) {
+            $results = self::searchInfluencers($criteria, $currentUser, $perPage);
+
+            // Transform to User models for backwards compatibility with existing cards
+            // Filter out any influencers that don't have a valid user relationship
+            $users = $results->getCollection()
+                ->filter(fn ($influencer) => $influencer->user !== null)
+                ->map(function ($influencer) {
+                    $user = $influencer->user;
+                    $user->setRelation('influencer', $influencer);
+                    $user->distance = $influencer->distance ?? null;
+
+                    return $user;
+                })
+                ->values();
+
+            $results->setCollection($users);
+
+            return $results;
+        }
+
+        // Fallback for influencer->business searches (keep old behavior for now)
+        return self::legacySearchUsers($criteria, $currentUser, $perPage);
+    }
+
+    /**
+     * Legacy search method for influencers searching for businesses.
+     */
+    private static function legacySearchUsers(array $criteria, User $currentUser, int $perPage = 12): LengthAwarePaginator
+    {
+        $query = User::query()
+            ->where('account_type', AccountType::BUSINESS)
+            ->where('id', '!=', $currentUser->id);
+
+        // Filter by saved/hidden users
+        $showSavedOnly = $criteria['showSavedOnly'] ?? false;
+        $hideHidden = $criteria['hideHidden'] ?? true;
+
+        if ($showSavedOnly) {
+            $savedUserIds = $currentUser->savedUsers()->pluck('saved_user_id')->toArray();
+            $query->whereIn('id', $savedUserIds);
+        }
+
+        if ($hideHidden) {
+            $hiddenUserIds = $currentUser->hiddenUsers()->pluck('saved_user_id')->toArray();
+            if (! empty($hiddenUserIds)) {
+                $query->whereNotIn('id', $hiddenUserIds);
+            }
+        }
+
+        // Apply search filter
+        if (! empty($criteria['search'])) {
+            $search = $criteria['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        // Apply location filter
+        if (! empty($criteria['location'])) {
+            $location = $criteria['location'];
+            $radius = $criteria['searchRadius'] ?? 50;
+
+            if (preg_match('/^\d{5}$/', $location)) {
+                $nearbyZipCodes = self::getNearbyZipCodes($location, $radius);
+                if (! empty($nearbyZipCodes)) {
+                    $query->whereHas('currentBusiness', function ($q) use ($nearbyZipCodes) {
+                        $q->whereIn('postal_code', $nearbyZipCodes);
+                    });
+                }
+            }
+        }
+
+        // Apply niche filter
+        if (! empty($criteria['selectedNiches'])) {
+            $query->whereHas('currentBusiness', function ($q) use ($criteria) {
+                $q->whereIn('industry', $criteria['selectedNiches']);
+            });
+        }
+
+        $query->with(['currentBusiness']);
+
+        return $query->paginate($perPage);
+    }
+
+    /**
+     * Get the target account type for search (legacy).
+     *
+     * @deprecated
+     */
+    private static function getTargetAccountType(User $currentUser): AccountType
+    {
+        return $currentUser->account_type === AccountType::BUSINESS
+            ? AccountType::INFLUENCER
+            : AccountType::BUSINESS;
     }
 }

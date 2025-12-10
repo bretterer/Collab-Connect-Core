@@ -16,9 +16,28 @@
         <div class="absolute inset-0 bg-black/10"></div>
 
         @if($showFavorites)
-            <div class="absolute top-3 left-3 flex space-x-2 z-10">
-                <button class="p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors">
-                    <flux:icon.heart class="w-4 h-4 text-white" />
+            <div class="absolute top-3 left-3 flex gap-1 z-10">
+                <button
+                    wire:click="toggleSave"
+                    class="p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                    title="{{ $isSaved ? 'Remove from saved' : 'Save business' }}"
+                >
+                    @if($isSaved)
+                        <flux:icon.heart class="w-4 h-4 text-red-400 fill-red-400" />
+                    @else
+                        <flux:icon.heart class="w-4 h-4 text-white hover:text-red-400" />
+                    @endif
+                </button>
+                <button
+                    wire:click="toggleHide"
+                    class="p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                    title="{{ $isHidden ? 'Show business' : 'Hide business' }}"
+                >
+                    @if($isHidden)
+                        <flux:icon.eye class="w-4 h-4 text-white" />
+                    @else
+                        <flux:icon.eye-slash class="w-4 h-4 text-white" />
+                    @endif
                 </button>
             </div>
         @endif

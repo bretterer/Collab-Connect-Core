@@ -17,7 +17,6 @@ enum CollaborationGoal: string
     case CUSTOMER_ACQUISITION = 'customer_acquisition';
     case SOCIAL_MEDIA_GROWTH = 'social_media_growth';
     case MONETARY_COMPENSATION = 'monetary_compensation';
-    case BARTER_TRADE = 'barter';
     case FREE_PRODUCT = 'free_product';
     case DISCOUNT_CODES = 'discounting';
     case LONG_TERM_PARTNERSHIPS = 'long_term_partnerships';
@@ -35,7 +34,6 @@ enum CollaborationGoal: string
             self::CUSTOMER_ACQUISITION => 'Acquire new customers',
             self::SOCIAL_MEDIA_GROWTH => 'Grow social media following',
             self::MONETARY_COMPENSATION => 'Monetary compensation',
-            self::BARTER_TRADE => 'Barter/trade',
             self::FREE_PRODUCT => 'Free products',
             self::DISCOUNT_CODES => 'Discount codes for followers',
             self::LONG_TERM_PARTNERSHIPS => 'Long-term partnerships',

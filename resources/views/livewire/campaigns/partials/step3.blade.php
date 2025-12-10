@@ -78,7 +78,6 @@
                     @php
                         $compIcons = [
                             'monetary' => 'banknotes',
-                            'barter' => 'arrows-right-left',
                             'free_product' => 'gift',
                             'discount' => 'receipt-percent',
                             'gift_card' => 'credit-card',

@@ -95,21 +95,24 @@ class Influencer extends Model implements HasMedia
     public function getContentTypesLabelsAttribute(): array
     {
         return collect($this->content_types ?? [])
-            ->map(fn ($type) => BusinessIndustry::from($type)->label())
+            ->map(fn ($type) => BusinessIndustry::tryFrom($type)?->label())
+            ->filter()
             ->toArray();
     }
 
     public function getPreferredBusinessTypesLabelsAttribute(): array
     {
         return collect($this->preferred_business_types ?? [])
-            ->map(fn ($type) => BusinessType::from($type)->label())
+            ->map(fn ($type) => BusinessType::tryFrom($type)?->label())
+            ->filter()
             ->toArray();
     }
 
     public function getCompensationTypesLabelsAttribute(): array
     {
         return collect($this->compensation_types ?? [])
-            ->map(fn ($type) => CompensationType::from($type)->label())
+            ->map(fn ($type) => CompensationType::tryFrom($type)?->label())
+            ->filter()
             ->toArray();
     }
 

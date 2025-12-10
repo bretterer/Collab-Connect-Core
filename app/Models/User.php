@@ -380,6 +380,82 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get users saved by this user
+     */
+    public function savedUsers(): HasMany
+    {
+        return $this->hasMany(SavedUser::class)->where('type', 'saved');
+    }
+
+    /**
+     * Get users hidden by this user
+     */
+    public function hiddenUsers(): HasMany
+    {
+        return $this->hasMany(SavedUser::class)->where('type', 'hidden');
+    }
+
+    /**
+     * Check if this user has saved another user
+     */
+    public function hasSavedUser(User $user): bool
+    {
+        return $this->savedUsers()->where('saved_user_id', $user->id)->exists();
+    }
+
+    /**
+     * Check if this user has hidden another user
+     */
+    public function hasHiddenUser(User $user): bool
+    {
+        return $this->hiddenUsers()->where('saved_user_id', $user->id)->exists();
+    }
+
+    /**
+     * Save another user
+     */
+    public function saveUser(User $user): void
+    {
+        SavedUser::updateOrCreate(
+            ['user_id' => $this->id, 'saved_user_id' => $user->id],
+            ['type' => 'saved']
+        );
+    }
+
+    /**
+     * Unsave another user
+     */
+    public function unsaveUser(User $user): void
+    {
+        SavedUser::where('user_id', $this->id)
+            ->where('saved_user_id', $user->id)
+            ->where('type', 'saved')
+            ->delete();
+    }
+
+    /**
+     * Hide another user
+     */
+    public function hideUser(User $user): void
+    {
+        SavedUser::updateOrCreate(
+            ['user_id' => $this->id, 'saved_user_id' => $user->id],
+            ['type' => 'hidden']
+        );
+    }
+
+    /**
+     * Unhide another user
+     */
+    public function unhideUser(User $user): void
+    {
+        SavedUser::where('user_id', $this->id)
+            ->where('saved_user_id', $user->id)
+            ->where('type', 'hidden')
+            ->delete();
+    }
+
+    /**
      * Set the user's account type.
      */
     public function setAccountType(AccountType $accountType): void

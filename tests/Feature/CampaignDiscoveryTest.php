@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Enums\AccountType;
 use App\Enums\CampaignStatus;
 use App\Enums\CampaignType;
 use App\Models\Campaign;
@@ -245,15 +244,16 @@ class CampaignDiscoveryTest extends TestCase
             'searchRadius' => 50,
         ];
 
-        $metadata = SearchService::getSearchMetadata($criteria, $this->businessUser);
+        $metadata = SearchService::getSearchMetadata($criteria);
 
         $this->assertIsArray($metadata);
-        $this->assertArrayHasKey('targetAccountType', $metadata);
-        $this->assertArrayHasKey('searchingFor', $metadata);
+        $this->assertArrayHasKey('searchPostalCode', $metadata);
         $this->assertArrayHasKey('isProximitySearch', $metadata);
+        $this->assertArrayHasKey('nearbyZipCodesCount', $metadata);
 
-        $this->assertEquals(AccountType::INFLUENCER, $metadata['targetAccountType']);
-        $this->assertEquals('influencers', $metadata['searchingFor']);
+        $this->assertTrue($metadata['isProximitySearch']);
+        $this->assertNotNull($metadata['searchPostalCode']);
+        $this->assertEquals('49503', $metadata['searchPostalCode']->postal_code);
     }
 
     public function test_campaign_discovery_pagination()
