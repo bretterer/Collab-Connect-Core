@@ -15,11 +15,11 @@ class ViewBusinessProfile extends Component
 
     public function mount($username)
     {
-        // Find user by business username, influencer username, or ID
+        // Find user by business username or business ID
         $this->user = User::whereHas('businesses', function ($query) use ($username) {
-            $query->where('username', $username);
+            $query->where('businesses.username', $username)
+                ->orWhere('businesses.id', $username);
         })
-            ->orWhere('id', $username)
             ->with(['businesses', 'influencer'])
             ->firstOrFail();
     }

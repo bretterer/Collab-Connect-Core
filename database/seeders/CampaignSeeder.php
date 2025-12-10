@@ -501,7 +501,6 @@ class CampaignSeeder extends Seeder
     {
         return match ($type) {
             CompensationType::MONETARY => rand($range[0], $range[1]),
-            CompensationType::BARTER => rand(200, 800),
             CompensationType::FREE_PRODUCT => rand(100, 500),
             CompensationType::DISCOUNT => rand(50, 200),
             CompensationType::GIFT_CARD => rand(100, 500),
@@ -514,7 +513,6 @@ class CampaignSeeder extends Seeder
     {
         return match ($type) {
             CompensationType::MONETARY => '$'.number_format($amount).' payment',
-            CompensationType::BARTER => 'Product exchange worth $'.number_format($amount),
             CompensationType::FREE_PRODUCT => 'Free products worth $'.number_format($amount),
             CompensationType::DISCOUNT => $amount.'% discount on all products',
             CompensationType::GIFT_CARD => '$'.number_format($amount).' gift card',

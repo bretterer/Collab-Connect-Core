@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\User;
 use App\Services\ReviewService;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class BusinessCard extends Component
@@ -26,6 +27,10 @@ class BusinessCard extends Component
 
     public int $reviewCount = 0;
 
+    public bool $isSaved = false;
+
+    public bool $isHidden = false;
+
     public function mount()
     {
         // Generate random seed for consistent images per component instance
@@ -39,11 +44,69 @@ class BusinessCard extends Component
             $this->averageRating = $reviewService->getAverageRatingForBusiness($this->user->currentBusiness);
             $this->reviewCount = $reviewService->getReviewCountForBusiness($this->user->currentBusiness);
         }
+
+        // Check if current user has saved/hidden this user
+        $currentUser = Auth::user();
+        if ($currentUser) {
+            $this->isSaved = $currentUser->hasSavedUser($this->user);
+            $this->isHidden = $currentUser->hasHiddenUser($this->user);
+        }
+    }
+
+    public function toggleSave(): void
+    {
+        $currentUser = Auth::user();
+        if (! $currentUser) {
+            return;
+        }
+
+        if ($this->isSaved) {
+            $currentUser->unsaveUser($this->user);
+            $this->isSaved = false;
+        } else {
+            // If hidden, unhide first
+            if ($this->isHidden) {
+                $currentUser->unhideUser($this->user);
+                $this->isHidden = false;
+            }
+            $currentUser->saveUser($this->user);
+            $this->isSaved = true;
+        }
+    }
+
+    public function toggleHide(): void
+    {
+        $currentUser = Auth::user();
+        if (! $currentUser) {
+            return;
+        }
+
+        if ($this->isHidden) {
+            $currentUser->unhideUser($this->user);
+            $this->isHidden = false;
+        } else {
+            // If saved, unsave first
+            if ($this->isSaved) {
+                $currentUser->unsaveUser($this->user);
+                $this->isSaved = false;
+            }
+            $currentUser->hideUser($this->user);
+            $this->isHidden = true;
+            $this->dispatch('user-hidden', userId: $this->user->id);
+        }
     }
 
     public function viewBusinessProfile()
     {
-        return $this->redirect(route('business.profile', ['username' => $this->user->currentBusiness?->username ?? $this->user->currentBusiness?->id ?? $this->user->id]), navigate: true);
+        $business = $this->user->currentBusiness;
+
+        if (! $business) {
+            return;
+        }
+
+        $username = ! empty($business->username) ? $business->username : $business->id;
+
+        return $this->redirect(route('business.profile', ['username' => $username]), navigate: true);
     }
 
     public function viewBusinessCampaigns()
