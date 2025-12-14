@@ -26,6 +26,7 @@
     "devDependencies": {
         "@tailwindcss/typography": "^0.5.16",
         "laravel-echo": "^2.1.7",
+        "livewire-sortable": "^1.0.0",
         "pusher-js": "^8.4.0"
     }
 }

@@ -9,10 +9,10 @@ trait HasSectionSettings
      */
     public function dispatchSettingsUpdate(): void
     {
-        $this->dispatch('section-updated', [
-            'key' => static::sectionKey(),
-            'settings' => $this->toSettingsArray(),
-        ]);
+        $this->dispatch('section-updated',
+            section: static::sectionKey(),
+            settings: $this->toSettingsArray(),
+        );
     }
 
     /**

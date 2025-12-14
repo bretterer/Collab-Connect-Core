@@ -1,4 +1,32 @@
-<flux:card class="p-0 overflow-hidden">
+<div
+    x-data="{ sortableWidth: 0 }"
+    x-init="
+        $nextTick(() => {
+            const container = $el.querySelector('[wire\\:sortable]');
+            if (container) {
+                // Set initial width
+                sortableWidth = container.offsetWidth;
+                document.documentElement.style.setProperty('--sortable-width', sortableWidth + 'px');
+
+                // Update on resize
+                new ResizeObserver(() => {
+                    sortableWidth = container.offsetWidth;
+                    document.documentElement.style.setProperty('--sortable-width', sortableWidth + 'px');
+                }).observe(container);
+            }
+        });
+    "
+>
+    <style>
+        .draggable-mirror {
+            width: var(--sortable-width) !important;
+        }
+        .draggable-source--is-dragging {
+            opacity: 0.4;
+        }
+    </style>
+
+    <flux:card class="p-0 overflow-hidden">
     <flux:accordion transition>
         <flux:accordion.item>
             <flux:accordion.heading class="py-4 px-4">
@@ -13,22 +41,27 @@
             <flux:accordion.content>
                 <div class="space-y-4 p-4 pt-0">
                     {{-- Links List --}}
-                    <div class="space-y-2">
+                    <div class="space-y-2" wire:sortable="sortItems">
                         @foreach($items as $index => $link)
                             <div
                                 class="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
                                 wire:key="link-{{ $index }}"
+                                wire:sortable.item="{{ $index }}"
                             >
-                                <flux:icon name="bars-3" class="w-5 h-5 text-gray-400 cursor-grab" />
+                                <div wire:sortable.handle class="cursor-grab active:cursor-grabbing">
+                                    <flux:icon name="bars-3" class="w-5 h-5 text-gray-400" />
+                                </div>
                                 <span class="flex-1 truncate">{{ $link['title'] ?: 'Untitled Link' }}</span>
-                                <flux:switch wire:model.live="items.{{ $index }}.enabled" />
-                                <flux:dropdown>
-                                    <flux:button variant="ghost" size="sm" icon="ellipsis-vertical" />
-                                    <flux:menu>
-                                        <flux:menu.item icon="pencil" wire:click="editLink({{ $index }})">Edit</flux:menu.item>
-                                        <flux:menu.item icon="trash" variant="danger" wire:click="removeLink({{ $index }})">Delete</flux:menu.item>
-                                    </flux:menu>
-                                </flux:dropdown>
+                                <div class="flex items-center gap-2">
+                                    <flux:switch wire:model.live="items.{{ $index }}.enabled" />
+                                    <flux:dropdown>
+                                        <flux:button variant="ghost" size="sm" icon="ellipsis-vertical" />
+                                        <flux:menu>
+                                            <flux:menu.item icon="pencil" wire:click="editLink({{ $index }})">Edit</flux:menu.item>
+                                            <flux:menu.item icon="trash" variant="danger" wire:click="removeLink({{ $index }})">Delete</flux:menu.item>
+                                        </flux:menu>
+                                    </flux:dropdown>
+                                </div>
                             </div>
                         @endforeach
                     </div>
@@ -90,5 +123,5 @@
             </flux:accordion.content>
         </flux:accordion.item>
     </flux:accordion>
-
-</flux:card>
+    </flux:card>
+</div>

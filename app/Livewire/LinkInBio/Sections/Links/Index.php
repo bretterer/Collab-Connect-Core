@@ -115,6 +115,29 @@ class Index extends Component implements SectionContract
         $this->dispatchSettingsUpdate();
     }
 
+    public function sortItems(array $orderedItems): void
+    {
+        // livewire-sortable sends an array like:
+        // [['order' => 1, 'value' => '0'], ['order' => 2, 'value' => '1'], ...]
+        // where 'value' is the original index and 'order' is the new position (1-indexed)
+
+        $newItems = [];
+
+        // Sort by the new order
+        usort($orderedItems, fn ($a, $b) => $a['order'] <=> $b['order']);
+
+        // Rebuild the items array in the new order
+        foreach ($orderedItems as $orderedItem) {
+            $originalIndex = (int) $orderedItem['value'];
+            if (isset($this->items[$originalIndex])) {
+                $newItems[] = $this->items[$originalIndex];
+            }
+        }
+
+        $this->items = $newItems;
+        $this->dispatchSettingsUpdate();
+    }
+
     public function editLink(int $index): void
     {
         if (! isset($this->items[$index])) {
