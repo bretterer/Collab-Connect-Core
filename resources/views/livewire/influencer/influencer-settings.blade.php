@@ -136,10 +136,10 @@
                             @if($username && !$errors->has('username'))
                                 <div class="flex items-center gap-2 mt-2 text-sm text-green-600 dark:text-green-400">
                                     <flux:icon.check-circle class="w-4 h-4" />
-                                    <span>{{ config('app.url') }}/{{ '@' . $username }} is available!</span>
+                                    <span>{{ config('app.url') }}/influencer/{{ $username }} is available!</span>
                                 </div>
                             @else
-                                <flux:description class="mt-2">Your unique public profile URL will be: <span class="font-mono">{{ config('app.url') }}/{{ '@' . ($username ?: 'your-username') }}</span></flux:description>
+                                <flux:description class="mt-2">Your unique public profile URL will be: <span class="font-mono">{{ config('app.url') }}/influencer/{{ $username ?: 'your-username' }}</span></flux:description>
                             @endif
                         </flux:field>
                     </div>

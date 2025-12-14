@@ -52,7 +52,6 @@ class BusinessOnboardingTest extends TestCase
             ->assertSet('businessEmail', '')
             ->assertSet('emailNotifications', true)
             ->assertSet('marketingEmails', false)
-            ->assertSet('targetAgeRange', [])
             ->assertSet('businessGoals', [])
             ->assertSet('platforms', []);
     }
@@ -76,8 +75,6 @@ class BusinessOnboardingTest extends TestCase
             'city' => 'Test City',
             'state' => 'Test State',
             'postal_code' => '12345',
-            'target_age_range' => ['18-24', '25-34'],
-            'target_gender' => ['male', 'female'],
             'business_goals' => ['brand_awareness'],
             'platforms' => ['instagram', 'facebook'],
         ]);
@@ -100,8 +97,6 @@ class BusinessOnboardingTest extends TestCase
             ->assertSet('city', 'Test City')
             ->assertSet('state', 'Test State')
             ->assertSet('postalCode', '12345')
-            ->assertSet('targetAgeRange', ['18-24', '25-34'])
-            ->assertSet('targetGender', ['male', 'female'])
             ->assertSet('businessGoals', ['brand_awareness'])
             ->assertSet('platforms', ['instagram', 'facebook']);
     }
@@ -201,30 +196,39 @@ class BusinessOnboardingTest extends TestCase
     }
 
     #[Test]
-    public function step_3_can_be_completed_with_optional_data()
+    public function step_3_branding_can_be_completed()
     {
         $business = $this->createBusinessAndGoToStep(3);
 
+        // Step 3 is branding - all fields are optional
         Livewire::test(BusinessOnboarding::class)
             ->set('step', 3)
+            ->call('nextStep')
+            ->assertHasNoErrors()
+            ->assertSet('step', 4);
+    }
+
+    #[Test]
+    public function step_4_can_be_completed_with_optional_data()
+    {
+        $business = $this->createBusinessAndGoToStep(4);
+
+        Livewire::test(BusinessOnboarding::class)
+            ->set('step', 4)
             ->set('city', 'Test City')
             ->set('state', 'Test State')
             ->set('postalCode', '12345')
-            ->set('targetAgeRange', ['18-24', '25-34'])
-            ->set('targetGender', ['male', 'female'])
             ->set('businessGoals', ['brand_awareness', 'product_promotion'])
             ->set('platforms', ['instagram', 'facebook', 'tiktok'])
             ->call('nextStep')
             ->assertHasNoErrors()
-            ->assertSet('step', 4);
+            ->assertSet('step', 5);
 
-        // Verify business was updated with step 3 data
+        // Verify business was updated with step 4 data
         $business->refresh();
         $this->assertEquals('Test City', $business->city);
         $this->assertEquals('Test State', $business->state);
         $this->assertEquals('12345', $business->postal_code);
-        $this->assertEquals(['18-24', '25-34'], $business->target_age_range);
-        $this->assertEquals(['male', 'female'], $business->target_gender);
         $this->assertEquals(['brand_awareness', 'product_promotion'], $business->business_goals);
         $this->assertEquals(['instagram', 'facebook', 'tiktok'], $business->platforms);
     }
@@ -268,10 +272,10 @@ class BusinessOnboardingTest extends TestCase
     #[Test]
     public function complete_onboarding_works_correctly()
     {
-        $business = $this->createBusinessAndGoToStep(4);
+        $business = $this->createBusinessAndGoToStep(6);
 
         Livewire::test(BusinessOnboarding::class)
-            ->set('step', 4)
+            ->set('step', 6)
             ->call('completeOnboarding')
             ->assertRedirect(route('dashboard'))
             ->assertSessionHas('success', 'Welcome to CollabConnect! Your business profile is now complete.');
@@ -307,7 +311,7 @@ class BusinessOnboardingTest extends TestCase
         $component = Livewire::test(BusinessOnboarding::class);
         $maxSteps = $component->instance()->getMaxSteps();
 
-        $this->assertEquals(5, $maxSteps);
+        $this->assertEquals(6, $maxSteps);
     }
 
     #[Test]
@@ -329,8 +333,9 @@ class BusinessOnboardingTest extends TestCase
         $component = Livewire::test(BusinessOnboarding::class);
         $instance = $component->instance();
 
-        // Step 1 rules
+        // Step 1 rules (includes username)
         $step1Rules = $instance->getValidationRulesForStep(1);
+        $this->assertArrayHasKey('username', $step1Rules);
         $this->assertArrayHasKey('businessName', $step1Rules);
         $this->assertArrayHasKey('businessEmail', $step1Rules);
         $this->assertEquals('required|string|max:255', $step1Rules['businessName']);
@@ -341,16 +346,20 @@ class BusinessOnboardingTest extends TestCase
         $this->assertArrayHasKey('industry', $step2Rules);
         $this->assertArrayHasKey('businessDescription', $step2Rules);
 
-        // Step 3 rules
+        // Step 3 rules (branding)
         $step3Rules = $instance->getValidationRulesForStep(3);
-        $this->assertArrayHasKey('city', $step3Rules);
-        $this->assertArrayHasKey('targetAgeRange', $step3Rules);
-        $this->assertArrayHasKey('businessGoals', $step3Rules);
-        $this->assertArrayHasKey('platforms', $step3Rules);
+        $this->assertArrayHasKey('businessLogo', $step3Rules);
+        $this->assertArrayHasKey('businessBanner', $step3Rules);
 
-        // Step 4 has no validation rules
+        // Step 4 rules (platform preferences)
         $step4Rules = $instance->getValidationRulesForStep(4);
-        $this->assertEmpty($step4Rules);
+        $this->assertArrayHasKey('city', $step4Rules);
+        $this->assertArrayHasKey('businessGoals', $step4Rules);
+        $this->assertArrayHasKey('platforms', $step4Rules);
+
+        // Step 5 has no validation rules (subscription)
+        $step5Rules = $instance->getValidationRulesForStep(5);
+        $this->assertEmpty($step5Rules);
     }
 
     #[Test]

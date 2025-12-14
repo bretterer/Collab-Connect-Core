@@ -309,8 +309,8 @@ class SearchService
      */
     public static function searchUsers(array $criteria, User $currentUser, int $perPage = 12): LengthAwarePaginator
     {
-        // If business is searching for influencers, use the new optimized method
-        if ($currentUser->account_type === AccountType::BUSINESS) {
+        // If business or admin is searching for influencers, use the optimized method
+        if (in_array($currentUser->account_type, [AccountType::BUSINESS, AccountType::ADMIN], true)) {
             $results = self::searchInfluencers($criteria, $currentUser, $perPage);
 
             // Transform to User models for backwards compatibility with existing cards

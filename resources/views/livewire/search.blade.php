@@ -93,7 +93,7 @@
         </div>
     </div>
 
-    @if(!auth()->user()->profile->subscribed('default'))
+    @if(!auth()->user()->isAdmin() && !auth()->user()->profile->subscribed('default'))
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <livewire:components.subscription-prompt
                 variant="blue"
@@ -300,21 +300,23 @@
                     <div wire:loading.class="opacity-50" class="transition-opacity">
                         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                             @foreach($results as $index => $user)
-                                @if($this->isBusinessUser)
-                                    @if($user->influencer)
-                                        <livewire:influencer-card
-                                            :user="$user"
-                                            :key="'influencer-card-'.$user->id.'-'.$results->currentPage().'-'.$index"
-                                        />
+                                <div wire:key="user-{{ $user->id }}">
+                                    @if($this->isBusinessUser)
+                                        @if($user->influencer)
+                                            <livewire:influencer-card
+                                                :user="$user"
+                                                :key="'influencer-card-'.$user->id"
+                                            />
+                                        @endif
+                                    @else
+                                        @if($user->currentBusiness)
+                                            <livewire:business-card
+                                                :user="$user"
+                                                :key="'business-card-'.$user->id"
+                                            />
+                                        @endif
                                     @endif
-                                @else
-                                    @if($user->currentBusiness)
-                                        <livewire:business-card
-                                            :user="$user"
-                                            :key="'business-card-'.$user->id.'-'.$results->currentPage().'-'.$index"
-                                        />
-                                    @endif
-                                @endif
+                                </div>
                             @endforeach
                         </div>
 

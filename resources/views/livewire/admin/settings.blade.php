@@ -1,33 +1,123 @@
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Header -->
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">System Settings</h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-2">
-            Configure platform settings, system preferences, and administrative controls.
-        </p>
+        <flux:heading level="1" size="xl">System Settings</flux:heading>
+        <flux:text class="mt-2">
+            Configure platform settings, subscription options, and administrative controls.
+        </flux:text>
     </div>
 
-    <!-- Coming Soon Card -->
-    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6 text-center">
-            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-            </svg>
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">System Settings Panel Coming Soon</h3>
-            <p class="text-gray-500 dark:text-gray-400 mb-6">
-                Advanced system configuration and administrative settings will be available here.
-            </p>
-            <div class="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
-                <h4 class="font-medium text-orange-900 dark:text-orange-100 mb-2">Planned Settings:</h4>
-                <ul class="text-sm text-orange-800 dark:text-orange-200 text-left space-y-1">
-                    <li>• Platform configuration options</li>
-                    <li>• Email and notification settings</li>
-                    <li>• Security and access controls</li>
-                    <li>• Feature flags and toggles</li>
-                    <li>• System maintenance and backup</li>
-                </ul>
-            </div>
-        </div>
-    </div>
+    <!-- Tabs -->
+    <flux:tab.group wire:model.live="activeTab">
+        <flux:tabs class="mb-6">
+            <flux:tab name="subscription">Subscription</flux:tab>
+            <flux:tab name="registration">Registration</flux:tab>
+        </flux:tabs>
+
+        <!-- Subscription Settings Tab -->
+        <flux:tab.panel name="subscription">
+            <flux:card>
+                <form wire:submit="saveSubscriptionSettings">
+                    <div class="space-y-6">
+                        <div>
+                            <flux:heading size="lg">Subscription Settings</flux:heading>
+                            <flux:text class="text-gray-600 dark:text-gray-400 mt-1">
+                                Configure trial periods and subscription-related options.
+                            </flux:text>
+                        </div>
+
+                        <flux:separator />
+
+                        <!-- Trial Period Days -->
+                        <flux:field>
+                            <flux:label>Trial Period (Days)</flux:label>
+                            <flux:input
+                                wire:model="trialPeriodDays"
+                                type="number"
+                                min="0"
+                                max="365"
+                            />
+                            <flux:error name="trialPeriodDays" />
+                            <flux:description>
+                                The number of days new subscribers get as a free trial before being charged.
+                                Set to 0 to disable the trial period.
+                            </flux:description>
+                        </flux:field>
+
+                        <flux:callout variant="info" icon="information-circle">
+                            <flux:callout.heading>How trials work</flux:callout.heading>
+                            <flux:callout.text>
+                                When a user subscribes during onboarding, their payment method will be saved but they
+                                won't be charged until the trial period ends. They can cancel anytime during the trial
+                                without being charged.
+                            </flux:callout.text>
+                        </flux:callout>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="mt-8 flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <flux:button type="submit" variant="primary">
+                            Save Subscription Settings
+                        </flux:button>
+                    </div>
+                </form>
+            </flux:card>
+        </flux:tab.panel>
+
+        <!-- Registration Settings Tab -->
+        <flux:tab.panel name="registration">
+            <flux:card>
+                <form wire:submit="saveRegistrationSettings">
+                    <div class="space-y-6">
+                        <div>
+                            <flux:heading size="lg">Registration Settings</flux:heading>
+                            <flux:text class="text-gray-600 dark:text-gray-400 mt-1">
+                                Configure user registration and market restrictions.
+                            </flux:text>
+                        </div>
+
+                        <flux:separator />
+
+                        <!-- Market Restrictions -->
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1 mr-4">
+                                <flux:label>Enable Market Restrictions</flux:label>
+                                <flux:description class="mt-1">
+                                    When enabled, users must be in an approved market (based on their zip code)
+                                    to access the platform. Users outside approved markets will be placed on a waitlist.
+                                </flux:description>
+                            </div>
+                            <flux:switch wire:model="marketsEnabled" />
+                        </div>
+
+                        @if($marketsEnabled)
+                            <flux:callout variant="warning" icon="exclamation-triangle">
+                                <flux:callout.heading>Market restrictions are enabled</flux:callout.heading>
+                                <flux:callout.text>
+                                    Users registering from zip codes outside of approved markets will be placed on a waitlist.
+                                    <a href="{{ route('admin.markets.index') }}" class="underline font-medium" wire:navigate>
+                                        Manage markets
+                                    </a>
+                                </flux:callout.text>
+                            </flux:callout>
+                        @else
+                            <flux:callout variant="info" icon="information-circle">
+                                <flux:callout.heading>Market restrictions are disabled</flux:callout.heading>
+                                <flux:callout.text>
+                                    All users can register and access the platform regardless of their location.
+                                </flux:callout.text>
+                            </flux:callout>
+                        @endif
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="mt-8 flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <flux:button type="submit" variant="primary">
+                            Save Registration Settings
+                        </flux:button>
+                    </div>
+                </form>
+            </flux:card>
+        </flux:tab.panel>
+    </flux:tab.group>
 </div>

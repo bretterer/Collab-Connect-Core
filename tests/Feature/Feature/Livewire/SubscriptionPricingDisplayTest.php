@@ -49,7 +49,7 @@ class SubscriptionPricingDisplayTest extends TestCase
 
         $component = Livewire::actingAs($this->user)
             ->test(BusinessOnboarding::class)
-            ->set('step', 4);
+            ->set('step', 5);
 
         $component
             ->assertSee('Business Premium')
@@ -76,7 +76,7 @@ class SubscriptionPricingDisplayTest extends TestCase
 
         $component = Livewire::actingAs($this->user)
             ->test(BusinessOnboarding::class)
-            ->set('step', 4);
+            ->set('step', 5);
 
         $component->assertDontSee('Inactive Plan');
     }
@@ -99,7 +99,7 @@ class SubscriptionPricingDisplayTest extends TestCase
 
         $component = Livewire::actingAs($this->user)
             ->test(BusinessOnboarding::class)
-            ->set('step', 4);
+            ->set('step', 5);
 
         $component->assertDontSee('Influencer Plan');
     }
@@ -129,7 +129,7 @@ class SubscriptionPricingDisplayTest extends TestCase
 
         $component = Livewire::actingAs($this->user)
             ->test(BusinessOnboarding::class)
-            ->set('step', 4);
+            ->set('step', 5);
 
         $component
             ->assertSee('$99.00')
@@ -155,7 +155,7 @@ class SubscriptionPricingDisplayTest extends TestCase
 
         $component = Livewire::actingAs($this->user)
             ->test(BusinessOnboarding::class)
-            ->set('step', 4);
+            ->set('step', 5);
 
         $component
             ->call('selectPrice', $price->id)
@@ -179,7 +179,7 @@ class SubscriptionPricingDisplayTest extends TestCase
 
         $component = Livewire::actingAs($this->user)
             ->test(BusinessOnboarding::class)
-            ->set('step', 4)
+            ->set('step', 5)
             ->call('selectPrice', $price->id);
 
         $component->assertSee('Selected');
@@ -190,7 +190,7 @@ class SubscriptionPricingDisplayTest extends TestCase
     {
         $component = Livewire::actingAs($this->user)
             ->test(BusinessOnboarding::class)
-            ->set('step', 4);
+            ->set('step', 5);
 
         $component->assertSee('No subscription plans are currently available');
     }

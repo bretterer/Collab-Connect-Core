@@ -9,6 +9,28 @@
         </flux:heading>
     </div>
 
+    <!-- Username Section -->
+    <div class="mb-2">
+        <flux:field>
+            <flux:label>Business Username (Optional)</flux:label>
+            <flux:input
+                wire:model.live.debounce.500ms="username"
+                placeholder="mybusiness"
+            />
+            <flux:error name="username" />
+            @if($username && !$errors->has('username'))
+                <div class="flex items-center gap-2 mt-2 text-sm text-green-600 dark:text-green-400">
+                    <flux:icon.check-circle class="w-4 h-4" />
+                    <span class="font-mono">{{ config('app.url') }}/business/{{ $username }}</span> is available!
+                </div>
+            @else
+                <flux:description class="mt-2">Your unique public profile URL will be: <span class="font-mono">{{ config('app.url') }}/business/{{ $username ?: 'your-username' }}</span></flux:description>
+            @endif
+        </flux:field>
+    </div>
+
+    <flux:separator class="my-4" />
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <flux:field>
             <flux:label>Business Name</flux:label>

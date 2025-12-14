@@ -9,16 +9,20 @@ use App\Enums\SocialPlatform;
 use App\Models\Influencer;
 use App\Models\InfluencerSocial;
 use App\Models\StripeProduct;
-use Illuminate\Support\Carbon;
+use App\Rules\UniqueUsername;
+use App\Settings\SubscriptionSettings;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 #[Layout('layouts.onboarding')]
 class InfluencerOnboarding extends Component
 {
+    use WithFileUploads;
+
     public int $step = 1;
 
     public ?Influencer $influencer = null;
@@ -26,7 +30,13 @@ class InfluencerOnboarding extends Component
     public bool $isNavigationDisabled = false;
 
     // Step 1: Basic Info
+    public string $username = '';
+
     public string $bio = '';
+
+    public $profileImage = null;
+
+    public $bannerImage = null;
 
     // Step 2: Social Media Accounts
     public array $socialAccounts = [];
@@ -61,11 +71,11 @@ class InfluencerOnboarding extends Component
         1 => [
             'title' => 'Basic Information',
             'component' => 'step1',
-            'fields' => ['bio'],
+            'fields' => ['username', 'bio', 'profileImage', 'bannerImage'],
             'tips' => [
-                'Your name and email help businesses identify you',
+                'Your username creates your unique profile URL',
                 'A compelling bio attracts the right brand partnerships',
-                'Keep your bio concise but engaging',
+                'Profile photos help businesses recognize you',
             ],
         ],
         2 => [
@@ -160,6 +170,7 @@ class InfluencerOnboarding extends Component
 
     private function fillInfluencerData(): void
     {
+        $this->username = $this->influencer->username ?? '';
         $this->bio = $this->influencer->bio ?? '';
         $this->address = $this->influencer->address ?? '';
         $this->city = $this->influencer->city ?? '';
@@ -223,13 +234,56 @@ class InfluencerOnboarding extends Component
         if (! empty($rules)) {
             $this->validate($rules, $this->getValidationMessagesForStep($this->step));
         }
+
+        // Custom validation for step 2 (social accounts)
+        if ($this->step === 2) {
+            $this->validateSocialAccounts();
+        }
+    }
+
+    protected function validateSocialAccounts(): void
+    {
+        $this->resetErrorBag();
+
+        $hasAtLeastOneAccount = false;
+        $hasErrors = false;
+
+        foreach ($this->socialAccounts as $platform => $account) {
+            $username = trim($account['username'] ?? '');
+            $followers = $account['followers'] ?? null;
+
+            if (! empty($username)) {
+                $hasAtLeastOneAccount = true;
+
+                // If username is provided, followers is required
+                if ($followers === null || $followers === '') {
+                    $this->addError("socialAccounts.{$platform}.followers", 'Follower count is required when username is provided.');
+                    $hasErrors = true;
+                }
+            }
+        }
+
+        // At least one social account must be provided
+        if (! $hasAtLeastOneAccount) {
+            $this->addError('socialAccounts', 'Please add at least one social media account.');
+            $hasErrors = true;
+        }
+
+        if ($hasErrors) {
+            throw \Illuminate\Validation\ValidationException::withMessages(
+                $this->getErrorBag()->toArray()
+            );
+        }
     }
 
     public function getValidationRulesForStep(int $step): array
     {
         return match ($step) {
             1 => [
+                'username' => ['nullable', 'string', 'max:255', 'alpha_dash', new UniqueUsername(null, $this->influencer?->id)],
                 'bio' => 'required|string|max:500',
+                'profileImage' => 'nullable|image|max:5120',
+                'bannerImage' => 'nullable|image|max:5120',
             ],
             2 => [
                 'socialAccounts' => 'array',
@@ -261,8 +315,14 @@ class InfluencerOnboarding extends Component
     {
         return match ($step) {
             1 => [
+                'username.alpha_dash' => 'Username can only contain letters, numbers, dashes, and underscores.',
+                'username.max' => 'Username cannot exceed 255 characters.',
                 'bio.required' => 'Bio is required.',
                 'bio.max' => 'Bio cannot exceed 500 characters.',
+                'profileImage.image' => 'Profile image must be an image file.',
+                'profileImage.max' => 'Profile image cannot exceed 5MB.',
+                'bannerImage.image' => 'Banner image must be an image file.',
+                'bannerImage.max' => 'Banner image cannot exceed 5MB.',
             ],
             3 => [
                 'contentTypes.required' => 'Please select at least one content type.',
@@ -348,8 +408,26 @@ class InfluencerOnboarding extends Component
             $this->clearOnboardingStep();
         } else {
             $this->influencer->update([
+                'username' => $this->username ?: null,
                 'bio' => $this->bio,
             ]);
+        }
+
+        // Handle image uploads
+        if ($this->profileImage) {
+            $this->influencer->clearMediaCollection('profile_image');
+            $this->influencer->addMedia($this->profileImage->getRealPath())
+                ->usingName('Profile Image')
+                ->usingFileName($this->profileImage->getClientOriginalName())
+                ->toMediaCollection('profile_image');
+        }
+
+        if ($this->bannerImage) {
+            $this->influencer->clearMediaCollection('banner_image');
+            $this->influencer->addMedia($this->bannerImage->getRealPath())
+                ->usingName('Banner Image')
+                ->usingFileName($this->bannerImage->getClientOriginalName())
+                ->toMediaCollection('banner_image');
         }
     }
 
@@ -406,6 +484,7 @@ class InfluencerOnboarding extends Component
             // Create influencer with all data in one go
             $this->influencer = Influencer::create([
                 'user_id' => Auth::id(),
+                'username' => $this->username ?: null,
                 'bio' => $this->bio,
             ]);
 
@@ -467,7 +546,7 @@ class InfluencerOnboarding extends Component
 
             // Create subscription with Cashier
             $influencer->newSubscription('default', $price->stripe_id)
-                ->trialUntil(Carbon::parse(config('collabconnect.stripe.subscriptions.start_date')))
+                ->trialDays(app(SubscriptionSettings::class)->trialPeriodDays)
                 ->create($paymentMethodId, [
                     'email' => $user->email,
                     'name' => $user->name,
@@ -500,6 +579,7 @@ class InfluencerOnboarding extends Component
             'currentStep' => $this->step,
             'maxSteps' => $this->getMaxSteps(),
             'subscriptionProducts' => $this->getSubscriptionProducts(),
+            'trialPeriodDays' => app(SubscriptionSettings::class)->trialPeriodDays,
         ]);
     }
 }

@@ -147,7 +147,7 @@
                     <span>Analytics</span>
                 </flux:button>
             </a>
-            <a href="#">
+            <a href="{{ route('admin.settings') }}" wire:navigate>
                 <flux:button variant="outline" icon="cog-6-tooth" class="flex items-center justify-center space-x-2 h-12 w-full">
                     <span>System Settings</span>
                 </flux:button>

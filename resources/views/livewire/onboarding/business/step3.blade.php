@@ -1,165 +1,80 @@
-<!-- Step 3: Platform Preferences & Goals -->
+<!-- Step 3: Branding -->
 <div class="space-y-6">
     <div class="flex items-center space-x-3">
-        <div class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+        <div class="w-8 h-8 bg-pink-500 rounded-lg flex items-center justify-center">
             <span class="text-white font-bold text-sm">3</span>
         </div>
         <flux:heading size="xl" class="text-gray-800 dark:text-gray-200">
-            Platform Preferences & Goals
+            Brand Your Profile
         </flux:heading>
     </div>
 
-    <!-- Business Location -->
-    <div class="space-y-4">
-        <flux:heading class="text-gray-800 dark:text-gray-200">
-            Where is your business located?
-        </flux:heading>
-        <flux:description class="text-gray-600 dark:text-gray-400">
-            This helps us find local influencers and understand your market.
-        </flux:description>
+    <flux:description>
+        Upload your business logo and banner to make your profile stand out and help influencers recognize your brand.
+    </flux:description>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <flux:field>
-                <flux:label>City</flux:label>
-                <flux:input
-                    wire:model="city"
-                    placeholder="Enter your city"
-                />
-                <flux:error name="city" />
-            </flux:field>
-
-            <flux:field>
-                <flux:label>State/Province</flux:label>
-                <flux:input
-                    wire:model="state"
-                    placeholder="Enter your state"
-                />
-                <flux:error name="state" />
-            </flux:field>
-
-            <flux:field>
-                <flux:label>Postal Code</flux:label>
-                <flux:input
-                    wire:model="postalCode"
-                    placeholder="Enter postal code"
-                />
-                <flux:error name="postalCode" />
-            </flux:field>
-        </div>
-    </div>
-
-    <!-- Business Goals -->
-    <div class="space-y-6">
-        <flux:heading class="text-gray-800 dark:text-gray-200">
-            What are your main goals with influencer marketing?
-        </flux:heading>
-        <flux:description class="text-gray-600 dark:text-gray-400">
-            Select all that apply to help us understand how to best support your business.
-        </flux:description>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            @foreach(App\Enums\BusinessGoal::cases() as $goal)
-            <label class="flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200
-                         {{ in_array($goal->value, $businessGoals)
-                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm'
-                            : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
-                <input type="checkbox"
-                       wire:model.live="businessGoals"
-                       value="{{ $goal->value }}"
-                       class="sr-only">
-                <div class="flex items-center space-x-3 w-full">
-                    <div class="text-2xl">{{ $goal->icon() }}</div>
-                    <div class="flex-1">
-                        <div class="font-medium text-gray-700 dark:text-gray-300">{{ $goal->label() }}</div>
-                        <div class="text-sm text-gray-500">{{ $goal->description() }}</div>
-                    </div>
-                    <div class="ml-auto">
-                        @if(in_array($goal->value, $businessGoals))
-                            <div class="text-blue-500">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                </svg>
-                            </div>
-
-                        @endif
-                    </div>
-                </div>
-            </label>
-            @endforeach
-        </div>
-        <flux:error name="businessGoals" />
-    </div>
-
-    <!-- Target Audience -->
-    <div class="space-y-4">
-        <flux:heading class="text-gray-800 dark:text-gray-200">
-            Who is your target audience?
-        </flux:heading>
-        <flux:description class="text-gray-600 dark:text-gray-400">
-            Help us understand who you want to reach through influencer partnerships.
-        </flux:description>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <flux:field>
-                <flux:checkbox.group wire:model="targetAgeRange" label="Target Age Range" variant="buttons">
-                    <flux:checkbox value="13-17" label="Gen Z (13-17)" class="w-full"/>
-                    <flux:checkbox value="18-24" label="Young Adults (18-24)" class="w-full"/>
-                    <flux:checkbox value="25-34" label="Millennials (25-34)" class="w-full"/>
-                    <flux:checkbox value="35-44" label="Gen X (35-44)" class="w-full"/>
-                    <flux:checkbox value="45-54" label="Middle-aged (45-54)" class="w-full"/>
-                    <flux:checkbox value="55+" label="Mature (55+)" class="w-full"/>
-                    <flux:checkbox value="all-ages" label="All Ages" class="w-full"/>
-                </flux:checkbox.group>
-                <flux:error name="targetAgeRange" />
-            </flux:field>
-
-            <flux:field>
-                <flux:checkbox.group wire:model="targetGender" label="Primary Gender" variant="buttons">
-                    <flux:checkbox value="male" label="Male" class="w-full"/>
-                    <flux:checkbox value="female" label="Female" class="w-full"/>
-                    <flux:checkbox value="non-binary" label="Non-binary" class="w-full"/>
-                    <flux:checkbox value="any" label="Any" class="w-full"/>
-                </flux:checkbox.group>
-                <flux:error name="targetGender" />
-            </flux:field>
-
-        </div>
-    </div>
-
-    <!-- Platform Preferences -->
-    <div class="space-y-4">
-        <flux:heading class="text-gray-800 dark:text-gray-200">
-            Which social media platforms are you most interested in?
-        </flux:heading>
-        <flux:description class="text-gray-600 dark:text-gray-400">
-            Select the platforms where you'd like to connect with influencers.
-        </flux:description>
-
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-            @foreach(App\Enums\SocialPlatform::forBusinesses() as $platform)
-            <label class="flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 
-                         {{ in_array($platform->value, $platforms) 
-                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm' 
-                            : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
-                <input type="checkbox" 
-                       wire:model.live="platforms" 
-                       value="{{ $platform->value }}" 
-                       class="sr-only">
-                <div class="text-center">
-                    <div class="text-2xl mb-2">{{ $platform->getIcon() }}</div>
-                    <div class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $platform->label() }}</div>
-                    @if(in_array($platform->value, $platforms))
-                        <div class="mt-2 text-blue-500">
-                            <svg class="w-4 h-4 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Business Logo -->
+        <div>
+            <flux:label>Business Logo</flux:label>
+            <div class="mt-2">
+                <div class="flex items-center justify-center w-full">
+                    <label for="businessLogo" class="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <flux:icon.cloud-arrow-up class="w-10 h-10 mb-4 text-gray-500 dark:text-gray-400" />
+                            <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload logo</span></p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, WebP (MAX. 5MB)</p>
                         </div>
-                    @endif
+                        <input id="businessLogo" type="file" wire:model="businessLogo" class="hidden" accept="image/*" />
+                    </label>
                 </div>
-            </label>
-            @endforeach
+
+                @if ($businessLogo)
+                <div class="mt-4 text-center">
+                    <img src="{{ $businessLogo->temporaryUrl() }}" alt="Logo preview" class="w-32 h-32 mx-auto rounded-lg object-cover border-4 border-white shadow-lg">
+                    <p class="text-sm text-green-600 dark:text-green-400 mt-2">Logo ready to upload</p>
+                </div>
+                @endif
+
+                @error('businessLogo') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            </div>
+            <flux:description class="mt-2">
+                Your logo will appear on your profile and in search results.
+            </flux:description>
         </div>
-        <flux:error name="platforms" />
+
+        <!-- Business Banner -->
+        <div>
+            <flux:label>Business Banner</flux:label>
+            <div class="mt-2">
+                <div class="flex items-center justify-center w-full">
+                    <label for="businessBanner" class="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <flux:icon.cloud-arrow-up class="w-10 h-10 mb-4 text-gray-500 dark:text-gray-400" />
+                            <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload banner</span></p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, WebP (MAX. 5MB)</p>
+                        </div>
+                        <input id="businessBanner" type="file" wire:model="businessBanner" class="hidden" accept="image/*" />
+                    </label>
+                </div>
+
+                @if ($businessBanner)
+                <div class="mt-4">
+                    <img src="{{ $businessBanner->temporaryUrl() }}" alt="Banner preview" class="w-full h-24 rounded-lg object-cover border-4 border-white shadow-lg">
+                    <p class="text-sm text-green-600 dark:text-green-400 mt-2 text-center">Banner ready to upload</p>
+                </div>
+                @endif
+
+                @error('businessBanner') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            </div>
+            <flux:description class="mt-2">
+                Your banner appears at the top of your business profile page.
+            </flux:description>
+        </div>
     </div>
 
+    <flux:callout variant="info" icon="information-circle" class="mt-6">
+        <flux:callout.heading>Tip</flux:callout.heading>
+        <flux:callout.text>You can skip this step and add branding later from your Business Settings.</flux:callout.text>
+    </flux:callout>
 </div>

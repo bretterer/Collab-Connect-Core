@@ -10,7 +10,8 @@ use App\Enums\YearsInBusiness;
 use App\Models\Business;
 use App\Models\BusinessUser;
 use App\Models\StripeProduct;
-use Carbon\Carbon;
+use App\Rules\UniqueUsername;
+use App\Settings\SubscriptionSettings;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Layout;
@@ -30,6 +31,8 @@ class BusinessOnboarding extends Component
     public bool $isNavigationDisabled = false;
 
     // Form data properties
+    public string $username = '';
+
     public string $businessName = '';
 
     public string $businessEmail = '';
@@ -68,10 +71,6 @@ class BusinessOnboarding extends Component
 
     public string $postalCode = '';
 
-    public array $targetGender = [];
-
-    public array $targetAgeRange = [];
-
     public array $businessGoals = [];
 
     public array $platforms = [];
@@ -81,6 +80,11 @@ class BusinessOnboarding extends Component
     public bool $marketingEmails = false;
 
     public ?int $selectedPriceId = null;
+
+    // Branding uploads
+    public $businessLogo = null;
+
+    public $businessBanner = null;
 
     // Add this method for debugging
     public function updatedBusinessGoals()
@@ -99,10 +103,10 @@ class BusinessOnboarding extends Component
         1 => [
             'title' => 'Basic Business Information',
             'component' => 'step1',
-            'fields' => ['businessName', 'businessEmail', 'phoneNumber', 'website', 'contactName', 'contactRole', 'yearsInBusiness', 'companySize'],
+            'fields' => ['username', 'businessName', 'businessEmail', 'phoneNumber', 'website', 'contactName', 'contactRole', 'yearsInBusiness', 'companySize'],
             'tips' => [
+                'Your username creates your unique profile URL',
                 'Complete your business profile to attract quality influencers',
-                'Add your logo and business details for credibility',
                 'Clear business goals help us recommend the right matches',
             ],
         ],
@@ -117,18 +121,28 @@ class BusinessOnboarding extends Component
             ],
         ],
         3 => [
-            'title' => 'Platform Preferences & Goals',
+            'title' => 'Branding',
             'component' => 'step3',
-            'fields' => ['city', 'state', 'postalCode', 'targetGender', 'targetAgeRange', 'businessGoals', 'platforms'],
+            'fields' => ['businessLogo', 'businessBanner'],
+            'tips' => [
+                'Upload your logo to help influencers recognize your brand',
+                'A professional banner image creates a strong first impression',
+                'Images help build trust and credibility with creators',
+            ],
+        ],
+        4 => [
+            'title' => 'Platform Preferences & Goals',
+            'component' => 'step4',
+            'fields' => ['city', 'state', 'postalCode', 'businessGoals', 'platforms'],
             'tips' => [
                 'Choose platforms that align with your target audience',
                 'Set clear goals for your influencer marketing campaigns',
                 'Consider your budget and resources when selecting platforms',
             ],
         ],
-        4 => [
+        5 => [
             'title' => 'Subscription Plan',
-            'component' => 'step4',
+            'component' => 'step5',
             'fields' => [],
             'tips' => [
                 'Select a plan that fits your business needs and budget',
@@ -136,9 +150,9 @@ class BusinessOnboarding extends Component
                 'Take advantage of free trials to explore features',
             ],
         ],
-        5 => [
+        6 => [
             'title' => 'Welcome to CollabConnect',
-            'component' => 'step5',
+            'component' => 'step6',
             'fields' => [],
             'tips' => [
                 'Your profile is complete and ready to attract influencers',
@@ -168,6 +182,7 @@ class BusinessOnboarding extends Component
 
     private function fillBusinessData(): void
     {
+        $this->username = $this->business->username ?? '';
         $this->businessName = $this->business->name ?? '';
         $this->businessEmail = $this->business->email ?? '';
         $this->phoneNumber = $this->business->phone ?? '';
@@ -183,8 +198,6 @@ class BusinessOnboarding extends Component
         $this->city = $this->business->city ?? '';
         $this->state = $this->business->state ?? '';
         $this->postalCode = $this->business->postal_code ?? '';
-        $this->targetAgeRange = $this->business->target_age_range ?? [];
-        $this->targetGender = $this->business->target_gender ?? [];
         $this->businessGoals = $this->business->business_goals ?? [];
         $this->platforms = $this->business->platforms ?? [];
     }
@@ -234,6 +247,7 @@ class BusinessOnboarding extends Component
     {
         return match ($step) {
             1 => [
+                'username' => ['nullable', 'string', 'max:255', 'alpha_dash', new UniqueUsername($this->business?->id, null)],
                 'businessName' => 'required|string|max:255',
                 'businessEmail' => 'required|email|max:255',
                 'phoneNumber' => 'required|string|max:20',
@@ -250,11 +264,13 @@ class BusinessOnboarding extends Component
                 'uniqueValueProposition' => 'nullable|string|max:500',
             ],
             3 => [
+                'businessLogo' => 'nullable|image|max:5120',
+                'businessBanner' => 'nullable|image|max:5120',
+            ],
+            4 => [
                 'city' => 'nullable|string|max:255',
                 'state' => 'nullable|string|max:255',
                 'postalCode' => 'nullable|string|max:20',
-                'targetAgeRange' => 'nullable|array',
-                'targetGender' => 'nullable|array',
                 'businessGoals' => 'nullable|array',
                 'platforms' => 'nullable|array',
             ],
@@ -266,6 +282,8 @@ class BusinessOnboarding extends Component
     {
         return match ($step) {
             1 => [
+                'username.alpha_dash' => 'Username can only contain letters, numbers, dashes, and underscores.',
+                'username.max' => 'Username cannot exceed 255 characters.',
                 'businessName.required' => 'Business name is required.',
                 'businessEmail.required' => 'Business email is required.',
                 'businessEmail.email' => 'Please enter a valid email address.',
@@ -284,11 +302,15 @@ class BusinessOnboarding extends Component
                 'uniqueValueProposition.max' => 'Value proposition cannot exceed 500 characters.',
             ],
             3 => [
+                'businessLogo.image' => 'Logo must be an image file.',
+                'businessLogo.max' => 'Logo cannot exceed 5MB.',
+                'businessBanner.image' => 'Banner must be an image file.',
+                'businessBanner.max' => 'Banner cannot exceed 5MB.',
+            ],
+            4 => [
                 'city.max' => 'City cannot exceed 255 characters.',
                 'state.max' => 'State cannot exceed 255 characters.',
                 'postalCode.max' => 'Postal code cannot exceed 20 characters.',
-                'targetAgeRange.array' => 'Target age range must be an array.',
-                'targetGender.array' => 'Target gender must be an array.',
                 'businessGoals.array' => 'Business goals must be an array.',
                 'platforms.array' => 'Platforms must be an array.',
             ],
@@ -299,8 +321,8 @@ class BusinessOnboarding extends Component
     public function nextStep()
     {
 
-        // If on step 4 (subscription), handle Stripe payment first
-        if ($this->business !== null && ! $this->business->subscribed('default') && $this->step === 4) {
+        // If on step 5 (subscription), handle Stripe payment first
+        if ($this->business !== null && ! $this->business->subscribed('default') && $this->step === 5) {
             if (! empty($this->selectedPriceId)) {
                 // Dispatch event to create Stripe payment method
                 $this->dispatch('createStripePaymentMethod');
@@ -341,7 +363,7 @@ class BusinessOnboarding extends Component
 
             // Create subscription with Cashier
             $subscription = $business->newSubscription('default', $price->stripe_id)
-                ->trialUntil(Carbon::parse(config('collabconnect.stripe.subscriptions.start_date')))
+                ->trialDays(app(SubscriptionSettings::class)->trialPeriodDays)
                 ->create($paymentMethodId, [
                     'email' => $business->email,
                     'name' => $business->name,
@@ -388,7 +410,11 @@ class BusinessOnboarding extends Component
                 break;
 
             case 3:
-                $this->saveStep3();
+                $this->saveStep3Branding();
+                break;
+
+            case 4:
+                $this->saveStep4();
                 break;
         }
     }
@@ -401,6 +427,7 @@ class BusinessOnboarding extends Component
             Auth::user()->setCurrentBusiness($this->business);
         } else {
             $this->business->update([
+                'username' => $this->username ?: null,
                 'name' => $this->businessName,
                 'email' => $this->businessEmail,
                 'phone' => $this->phoneNumber,
@@ -423,14 +450,31 @@ class BusinessOnboarding extends Component
         ]);
     }
 
-    private function saveStep3(): void
+    private function saveStep3Branding(): void
+    {
+        if ($this->businessLogo) {
+            $this->business->clearMediaCollection('logo');
+            $this->business->addMedia($this->businessLogo->getRealPath())
+                ->usingName('Business Logo')
+                ->usingFileName($this->businessLogo->getClientOriginalName())
+                ->toMediaCollection('logo');
+        }
+
+        if ($this->businessBanner) {
+            $this->business->clearMediaCollection('banner_image');
+            $this->business->addMedia($this->businessBanner->getRealPath())
+                ->usingName('Business Banner')
+                ->usingFileName($this->businessBanner->getClientOriginalName())
+                ->toMediaCollection('banner_image');
+        }
+    }
+
+    private function saveStep4(): void
     {
         $this->business->update([
             'city' => $this->city,
             'state' => $this->state,
             'postal_code' => $this->postalCode,
-            'target_age_range' => $this->targetAgeRange,
-            'target_gender' => $this->targetGender,
             'business_goals' => $this->businessGoals,
             'platforms' => $this->platforms,
         ]);
@@ -441,6 +485,7 @@ class BusinessOnboarding extends Component
         if (! $this->business) {
             // Create business with all data in one go
             $this->business = Business::create([
+                'username' => $this->username ?: null,
                 'name' => $this->businessName ?: 'New Business',
                 'email' => $this->businessEmail ?: Auth::user()->email,
                 'phone' => $this->phoneNumber,
@@ -503,6 +548,7 @@ class BusinessOnboarding extends Component
             'currentStep' => $this->step,
             'maxSteps' => $this->getMaxSteps(),
             'subscriptionProducts' => $this->getSubscriptionProducts(),
+            'trialPeriodDays' => app(SubscriptionSettings::class)->trialPeriodDays,
         ]);
     }
 }

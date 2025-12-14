@@ -101,6 +101,9 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
         // Component Preview (dev tools)
         Route::get('/component-preview', App\Livewire\Admin\ComponentPreview::class)->name('component-preview');
 
+        // System Settings
+        Route::get('/settings', App\Livewire\Admin\Settings::class)->name('settings');
+
         // Custom Signup Pages
         Route::prefix('custom-signup-pages')->name('custom-signup-pages.')->group(function () {
             Route::get('/', App\Livewire\Admin\CustomSignupPages\CustomSignupPageIndex::class)->name('index');

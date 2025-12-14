@@ -90,9 +90,9 @@
                 <div class="flex items-start gap-3">
                     <flux:icon name="information-circle" class="w-5 h-5 flex-shrink-0 mt-0.5" />
                     <div>
-                        <flux:text class="font-medium mb-1">No charges until {{ \Carbon\Carbon::parse(config('collabconnect.stripe.subscriptions.start_date'))->format('F j, Y') }}</flux:text>
+                        <flux:text class="font-medium mb-1">{{ $trialPeriodDays }}-day free trial</flux:text>
                         <flux:text class="text-sm">
-                            Your card will be securely stored but won't be charged until {{ \Carbon\Carbon::parse(config('collabconnect.stripe.subscriptions.start_date'))->format('F j, Y') }}. You'll have full access to all features during this period.
+                            Your card will be securely stored but won't be charged for {{ $trialPeriodDays }} days. You can cancel anytime before the trial ends without being charged.
                         </flux:text>
                     </div>
                 </div>
