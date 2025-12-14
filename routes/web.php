@@ -160,7 +160,19 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
 
         // Profile routes
         Route::get('/profile', App\Livewire\Profile\EditProfile::class)->name('profile.edit');
-        Route::get('/billing', App\Livewire\Profile\BillingDetails::class)->name('billing');
+        Route::get('/billing', function () {
+            $user = auth()->user();
+
+            if ($user->isBusinessAccount()) {
+                return redirect()->route('business.settings', ['tab' => 'billing']);
+            }
+
+            if ($user->isInfluencerAccount()) {
+                return redirect()->route('influencer.settings', ['tab' => 'billing']);
+            }
+
+            return redirect()->route('dashboard');
+        })->name('billing');
         Route::post('/switch-business/{business}', function (\App\Models\Business $business) {
             $user = auth()->user();
 
@@ -177,13 +189,13 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
 
         // Business routes (must come before wildcard routes)
         Route::prefix('business')->name('business.')->group(function () {
-            Route::get('/settings', App\Livewire\Business\BusinessSettings::class)->name('settings');
+            Route::get('/settings/{tab?}/{subtab?}', App\Livewire\Business\BusinessSettings::class)->name('settings');
             Route::get('/{user}/campaigns', App\Livewire\Business\BusinessCampaigns::class)->name('campaigns');
         });
 
         // Influencer routes (must come before wildcard routes)
         Route::prefix('influencer')->name('influencer.')->group(function () {
-            Route::get('/settings', App\Livewire\Influencer\InfluencerSettings::class)->name('settings');
+            Route::get('/settings/{tab?}/{subtab?}', App\Livewire\Influencer\InfluencerSettings::class)->name('settings');
         });
 
         // Public profile route (supports both username and ID)

@@ -494,6 +494,9 @@ protected function isAccessible(User $user, ?string $path = null): bool
 ### Models
 - Casts can and likely should be set in a `casts()` method on a model rather than the `$casts` property. Follow existing conventions from other models.
 
+### Directives
+- DO NOT use the `@php` blade directive unless there is an absoulte need to do so. This clutters up the blade file. Any need for php should be done inside of the livewire component.
+
 
 === pennant/core rules ===
 
@@ -658,7 +661,7 @@ document.addEventListener('livewire:init', function () {
 
 
 ### Dark Mode
-- If existing pages and components support dark mode, new pages and components must support dark mode in a similar way, typically using `dark:`.
+- New pages and components must support dark mode in a similar way, typically using `dark:`.
 
 
 === tailwindcss/v4 rules ===

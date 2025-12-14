@@ -79,6 +79,12 @@ class BusinessSettings extends BaseComponent
 
     public string $activeTab = 'profile';
 
+    public ?string $activeSubtab = null;
+
+    protected array $validTabs = ['profile', 'branding', 'location', 'social', 'campaigns', 'team', 'billing'];
+
+    protected array $validBillingSubtabs = ['overview', 'plans', 'payment-methods', 'invoices'];
+
     // Campaign Defaults
     public string $default_brand_overview = '';
 
@@ -94,7 +100,7 @@ class BusinessSettings extends BaseComponent
 
     public string $default_posting_restrictions = '';
 
-    public function mount()
+    public function mount(?string $tab = null, ?string $subtab = null)
     {
         /** @var User $user */
         $user = $this->getAuthenticatedUser();
@@ -104,9 +110,13 @@ class BusinessSettings extends BaseComponent
         }
 
         // Handle URL tab parameter
-        $tab = request()->query('tab');
-        if ($tab && in_array($tab, ['profile', 'branding', 'location', 'social', 'campaigns', 'team'])) {
+        if ($tab && in_array($tab, $this->validTabs)) {
             $this->activeTab = $tab;
+        }
+
+        // Handle URL subtab parameter (for billing)
+        if ($subtab && $this->activeTab === 'billing' && in_array($subtab, $this->validBillingSubtabs)) {
+            $this->activeSubtab = $subtab;
         }
 
         $this->loadBusinessProfile($user);
@@ -115,6 +125,26 @@ class BusinessSettings extends BaseComponent
     public function setActiveTab(string $tab): void
     {
         $this->activeTab = $tab;
+        $this->activeSubtab = null;
+
+        $this->updateUrl();
+    }
+
+    public function setBillingSubtab(string $subtab): void
+    {
+        $this->activeSubtab = $subtab;
+        $this->updateUrl();
+    }
+
+    protected function updateUrl(): void
+    {
+        $url = '/business/settings/'.$this->activeTab;
+
+        if ($this->activeTab === 'billing' && $this->activeSubtab) {
+            $url .= '/'.$this->activeSubtab;
+        }
+
+        $this->dispatch('update-url', url: $url);
     }
 
     private function loadBusinessProfile(User $user)
