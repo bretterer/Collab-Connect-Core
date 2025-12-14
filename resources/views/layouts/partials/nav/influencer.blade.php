@@ -21,6 +21,10 @@
         Messages
     </flux:navlist.item>
 
+    <flux:navlist.item href="{{ route('link-in-bio.index') }}" icon="link" :current="request()->routeIs('link-in-bio.*')">
+        Link in Bio
+    </flux:navlist.item>
+
     <flux:navlist.group heading="Account" expandable :expanded="request()->routeIs('profile.*') || request()->routeIs('influencer.settings') || request()->routeIs('help')">
         <flux:navlist.item href="{{ route('profile.edit') }}" icon="user" :current="request()->routeIs('profile.edit')">
             Profile

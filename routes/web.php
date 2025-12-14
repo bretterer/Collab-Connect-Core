@@ -3,6 +3,7 @@
 use App\Http\Controllers\DataFastProxyController;
 use App\Http\Middleware\EnsureNeedsOnboarding;
 use App\Http\Middleware\EnsureOnboardingCompleted;
+use App\Livewire\LinkInBio;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -12,6 +13,9 @@ Route::get('/r/{code}', App\Livewire\ReferralRedirect::class)->name('referral.re
 
 // Custom signup pages (public routes for webinar signups)
 Route::get('/signup/{slug}', App\Livewire\CustomSignup::class)->name('signup.show');
+
+// Public Link in Bio pages
+Route::get('/p/{username}', LinkInBio\Show::class)->name('public.link-in-bio');
 
 // Broadcasting routes
 Broadcast::routes(['middleware' => ['web', 'auth']]);
@@ -215,6 +219,11 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
 
         // Help route (formerly contact)
         Route::get('/help', App\Livewire\Contact::class)->name('help');
+
+        // Link in Bio Routes
+        Route::prefix('link-in-bio')->name('link-in-bio.')->group(function () {
+            Route::get('/', LinkInBio\Index::class)->name('index');
+        });
     });
 });
 
