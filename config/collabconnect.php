@@ -68,6 +68,28 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Initialization / Seeding Configuration
+    |--------------------------------------------------------------------------
+    |
+    | These values are used for seeding test data with real Stripe resources.
+    | Set these in your .env file to use actual Stripe subscriptions/customers
+    | instead of fake test data.
+    |
+    */
+
+    'initialization' => [
+        'business' => [
+            'customer_id' => env('INIT_BUSINESS_STRIPE_CUSTOMER_ID'),
+            'subscription_id' => env('INIT_BUSINESS_STRIPE_SUBSCRIPTION_ID'),
+        ],
+        'influencer' => [
+            'customer_id' => env('INIT_INFLUENCER_STRIPE_CUSTOMER_ID'),
+            'subscription_id' => env('INIT_INFLUENCER_STRIPE_SUBSCRIPTION_ID'),
+        ],
+    ],
+
     'referrals' => [
         'default_percentage' => env('REFERRAL_DEFAULT_PERCENTAGE', 10),
     ],

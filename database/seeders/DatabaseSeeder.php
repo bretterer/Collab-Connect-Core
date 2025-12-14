@@ -56,38 +56,8 @@ class DatabaseSeeder extends Seeder
         // Pull in Stripe data for testing
         $this->call(StripeDataSeeder::class);
 
-        // Create fake Stripe customers and subscriptions for testing
-        // Business subscription
-        $businessUser->currentBusiness->stripe_id = 'cus_test_business_'.uniqid();
-        $businessUser->currentBusiness->pm_type = 'card';
-        $businessUser->currentBusiness->pm_last_four = '4242';
-        $businessUser->currentBusiness->save();
-
-        $businessUser->currentBusiness->subscriptions()->create([
-            'type' => 'default',
-            'stripe_id' => 'sub_test_business_'.uniqid(),
-            'stripe_status' => 'active',
-            'stripe_price' => config('collabconnect.stripe.prices.business_pro'),
-            'quantity' => 1,
-            'trial_ends_at' => null,
-            'ends_at' => null,
-        ]);
-
-        // Influencer subscription
-        $influencerUser->influencer->stripe_id = 'cus_test_influencer_'.uniqid();
-        $influencerUser->influencer->pm_type = 'card';
-        $influencerUser->influencer->pm_last_four = '4242';
-        $influencerUser->influencer->save();
-
-        $influencerUser->influencer->subscriptions()->create([
-            'type' => 'default',
-            'stripe_id' => 'sub_test_influencer_'.uniqid(),
-            'stripe_status' => 'active',
-            'stripe_price' => config('collabconnect.stripe.prices.influencer_basic'),
-            'quantity' => 1,
-            'trial_ends_at' => null,
-            'ends_at' => null,
-        ]);
+        // Create subscriptions for initial users (uses real Stripe data if configured)
+        $this->call(SubscriptionSeeder::class);
 
         // Create referral enrollments and referrals for testing
         $this->call(ReferralSeeder::class, false, ['userId' => $businessUser->id, 'count' => 5, 'status' => 'active']);

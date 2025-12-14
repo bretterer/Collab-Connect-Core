@@ -1,3 +1,7 @@
+<div
+    x-data
+    @update-url.window="window.history.replaceState({}, '', $event.detail.url)"
+>
 <form wire:submit="updateBusinessSettings" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Page Header -->
     <div class="mb-6 flex items-center justify-between">
@@ -53,9 +57,16 @@
             :current="$activeTab === 'team'">
             Team
         </flux:navbar.item>
+        <flux:navbar.item
+            wire:click="setActiveTab('billing')"
+            icon="credit-card"
+            :current="$activeTab === 'billing'">
+            Billing
+        </flux:navbar.item>
     </flux:navbar>
 
     <!-- Main Content -->
+    @if($activeTab !== 'billing')
     <flux:card>
             <!-- Profile Tab -->
             @if($activeTab === 'profile')
@@ -795,4 +806,33 @@
                 </div>
             @endif
     </flux:card>
+    @endif
 </form>
+
+<!-- Billing Tab - Outside form to prevent form submission conflicts -->
+@if($activeTab === 'billing')
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+        <flux:card>
+            <div class="space-y-6">
+                <div class="flex items-center mb-6">
+                    <div class="flex-shrink-0">
+                        <div class="h-10 w-10 bg-emerald-100 dark:bg-emerald-900 rounded-lg flex items-center justify-center">
+                            <flux:icon.credit-card class="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <flux:heading>Billing & Subscription</flux:heading>
+                        <flux:text class="text-sm text-zinc-500">Manage your subscription, payment methods, and billing history</flux:text>
+                    </div>
+                </div>
+
+                <livewire:components.billing-manager
+                    :billable="$user->currentBusiness"
+                    :initial-section="$activeSubtab"
+                    @section-changed="setBillingSubtab($event.detail.section)"
+                />
+            </div>
+        </flux:card>
+    </div>
+@endif
+</div>

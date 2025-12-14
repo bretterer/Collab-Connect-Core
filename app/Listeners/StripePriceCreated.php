@@ -36,6 +36,9 @@ class StripePriceCreated
                 'recurring' => $priceData['recurring'] ?? null,
                 'type' => $priceData['type'],
                 'unit_amount' => $priceData['unit_amount'],
+                'product_name' => $priceData['nickname'] ?? null,
+                'currency' => $priceData['currency'] ?? null,
+                'lookup_key' => $priceData['lookup_key'] ?? null,
             ]);
         }
     }

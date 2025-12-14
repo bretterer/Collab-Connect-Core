@@ -22,6 +22,12 @@ class InfluencerSettings extends BaseComponent
 
     public string $activeTab = 'account';
 
+    public ?string $activeSubtab = null;
+
+    protected array $validTabs = ['account', 'match', 'social', 'portfolio', 'billing'];
+
+    protected array $validBillingSubtabs = ['overview', 'plans', 'payment-methods', 'invoices'];
+
     // Account Settings
     public bool $is_campaign_active = true;
 
@@ -72,7 +78,7 @@ class InfluencerSettings extends BaseComponent
     // Social accounts
     public array $social_accounts = [];
 
-    public function mount(): void
+    public function mount(?string $tab = null, ?string $subtab = null): void
     {
         /** @var User $user */
         $user = $this->getAuthenticatedUser();
@@ -84,9 +90,13 @@ class InfluencerSettings extends BaseComponent
         }
 
         // Handle URL tab parameter
-        $tab = request()->query('tab');
-        if ($tab && in_array($tab, ['account', 'match', 'social', 'portfolio'])) {
+        if ($tab && in_array($tab, $this->validTabs)) {
             $this->activeTab = $tab;
+        }
+
+        // Handle URL subtab parameter (for billing)
+        if ($subtab && $this->activeTab === 'billing' && in_array($subtab, $this->validBillingSubtabs)) {
+            $this->activeSubtab = $subtab;
         }
 
         $this->loadInfluencerProfile($user);
@@ -95,6 +105,26 @@ class InfluencerSettings extends BaseComponent
     public function setActiveTab(string $tab): void
     {
         $this->activeTab = $tab;
+        $this->activeSubtab = null;
+
+        $this->updateUrl();
+    }
+
+    public function setBillingSubtab(string $subtab): void
+    {
+        $this->activeSubtab = $subtab;
+        $this->updateUrl();
+    }
+
+    protected function updateUrl(): void
+    {
+        $url = '/influencer/settings/'.$this->activeTab;
+
+        if ($this->activeTab === 'billing' && $this->activeSubtab) {
+            $url .= '/'.$this->activeSubtab;
+        }
+
+        $this->dispatch('update-url', url: $url);
     }
 
     private function loadInfluencerProfile(User $user): void

@@ -23,6 +23,7 @@ class StripeProductCreated
                 'active' => $productData['active'],
                 'description' => $productData['description'] ?? null,
                 'metadata' => $productData['metadata'] ?? null,
+                'billable_type' => $productData['metadata']['billable_type'] ?? null,
                 'livemode' => $productData['livemode'] ?? false,
             ]);
 

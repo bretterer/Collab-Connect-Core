@@ -9,7 +9,6 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Cashier\Http\Controllers\WebhookController;
-use Laravel\Pennant\Feature;
 use Laravel\Pennant\Middleware\EnsureFeaturesAreActive;
 
 class AppServiceProvider extends ServiceProvider
@@ -29,7 +28,6 @@ class AppServiceProvider extends ServiceProvider
     {
         Model::unguard();
 
-
         EnsureFeaturesAreActive::whenInactive(
             function (Request $request, array $features) {
                 return new Response(status: 404);
@@ -41,6 +39,10 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->bind(WebhookController::class, function ($app) {
             return new CashierWebhookController;
+        });
+
+        $this->app->bind('stripe', function ($app) {
+            return new \Stripe\StripeClient(config('services.stripe.secret_key'));
         });
 
     }
