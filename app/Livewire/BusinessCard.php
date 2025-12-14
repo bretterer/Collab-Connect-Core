@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\User;
 use App\Services\ReviewService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Vite;
 use Livewire\Component;
 
 class BusinessCard extends Component
@@ -17,11 +18,9 @@ class BusinessCard extends Component
 
     public bool $showFavorites = true;
 
-    public string $profileImageUrl;
+    public string $profileImageUrl = '';
 
-    public string $coverImageUrl;
-
-    public int $randomSeed;
+    public string $coverImageUrl = '';
 
     public ?float $averageRating = null;
 
@@ -33,16 +32,33 @@ class BusinessCard extends Component
 
     public function mount()
     {
-        // Generate random seed for consistent images per component instance
-        $this->randomSeed = rand(1, 799);
-        $this->profileImageUrl = "https://picsum.photos/seed/{$this->randomSeed}/150/150";
-        $this->coverImageUrl = 'https://picsum.photos/seed/'.($this->randomSeed + 1).'/400/200';
+        // Set default images first (same as InfluencerCard)
+        $defaultProfileImage = Vite::asset('resources/images/CollabConnectMark.png');
+        $defaultCoverImage = 'data:image/svg+xml;base64,'.base64_encode('
+            <svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#0284c7;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grad)"/>
+            </svg>');
+
+        $this->profileImageUrl = $defaultProfileImage;
+        $this->coverImageUrl = $defaultCoverImage;
+
+        $business = $this->user->currentBusiness;
 
         // Get real review data for the business
-        if ($this->user->currentBusiness) {
+        if ($business) {
             $reviewService = app(ReviewService::class);
-            $this->averageRating = $reviewService->getAverageRatingForBusiness($this->user->currentBusiness);
-            $this->reviewCount = $reviewService->getReviewCountForBusiness($this->user->currentBusiness);
+            $this->averageRating = $reviewService->getAverageRatingForBusiness($business);
+            $this->reviewCount = $reviewService->getReviewCountForBusiness($business);
+
+            // Use uploaded images from media library, with fallbacks
+            $this->profileImageUrl = $business->getLogoUrl() ?: $defaultProfileImage;
+            $this->coverImageUrl = $business->getBannerImageUrl() ?: $defaultCoverImage;
         }
 
         // Check if current user has saved/hidden this user

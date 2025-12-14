@@ -18,6 +18,7 @@ class Business extends Model implements HasMedia
     use Billable, HasFactory, InteractsWithMedia;
 
     protected $fillable = [
+        'username',
         'name',
         'email',
         'phone',

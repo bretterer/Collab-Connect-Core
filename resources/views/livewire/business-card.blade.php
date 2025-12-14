@@ -47,27 +47,14 @@
     <div class="relative">
         <!-- Profile Avatar - positioned relative to content, not header -->
         <div class="absolute -top-8 left-4 z-10">
-            <div class="w-16 h-16 rounded-full border-4 border-white dark:border-gray-800 relative">
-                @php
-                    $logoUrl = null;
-                    try {
-                        $logoUrl = $user->currentBusiness?->getLogoUrl();
-                    } catch (Exception $e) {
-                        // Handle case where media table doesn't exist or other issues
-                        $logoUrl = null;
-                    }
-                @endphp
-                @if($logoUrl)
-                    <img src="{{ $logoUrl }}" alt="Business logo" class="w-full h-full object-cover rounded-full">
-                @else
-                    <img src="{{ $profileImageUrl }}" alt="Business logo" class="w-full h-full object-cover rounded-full">
-                @endif
-                @if($isVerified)
-                    <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white z-10">
-                        <flux:icon.check class="w-3 h-3 text-white" />
-                    </div>
-                @endif
+            <div class="w-16 h-16 rounded-full border-4 border-white dark:border-gray-800 shadow-md overflow-hidden bg-white">
+                <img src="{{ $profileImageUrl }}" alt="Business logo" class="w-full h-full object-cover">
             </div>
+            @if($isVerified)
+                <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white z-10">
+                    <flux:icon.check class="w-3 h-3 text-white" />
+                </div>
+            @endif
         </div>
 
         <!-- Content Section -->

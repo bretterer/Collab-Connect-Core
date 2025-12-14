@@ -53,6 +53,7 @@ class StripeDataSeeder extends Seeder
                         'description' => $productData->description ?? null,
                         'metadata' => $productData->metadata->toArray() ?? null,
                         'livemode' => $productData->livemode ?? false,
+                        'billable_type' => $productData->metadata->toArray()['billable_type'] ?? null,
                     ]
                 );
 

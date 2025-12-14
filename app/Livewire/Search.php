@@ -53,7 +53,10 @@ class Search extends BaseComponent
      */
     public function updated($property): void
     {
-        if (in_array($property, [
+        // Extract base property name (e.g., 'selectedPlatforms.0' becomes 'selectedPlatforms')
+        $baseProperty = explode('.', $property)[0];
+
+        if (in_array($baseProperty, [
             'search',
             'selectedNiches',
             'selectedPlatforms',
