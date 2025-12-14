@@ -39,19 +39,19 @@ class DatabaseSeeder extends Seeder
         $this->call(PostalCodeSeeder::class);
 
         // Create additional test users using AccountSeeder
-        $this->call(AccountSeeder::class);
+        // $this->call(AccountSeeder::class);
 
         // Create sample campaigns for testing
-        $this->call(CampaignSeeder::class);
+        // $this->call(CampaignSeeder::class);
 
         // Create campaign template
-        $this->call(CampaignTemplateSeeder::class);
+        // $this->call(CampaignTemplateSeeder::class);
 
         // add some applications for testing
-        $this->call(ApplicationSeeder::class);
+        // $this->call(ApplicationSeeder::class);
 
         // Create sample messages for testing
-        $this->call(MessageSeeder::class);
+        // $this->call(MessageSeeder::class);
 
         // Pull in Stripe data for testing
         $this->call(StripeDataSeeder::class);
@@ -60,10 +60,10 @@ class DatabaseSeeder extends Seeder
         $this->call(SubscriptionSeeder::class);
 
         // Create referral enrollments and referrals for testing
-        $this->call(ReferralSeeder::class, false, ['userId' => $businessUser->id, 'count' => 5, 'status' => 'active']);
-        $this->call(ReferralSeeder::class, false, ['userId' => $businessUser->id, 'count' => 5, 'status' => 'pending']);
-        $this->call(ReferralSeeder::class, false, ['userId' => $influencerUser->id, 'count' => 3, 'status' => 'active']);
-        $this->call(ReferralSeeder::class, false, ['userId' => $influencerUser->id, 'count' => 3, 'status' => 'pending']);
+        // $this->call(ReferralSeeder::class, false, ['userId' => $businessUser->id, 'count' => 5, 'status' => 'active']);
+        // $this->call(ReferralSeeder::class, false, ['userId' => $businessUser->id, 'count' => 5, 'status' => 'pending']);
+        // $this->call(ReferralSeeder::class, false, ['userId' => $influencerUser->id, 'count' => 3, 'status' => 'active']);
+        // $this->call(ReferralSeeder::class, false, ['userId' => $influencerUser->id, 'count' => 3, 'status' => 'pending']);
 
     }
 }
