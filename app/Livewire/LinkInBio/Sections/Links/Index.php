@@ -4,11 +4,14 @@ namespace App\Livewire\LinkInBio\Sections\Links;
 
 use App\Livewire\LinkInBio\Contracts\SectionContract;
 use App\Livewire\LinkInBio\Traits\HasSectionSettings;
+use App\Livewire\Traits\EnforcesTierAccess;
 use Flux\Flux;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class Index extends Component implements SectionContract
 {
+    use EnforcesTierAccess;
     use HasSectionSettings;
 
     public bool $enabled = true;
@@ -97,8 +100,103 @@ class Index extends Component implements SectionContract
         $this->loadSettings($merged);
     }
 
+    /**
+     * Override the updated hook to validate tier access.
+     */
+    public function updated($property): void
+    {
+        // Skip dispatching for modal form properties
+        if (str_starts_with($property, 'linkForm') || $property === 'editingLinkIndex') {
+            return;
+        }
+
+        // List of tier-locked properties
+        $tierLockedProperties = ['layout', 'size', 'shadow', 'outline'];
+
+        if (in_array($property, $tierLockedProperties)) {
+            // If user doesn't have access, they shouldn't be changing these at all
+            $this->enforceTierAccess('link_in_bio_customization');
+        }
+
+        $this->dispatchSettingsUpdate();
+    }
+
+    #[Computed]
+    public function influencer()
+    {
+        return auth()->user()?->influencer;
+    }
+
+    #[Computed]
+    public function linkLimit(): int
+    {
+        $influencer = $this->influencer;
+
+        if (! $influencer) {
+            return 3; // Default for non-authenticated
+        }
+
+        $limit = $influencer->getFeatureLimit('link_in_bio_links');
+
+        // -1 means unlimited, return a high number for UI purposes
+        return $limit === -1 ? PHP_INT_MAX : ($limit ?? 3);
+    }
+
+    #[Computed]
+    public function canAddMoreLinks(): bool
+    {
+        return count($this->items) < $this->linkLimit;
+    }
+
+    #[Computed]
+    public function hasCustomizationAccess(): bool
+    {
+        $influencer = $this->influencer;
+
+        if (! $influencer) {
+            return false;
+        }
+
+        return $influencer->hasFeatureAccess('link_in_bio_customization');
+    }
+
+    #[Computed]
+    public function currentTier(): ?string
+    {
+        return $this->influencer?->getSubscriptionTier();
+    }
+
+    #[Computed]
+    public function requiredTierForCustomization(): ?string
+    {
+        return $this->influencer?->getTierRequiredFor('link_in_bio_customization');
+    }
+
     public function addLink(): void
     {
+        // Server-side enforcement of link limit
+        $influencer = $this->influencer;
+        if ($influencer) {
+            $limit = $influencer->getFeatureLimit('link_in_bio_links');
+            $currentCount = count($this->items);
+
+            // If limit is not unlimited (-1) and we're at or over the limit
+            if ($limit !== -1 && $limit !== null && $currentCount >= $limit) {
+                // Log the attempt
+                logger()->warning('Link limit bypass attempt detected', [
+                    'user_id' => auth()->user()?->id,
+                    'influencer_id' => $influencer->id,
+                    'current_count' => $currentCount,
+                    'limit' => $limit,
+                    'ip' => request()->ip(),
+                ]);
+
+                Flux::toast('You have reached your link limit. Upgrade to Elite for unlimited links.', variant: 'warning');
+
+                return;
+            }
+        }
+
         $this->items[] = [
             'title' => '',
             'url' => '',

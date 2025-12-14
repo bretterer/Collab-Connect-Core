@@ -85,61 +85,73 @@
                 <flux:accordion transition>
                     <flux:accordion.item>
                         <flux:accordion.heading class="py-4 px-4">
-                            <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-3 w-full">
                                 <flux:icon name="paint-brush" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
                                 <span class="font-semibold text-gray-900 dark:text-white">Design</span>
+                                @if(!$this->hasCustomizationAccess)
+                                    <x-upgrade-badge tier="{{ $this->requiredTierForCustomization }}" size="xs" class="ml-auto" />
+                                @endif
                             </div>
                         </flux:accordion.heading>
                         <flux:accordion.content>
-                            <div class="space-y-6 p-4 pt-0">
-                                {{-- Color Picker --}}
-                                <div>
-                                    <flux:label class="mb-3">Theme Color</flux:label>
-                                    <div class="flex gap-2 flex-wrap">
-                                        @foreach(['#f97316', '#000000', '#3b82f6', '#22c55e', '#8b5cf6', '#dc2626', '#f5f5f4', '#eab308'] as $color)
-                                            <button
-                                                type="button"
-                                                wire:click="$set('themeColor', '{{ $color }}')"
-                                                class="w-10 h-10 rounded-full border-2 transition-all {{ $themeColor === $color ? 'border-gray-900 dark:border-white ring-2 ring-offset-2 ring-gray-400' : 'border-gray-200 dark:border-gray-600' }}"
-                                                style="background-color: {{ $color }}"
-                                            ></button>
-                                        @endforeach
+                            <x-tier-locked
+                                :locked="!$this->hasCustomizationAccess"
+                                :required-tier="$this->requiredTierForCustomization"
+                                :current-tier="$this->currentTier"
+                                title="Elite Feature"
+                                description="Customize your page design with the Elite plan."
+                                overlay-style="blur"
+                            >
+                                <div class="space-y-6 p-4 pt-0">
+                                    {{-- Color Picker --}}
+                                    <div>
+                                        <flux:label class="mb-3">Theme Color</flux:label>
+                                        <div class="flex gap-2 flex-wrap">
+                                            @foreach(['#f97316', '#000000', '#3b82f6', '#22c55e', '#8b5cf6', '#dc2626', '#f5f5f4', '#eab308'] as $color)
+                                                <button
+                                                    type="button"
+                                                    wire:click="$set('themeColor', '{{ $color }}')"
+                                                    class="w-10 h-10 rounded-full border-2 transition-all {{ $themeColor === $color ? 'border-gray-900 dark:border-white ring-2 ring-offset-2 ring-gray-400' : 'border-gray-200 dark:border-gray-600' }}"
+                                                    style="background-color: {{ $color }}"
+                                                ></button>
+                                            @endforeach
+                                        </div>
                                     </div>
-                                </div>
 
-                                {{-- Container Style --}}
-                                <div>
-                                    <flux:label class="mb-3">Container Style</flux:label>
-                                    <div class="grid grid-cols-3 gap-3">
-                                        @foreach(['square' => 'Square', 'round' => 'Round', 'full' => 'Full Width'] as $value => $label)
-                                            <button
-                                                type="button"
-                                                wire:click="$set('containerStyle', '{{ $value }}')"
-                                                class="px-4 py-2 border rounded-lg text-sm transition-all {{ $containerStyle === $value ? 'border-gray-900 dark:border-white bg-gray-100 dark:bg-gray-700' : 'border-gray-200 dark:border-gray-600' }}"
-                                            >
-                                                {{ $label }}
-                                            </button>
-                                        @endforeach
+                                    {{-- Container Style --}}
+                                    <div>
+                                        <flux:label class="mb-3">Container Style</flux:label>
+                                        <div class="grid grid-cols-3 gap-3">
+                                            @foreach(['square' => 'Square', 'round' => 'Round', 'full' => 'Full Width'] as $value => $label)
+                                                <button
+                                                    type="button"
+                                                    wire:click="$set('containerStyle', '{{ $value }}')"
+                                                    class="px-4 py-2 border rounded-lg text-sm transition-all {{ $containerStyle === $value ? 'border-gray-900 dark:border-white bg-gray-100 dark:bg-gray-700' : 'border-gray-200 dark:border-gray-600' }}"
+                                                >
+                                                    {{ $label }}
+                                                </button>
+                                            @endforeach
+                                        </div>
                                     </div>
-                                </div>
 
-                                {{-- Font Selection --}}
-                                <div>
-                                    <flux:label class="mb-3">Font</flux:label>
-                                    <div class="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
-                                        @foreach(['sans' => 'Sans', 'serif' => 'Serif', 'mono' => 'Mono', 'georgia' => 'Georgia', 'arial' => 'Arial', 'times' => 'Times'] as $value => $label)
-                                            <button
-                                                type="button"
-                                                wire:click="$set('font', '{{ $value }}')"
-                                                class="px-3 py-2 border rounded-lg text-sm transition-all {{ $font === $value ? 'border-gray-900 dark:border-white bg-gray-100 dark:bg-gray-700' : 'border-gray-200 dark:border-gray-600' }}"
-                                                style="font-family: {{ $value === 'sans' ? 'ui-sans-serif, system-ui' : ($value === 'serif' ? 'ui-serif, Georgia' : ($value === 'mono' ? 'ui-monospace, monospace' : $value)) }}"
-                                            >
-                                                {{ $label }}
-                                            </button>
-                                        @endforeach
+                                    {{-- Font Selection --}}
+                                    <div>
+                                        <flux:label class="mb-3">Font</flux:label>
+                                        <div class="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+                                            @foreach(['sans' => 'Sans', 'serif' => 'Serif', 'mono' => 'Mono', 'georgia' => 'Georgia', 'arial' => 'Arial', 'times' => 'Times'] as $value => $label)
+                                                <button
+                                                    type="button"
+                                                    wire:click="$set('font', '{{ $value }}')"
+                                                    class="px-3 py-2 border rounded-lg text-sm transition-all {{ $font === $value ? 'border-gray-900 dark:border-white bg-gray-100 dark:bg-gray-700' : 'border-gray-200 dark:border-gray-600' }}"
+                                                    style="font-family: {{ $value === 'sans' ? 'ui-sans-serif, system-ui' : ($value === 'serif' ? 'ui-serif, Georgia' : ($value === 'mono' ? 'ui-monospace, monospace' : $value)) }}"
+                                                >
+                                                    {{ $label }}
+                                                </button>
+                                            @endforeach
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </x-tier-locked>
                         </flux:accordion.content>
                     </flux:accordion.item>
                 </flux:accordion>
@@ -150,9 +162,6 @@
 
             {{-- Links Section --}}
             <livewire:link-in-bio.sections.links.index :settings="$linksSettings" key="links-section" />
-
-            {{-- Rates Section --}}
-            <livewire:link-in-bio.sections.rates-card.index :settings="$ratesSettings" key="rates-section" />
 
             {{-- Footer Section --}}
             <livewire:link-in-bio.sections.footer.index :settings="$footerSettings" key="footer-section" />
@@ -230,12 +239,6 @@
                                     'settings' => $linksSettings,
                                     'designSettings' => ['containerStyle' => $containerStyle],
                                     'isPreview' => true,
-                                ])
-
-                                {{-- Rates Section (using shared Show view) --}}
-                                @include('livewire.link-in-bio.sections.rates-card.show', [
-                                    'settings' => $ratesSettings,
-                                    'designSettings' => ['themeColor' => $themeColor],
                                 ])
 
                                 {{-- Footer/Branding --}}

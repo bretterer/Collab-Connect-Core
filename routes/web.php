@@ -11,6 +11,9 @@ require __DIR__.'/marketing.php';
 
 Route::get('/r/{code}', App\Livewire\ReferralRedirect::class)->name('referral.redirect');
 
+// Tier violation page (shown after unauthorized access attempt)
+Route::get('/tier-violation', App\Livewire\TierViolation::class)->name('tier-violation');
+
 // Custom signup pages (public routes for webinar signups)
 Route::get('/signup/{slug}', App\Livewire\CustomSignup::class)->name('signup.show');
 

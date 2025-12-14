@@ -98,4 +98,71 @@ return [
         'global_enable' => explode('|', env('PENNANT_FEATURES_GLOBAL_ENABLE', '')),
         'global_disable' => explode('|', env('PENNANT_FEATURES_GLOBAL_DISABLE', '')),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Subscription Tiers Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Define subscription tier hierarchy and feature limits for each account type.
+    | Tiers are ordered from lowest to highest. The 'lookup_key' maps to
+    | Stripe price lookup keys. Feature limits can be integers or true/false.
+    |
+    */
+
+    'subscription_tiers' => [
+        'influencer' => [
+            // Tier hierarchy from lowest to highest
+            'hierarchy' => ['professional', 'elite'],
+
+            // Map Stripe lookup keys to tier names
+            'lookup_keys' => [
+                'influencer_professional' => 'professional',
+                'influencer_elite' => 'elite',
+            ],
+
+            // Feature limits per tier
+            'features' => [
+                'professional' => [
+                    'link_in_bio_links' => 3,
+                    'link_in_bio_customization' => false,
+                    'analytics_basic' => true,
+                    'analytics_advanced' => false,
+                ],
+                'elite' => [
+                    'link_in_bio_links' => -1, // -1 means unlimited
+                    'link_in_bio_customization' => true,
+                    'analytics_basic' => true,
+                    'analytics_advanced' => true,
+                ],
+            ],
+        ],
+
+        'business' => [
+            // Tier hierarchy from lowest to highest
+            'hierarchy' => ['essential', 'professional'],
+
+            // Map Stripe lookup keys to tier names
+            'lookup_keys' => [
+                'business_essential' => 'essential',
+                'business_professional' => 'professional',
+            ],
+
+            // Feature limits per tier
+            'features' => [
+                'essential' => [
+                    'campaigns_active' => 3,
+                    'team_members' => 1,
+                    'analytics_basic' => true,
+                    'analytics_advanced' => false,
+                ],
+                'professional' => [
+                    'campaigns_active' => -1, // unlimited
+                    'team_members' => 5,
+                    'analytics_basic' => true,
+                    'analytics_advanced' => true,
+                ],
+            ],
+        ],
+    ],
 ];

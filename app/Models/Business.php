@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BusinessIndustry;
 use App\Enums\BusinessType;
+use App\Models\Traits\HasSubscriptionTier;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -15,7 +16,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Business extends Model implements HasMedia
 {
-    use Billable, HasFactory, InteractsWithMedia;
+    use Billable, HasFactory, HasSubscriptionTier, InteractsWithMedia;
 
     protected $fillable = [
         'username',

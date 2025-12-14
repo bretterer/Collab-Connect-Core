@@ -3,8 +3,10 @@
 namespace App\Livewire\LinkInBio;
 
 use App\Livewire\BaseComponent;
+use App\Livewire\Traits\EnforcesTierAccess;
 use App\Models\LinkInBioSettings;
 use Laravel\Pennant\Feature;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Masmerise\Toaster\Toaster;
@@ -12,6 +14,8 @@ use Masmerise\Toaster\Toaster;
 #[Layout('layouts.app')]
 class Index extends BaseComponent
 {
+    use EnforcesTierAccess;
+
     public string $themeColor = '#dc2626';
 
     public string $font = 'sans';
@@ -84,6 +88,19 @@ class Index extends BaseComponent
         };
     }
 
+    /**
+     * Intercept property updates to validate tier access in real-time.
+     */
+    public function updated(string $property): void
+    {
+        $tierLockedProperties = ['themeColor', 'font', 'containerStyle'];
+
+        if (in_array($property, $tierLockedProperties)) {
+            // If user doesn't have access, they shouldn't be changing these at all
+            $this->enforceTierAccess('link_in_bio_customization');
+        }
+    }
+
     public function hasUsername(): bool
     {
         return ! empty(auth()->user()?->influencer?->username);
@@ -94,6 +111,36 @@ class Index extends BaseComponent
         $username = auth()->user()?->influencer?->username ?? 'username';
 
         return url('/'.$username);
+    }
+
+    #[Computed]
+    public function influencer()
+    {
+        return auth()->user()?->influencer;
+    }
+
+    #[Computed]
+    public function hasCustomizationAccess(): bool
+    {
+        $influencer = $this->influencer;
+
+        if (! $influencer) {
+            return false;
+        }
+
+        return $influencer->hasFeatureAccess('link_in_bio_customization');
+    }
+
+    #[Computed]
+    public function currentTier(): ?string
+    {
+        return $this->influencer?->getSubscriptionTier();
+    }
+
+    #[Computed]
+    public function requiredTierForCustomization(): ?string
+    {
+        return $this->influencer?->getTierRequiredFor('link_in_bio_customization');
     }
 
     public function togglePublish(): void
@@ -110,6 +157,9 @@ class Index extends BaseComponent
 
             return;
         }
+
+        // Note: Tier access is enforced in updated() hook - this is a backup check
+        // We don't enforce here because save() is called for all changes, not just design
 
         $settings = [
             'design' => [

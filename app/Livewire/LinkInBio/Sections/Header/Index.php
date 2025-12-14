@@ -4,10 +4,13 @@ namespace App\Livewire\LinkInBio\Sections\Header;
 
 use App\Livewire\LinkInBio\Contracts\SectionContract;
 use App\Livewire\LinkInBio\Traits\HasSectionSettings;
+use App\Livewire\Traits\EnforcesTierAccess;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class Index extends Component implements SectionContract
 {
+    use EnforcesTierAccess;
     use HasSectionSettings;
 
     public bool $enabled = true;
@@ -75,6 +78,43 @@ class Index extends Component implements SectionContract
     {
         $merged = array_merge(static::defaultSettings(), $settings);
         $this->loadSettings($merged);
+    }
+
+    /**
+     * Override the updated hook to validate tier access.
+     */
+    public function updated($property): void
+    {
+        // Entire header section is tier-locked (except enabled toggle)
+        if ($property !== 'enabled') {
+            $this->enforceTierAccess('link_in_bio_customization');
+        }
+
+        $this->dispatchSettingsUpdate();
+    }
+
+    #[Computed]
+    public function influencer()
+    {
+        return auth()->user()?->influencer;
+    }
+
+    #[Computed]
+    public function hasCustomizationAccess(): bool
+    {
+        $influencer = $this->influencer;
+
+        if (! $influencer) {
+            return false;
+        }
+
+        return $influencer->hasFeatureAccess('link_in_bio_customization');
+    }
+
+    #[Computed]
+    public function requiredTierForCustomization(): ?string
+    {
+        return $this->influencer?->getTierRequiredFor('link_in_bio_customization');
     }
 
     public function render()

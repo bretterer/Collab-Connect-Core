@@ -4,10 +4,13 @@ namespace App\Livewire\LinkInBio\Sections\RatesCard;
 
 use App\Livewire\LinkInBio\Contracts\SectionContract;
 use App\Livewire\LinkInBio\Traits\HasSectionSettings;
+use App\Livewire\Traits\EnforcesTierAccess;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class Index extends Component implements SectionContract
 {
+    use EnforcesTierAccess;
     use HasSectionSettings;
 
     public bool $enabled = true;
@@ -63,8 +66,48 @@ class Index extends Component implements SectionContract
         $this->loadSettings($merged);
     }
 
+    /**
+     * Override the updated hook to validate tier access.
+     */
+    public function updated($property): void
+    {
+        // Entire rates card section is tier-locked (except enabled toggle)
+        if ($property !== 'enabled') {
+            $this->enforceTierAccess('link_in_bio_customization');
+        }
+
+        $this->dispatchSettingsUpdate();
+    }
+
+    #[Computed]
+    public function influencer()
+    {
+        return auth()->user()?->influencer;
+    }
+
+    #[Computed]
+    public function hasCustomizationAccess(): bool
+    {
+        $influencer = $this->influencer;
+
+        if (! $influencer) {
+            return false;
+        }
+
+        return $influencer->hasFeatureAccess('link_in_bio_customization');
+    }
+
+    #[Computed]
+    public function requiredTierForCustomization(): ?string
+    {
+        return $this->influencer?->getTierRequiredFor('link_in_bio_customization');
+    }
+
     public function addRate(): void
     {
+        // Enforce tier access for adding rates
+        $this->enforceTierAccess('link_in_bio_customization');
+
         $this->items[] = [
             'platform' => '',
             'rate' => '',
@@ -76,6 +119,9 @@ class Index extends Component implements SectionContract
 
     public function removeRate(int $index): void
     {
+        // Enforce tier access for removing rates
+        $this->enforceTierAccess('link_in_bio_customization');
+
         unset($this->items[$index]);
         $this->items = array_values($this->items);
         $this->dispatchSettingsUpdate();
