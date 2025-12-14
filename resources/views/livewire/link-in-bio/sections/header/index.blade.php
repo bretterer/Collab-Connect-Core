@@ -63,7 +63,7 @@
                         </div>
 
                         {{-- Display Name --}}
-                        <flux:input wire:model.live="displayName" label="Display Name" placeholder="Your name" />
+                        <flux:input wire:model.live.debounce.500ms="displayName" label="Display Name" placeholder="Your name" />
 
                         {{-- Text Size --}}
                         <div>
@@ -82,10 +82,10 @@
                         </div>
 
                         {{-- Location --}}
-                        <flux:input wire:model.live="location" label="Location" placeholder="City, State" />
+                        <flux:input wire:model.live.debounce.500ms="location" label="Location" placeholder="City, State" />
 
                         {{-- Bio --}}
-                        <flux:textarea wire:model.live="bio" label="Bio" placeholder="Example: Fashion creator" rows="3" />
+                        <flux:textarea wire:model.live.debounce.500ms="bio" label="Bio" placeholder="Example: Fashion creator" rows="3" />
 
                         {{-- Header Format --}}
                         <div>

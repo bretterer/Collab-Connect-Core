@@ -88,18 +88,7 @@ class Index extends BaseComponent
         };
     }
 
-    /**
-     * Intercept property updates to validate tier access in real-time.
-     */
-    public function updated(string $property): void
-    {
-        $tierLockedProperties = ['themeColor', 'font', 'containerStyle'];
-
-        if (in_array($property, $tierLockedProperties)) {
-            // If user doesn't have access, they shouldn't be changing these at all
-            $this->enforceTierAccess('link_in_bio_customization');
-        }
-    }
+    // Note: Tier access is enforced via UI overlay - no need for updated() hook checks
 
     public function hasUsername(): bool
     {
@@ -110,7 +99,7 @@ class Index extends BaseComponent
     {
         $username = auth()->user()?->influencer?->username ?? 'username';
 
-        return url('/'.$username);
+        return route('public.link-in-bio', ['username' => $username]);
     }
 
     #[Computed]
@@ -157,9 +146,6 @@ class Index extends BaseComponent
 
             return;
         }
-
-        // Note: Tier access is enforced in updated() hook - this is a backup check
-        // We don't enforce here because save() is called for all changes, not just design
 
         $settings = [
             'design' => [

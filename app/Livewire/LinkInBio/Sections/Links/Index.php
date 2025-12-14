@@ -101,21 +101,14 @@ class Index extends Component implements SectionContract
     }
 
     /**
-     * Override the updated hook to validate tier access.
+     * Override the updated hook to dispatch settings.
+     * Note: Tier access is enforced via UI overlay and on save.
      */
     public function updated($property): void
     {
         // Skip dispatching for modal form properties
         if (str_starts_with($property, 'linkForm') || $property === 'editingLinkIndex') {
             return;
-        }
-
-        // List of tier-locked properties
-        $tierLockedProperties = ['layout', 'size', 'shadow', 'outline'];
-
-        if (in_array($property, $tierLockedProperties)) {
-            // If user doesn't have access, they shouldn't be changing these at all
-            $this->enforceTierAccess('link_in_bio_customization');
         }
 
         $this->dispatchSettingsUpdate();

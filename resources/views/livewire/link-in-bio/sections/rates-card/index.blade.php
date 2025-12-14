@@ -45,8 +45,8 @@
                         {{-- Settings --}}
                         <flux:separator />
 
-                        <flux:input wire:model.live="title" label="Title" placeholder="My Rates" />
-                        <flux:input wire:model.live="subtitle" label="Subtitle" placeholder="Check out my rates below" />
+                        <flux:input wire:model.live.debounce.500ms="title" label="Title" placeholder="My Rates" />
+                        <flux:input wire:model.live.debounce.500ms="subtitle" label="Subtitle" placeholder="Check out my rates below" />
 
                         {{-- Size --}}
                         <div>

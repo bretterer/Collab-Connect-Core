@@ -97,8 +97,8 @@
                     {{-- Settings --}}
                     <flux:separator />
 
-                    <flux:input wire:model.live="title" label="Title" placeholder="My Links" />
-                    <flux:input wire:model.live="subtitle" label="Subtitle" placeholder="Check out my links below" />
+                    <flux:input wire:model.live.debounce.500ms="title" label="Title" placeholder="My Links" />
+                    <flux:input wire:model.live.debounce.500ms="subtitle" label="Subtitle" placeholder="Check out my links below" />
 
                     {{-- Customization Options - Locked for Professional tier --}}
                     <x-tier-locked
