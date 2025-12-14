@@ -3,6 +3,9 @@ import './bootstrap';
 // Import toaster
 import '../../vendor/masmerise/livewire-toaster/resources/js';
 
+// Import livewire-sortable for drag and drop
+import 'livewire-sortable';
+
 import { TextStyleKit } from '@tiptap/extension-text-style';
 
 // Import Plyr for video player

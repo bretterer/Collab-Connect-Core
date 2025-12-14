@@ -1,0 +1,285 @@
+<?php
+
+namespace App\Livewire\LinkInBio\Sections\Links;
+
+use App\Livewire\LinkInBio\Contracts\SectionContract;
+use App\Livewire\LinkInBio\Traits\HasSectionSettings;
+use App\Livewire\Traits\EnforcesTierAccess;
+use Flux\Flux;
+use Livewire\Attributes\Computed;
+use Livewire\Component;
+
+class Index extends Component implements SectionContract
+{
+    use EnforcesTierAccess;
+    use HasSectionSettings;
+
+    public bool $enabled = true;
+
+    public string $title = '';
+
+    public string $subtitle = '';
+
+    public string $visibility = 'exposed';
+
+    public string $layout = 'classic';
+
+    public string $size = 'medium';
+
+    public string $textAlign = 'center';
+
+    public bool $shadow = true;
+
+    public bool $outline = false;
+
+    /** @var array<int, array{title: string, url: string, icon: string|null, enabled: bool}> */
+    public array $items = [];
+
+    public ?int $editingLinkIndex = null;
+
+    public array $linkForm = [
+        'title' => '',
+        'url' => '',
+        'icon' => null,
+    ];
+
+    public static function sectionKey(): string
+    {
+        return 'links';
+    }
+
+    public static function defaultSettings(): array
+    {
+        return [
+            'enabled' => true,
+            'title' => '',
+            'subtitle' => '',
+            'visibility' => 'exposed',
+            'layout' => 'classic',
+            'size' => 'medium',
+            'textAlign' => 'center',
+            'shadow' => true,
+            'outline' => false,
+            'items' => [],
+        ];
+    }
+
+    public function loadSettings(array $settings): void
+    {
+        $this->enabled = $settings['enabled'] ?? true;
+        $this->title = $settings['title'] ?? '';
+        $this->subtitle = $settings['subtitle'] ?? '';
+        $this->visibility = $settings['visibility'] ?? 'exposed';
+        $this->layout = $settings['layout'] ?? 'classic';
+        $this->size = $settings['size'] ?? 'medium';
+        $this->textAlign = $settings['textAlign'] ?? 'center';
+        $this->shadow = $settings['shadow'] ?? true;
+        $this->outline = $settings['outline'] ?? false;
+        $this->items = $settings['items'] ?? [];
+    }
+
+    public function toSettingsArray(): array
+    {
+        return [
+            'enabled' => $this->enabled,
+            'title' => $this->title,
+            'subtitle' => $this->subtitle,
+            'visibility' => $this->visibility,
+            'layout' => $this->layout,
+            'size' => $this->size,
+            'textAlign' => $this->textAlign,
+            'shadow' => $this->shadow,
+            'outline' => $this->outline,
+            'items' => $this->items,
+        ];
+    }
+
+    public function mount(array $settings = []): void
+    {
+        $merged = array_merge(static::defaultSettings(), $settings);
+        $this->loadSettings($merged);
+    }
+
+    /**
+     * Override the updated hook to dispatch settings.
+     * Note: Tier access is enforced via UI overlay and on save.
+     */
+    public function updated($property): void
+    {
+        // Skip dispatching for modal form properties
+        if (str_starts_with($property, 'linkForm') || $property === 'editingLinkIndex') {
+            return;
+        }
+
+        $this->dispatchSettingsUpdate();
+    }
+
+    #[Computed]
+    public function influencer()
+    {
+        return auth()->user()?->influencer;
+    }
+
+    #[Computed]
+    public function linkLimit(): int
+    {
+        $influencer = $this->influencer;
+
+        if (! $influencer) {
+            return 3; // Default for non-authenticated
+        }
+
+        $limit = $influencer->getFeatureLimit('link_in_bio_links');
+
+        // -1 means unlimited, return a high number for UI purposes
+        return $limit === -1 ? PHP_INT_MAX : ($limit ?? 3);
+    }
+
+    #[Computed]
+    public function canAddMoreLinks(): bool
+    {
+        return count($this->items) < $this->linkLimit;
+    }
+
+    #[Computed]
+    public function hasCustomizationAccess(): bool
+    {
+        $influencer = $this->influencer;
+
+        if (! $influencer) {
+            return false;
+        }
+
+        return $influencer->hasFeatureAccess('link_in_bio_customization');
+    }
+
+    #[Computed]
+    public function currentTier(): ?string
+    {
+        return $this->influencer?->getSubscriptionTier();
+    }
+
+    #[Computed]
+    public function requiredTierForCustomization(): ?string
+    {
+        return $this->influencer?->getTierRequiredFor('link_in_bio_customization');
+    }
+
+    public function addLink(): void
+    {
+        // Server-side enforcement of link limit
+        $influencer = $this->influencer;
+        if ($influencer) {
+            $limit = $influencer->getFeatureLimit('link_in_bio_links');
+            $currentCount = count($this->items);
+
+            // If limit is not unlimited (-1) and we're at or over the limit
+            if ($limit !== -1 && $limit !== null && $currentCount >= $limit) {
+                // Log the attempt
+                logger()->warning('Link limit bypass attempt detected', [
+                    'user_id' => auth()->user()?->id,
+                    'influencer_id' => $influencer->id,
+                    'current_count' => $currentCount,
+                    'limit' => $limit,
+                    'ip' => request()->ip(),
+                ]);
+
+                Flux::toast('You have reached your link limit. Upgrade to Elite for unlimited links.', variant: 'warning');
+
+                return;
+            }
+        }
+
+        $this->items[] = [
+            'title' => '',
+            'url' => '',
+            'icon' => null,
+            'enabled' => true,
+        ];
+        $this->dispatchSettingsUpdate();
+    }
+
+    public function removeLink(int $index): void
+    {
+        unset($this->items[$index]);
+        $this->items = array_values($this->items);
+        $this->dispatchSettingsUpdate();
+    }
+
+    public function sortItems(array $orderedItems): void
+    {
+        // livewire-sortable sends an array like:
+        // [['order' => 1, 'value' => '0'], ['order' => 2, 'value' => '1'], ...]
+        // where 'value' is the original index and 'order' is the new position (1-indexed)
+
+        $newItems = [];
+
+        // Sort by the new order
+        usort($orderedItems, fn ($a, $b) => $a['order'] <=> $b['order']);
+
+        // Rebuild the items array in the new order
+        foreach ($orderedItems as $orderedItem) {
+            $originalIndex = (int) $orderedItem['value'];
+            if (isset($this->items[$originalIndex])) {
+                $newItems[] = $this->items[$originalIndex];
+            }
+        }
+
+        $this->items = $newItems;
+        $this->dispatchSettingsUpdate();
+    }
+
+    public function editLink(int $index): void
+    {
+        if (! isset($this->items[$index])) {
+            return;
+        }
+
+        $this->editingLinkIndex = $index;
+        $this->linkForm = [
+            'title' => $this->items[$index]['title'] ?? '',
+            'url' => $this->items[$index]['url'] ?? '',
+            'icon' => $this->items[$index]['icon'] ?? null,
+        ];
+
+        Flux::modal('edit-link-modal')->show();
+    }
+
+    public function cancelLinkEdit(): void
+    {
+        $this->editingLinkIndex = null;
+        $this->linkForm = [
+            'title' => '',
+            'url' => '',
+            'icon' => null,
+        ];
+
+        Flux::modal('edit-link-modal')->close();
+    }
+
+    public function saveLinkEdit(): void
+    {
+        if ($this->editingLinkIndex === null || ! isset($this->items[$this->editingLinkIndex])) {
+            return;
+        }
+
+        $this->items[$this->editingLinkIndex]['title'] = $this->linkForm['title'];
+        $this->items[$this->editingLinkIndex]['url'] = $this->linkForm['url'];
+        $this->items[$this->editingLinkIndex]['icon'] = $this->linkForm['icon'] ?: null;
+
+        $this->editingLinkIndex = null;
+        $this->linkForm = [
+            'title' => '',
+            'url' => '',
+            'icon' => null,
+        ];
+
+        $this->dispatchSettingsUpdate();
+        Flux::modal('edit-link-modal')->close();
+    }
+
+    public function render()
+    {
+        return view('livewire.link-in-bio.sections.links.index');
+    }
+}
