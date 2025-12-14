@@ -7,9 +7,15 @@ use App\Models\Influencer;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Log;
+use Laravel\Cashier\Cashier;
 
 class SubscriptionSeeder extends Seeder
 {
+    /**
+     * The Stripe client instance.
+     */
+    protected $stripe;
+
     /**
      * Seed subscriptions for the initial business and influencer users.
      *
@@ -25,6 +31,8 @@ class SubscriptionSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->stripe = Cashier::stripe(['api_key' => config('cashier.secret')]);
+
         $this->seedBusinessSubscription();
         $this->seedInfluencerSubscription();
     }
@@ -56,7 +64,7 @@ class SubscriptionSeeder extends Seeder
 
         // Fetch the subscription from Stripe to get accurate data
         try {
-            $stripeSubscription = \Stripe\Subscription::retrieve($subscriptionId);
+            $stripeSubscription = $this->stripe->subscriptions->retrieve($subscriptionId);
 
             // Update business with Stripe customer ID
             $business->update([
@@ -120,7 +128,7 @@ class SubscriptionSeeder extends Seeder
 
         // Fetch the subscription from Stripe to get accurate data
         try {
-            $stripeSubscription = \Stripe\Subscription::retrieve($subscriptionId);
+            $stripeSubscription = $this->stripe->subscriptions->retrieve($subscriptionId);
 
             // Update influencer with Stripe customer ID
             $influencer->update([
@@ -163,7 +171,7 @@ class SubscriptionSeeder extends Seeder
     protected function updatePaymentMethodDetails(Business|Influencer $billable, string $customerId): void
     {
         try {
-            $customer = \Stripe\Customer::retrieve($customerId, [
+            $customer = $this->stripe->customers->retrieve($customerId, [
                 'expand' => ['invoice_settings.default_payment_method'],
             ]);
 
