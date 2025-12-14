@@ -52,7 +52,6 @@ class BusinessOnboardingTest extends TestCase
             ->assertSet('businessEmail', '')
             ->assertSet('emailNotifications', true)
             ->assertSet('marketingEmails', false)
-            ->assertSet('targetAgeRange', [])
             ->assertSet('businessGoals', [])
             ->assertSet('platforms', []);
     }
@@ -76,8 +75,6 @@ class BusinessOnboardingTest extends TestCase
             'city' => 'Test City',
             'state' => 'Test State',
             'postal_code' => '12345',
-            'target_age_range' => ['18-24', '25-34'],
-            'target_gender' => ['male', 'female'],
             'business_goals' => ['brand_awareness'],
             'platforms' => ['instagram', 'facebook'],
         ]);
@@ -100,8 +97,6 @@ class BusinessOnboardingTest extends TestCase
             ->assertSet('city', 'Test City')
             ->assertSet('state', 'Test State')
             ->assertSet('postalCode', '12345')
-            ->assertSet('targetAgeRange', ['18-24', '25-34'])
-            ->assertSet('targetGender', ['male', 'female'])
             ->assertSet('businessGoals', ['brand_awareness'])
             ->assertSet('platforms', ['instagram', 'facebook']);
     }
@@ -223,8 +218,6 @@ class BusinessOnboardingTest extends TestCase
             ->set('city', 'Test City')
             ->set('state', 'Test State')
             ->set('postalCode', '12345')
-            ->set('targetAgeRange', ['18-24', '25-34'])
-            ->set('targetGender', ['male', 'female'])
             ->set('businessGoals', ['brand_awareness', 'product_promotion'])
             ->set('platforms', ['instagram', 'facebook', 'tiktok'])
             ->call('nextStep')
@@ -236,8 +229,6 @@ class BusinessOnboardingTest extends TestCase
         $this->assertEquals('Test City', $business->city);
         $this->assertEquals('Test State', $business->state);
         $this->assertEquals('12345', $business->postal_code);
-        $this->assertEquals(['18-24', '25-34'], $business->target_age_range);
-        $this->assertEquals(['male', 'female'], $business->target_gender);
         $this->assertEquals(['brand_awareness', 'product_promotion'], $business->business_goals);
         $this->assertEquals(['instagram', 'facebook', 'tiktok'], $business->platforms);
     }
@@ -363,7 +354,6 @@ class BusinessOnboardingTest extends TestCase
         // Step 4 rules (platform preferences)
         $step4Rules = $instance->getValidationRulesForStep(4);
         $this->assertArrayHasKey('city', $step4Rules);
-        $this->assertArrayHasKey('targetAgeRange', $step4Rules);
         $this->assertArrayHasKey('businessGoals', $step4Rules);
         $this->assertArrayHasKey('platforms', $step4Rules);
 
