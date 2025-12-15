@@ -15,6 +15,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Admin Email Addresses
+    |--------------------------------------------------------------------------
+    |
+    | These email addresses receive administrative notifications such as
+    | subscription schedule releases and other system alerts.
+    | Set ADMIN_EMAILS in .env as a comma-separated list.
+    |
+    */
+
+    'admin_emails' => array_filter(array_map(
+        'trim',
+        explode(',', env('ADMIN_EMAILS', ''))
+    )),
+
+    /*
+    |--------------------------------------------------------------------------
     | Support Response Days
     |--------------------------------------------------------------------------
     |
