@@ -3,6 +3,8 @@
     <header class="bg-white dark:bg-gray-800 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div class="flex items-center justify-between">
+                <a href="{{ route('home') }}" class="sr-only-focusable">
+                    <span class="sr-only">Home</span>
                 <div class="flex items-center space-x-3">
                     <img class="block h-8 w-auto dark:hidden"
                         src="{{ Vite::asset('resources/images/CollabConnect.png') }}"
@@ -11,6 +13,7 @@
                         src="{{ Vite::asset('resources/images/CollabConnectDark.png') }}"
                         alt="CollabConnect Logo" />
                 </div>
+                </a>
 
                 <!-- Dark mode toggle -->
                 <button x-on:click="darkMode = !darkMode"
