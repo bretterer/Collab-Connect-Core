@@ -423,6 +423,9 @@ class BillingManager extends Component
                 return;
             }
 
+            // Release any attached schedule first
+            $this->releaseSubscriptionSchedule($subscription, 'cancel their subscription');
+
             $subscription->cancel();
 
             $this->showCancelModal = false;
@@ -448,6 +451,9 @@ class BillingManager extends Component
                 return;
             }
 
+            // Release any attached schedule first
+            $this->releaseSubscriptionSchedule($subscription, 'cancel their subscription immediately');
+
             $subscription->cancelNow();
 
             $this->showCancelModal = false;
@@ -472,6 +478,9 @@ class BillingManager extends Component
 
                 return;
             }
+
+            // Release any attached schedule first
+            $this->releaseSubscriptionSchedule($subscription, 'resume their subscription');
 
             $subscription->resume();
 
@@ -541,6 +550,45 @@ class BillingManager extends Component
         return $this->billable->downloadInvoice($invoiceId, [
             'vendor' => config('app.name'),
         ]);
+    }
+
+    protected function releaseSubscriptionSchedule(Subscription $subscription, string $action = 'modify their subscription'): void
+    {
+        $stripeSubscription = $subscription->asStripeSubscription();
+
+        if ($stripeSubscription->schedule) {
+            // Fetch the full schedule details before releasing
+            $schedule = \Laravel\Cashier\Cashier::stripe()->subscriptionSchedules->retrieve(
+                $stripeSubscription->schedule
+            );
+
+            // Release the schedule
+            \Laravel\Cashier\Cashier::stripe()->subscriptionSchedules->release(
+                $stripeSubscription->schedule
+            );
+
+            // Notify admin about the released schedule
+            $this->notifyAdminOfReleasedSchedule($schedule, $action);
+        }
+    }
+
+    protected function notifyAdminOfReleasedSchedule(\Stripe\SubscriptionSchedule $schedule, string $action): void
+    {
+        $adminEmails = config('collabconnect.admin_emails', []);
+
+        if (empty($adminEmails)) {
+            return;
+        }
+
+        \Illuminate\Support\Facades\Notification::route('mail', $adminEmails)
+            ->notify(new \App\Notifications\SubscriptionScheduleReleasedNotification(
+                schedule: $schedule,
+                billableType: $this->billableType,
+                billableId: $this->billableId,
+                customerName: $this->getCustomerName(),
+                customerEmail: $this->getCustomerEmail(),
+                action: $action,
+            ));
     }
 
     protected function getCustomerName(): string

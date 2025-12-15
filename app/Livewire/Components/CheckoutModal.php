@@ -301,6 +301,23 @@ class CheckoutModal extends Component
                 $subscription = $billable->subscription('default');
 
                 if ($subscription) {
+                    // Check if subscription has an attached schedule and release it first
+                    $stripeSubscription = $subscription->asStripeSubscription();
+                    if ($stripeSubscription->schedule) {
+                        // Fetch the full schedule details before releasing
+                        $schedule = \Laravel\Cashier\Cashier::stripe()->subscriptionSchedules->retrieve(
+                            $stripeSubscription->schedule
+                        );
+
+                        // Release the schedule
+                        \Laravel\Cashier\Cashier::stripe()->subscriptionSchedules->release(
+                            $stripeSubscription->schedule
+                        );
+
+                        // Notify admins about the released schedule
+                        $this->notifyAdminOfReleasedSchedule($schedule, 'change their plan');
+                    }
+
                     $subscription->swap($this->priceId);
                     Flux::toast('Plan changed successfully!', variant: 'success', position: 'bottom right');
                 } else {
@@ -351,6 +368,25 @@ class CheckoutModal extends Component
         }
 
         return $billable->user?->email ?? '';
+    }
+
+    protected function notifyAdminOfReleasedSchedule(\Stripe\SubscriptionSchedule $schedule, string $action): void
+    {
+        $adminEmails = config('collabconnect.admin_emails', []);
+
+        if (empty($adminEmails)) {
+            return;
+        }
+
+        \Illuminate\Support\Facades\Notification::route('mail', $adminEmails)
+            ->notify(new \App\Notifications\SubscriptionScheduleReleasedNotification(
+                schedule: $schedule,
+                billableType: $this->billableType,
+                billableId: $this->billableId,
+                customerName: $this->getCustomerName(),
+                customerEmail: $this->getCustomerEmail(),
+                action: $action,
+            ));
     }
 
     public function render()
