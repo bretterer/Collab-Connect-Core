@@ -145,7 +145,7 @@
                     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8">
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Create Your Account</h2>
                         <p class="text-gray-600 dark:text-gray-400 mb-6">
-                            Join as a {{ $page->account_type->label() }} and get started today.
+                            Join as {{ Str::indefArticle('a', $page->account_type->label()) }} and get started today.
                         </p>
 
                         <form wire:submit="register" class="space-y-5">
