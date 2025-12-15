@@ -280,9 +280,9 @@
                             <!-- Terms -->
                             <p class="text-xs text-center text-gray-500 dark:text-gray-400">
                                 By signing up, you agree to our
-                                <a href="#" class="underline hover:text-gray-700 dark:hover:text-gray-300">Terms of Service</a>
+                                <a href="{{ route('terms') }}" target="_blank" class="underline hover:text-gray-700 dark:hover:text-gray-300">Terms of Service</a>
                                 and
-                                <a href="#" class="underline hover:text-gray-700 dark:hover:text-gray-300">Privacy Policy</a>.
+                                <a href="{{ route('privacy') }}" target="_blank" class="underline hover:text-gray-700 dark:hover:text-gray-300">Privacy Policy</a>.
                             </p>
                         </form>
 
