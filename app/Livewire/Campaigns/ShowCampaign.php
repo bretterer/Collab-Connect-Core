@@ -188,15 +188,19 @@ class ShowCampaign extends Component
             return collect();
         }
 
+        $accepted = CampaignApplicationStatus::ACCEPTED->value;
+        $pending = CampaignApplicationStatus::PENDING->value;
+        $contracted = CampaignApplicationStatus::CONTRACTED->value;
+
         // Sort: accepted first, then pending, then others. Within each group, sort by submitted_at desc
         return $this->campaign->applications()
             ->with(['user.influencer'])
-            ->orderByRaw("CASE
-                WHEN status = 'accepted' THEN 1
-                WHEN status = 'pending' THEN 2
-                WHEN status = 'contracted' THEN 3
+            ->orderByRaw('CASE
+                WHEN status = ? THEN 1
+                WHEN status = ? THEN 2
+                WHEN status = ? THEN 3
                 ELSE 4
-            END")
+            END', [$accepted, $pending, $contracted])
             ->orderBy('submitted_at', 'desc')
             ->take($limit)
             ->get();
@@ -218,12 +222,33 @@ class ShowCampaign extends Component
         $otherUser = User::findOrFail($userId);
 
         // Determine which user is business and which is influencer
-        if ($currentUser->account_type === 'BUSINESS') {
+        if ($currentUser->account_type === AccountType::BUSINESS) {
             $businessUser = $currentUser;
             $influencerUser = $otherUser;
+
+            // Verify the influencer has an application for this campaign
+            $hasRelationship = $this->campaign->applications()
+                ->where('user_id', $influencerUser->id)
+                ->exists();
+
+            if (! $hasRelationship) {
+                abort(403, 'You cannot message this user.');
+            }
         } else {
             $businessUser = $otherUser;
             $influencerUser = $currentUser;
+
+            // Verify the current user (influencer) has applied to this campaign
+            // and the other user is a member of the campaign's business
+            $hasApplication = $this->campaign->applications()
+                ->where('user_id', $influencerUser->id)
+                ->exists();
+
+            $isBusinessMember = $this->campaign->business->members->contains('id', $businessUser->id);
+
+            if (! $hasApplication || ! $isBusinessMember) {
+                abort(403, 'You cannot message this user.');
+            }
         }
 
         // Find or create chat between users

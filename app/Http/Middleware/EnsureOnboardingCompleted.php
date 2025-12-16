@@ -28,12 +28,6 @@ class EnsureOnboardingCompleted
         }
 
         if ($user->hasBusinessInvitePending()) {
-            if ($user->isInfluencerAccount()) {
-                $user->businessInvites()->get()->each(function ($invite) {
-                    // $invite->delete();
-                });
-            }
-
             $businessInvite = $user->businessInvites()->whereNull('joined_at')->latest()->first();
             if ($businessInvite) {
                 return redirect()->signedRoute('accept-business-invite', ['token' => $businessInvite->token], 1000);

@@ -8,6 +8,7 @@ use App\Livewire\BaseComponent;
 use App\Models\Campaign;
 use App\Models\CampaignApplication;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 
 class ApplyToCampaign extends BaseComponent
 {
@@ -65,6 +66,19 @@ class ApplyToCampaign extends BaseComponent
 
     public function submitApplication()
     {
+        // Rate limit: 5 applications per minute per user
+        $key = 'campaign-application:'.Auth::id();
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            $seconds = RateLimiter::availableIn($key);
+            $this->flashError("Too many applications. Please try again in {$seconds} seconds.");
+
+            return;
+        }
+        RateLimiter::hit($key, 60);
+
+        // Authorize using policy - ensures user is an influencer and campaign is published
+        $this->authorize('apply', $this->campaign);
+
         // Double-check if user already applied (in case state changed)
         if ($this->existingApplication) {
             $this->flashError('You have already applied to this campaign.');

@@ -129,7 +129,32 @@ class WaitlistManagement extends Component
     {
         $boundaryData = json_decode($boundary, true);
 
+        if (! is_array($boundaryData) || ! isset($boundaryData['type'])) {
+            $this->previewZipcodes = [];
+
+            return 0;
+        }
+
         if ($boundaryData['type'] === 'circle') {
+            if (! isset($boundaryData['center'], $boundaryData['radius']) ||
+                ! is_array($boundaryData['center']) ||
+                count($boundaryData['center']) !== 2 ||
+                ! is_numeric($boundaryData['radius'])) {
+                $this->previewZipcodes = [];
+
+                return 0;
+            }
+
+            $lat = (float) $boundaryData['center'][1];
+            $lng = (float) $boundaryData['center'][0];
+            $radius = min((float) $boundaryData['radius'], 500); // Cap at 500 miles
+
+            if ($lat < -90 || $lat > 90 || $lng < -180 || $lng > 180) {
+                $this->previewZipcodes = [];
+
+                return 0;
+            }
+
             $center = \App\Models\PostalCode::where('country_code', 'US')
                 ->where('latitude', '!=', null)
                 ->where('longitude', '!=', null)
@@ -138,12 +163,21 @@ class WaitlistManagement extends Component
                     place_name,
                     admin_name1,
                     (3959 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance
-                ', [$boundaryData['center'][1], $boundaryData['center'][0], $boundaryData['center'][1]])
-                ->having('distance', '<=', $boundaryData['radius'])
+                ', [$lat, $lng, $lat])
+                ->having('distance', '<=', $radius)
                 ->get();
 
             $this->previewZipcodes = $center->toArray();
         } elseif ($boundaryData['type'] === 'polygon') {
+            if (! isset($boundaryData['coordinates']) ||
+                ! is_array($boundaryData['coordinates']) ||
+                count($boundaryData['coordinates']) < 3 ||
+                count($boundaryData['coordinates']) > 1000) {
+                $this->previewZipcodes = [];
+
+                return 0;
+            }
+
             $zipcodes = \App\Models\PostalCode::where('country_code', 'US')
                 ->where('latitude', '!=', null)
                 ->where('longitude', '!=', null)
@@ -157,6 +191,10 @@ class WaitlistManagement extends Component
                 });
 
             $this->previewZipcodes = $zipcodes->toArray();
+        } else {
+            $this->previewZipcodes = [];
+
+            return 0;
         }
 
         return count($this->previewZipcodes);
