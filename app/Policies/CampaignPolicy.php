@@ -13,6 +13,15 @@ class CampaignPolicy
     use HandlesAuthorization;
 
     /**
+     * Check if the user is a member of the campaign's business.
+     * Members include all users with access to the business (owners and team members).
+     */
+    private function isBusinessMember(User $user, Campaign $campaign): bool
+    {
+        return $campaign->business->members->contains('id', $user->id);
+    }
+
+    /**
      * Determine whether the user can view any campaigns.
      */
     public function viewAny(User $user): bool
@@ -25,21 +34,22 @@ class CampaignPolicy
      */
     public function view(User $user, Campaign $campaign): bool
     {
-        // Admin users can view any campaign
         if ($user->isAdmin()) {
             return true;
         }
 
-        if ($campaign->status !== CampaignStatus::PUBLISHED && $campaign->business->owner->first()->id !== $user->id) {
+        // Published campaigns are viewable by anyone
+        if ($campaign->status === CampaignStatus::PUBLISHED) {
+            return true;
+        }
+
+        // Unpublished campaigns only viewable by business members
+        // Return 404 to hide existence from non-members
+        if (! $this->isBusinessMember($user, $campaign)) {
             abort(404);
         }
 
-        // Allow viewing if:
-        // 1. Campaign is published (anyone can view)
-        // 2. User is the owner (can view unpublished campaigns)
-        // 3. User is an admin (can view all campaigns)
-        return $campaign->status === CampaignStatus::PUBLISHED ||
-               $campaign->business->owner->first()->id === $user->id;
+        return true;
     }
 
     /**
@@ -47,7 +57,6 @@ class CampaignPolicy
      */
     public function create(User $user): bool
     {
-        // Only business users can create campaigns
         return $user->account_type === AccountType::BUSINESS;
     }
 
@@ -56,14 +65,11 @@ class CampaignPolicy
      */
     public function update(User $user, Campaign $campaign): bool
     {
-        // Admin users can update any campaign
         if ($user->isAdmin()) {
             return true;
         }
 
-        // Only the campaign owner or member can update
-        return $campaign->business->owner->first()->id === $user->id ||
-               $campaign->business->members->contains($user->id);
+        return $this->isBusinessMember($user, $campaign);
     }
 
     /**
@@ -71,9 +77,7 @@ class CampaignPolicy
      */
     public function delete(User $user, Campaign $campaign): bool
     {
-        // Only the campaign owner or member can delete
-        return $campaign->business->owner->first()->id === $user->id ||
-               $campaign->business->members->contains($user->id);
+        return $this->isBusinessMember($user, $campaign);
     }
 
     /**
@@ -81,8 +85,7 @@ class CampaignPolicy
      */
     public function restore(User $user, Campaign $campaign): bool
     {
-        // Only the campaign owner can restore
-        return $campaign->business->owner->first()->id === $user->id;
+        return $this->isBusinessMember($user, $campaign);
     }
 
     /**
@@ -90,8 +93,7 @@ class CampaignPolicy
      */
     public function forceDelete(User $user, Campaign $campaign): bool
     {
-        // Only the campaign owner can permanently delete
-        return $campaign->business->owner->first()->id === $user->id;
+        return $this->isBusinessMember($user, $campaign);
     }
 
     /**
@@ -99,9 +101,7 @@ class CampaignPolicy
      */
     public function publish(User $user, Campaign $campaign): bool
     {
-        // Only the campaign owner or member can publish
-        return $campaign->business->owner->first()->id === $user->id ||
-               $campaign->business->members->contains($user->id);
+        return $this->isBusinessMember($user, $campaign);
     }
 
     /**
@@ -109,9 +109,7 @@ class CampaignPolicy
      */
     public function unpublish(User $user, Campaign $campaign): bool
     {
-        // Only the campaign owner or member can unpublish
-        return $campaign->business->owner->first()->id === $user->id ||
-               $campaign->business->members->contains($user->id);
+        return $this->isBusinessMember($user, $campaign);
     }
 
     /**
@@ -119,9 +117,7 @@ class CampaignPolicy
      */
     public function archive(User $user, Campaign $campaign): bool
     {
-        // Only the campaign owner or member can archive
-        return $campaign->business->owner->first()->id === $user->id ||
-               $campaign->business->members->contains($user->id);
+        return $this->isBusinessMember($user, $campaign);
     }
 
     /**
@@ -129,7 +125,6 @@ class CampaignPolicy
      */
     public function apply(User $user, Campaign $campaign): bool
     {
-        // Only influencers can apply, and only to published campaigns
         return $user->account_type === AccountType::INFLUENCER &&
                $campaign->status === CampaignStatus::PUBLISHED;
     }

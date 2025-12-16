@@ -20,6 +20,18 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasFactory, Notifiable;
 
     /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'postal_code',
+    ];
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>
@@ -68,13 +80,20 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function setCurrentBusiness(Business $business): void
     {
-        if ($this->isBusinessAccount()) {
-            $this->current_business = $business->id;
-            $this->save();
-
-            // Clear the cached profile relationship since it depends on current_business
-            unset($this->profile);
+        if (! $this->isBusinessAccount()) {
+            return;
         }
+
+        // Verify user belongs to this business before allowing switch
+        if (! $this->businesses()->where('businesses.id', $business->id)->exists()) {
+            abort(403, 'You do not have permission to access this business.');
+        }
+
+        $this->current_business = $business->id;
+        $this->save();
+
+        // Clear the cached profile relationship since it depends on current_business
+        unset($this->profile);
     }
 
     public function businessInvites(): HasMany

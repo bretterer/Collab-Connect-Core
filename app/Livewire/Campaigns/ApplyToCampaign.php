@@ -65,6 +65,9 @@ class ApplyToCampaign extends BaseComponent
 
     public function submitApplication()
     {
+        // Authorize using policy - ensures user is an influencer and campaign is published
+        $this->authorize('apply', $this->campaign);
+
         // Double-check if user already applied (in case state changed)
         if ($this->existingApplication) {
             $this->flashError('You have already applied to this campaign.');
