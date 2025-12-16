@@ -4,6 +4,7 @@ namespace Tests\Feature\Feature\Livewire;
 
 use App\Livewire\Onboarding\BusinessOnboarding;
 use App\Models\Business;
+use App\Models\BusinessUser;
 use App\Models\StripePrice;
 use App\Models\StripeProduct;
 use App\Models\User;
@@ -26,6 +27,14 @@ class SubscriptionPricingDisplayTest extends TestCase
 
         $this->user = User::factory()->business()->create();
         $this->business = Business::factory()->create();
+
+        // Associate user with business before setting as current
+        BusinessUser::create([
+            'business_id' => $this->business->id,
+            'user_id' => $this->user->id,
+            'role' => 'owner',
+        ]);
+
         $this->user->setCurrentBusiness($this->business);
     }
 
