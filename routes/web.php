@@ -111,6 +111,9 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
         // System Settings
         Route::get('/settings', App\Livewire\Admin\Settings::class)->name('settings');
 
+        // Audit Log
+        Route::get('/audit-log', App\Livewire\Admin\AuditLog::class)->name('audit-log');
+
         // Custom Signup Pages
         Route::prefix('custom-signup-pages')->name('custom-signup-pages.')->group(function () {
             Route::get('/', App\Livewire\Admin\CustomSignupPages\CustomSignupPageIndex::class)->name('index');

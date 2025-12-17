@@ -54,6 +54,7 @@ class BillingTab extends Component
 
     #[On('subscription-updated')]
     #[On('coupon-applied')]
+    #[On('credits-updated')]
     public function refreshData(): void
     {
         // Refresh the user and billable from the database
@@ -90,7 +91,10 @@ class BillingTab extends Component
             $this->stripeCustomer,
             $this->paymentMethods,
             $this->invoices,
-            $this->customerSince
+            $this->customerSince,
+            $this->promotionCredits,
+            $this->isPromoted,
+            $this->promotedUntil
         );
     }
 
@@ -477,6 +481,24 @@ class BillingTab extends Component
         }
 
         return \Carbon\Carbon::createFromTimestamp($customer->created)->format('M j, Y');
+    }
+
+    #[Computed]
+    public function promotionCredits(): int
+    {
+        return $this->billable?->promotion_credits ?? 0;
+    }
+
+    #[Computed]
+    public function isPromoted(): bool
+    {
+        return $this->billable?->is_promoted ?? false;
+    }
+
+    #[Computed]
+    public function promotedUntil(): ?string
+    {
+        return $this->billable?->promoted_until?->format('F j, Y g:i A');
     }
 
     protected function validateStripeCustomer(): void

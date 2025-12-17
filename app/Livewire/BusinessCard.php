@@ -67,6 +67,10 @@ class BusinessCard extends Component
             $this->isSaved = $currentUser->hasSavedUser($this->user);
             $this->isHidden = $currentUser->hasHiddenUser($this->user);
         }
+
+        // Check if promoted/verified
+        $this->isPromoted = $business->is_promoted;
+        // $this->isVerified = $business->is_verified;
     }
 
     public function toggleSave(): void

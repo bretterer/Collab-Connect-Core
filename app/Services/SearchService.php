@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\AccountType;
+use App\Models\Business;
 use App\Models\Influencer;
 use App\Models\PostalCode;
 use App\Models\User;
@@ -47,7 +48,21 @@ class SearchService
         $query = self::applyInfluencerNicheFilter($query, $criteria['selectedNiches'] ?? []);
         $query = self::applyInfluencerPlatformFilter($query, $criteria['selectedPlatforms'] ?? []);
         $query = self::applyInfluencerFollowerFilter($query, $criteria);
+
+        // If any criteria is set, prioritize promoted profiles first
+        if (! empty($criteria['search'])
+            || ! empty($criteria['location'])
+            || ! empty($criteria['selectedNiches'])
+            || ! empty($criteria['selectedPlatforms'])
+            || ! empty($criteria['minFollowers'])
+            || ! empty($criteria['maxFollowers'])
+        ) {
+            $query = $query->orderByDesc('is_promoted');
+        }
+
+        // Apply secondary sorting after prioritizing promoted profiles
         $query = self::applyInfluencerSorting($query, $criteria['sortBy'] ?? 'relevance', $criteria);
+        // dd($query->toSql(), $query->getBindings());
 
         // Eager load relationships for the cards
         $query->with([

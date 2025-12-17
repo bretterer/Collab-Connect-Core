@@ -286,6 +286,7 @@ class Search extends BaseComponent
             'hideHidden' => $this->hideHidden,
         ];
 
+        // $results = SearchService::searchUsers($criteria, $currentUser, 12);
         $results = SearchService::searchUsers($criteria, $currentUser, 12);
         $metadata = SearchService::getSearchMetadata($criteria);
 
