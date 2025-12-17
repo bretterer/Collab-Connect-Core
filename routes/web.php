@@ -38,7 +38,7 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
         Route::prefix('users')->name('users.')->group(function () {
             Route::get('/', App\Livewire\Admin\Users\UserIndex::class)->name('index');
             Route::get('/{user}', App\Livewire\Admin\Users\UserShow::class)->name('show');
-            Route::get('/{user}/edit', App\Livewire\Admin\Users\UserEdit::class)->name('edit');
+            Route::get('/{user}/edit/{tab?}', App\Livewire\Admin\Users\UserEdit::class)->name('edit');
         });
 
         Route::get('/beta-invites', App\Livewire\Admin\BetaInvites::class)->name('beta-invites');
