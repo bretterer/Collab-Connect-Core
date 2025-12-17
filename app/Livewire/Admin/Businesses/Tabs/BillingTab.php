@@ -468,7 +468,7 @@ class BillingTab extends Component
     #[Computed]
     public function promotedUntil(): ?string
     {
-        return $this->business->promoted_until?->format('F j, Y g:i A');
+        return $this->business->promoted_until?->format('F j, Y');
     }
 
     protected function validateStripeCustomer(): void
