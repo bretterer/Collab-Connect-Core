@@ -31,6 +31,8 @@ class InfluencerSettings extends BaseComponent
     // Account Settings
     public bool $is_searchable = true;
 
+    public string|null $searchable_at = null;
+
     public bool $is_accepting_invitations = true;
 
     // Profile
@@ -136,6 +138,7 @@ class InfluencerSettings extends BaseComponent
 
         // Account Settings
         $this->is_searchable = $profile->is_searchable ?? true;
+        $this->searchable_at = $profile->searchable_at?->format('Y-m-d') ?? null;
         $this->is_accepting_invitations = $profile->is_accepting_invitations ?? true;
 
         // Profile
@@ -258,6 +261,7 @@ class InfluencerSettings extends BaseComponent
             'compensation_types' => 'nullable|array|max:3',
             'typical_lead_time_days' => 'required|integer|min:1|max:365',
             'is_searchable' => 'boolean',
+            'searchable_at' => 'nullable|date',
             'is_accepting_invitations' => 'boolean',
         ];
 
@@ -289,6 +293,7 @@ class InfluencerSettings extends BaseComponent
             'compensation_types' => array_filter($this->compensation_types),
             'typical_lead_time_days' => $this->typical_lead_time_days,
             'is_searchable' => $this->is_searchable,
+            'searchable_at' => $this->searchable_at,
             'is_accepting_invitations' => $this->is_accepting_invitations,
         ];
 

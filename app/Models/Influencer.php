@@ -42,6 +42,7 @@ class Influencer extends Model implements HasMedia
         'max_rate',
         'onboarding_complete',
         'is_searchable',
+        'searchable_at',
         'is_accepting_invitations',
         'preferred_campaign_types',
         'deliverable_types',
@@ -59,6 +60,7 @@ class Influencer extends Model implements HasMedia
             'is_accepting_invitations' => 'boolean',
             'preferred_campaign_types' => 'array',
             'deliverable_types' => 'array',
+            'searchable_at' => 'datetime',
         ];
     }
 

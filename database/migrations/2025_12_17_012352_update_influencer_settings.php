@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::table('influencers', function (Blueprint $table) {
             $table->renameColumn('is_campaign_active', 'is_searchable');
+            $table->datetime('searchable_at')->nullable()->after('is_searchable');
         });
     }
 
@@ -23,6 +24,7 @@ return new class extends Migration
     {
         Schema::table('influencers', function (Blueprint $table) {
             $table->renameColumn('is_searchable', 'is_campaign_active');
+            $table->dropColumn('searchable_at');
         });
     }
 };
