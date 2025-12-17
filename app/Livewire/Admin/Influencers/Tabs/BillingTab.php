@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Livewire\Admin\Users\Tabs;
+namespace App\Livewire\Admin\Influencers\Tabs;
 
-use App\Models\Business;
 use App\Models\Influencer;
 use App\Models\StripePrice;
 use App\Models\User;
@@ -15,7 +14,7 @@ use Masmerise\Toaster\Toaster;
 
 class BillingTab extends Component
 {
-    public User $user;
+    public Influencer $influencer;
 
     // Processing state
     public bool $isProcessing = false;
@@ -27,29 +26,25 @@ class BillingTab extends Component
 
     public ?string $stripeError = null;
 
-    public function mount(User $user): void
+    public function mount(Influencer $influencer): void
     {
-        $this->user = $user->load(['businesses', 'influencer']);
+        $this->influencer = $influencer->load(['user', 'subscriptions']);
 
-        // Set the correct Cashier model based on billable type
-        $this->setCashierModel();
+        // Set the correct Cashier model
+        Cashier::useCustomerModel(Influencer::class);
 
         // Validate Stripe data
-        if ($this->billable) {
-            $this->validateStripeCustomer();
-            $this->validateStripeSubscription();
-        }
+        $this->validateStripeCustomer();
+        $this->validateStripeSubscription();
     }
 
-    protected function setCashierModel(): void
+    /**
+     * Get the user for modal dispatches.
+     */
+    #[Computed]
+    public function influencerUser(): ?User
     {
-        $billable = $this->billable;
-
-        if ($billable instanceof Business) {
-            Cashier::useCustomerModel(Business::class);
-        } elseif ($billable instanceof Influencer) {
-            Cashier::useCustomerModel(Influencer::class);
-        }
+        return $this->influencer->user;
     }
 
     #[On('subscription-updated')]
@@ -57,9 +52,9 @@ class BillingTab extends Component
     #[On('credits-updated')]
     public function refreshData(): void
     {
-        // Refresh the user and billable from the database
-        $this->user->refresh();
-        $this->user->load(['businesses', 'influencer']);
+        // Refresh the influencer from the database
+        $this->influencer->refresh();
+        $this->influencer->load(['user', 'subscriptions']);
 
         // Reset error states
         $this->stripeCustomerInvalid = false;
@@ -67,15 +62,12 @@ class BillingTab extends Component
         $this->stripeError = null;
 
         // Re-validate Stripe data
-        $this->setCashierModel();
-        if ($this->billable) {
-            $this->validateStripeCustomer();
-            $this->validateStripeSubscription();
-        }
+        Cashier::useCustomerModel(Influencer::class);
+        $this->validateStripeCustomer();
+        $this->validateStripeSubscription();
 
         // Clear all computed property caches
         unset(
-            $this->billable,
             $this->subscription,
             $this->isSubscribed,
             $this->onTrial,
@@ -94,30 +86,15 @@ class BillingTab extends Component
             $this->customerSince,
             $this->promotionCredits,
             $this->isPromoted,
-            $this->promotedUntil
+            $this->promotedUntil,
+            $this->influencerUser
         );
-    }
-
-    #[Computed]
-    public function billable(): Business|Influencer|null
-    {
-        if ($this->user->isBusinessAccount()) {
-            return $this->user->businesses()
-                ->wherePivot('role', 'owner')
-                ->first();
-        }
-
-        if ($this->user->isInfluencerAccount() && $this->user->influencer) {
-            return $this->user->influencer;
-        }
-
-        return null;
     }
 
     #[Computed]
     public function subscription(): ?Subscription
     {
-        return $this->billable?->subscription('default');
+        return $this->influencer->subscription('default');
     }
 
     #[Computed]
@@ -128,7 +105,7 @@ class BillingTab extends Component
         }
 
         try {
-            return $this->billable?->subscribed('default') ?? false;
+            return $this->influencer->subscribed('default');
         } catch (\Exception $e) {
             return false;
         }
@@ -142,7 +119,7 @@ class BillingTab extends Component
         }
 
         try {
-            return $this->billable?->onTrial('default') ?? false;
+            return $this->influencer->onTrial('default');
         } catch (\Exception $e) {
             return false;
         }
@@ -228,15 +205,12 @@ class BillingTab extends Component
                 return null;
             }
 
-            // Get the upcoming phase
             $upcomingPhase = $schedule->phases[1] ?? null;
             if (! $upcomingPhase) {
                 return null;
             }
 
             $upcomingPriceId = $upcomingPhase->items[0]->price ?? null;
-
-            // Look up the price to get the lookup_key
             $upcomingPrice = $upcomingPriceId ? StripePrice::where('stripe_id', $upcomingPriceId)->first() : null;
             $planName = $upcomingPrice?->lookup_key
                 ? \Illuminate\Support\Str::headline($upcomingPrice->lookup_key)
@@ -263,13 +237,11 @@ class BillingTab extends Component
         $discounts = [];
 
         try {
-            // Check customer-level discount
             $customer = $this->stripeCustomer;
             if ($customer?->discount) {
                 $discounts[] = $this->formatDiscount($customer->discount, 'Customer');
             }
 
-            // Check subscription-level discount
             $subscription = $this->subscription;
             if ($subscription) {
                 $stripeSubscription = Cashier::stripe()->subscriptions->retrieve($subscription->stripe_id);
@@ -397,12 +369,12 @@ class BillingTab extends Component
     #[Computed]
     public function stripeCustomer(): ?\Stripe\Customer
     {
-        if (! $this->billable?->hasStripeId() || $this->stripeCustomerInvalid) {
+        if (! $this->influencer->hasStripeId() || $this->stripeCustomerInvalid) {
             return null;
         }
 
         try {
-            return $this->billable->asStripeCustomer();
+            return $this->influencer->asStripeCustomer();
         } catch (\Exception $e) {
             return null;
         }
@@ -411,19 +383,19 @@ class BillingTab extends Component
     #[Computed]
     public function paymentMethods(): array
     {
-        if (! $this->billable?->hasStripeId() || $this->stripeCustomerInvalid) {
+        if (! $this->influencer->hasStripeId() || $this->stripeCustomerInvalid) {
             return [];
         }
 
         try {
-            return $this->billable->paymentMethods()->map(function ($method) {
+            return $this->influencer->paymentMethods()->map(function ($method) {
                 return [
                     'id' => $method->id,
                     'brand' => ucfirst($method->card->brand),
                     'last4' => $method->card->last4,
                     'exp_month' => str_pad($method->card->exp_month, 2, '0', STR_PAD_LEFT),
                     'exp_year' => $method->card->exp_year,
-                    'is_default' => $method->id === $this->billable->defaultPaymentMethod()?->id,
+                    'is_default' => $method->id === $this->influencer->defaultPaymentMethod()?->id,
                 ];
             })->toArray();
         } catch (\Exception $e) {
@@ -434,7 +406,7 @@ class BillingTab extends Component
     #[Computed]
     public function billingHistory(): array
     {
-        if (! $this->billable?->hasStripeId() || $this->stripeCustomerInvalid) {
+        if (! $this->influencer->hasStripeId() || $this->stripeCustomerInvalid) {
             return [];
         }
 
@@ -442,7 +414,7 @@ class BillingTab extends Component
 
         // Get invoices (subscription payments)
         try {
-            $invoiceItems = $this->billable->invoices()->map(function ($invoice) {
+            $invoiceItems = $this->influencer->invoices()->map(function ($invoice) {
                 $stripeInvoice = $invoice->asStripeInvoice();
 
                 $receiptUrl = null;
@@ -475,7 +447,7 @@ class BillingTab extends Component
         // Get standalone charges (one-time payments like credit purchases)
         try {
             $charges = Cashier::stripe()->charges->all([
-                'customer' => $this->billable->stripe_id,
+                'customer' => $this->influencer->stripe_id,
                 'limit' => 100,
             ]);
 
@@ -540,31 +512,29 @@ class BillingTab extends Component
     #[Computed]
     public function promotionCredits(): int
     {
-        return $this->billable?->promotion_credits ?? 0;
+        return $this->influencer->promotion_credits ?? 0;
     }
 
     #[Computed]
     public function isPromoted(): bool
     {
-        return $this->billable?->is_promoted ?? false;
+        return $this->influencer->is_promoted ?? false;
     }
 
     #[Computed]
     public function promotedUntil(): ?string
     {
-        return $this->billable?->promoted_until?->format('F j, Y g:i A');
+        return $this->influencer->promoted_until?->format('F j, Y');
     }
 
     protected function validateStripeCustomer(): void
     {
-        $billable = $this->billable;
-
-        if (! $billable?->hasStripeId()) {
+        if (! $this->influencer->hasStripeId()) {
             return;
         }
 
         try {
-            $billable->asStripeCustomer();
+            $this->influencer->asStripeCustomer();
         } catch (\Stripe\Exception\InvalidRequestException $e) {
             $this->stripeCustomerInvalid = true;
             $this->stripeError = 'Stripe customer not found. The customer ID may have been deleted from Stripe.';
@@ -579,7 +549,7 @@ class BillingTab extends Component
             return;
         }
 
-        $subscription = $this->billable?->subscription('default');
+        $subscription = $this->influencer->subscription('default');
 
         if (! $subscription) {
             return;
@@ -628,7 +598,6 @@ class BillingTab extends Component
 
             Toaster::success('Subscription resumed successfully.');
 
-            // Reset computed properties
             unset($this->subscription, $this->isSubscribed, $this->onGracePeriod);
 
             $this->isProcessing = false;
@@ -642,19 +611,16 @@ class BillingTab extends Component
     {
         try {
             $this->isProcessing = true;
-            $billable = $this->billable;
-
-            if (! $billable) {
-                throw new \Exception('No billable profile found.');
-            }
 
             if ($this->stripeCustomerInvalid) {
-                $billable->update(['stripe_id' => null]);
+                $this->influencer->update(['stripe_id' => null]);
             }
 
-            $billable->createAsStripeCustomer([
-                'name' => $this->getCustomerName(),
-                'email' => $this->getCustomerEmail(),
+            $user = $this->influencerUser;
+
+            $this->influencer->createAsStripeCustomer([
+                'name' => $user?->name ?? 'Influencer',
+                'email' => $user?->email ?? '',
             ]);
 
             $this->stripeCustomerInvalid = false;
@@ -684,30 +650,8 @@ class BillingTab extends Component
         return "https://dashboard.stripe.com/{$mode}customers/{$customer->id}";
     }
 
-    protected function getCustomerName(): string
-    {
-        $billable = $this->billable;
-
-        if ($billable instanceof Business) {
-            return $billable->name ?? 'Business';
-        }
-
-        return $this->user->name ?? 'Customer';
-    }
-
-    protected function getCustomerEmail(): string
-    {
-        $billable = $this->billable;
-
-        if ($billable instanceof Business) {
-            return $billable->email ?? $this->user->email ?? '';
-        }
-
-        return $this->user->email ?? '';
-    }
-
     public function render()
     {
-        return view('livewire.admin.users.tabs.billing-tab');
+        return view('livewire.admin.influencers.tabs.billing-tab');
     }
 }

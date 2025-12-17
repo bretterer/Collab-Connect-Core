@@ -1,5 +1,4 @@
 <div>
-@if($this->billable)
     <div class="space-y-6" wire:loading.class="opacity-50">
         {{-- Stripe Error Alert --}}
         @if($stripeError)
@@ -22,7 +21,7 @@
                 <div>
                     <flux:heading>Subscription Status</flux:heading>
                     <flux:text class="text-gray-600 dark:text-gray-400 mt-1">
-                        Manage subscription and billing for this {{ $user->isBusinessAccount() ? 'business' : 'influencer' }} account.
+                        Manage subscription and billing for this business account.
                     </flux:text>
                 </div>
                 <flux:badge color="{{ $this->subscriptionStatusColor }}" size="sm">{{ $this->subscriptionStatus }}</flux:badge>
@@ -105,7 +104,7 @@
             @endif
 
             {{-- Scheduled Plan Change --}}
-            @if($this->pendingSchedule)
+            @if($this->pendingSchedule && $this->ownerUser)
                 <div class="border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 mb-6">
                     <div class="flex items-start justify-between">
                         <div class="flex items-start gap-3">
@@ -117,7 +116,7 @@
                                 </flux:text>
                             </div>
                         </div>
-                        <flux:button wire:click="$dispatch('open-swap-plan-modal', { userId: {{ $user->id }} })" variant="ghost" size="sm">
+                        <flux:button wire:click="$dispatch('open-swap-plan-modal', { userId: {{ $this->ownerUser->id }} })" variant="ghost" size="sm">
                             Manage
                         </flux:button>
                     </div>
@@ -125,7 +124,7 @@
             @endif
 
             {{-- Trial Alert --}}
-            @if($this->onTrial)
+            @if($this->onTrial && $this->ownerUser)
                 <div class="border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6">
                     <div class="flex items-start justify-between">
                         <div class="flex items-start gap-3">
@@ -133,14 +132,14 @@
                             <div>
                                 <flux:heading size="sm">Trial Period Active</flux:heading>
                                 <flux:text class="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                                    This user is on a trial that ends on {{ $this->trialEndsAt }}.
+                                    This business is on a trial that ends on {{ $this->trialEndsAt }}.
                                     @if($this->trialDaysRemaining !== null)
                                         ({{ $this->trialDaysRemaining }} {{ Str::plural('day', $this->trialDaysRemaining) }} remaining)
                                     @endif
                                 </flux:text>
                             </div>
                         </div>
-                        <flux:button wire:click="$dispatch('open-cancel-trial-modal', { userId: {{ $user->id }} })" variant="ghost" size="sm">
+                        <flux:button wire:click="$dispatch('open-cancel-trial-modal', { userId: {{ $this->ownerUser->id }} })" variant="ghost" size="sm">
                             End Trial
                         </flux:button>
                     </div>
@@ -156,7 +155,7 @@
                             <div>
                                 <flux:heading size="sm">Subscription Canceled</flux:heading>
                                 <flux:text class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                                    This subscription is canceled but the user still has access until {{ $this->subscription?->ends_at?->format('F j, Y') }}.
+                                    This subscription is canceled but the business still has access until {{ $this->subscription?->ends_at?->format('F j, Y') }}.
                                 </flux:text>
                             </div>
                         </div>
@@ -170,40 +169,48 @@
             <flux:separator class="my-6" />
 
             <!-- Quick Actions -->
-            <div>
-                <flux:heading size="sm" class="mb-4">Quick Actions</flux:heading>
-                <div class="flex flex-wrap gap-3">
-                    @if(!$this->isSubscribed)
-                        <flux:button wire:click="$dispatch('open-start-trial-modal', { userId: {{ $user->id }} })" variant="primary" icon="play">
-                            Start Trial
-                        </flux:button>
-                    @endif
+            @if($this->ownerUser)
+                <div>
+                    <flux:heading size="sm" class="mb-4">Quick Actions</flux:heading>
+                    <div class="flex flex-wrap gap-3">
+                        @if(!$this->isSubscribed)
+                            <flux:button wire:click="$dispatch('open-start-trial-modal', { userId: {{ $this->ownerUser->id }} })" variant="primary" icon="play">
+                                Start Trial
+                            </flux:button>
+                        @endif
 
-                    @if($this->onTrial)
-                        <flux:button wire:click="$dispatch('open-cancel-trial-modal', { userId: {{ $user->id }} })" variant="filled" icon="stop">
-                            End Trial
-                        </flux:button>
-                    @endif
+                        @if($this->onTrial)
+                            <flux:button wire:click="$dispatch('open-cancel-trial-modal', { userId: {{ $this->ownerUser->id }} })" variant="filled" icon="stop">
+                                End Trial
+                            </flux:button>
+                        @endif
 
-                    @if($this->isSubscribed && !$this->onGracePeriod)
-                        <flux:button wire:click="$dispatch('open-swap-plan-modal', { userId: {{ $user->id }} })" variant="filled" icon="arrows-right-left">
-                            Change Plan
-                        </flux:button>
-                        <flux:button wire:click="$dispatch('open-extend-trial-modal', { userId: {{ $user->id }} })" variant="filled" icon="clock">
-                            Add Trial Days
-                        </flux:button>
-                        <flux:button wire:click="$dispatch('open-cancel-subscription-modal', { userId: {{ $user->id }} })" variant="danger" icon="x-mark">
-                            Cancel Subscription
-                        </flux:button>
-                    @endif
+                        @if($this->isSubscribed && !$this->onGracePeriod)
+                            <flux:button wire:click="$dispatch('open-swap-plan-modal', { userId: {{ $this->ownerUser->id }} })" variant="filled" icon="arrows-right-left">
+                                Change Plan
+                            </flux:button>
+                            <flux:button wire:click="$dispatch('open-extend-trial-modal', { userId: {{ $this->ownerUser->id }} })" variant="filled" icon="clock">
+                                Add Trial Days
+                            </flux:button>
+                            <flux:button wire:click="$dispatch('open-cancel-subscription-modal', { userId: {{ $this->ownerUser->id }} })" variant="danger" icon="x-mark">
+                                Cancel Subscription
+                            </flux:button>
+                        @endif
 
-                    @if($this->billable->hasStripeId())
-                        <flux:button wire:click="$dispatch('open-apply-coupon-modal', { userId: {{ $user->id }} })" variant="filled" icon="ticket">
-                            Apply Coupon
-                        </flux:button>
-                    @endif
+                        @if($business->hasStripeId())
+                            <flux:button wire:click="$dispatch('open-apply-coupon-modal', { userId: {{ $this->ownerUser->id }} })" variant="filled" icon="ticket">
+                                Apply Coupon
+                            </flux:button>
+                        @endif
+                    </div>
                 </div>
-            </div>
+            @else
+                <div class="text-center py-4">
+                    <flux:text class="text-gray-500 dark:text-gray-400">
+                        No owner found for this business. Subscription actions are unavailable.
+                    </flux:text>
+                </div>
+            @endif
         </flux:card>
 
         <!-- Promotion Credits Section -->
@@ -212,7 +219,7 @@
                 <div>
                     <flux:heading>Promotion Credits</flux:heading>
                     <flux:text class="text-gray-600 dark:text-gray-400 mt-1">
-                        Manage profile promotion credits for this {{ $user->isBusinessAccount() ? 'business' : 'influencer' }}.
+                        Manage profile promotion credits for this business.
                     </flux:text>
                 </div>
                 <flux:badge color="{{ $this->promotionCredits > 0 ? 'green' : 'zinc' }}" size="sm">
@@ -263,19 +270,21 @@
 
             <flux:separator class="my-6" />
 
-            <div>
-                <flux:heading size="sm" class="mb-4">Credit Actions</flux:heading>
-                <div class="flex flex-wrap gap-3">
-                    <flux:button wire:click="$dispatch('open-grant-credits-modal', { userId: {{ $user->id }} })" variant="primary" icon="plus">
-                        Grant Credits
-                    </flux:button>
-                    @if($this->promotionCredits > 0)
-                        <flux:button wire:click="$dispatch('open-revoke-credits-modal', { userId: {{ $user->id }} })" variant="danger" icon="minus">
-                            Revoke Credits
+            @if($this->ownerUser)
+                <div>
+                    <flux:heading size="sm" class="mb-4">Credit Actions</flux:heading>
+                    <div class="flex flex-wrap gap-3">
+                        <flux:button wire:click="$dispatch('open-grant-credits-modal', { userId: {{ $this->ownerUser->id }} })" variant="primary" icon="plus">
+                            Grant Credits
                         </flux:button>
-                    @endif
+                        @if($this->promotionCredits > 0)
+                            <flux:button wire:click="$dispatch('open-revoke-credits-modal', { userId: {{ $this->ownerUser->id }} })" variant="danger" icon="minus">
+                                Revoke Credits
+                            </flux:button>
+                        @endif
+                    </div>
                 </div>
-            </div>
+            @endif
         </flux:card>
 
         <!-- Payment Method Section -->
@@ -284,7 +293,7 @@
                 <div>
                     <flux:heading>Payment Methods</flux:heading>
                     <flux:text class="text-gray-600 dark:text-gray-400 mt-1">
-                        View the user's saved payment methods.
+                        View the business's saved payment methods.
                     </flux:text>
                 </div>
             </div>
@@ -428,30 +437,13 @@
         </flux:card>
     </div>
 
-@else
-    <!-- No Billable Profile -->
-    <flux:card>
-        <div class="text-center py-12">
-            <flux:icon name="credit-card" class="w-12 h-12 mx-auto text-gray-400 mb-4" />
-            <flux:heading size="base">No Billable Profile</flux:heading>
-            <flux:text class="text-gray-600 dark:text-gray-400 mt-2 max-w-md mx-auto">
-                This user does not have a business or influencer profile that can be billed.
-                Billing is managed at the profile level, not the user level.
-            </flux:text>
-            @if(!$user->hasCompletedOnboarding())
-                <flux:badge color="yellow" class="mt-4">User has not completed onboarding</flux:badge>
-            @endif
-        </div>
-    </flux:card>
-@endif
-
-<!-- Modal Components -->
-<livewire:admin.users.modals.start-trial-modal />
-<livewire:admin.users.modals.cancel-trial-modal />
-<livewire:admin.users.modals.cancel-subscription-modal />
-<livewire:admin.users.modals.extend-trial-modal />
-<livewire:admin.users.modals.apply-coupon-modal />
-<livewire:admin.users.modals.swap-plan-modal />
-<livewire:admin.users.modals.grant-credits-modal />
-<livewire:admin.users.modals.revoke-credits-modal />
+    <!-- Modal Components -->
+    <livewire:admin.users.modals.start-trial-modal />
+    <livewire:admin.users.modals.cancel-trial-modal />
+    <livewire:admin.users.modals.cancel-subscription-modal />
+    <livewire:admin.users.modals.extend-trial-modal />
+    <livewire:admin.users.modals.apply-coupon-modal />
+    <livewire:admin.users.modals.swap-plan-modal />
+    <livewire:admin.users.modals.grant-credits-modal />
+    <livewire:admin.users.modals.revoke-credits-modal />
 </div>

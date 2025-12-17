@@ -15,6 +15,7 @@ use App\Models\BusinessUser;
 use App\Models\StripePrice;
 use App\Models\User;
 use App\Rules\UniqueUsername;
+use App\Settings\PromotionSettings;
 use DateTime;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -594,8 +595,11 @@ class BusinessSettings extends BaseComponent
             return;
         }
 
+        $promotionSettings = app(PromotionSettings::class);
+        $days = $promotionSettings->profilePromotionDays;
+
         $business->is_promoted = true;
-        $business->promoted_until = now()->addDays(7);
+        $business->promoted_until = now()->addDays($days);
         $business->promotion_credits -= 1;
         $business->save();
 
@@ -603,7 +607,7 @@ class BusinessSettings extends BaseComponent
         $this->promotion_ends_at = $business->promoted_until;
         $this->promotion_credits = $business->promotion_credits;
 
-        Toaster::success('Your profile has been promoted for 7 days!');
+        Toaster::success("Your profile has been promoted for {$days} days!");
     }
 
     public function purchasePromotionCredits(): void

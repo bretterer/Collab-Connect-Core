@@ -12,6 +12,7 @@
         <flux:tabs class="mb-6">
             <flux:tab name="subscription">Subscription</flux:tab>
             <flux:tab name="registration">Registration</flux:tab>
+            <flux:tab name="promotions">Promotions</flux:tab>
         </flux:tabs>
 
         <!-- Subscription Settings Tab -->
@@ -114,6 +115,55 @@
                     <div class="mt-8 flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
                         <flux:button type="submit" variant="primary">
                             Save Registration Settings
+                        </flux:button>
+                    </div>
+                </form>
+            </flux:card>
+        </flux:tab.panel>
+
+        <!-- Promotions Settings Tab -->
+        <flux:tab.panel name="promotions">
+            <flux:card>
+                <form wire:submit="savePromotionSettings">
+                    <div class="space-y-6">
+                        <div>
+                            <flux:heading size="lg">Promotion Settings</flux:heading>
+                            <flux:text class="text-gray-600 dark:text-gray-400 mt-1">
+                                Configure profile promotion options and credit settings.
+                            </flux:text>
+                        </div>
+
+                        <flux:separator />
+
+                        <!-- Profile Promotion Days -->
+                        <flux:field>
+                            <flux:label>Days Per Promotion Credit</flux:label>
+                            <flux:input
+                                wire:model="profilePromotionDays"
+                                type="number"
+                                min="1"
+                                max="365"
+                            />
+                            <flux:error name="profilePromotionDays" />
+                            <flux:description>
+                                The number of days a profile stays promoted when a user uses one promotion credit.
+                            </flux:description>
+                        </flux:field>
+
+                        <flux:callout variant="info" icon="information-circle">
+                            <flux:callout.heading>How profile promotions work</flux:callout.heading>
+                            <flux:callout.text>
+                                Users can purchase promotion credits and use them to boost their profile visibility
+                                in search results. Each credit promotes their profile for the configured number of days.
+                                Promoted profiles appear first in search results.
+                            </flux:callout.text>
+                        </flux:callout>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="mt-8 flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <flux:button type="submit" variant="primary">
+                            Save Promotion Settings
                         </flux:button>
                     </div>
                 </form>

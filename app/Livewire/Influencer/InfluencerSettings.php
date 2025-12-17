@@ -12,6 +12,7 @@ use App\Livewire\BaseComponent;
 use App\Models\StripePrice;
 use App\Models\User;
 use App\Rules\UniqueUsername;
+use App\Settings\PromotionSettings;
 use DateTime;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -270,8 +271,11 @@ class InfluencerSettings extends BaseComponent
             return;
         }
 
+        $promotionSettings = app(PromotionSettings::class);
+        $days = $promotionSettings->profilePromotionDays;
+
         $influencer->is_promoted = true;
-        $influencer->promoted_until = now()->addDays(7);
+        $influencer->promoted_until = now()->addDays($days);
         $influencer->promotion_credits -= 1;
         $influencer->save();
 
@@ -279,7 +283,7 @@ class InfluencerSettings extends BaseComponent
         $this->promotion_ends_at = $influencer->promoted_until;
         $this->promotion_credits = $influencer->promotion_credits;
 
-        Toaster::success('Your profile has been promoted for 7 days!');
+        Toaster::success("Your profile has been promoted for {$days} days!");
     }
 
     #[Computed]
