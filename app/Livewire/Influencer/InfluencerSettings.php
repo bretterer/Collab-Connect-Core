@@ -29,7 +29,7 @@ class InfluencerSettings extends BaseComponent
     protected array $validBillingSubtabs = ['overview', 'plans', 'payment-methods', 'invoices'];
 
     // Account Settings
-    public bool $is_campaign_active = true;
+    public bool $is_searchable = true;
 
     public bool $is_accepting_invitations = true;
 
@@ -135,7 +135,7 @@ class InfluencerSettings extends BaseComponent
         }
 
         // Account Settings
-        $this->is_campaign_active = $profile->is_campaign_active ?? true;
+        $this->is_searchable = $profile->is_searchable ?? true;
         $this->is_accepting_invitations = $profile->is_accepting_invitations ?? true;
 
         // Profile
@@ -257,7 +257,7 @@ class InfluencerSettings extends BaseComponent
             'phone_number' => 'required|string|max:20',
             'compensation_types' => 'nullable|array|max:3',
             'typical_lead_time_days' => 'required|integer|min:1|max:365',
-            'is_campaign_active' => 'boolean',
+            'is_searchable' => 'boolean',
             'is_accepting_invitations' => 'boolean',
         ];
 
@@ -288,7 +288,7 @@ class InfluencerSettings extends BaseComponent
             'phone_number' => $this->phone_number,
             'compensation_types' => array_filter($this->compensation_types),
             'typical_lead_time_days' => $this->typical_lead_time_days,
-            'is_campaign_active' => $this->is_campaign_active,
+            'is_searchable' => $this->is_searchable,
             'is_accepting_invitations' => $this->is_accepting_invitations,
         ];
 

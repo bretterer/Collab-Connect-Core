@@ -41,7 +41,7 @@ class Influencer extends Model implements HasMedia
         'min_rate',
         'max_rate',
         'onboarding_complete',
-        'is_campaign_active',
+        'is_searchable',
         'is_accepting_invitations',
         'preferred_campaign_types',
         'deliverable_types',

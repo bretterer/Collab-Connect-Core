@@ -19,6 +19,7 @@ class SearchService
     {
         $query = Influencer::query()
             ->where('onboarding_complete', true)
+            ->where('is_searchable', true)
             ->whereHas('user', function ($q) use ($currentUser, $criteria) {
                 $q->where('account_type', AccountType::INFLUENCER)
                     ->where('id', '!=', $currentUser->id);
