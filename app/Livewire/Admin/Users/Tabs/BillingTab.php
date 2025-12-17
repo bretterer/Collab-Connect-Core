@@ -56,19 +56,41 @@ class BillingTab extends Component
     #[On('coupon-applied')]
     public function refreshData(): void
     {
-        // Clear computed property caches
+        // Refresh the user and billable from the database
+        $this->user->refresh();
+        $this->user->load(['businesses', 'influencer']);
+
+        // Reset error states
+        $this->stripeCustomerInvalid = false;
+        $this->stripeSubscriptionInvalid = false;
+        $this->stripeError = null;
+
+        // Re-validate Stripe data
+        $this->setCashierModel();
+        if ($this->billable) {
+            $this->validateStripeCustomer();
+            $this->validateStripeSubscription();
+        }
+
+        // Clear all computed property caches
         unset(
+            $this->billable,
             $this->subscription,
             $this->isSubscribed,
             $this->onTrial,
             $this->onGracePeriod,
+            $this->trialEndsAt,
+            $this->trialDaysRemaining,
             $this->nextBillingDate,
             $this->pendingSchedule,
             $this->activeDiscounts,
             $this->currentPlan,
+            $this->subscriptionStatus,
+            $this->subscriptionStatusColor,
             $this->stripeCustomer,
             $this->paymentMethods,
-            $this->invoices
+            $this->invoices,
+            $this->customerSince
         );
     }
 
