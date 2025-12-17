@@ -16,6 +16,8 @@ class InfluencerCard extends Component
 
     public bool $isVerified = false;
 
+    public bool $acceptingInvitations = true;
+
     public bool $showFavorites = true;
 
     public string $profileImageUrl = '';
@@ -58,6 +60,8 @@ class InfluencerCard extends Component
         // Set promoted/verified status from influencer profile
         $this->isPromoted = (bool) $influencer->is_promoted;
         $this->isVerified = (bool) $influencer->is_verified;
+
+        $this->acceptingInvitations = (bool) $influencer->is_accepting_invitations;
 
         // Use uploaded images from media library, with fallbacks
         $this->profileImageUrl = $influencer->getProfileImageUrl() ?: $defaultProfileImage;

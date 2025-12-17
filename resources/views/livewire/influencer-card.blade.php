@@ -136,6 +136,7 @@
             >
                 View Profile
             </flux:button>
+            @if($acceptingInvitations)
             <flux:button
                 variant="primary"
                 size="sm"
@@ -144,6 +145,7 @@
             >
                 Invite
             </flux:button>
+            @endif
         </div>
     </div>
 </div>

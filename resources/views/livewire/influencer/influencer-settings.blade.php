@@ -76,38 +76,70 @@
             {{-- Account Settings Tab --}}
             @if($activeTab === 'account')
                 <div class="space-y-8">
-                    {{-- Campaign Active Toggle --}}
-                    <div>
-                        <div class="flex items-center mb-6">
-                            <div class="flex-shrink-0">
-                                <div class="h-10 w-10 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
-                                    <flux:icon.play class="h-5 w-5 text-green-600 dark:text-green-400" />
+                    {{-- Searchable Toggle --}}
+                    <div class="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50 overflow-hidden">
+                        <div class="flex items-center justify-between gap-6 p-4">
+                            <div class="flex items-center gap-4">
+                                <div class="flex-shrink-0">
+                                    <div class="h-12 w-12 rounded-xl flex items-center justify-center {{ $is_searchable ? 'bg-green-100 dark:bg-green-900/50' : 'bg-zinc-200 dark:bg-zinc-700' }} transition-colors duration-200">
+                                        <flux:icon.eye class="h-6 w-6 {{ $is_searchable ? 'text-green-600 dark:text-green-400' : 'text-zinc-400 dark:text-zinc-500' }} transition-colors duration-200" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <flux:heading>Searchable</flux:heading>
+                                        @if($is_searchable)
+                                            <flux:badge color="green" size="sm">Active</flux:badge>
+                                        @else
+                                            <flux:badge color="zinc" size="sm">Paused</flux:badge>
+                                        @endif
+                                    </div>
+                                    <flux:text class="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">Take a break from working with brands by pausing your account.</flux:text>
                                 </div>
                             </div>
-                            <div class="ml-4">
-                                <flux:heading>Campaign Active</flux:heading>
-                                <flux:text class="text-sm text-zinc-500">If you would like to take a break from working with brands you can pause your account using the toggle below.</flux:text>
-                            </div>
+                            <flux:switch wire:model.live="is_searchable" />
                         </div>
-                        <flux:switch wire:model.live="is_campaign_active" label="Active" />
+                        {{-- Re-enable date picker when paused --}}
+                        @if(!$is_searchable)
+                            <div class="px-4 pb-4 pt-2 border-t border-zinc-200 dark:border-zinc-700 bg-zinc-100/50 dark:bg-zinc-900/30">
+                                <div class="flex flex-col sm:flex-row sm:items-end gap-4">
+                                    <div class="flex-1 max-w-xs">
+                                        <flux:field>
+                                            <flux:label>Re-enable on (optional)</flux:label>
+                                            <flux:input
+                                                type="date"
+                                                wire:model.live="searchable_at"
+                                                :min="now()->toDateString()" />
+                                            <flux:error name="searchable_at" />
+                                        </flux:field>
+                                    </div>
+                                    <flux:text class="text-sm text-zinc-500 dark:text-zinc-400 pb-2">Set a date to automatically become searchable again, or leave blank to stay paused.</flux:text>
+                                </div>
+                            </div>
+                        @endif
                     </div>
 
-                    <flux:separator />
-
                     {{-- Invitations Active Toggle --}}
-                    <div>
-                        <div class="flex items-center mb-6">
+                    <div class="flex items-center justify-between gap-6 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50">
+                        <div class="flex items-center gap-4">
                             <div class="flex-shrink-0">
-                                <div class="h-10 w-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                                    <flux:icon.envelope class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                <div class="h-12 w-12 rounded-xl flex items-center justify-center {{ $is_accepting_invitations ? 'bg-blue-100 dark:bg-blue-900/50' : 'bg-zinc-200 dark:bg-zinc-700' }} transition-colors duration-200">
+                                    <flux:icon.envelope class="h-6 w-6 {{ $is_accepting_invitations ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-400 dark:text-zinc-500' }} transition-colors duration-200" />
                                 </div>
                             </div>
-                            <div class="ml-4">
-                                <flux:heading>Invitations Active</flux:heading>
-                                <flux:text class="text-sm text-zinc-500">If you want to opt out of receiving invitations for work opportunities from brands.</flux:text>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <flux:heading>Invitations Active</flux:heading>
+                                    @if($is_accepting_invitations)
+                                        <flux:badge color="blue" size="sm">Accepting</flux:badge>
+                                    @else
+                                        <flux:badge color="zinc" size="sm">Paused</flux:badge>
+                                    @endif
+                                </div>
+                                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">Opt out of receiving invitations for work opportunities from brands.</flux:text>
                             </div>
                         </div>
-                        <flux:switch wire:model.live="is_accepting_invitations" label="Active" />
+                        <flux:switch wire:model.live="is_accepting_invitations" />
                     </div>
 
                     <flux:separator />
