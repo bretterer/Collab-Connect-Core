@@ -2,28 +2,104 @@
 
 namespace App\Services;
 
-use App\Enums\AccountType;
 use App\Models\Business;
 use App\Models\Influencer;
 use App\Models\PostalCode;
 use App\Models\User;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class SearchService
 {
     /**
-     * Search for influencers based on criteria.
-     * This is the primary search method for businesses finding influencers.
+     * Search for profiles based on type and criteria.
+     * This is the primary public API for searching.
+     *
+     * @param  string  $type  'businesses' or 'influencers'
      */
-    public static function searchInfluencers(array $criteria, User $currentUser, int $perPage = 12): LengthAwarePaginator
+    public static function searchProfiles(string $type, array $criteria, User $currentUser, int $perPage = 12): LengthAwarePaginator
+    {
+        return match ($type) {
+            'businesses' => self::searchBusinesses($criteria, $currentUser, $perPage),
+            'influencers' => self::searchInfluencers($criteria, $currentUser, $perPage),
+            default => throw new \InvalidArgumentException("Invalid search type: {$type}. Must be 'businesses' or 'influencers'."),
+        };
+    }
+
+    /**
+     * Search for businesses based on criteria.
+     * Used when influencers are searching for businesses.
+     */
+    private static function searchBusinesses(array $criteria, User $currentUser, int $perPage = 12): LengthAwarePaginator
+    {
+        $query = Business::query();
+
+        // Exclude current user's businesses
+        $currentUserBusinessIds = $currentUser->businesses()->pluck('businesses.id')->toArray();
+        if (! empty($currentUserBusinessIds)) {
+            $query->whereNotIn('id', $currentUserBusinessIds);
+        }
+
+        // Filter by saved/hidden users (via owner relationship)
+        $showSavedOnly = $criteria['showSavedOnly'] ?? false;
+        $hideHidden = $criteria['hideHidden'] ?? true;
+
+        if ($showSavedOnly) {
+            $savedUserIds = $currentUser->savedUsers()->pluck('saved_user_id')->toArray();
+            $query->whereHas('owner', fn ($ownerQuery) => $ownerQuery->whereIn('users.id', $savedUserIds));
+        }
+
+        if ($hideHidden) {
+            $hiddenUserIds = $currentUser->hiddenUsers()->pluck('saved_user_id')->toArray();
+            if (! empty($hiddenUserIds)) {
+                $query->whereHas('owner', fn ($ownerQuery) => $ownerQuery->whereNotIn('users.id', $hiddenUserIds));
+            }
+        }
+
+        // Apply filters
+        $query = self::applyBusinessSearchFilter($query, $criteria['search'] ?? '');
+        $query = self::applyBusinessLocationFilter($query, $criteria);
+        $query = self::applyBusinessIndustryFilter($query, $criteria['selectedNiches'] ?? []);
+
+        // Prioritize promoted profiles first if any criteria is set
+        if (! empty($criteria['search'])
+            || ! empty($criteria['location'])
+            || ! empty($criteria['selectedNiches'])
+        ) {
+            $query = $query->orderByDesc('is_promoted');
+        }
+
+        // Apply secondary sorting
+        $query = self::applyBusinessSorting($query, $criteria['sortBy'] ?? 'relevance', $criteria);
+
+        // Eager load relationships for the cards
+        $query->with([
+            'owner',
+            'postalCodeInfo' => fn ($q) => $q->select(['postal_code', 'place_name', 'admin_name1', 'admin_code1', 'latitude', 'longitude']),
+            'media',
+        ]);
+
+        $results = $query->paginate($perPage);
+
+        // Calculate distances if location search is active
+        if (! empty($criteria['location']) && preg_match('/^\d{5}$/', $criteria['location'])) {
+            $results = self::calculateBusinessDistances($results, $criteria['location']);
+        }
+
+        return $results;
+    }
+
+    /**
+     * Search for influencers based on criteria.
+     * Used when businesses are searching for influencers.
+     */
+    private static function searchInfluencers(array $criteria, User $currentUser, int $perPage = 12): LengthAwarePaginator
     {
         $query = Influencer::query()
             ->where('onboarding_complete', true)
             ->where('is_searchable', true)
             ->whereHas('user', function ($q) use ($currentUser, $criteria) {
-                $q->where('account_type', AccountType::INFLUENCER)
-                    ->where('id', '!=', $currentUser->id);
+                $q->where('id', '!=', $currentUser->id);
 
                 // Filter by saved/hidden users
                 $showSavedOnly = $criteria['showSavedOnly'] ?? false;
@@ -62,7 +138,6 @@ class SearchService
 
         // Apply secondary sorting after prioritizing promoted profiles
         $query = self::applyInfluencerSorting($query, $criteria['sortBy'] ?? 'relevance', $criteria);
-        // dd($query->toSql(), $query->getBindings());
 
         // Eager load relationships for the cards
         $query->with([
@@ -81,6 +156,114 @@ class SearchService
 
         return $results;
     }
+
+    // ==========================================
+    // Business Search Filters
+    // ==========================================
+
+    /**
+     * Apply text search filter to business query.
+     */
+    private static function applyBusinessSearchFilter(Builder $query, string $search): Builder
+    {
+        if (empty($search)) {
+            return $query;
+        }
+
+        $search = trim($search);
+
+        return $query->where(function ($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%");
+        });
+    }
+
+    /**
+     * Apply location/proximity filter to business query.
+     */
+    private static function applyBusinessLocationFilter(Builder $query, array $criteria): Builder
+    {
+        $location = $criteria['location'] ?? '';
+
+        if (empty($location)) {
+            return $query;
+        }
+
+        // For 5-digit zip codes, use proximity search
+        if (preg_match('/^\d{5}$/', $location)) {
+            $radius = (int) ($criteria['searchRadius'] ?? 50);
+            $nearbyZipCodes = self::getNearbyZipCodes($location, $radius);
+
+            if (! empty($nearbyZipCodes)) {
+                return $query->whereIn('postal_code', $nearbyZipCodes);
+            }
+        }
+
+        // Fallback to text search on postal_code
+        return $query->where('postal_code', 'like', "%{$location}%");
+    }
+
+    /**
+     * Apply industry filter to business query.
+     */
+    private static function applyBusinessIndustryFilter(Builder $query, array $selectedNiches): Builder
+    {
+        if (empty($selectedNiches)) {
+            return $query;
+        }
+
+        return $query->whereIn('industry', $selectedNiches);
+    }
+
+    /**
+     * Apply sorting to business query.
+     */
+    private static function applyBusinessSorting(Builder $query, string $sortBy, array $criteria): Builder
+    {
+        return match ($sortBy) {
+            'name' => $query->orderBy('name'),
+            'newest' => $query->orderBy('created_at', 'desc'),
+            'oldest' => $query->orderBy('created_at', 'asc'),
+            'distance' => $query->orderBy('id'), // Distance sorting happens after pagination
+            default => $query->orderBy('created_at', 'desc'),
+        };
+    }
+
+    /**
+     * Calculate distances for paginated business results.
+     */
+    private static function calculateBusinessDistances(LengthAwarePaginator $results, string $zipCode): LengthAwarePaginator
+    {
+        $searchPostalCode = PostalCode::where('postal_code', $zipCode)
+            ->where('country_code', 'US')
+            ->first();
+
+        if (! $searchPostalCode) {
+            return $results;
+        }
+
+        $results->getCollection()->transform(function ($business) use ($searchPostalCode) {
+            $businessPostalCode = $business->postalCodeInfo;
+            $business->distance = $businessPostalCode
+                ? $searchPostalCode->distanceTo($businessPostalCode)
+                : null;
+
+            return $business;
+        });
+
+        // Re-sort by distance if that's the selected sort
+        $sorted = $results->getCollection()->sortBy(function ($business) {
+            return $business->distance ?? 99999;
+        })->values();
+
+        $results->setCollection($sorted);
+
+        return $results;
+    }
+
+    // ==========================================
+    // Influencer Search Filters
+    // ==========================================
 
     /**
      * Apply text search filter to influencer query.
@@ -235,6 +418,10 @@ class SearchService
         return $results;
     }
 
+    // ==========================================
+    // Shared Utilities
+    // ==========================================
+
     /**
      * Get nearby zip codes for proximity search.
      */
@@ -312,115 +499,5 @@ class SearchService
                 ['value' => 'name', 'label' => 'Name (A-Z)'],
             ],
         ];
-    }
-
-    // ==========================================
-    // Legacy methods for backwards compatibility
-    // ==========================================
-
-    /**
-     * Legacy method - search for users based on criteria.
-     *
-     * @deprecated Use searchInfluencers() instead for business->influencer searches
-     */
-    public static function searchUsers(array $criteria, User $currentUser, int $perPage = 12): LengthAwarePaginator
-    {
-        // If business or admin is searching for influencers, use the optimized method
-        if (in_array($currentUser->account_type, [AccountType::BUSINESS, AccountType::ADMIN], true)) {
-            $results = self::searchInfluencers($criteria, $currentUser, $perPage);
-
-            // Transform to User models for backwards compatibility with existing cards
-            // Filter out any influencers that don't have a valid user relationship
-            $users = $results->getCollection()
-                ->filter(fn ($influencer) => $influencer->user !== null)
-                ->map(function ($influencer) {
-                    $user = $influencer->user;
-                    $user->setRelation('influencer', $influencer);
-                    $user->distance = $influencer->distance ?? null;
-
-                    return $user;
-                })
-                ->values();
-
-            $results->setCollection($users);
-
-            return $results;
-        }
-
-        // Fallback for influencer->business searches (keep old behavior for now)
-        return self::legacySearchUsers($criteria, $currentUser, $perPage);
-    }
-
-    /**
-     * Legacy search method for influencers searching for businesses.
-     */
-    private static function legacySearchUsers(array $criteria, User $currentUser, int $perPage = 12): LengthAwarePaginator
-    {
-        $query = User::query()
-            ->where('account_type', AccountType::BUSINESS)
-            ->where('id', '!=', $currentUser->id);
-
-        // Filter by saved/hidden users
-        $showSavedOnly = $criteria['showSavedOnly'] ?? false;
-        $hideHidden = $criteria['hideHidden'] ?? true;
-
-        if ($showSavedOnly) {
-            $savedUserIds = $currentUser->savedUsers()->pluck('saved_user_id')->toArray();
-            $query->whereIn('id', $savedUserIds);
-        }
-
-        if ($hideHidden) {
-            $hiddenUserIds = $currentUser->hiddenUsers()->pluck('saved_user_id')->toArray();
-            if (! empty($hiddenUserIds)) {
-                $query->whereNotIn('id', $hiddenUserIds);
-            }
-        }
-
-        // Apply search filter
-        if (! empty($criteria['search'])) {
-            $search = $criteria['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
-            });
-        }
-
-        // Apply location filter
-        if (! empty($criteria['location'])) {
-            $location = $criteria['location'];
-            $radius = $criteria['searchRadius'] ?? 50;
-
-            if (preg_match('/^\d{5}$/', $location)) {
-                $nearbyZipCodes = self::getNearbyZipCodes($location, $radius);
-                if (! empty($nearbyZipCodes)) {
-                    $query->whereHas('currentBusiness', function ($q) use ($nearbyZipCodes) {
-                        $q->whereIn('postal_code', $nearbyZipCodes);
-                    });
-                }
-            }
-        }
-
-        // Apply niche filter
-        if (! empty($criteria['selectedNiches'])) {
-            $query->whereHas('currentBusiness', function ($q) use ($criteria) {
-                $q->whereIn('industry', $criteria['selectedNiches']);
-            });
-        }
-
-        $query->with(['currentBusiness']);
-
-        return $query->paginate($perPage);
-    }
-
-    /**
-     * Get the target account type for search (legacy).
-     *
-     * @deprecated
-     */
-    private static function getTargetAccountType(User $currentUser): AccountType
-    {
-        return $currentUser->account_type === AccountType::BUSINESS
-            ? AccountType::INFLUENCER
-            : AccountType::BUSINESS;
     }
 }

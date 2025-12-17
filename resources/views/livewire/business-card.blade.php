@@ -64,7 +64,7 @@
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <h3 class="font-semibold text-gray-900 dark:text-white text-lg leading-tight">
-                            {{ $user->currentBusiness->name ?? $user->name }}
+                            {{ $business->name }}
                         </h3>
                         @if($isVerified)
                             <div class="flex items-center gap-1">
@@ -74,26 +74,30 @@
                     </div>
                 </div>
 
-                @if($user->currentBusiness && $user->currentBusiness->city)
+                @if($business->city)
                 <p class="text-sm text-gray-500 dark:text-gray-400 flex items-center mt-1">
                     <flux:icon.map-pin class="w-3 h-3 mr-1" />
-                    {{ $user->currentBusiness->city }}, {{ $user->currentBusiness->state }}
+                    {{ $business->city }}, {{ $business->state }}
+                    @if(isset($business->distance) && $business->distance !== null)
+                        <span class="text-gray-400 mx-1">·</span>
+                        <span>{{ number_format($business->distance, 1) }} mi</span>
+                    @endif
                 </p>
                 @endif
             </div>
 
             <!-- Business Industry -->
-            @if($user->currentBusiness && $user->currentBusiness->industry)
+            @if($business->industry)
             <div class="flex items-center gap-2">
                 <flux:icon.building-office class="w-4 h-4 text-gray-400" />
-                <span class="text-sm text-gray-600 dark:text-gray-300">{{ $user->currentBusiness->industry->label() }}</span>
+                <span class="text-sm text-gray-600 dark:text-gray-300">{{ $business->industry->label() }}</span>
             </div>
             @endif
 
             <!-- Business Description -->
-            @if($user->currentBusiness && $user->currentBusiness->description)
+            @if($business->description)
             <div class="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
-                {{ $user->currentBusiness->description }}
+                {{ $business->description }}
             </div>
             @endif
 
@@ -101,7 +105,7 @@
             <div class="grid grid-cols-2 gap-2 text-center py-2 border-t border-gray-100 dark:border-gray-700">
                 <div>
                     <div class="text-lg font-semibold text-gray-900 dark:text-white">
-                        {{ $user->currentBusiness ? $user->currentBusiness->campaigns()->count() : 0 }}
+                        {{ $business->campaigns()->count() }}
                     </div>
                     <div class="text-xs text-gray-500 dark:text-gray-400">Campaigns</div>
                 </div>

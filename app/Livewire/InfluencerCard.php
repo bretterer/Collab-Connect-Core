@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Models\User;
+use App\Models\Influencer;
 use App\Services\ReviewService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Vite;
@@ -10,7 +10,7 @@ use Livewire\Component;
 
 class InfluencerCard extends Component
 {
-    public User $user;
+    public Influencer $influencer;
 
     public bool $isPromoted = false;
 
@@ -50,53 +50,49 @@ class InfluencerCard extends Component
         $this->profileImageUrl = $defaultProfileImage;
         $this->coverImageUrl = $defaultCoverImage;
 
-        $influencer = $this->user->influencer;
-
-        // Check if user has valid influencer profile
-        if (! $influencer) {
-            return;
-        }
-
         // Set promoted/verified status from influencer profile
-        $this->isPromoted = (bool) $influencer->is_promoted;
-        $this->isVerified = (bool) $influencer->is_verified;
-
-        $this->acceptingInvitations = (bool) $influencer->is_accepting_invitations;
+        $this->isPromoted = (bool) $this->influencer->is_promoted;
+        $this->isVerified = (bool) $this->influencer->is_verified;
+        $this->acceptingInvitations = (bool) $this->influencer->is_accepting_invitations;
 
         // Use uploaded images from media library, with fallbacks
-        $this->profileImageUrl = $influencer->getProfileImageUrl() ?: $defaultProfileImage;
-        $this->coverImageUrl = $influencer->getBannerImageUrl() ?: $defaultCoverImage;
+        $this->profileImageUrl = $this->influencer->getProfileImageUrl() ?: $defaultProfileImage;
+        $this->coverImageUrl = $this->influencer->getBannerImageUrl() ?: $defaultCoverImage;
 
         // Get real review data
-        $reviewService = app(ReviewService::class);
-        $this->averageRating = $reviewService->getAverageRating($this->user);
-        $this->reviewCount = $reviewService->getReviewCount($this->user);
+        $user = $this->influencer->user;
+        if ($user) {
+            $reviewService = app(ReviewService::class);
+            $this->averageRating = $reviewService->getAverageRating($user);
+            $this->reviewCount = $reviewService->getReviewCount($user);
 
-        // Check if current user has saved/hidden this user
-        $currentUser = Auth::user();
-        if ($currentUser) {
-            $this->isSaved = $currentUser->hasSavedUser($this->user);
-            $this->isHidden = $currentUser->hasHiddenUser($this->user);
+            // Check if current user has saved/hidden this user
+            $currentUser = Auth::user();
+            if ($currentUser) {
+                $this->isSaved = $currentUser->hasSavedUser($user);
+                $this->isHidden = $currentUser->hasHiddenUser($user);
+            }
         }
     }
 
     public function toggleSave(): void
     {
         $currentUser = Auth::user();
-        if (! $currentUser) {
+        $user = $this->influencer->user;
+        if (! $currentUser || ! $user) {
             return;
         }
 
         if ($this->isSaved) {
-            $currentUser->unsaveUser($this->user);
+            $currentUser->unsaveUser($user);
             $this->isSaved = false;
         } else {
             // If hidden, unhide first
             if ($this->isHidden) {
-                $currentUser->unhideUser($this->user);
+                $currentUser->unhideUser($user);
                 $this->isHidden = false;
             }
-            $currentUser->saveUser($this->user);
+            $currentUser->saveUser($user);
             $this->isSaved = true;
         }
     }
@@ -104,45 +100,36 @@ class InfluencerCard extends Component
     public function toggleHide(): void
     {
         $currentUser = Auth::user();
-        if (! $currentUser) {
+        $user = $this->influencer->user;
+        if (! $currentUser || ! $user) {
             return;
         }
 
         if ($this->isHidden) {
-            $currentUser->unhideUser($this->user);
+            $currentUser->unhideUser($user);
             $this->isHidden = false;
         } else {
             // If saved, unsave first
             if ($this->isSaved) {
-                $currentUser->unsaveUser($this->user);
+                $currentUser->unsaveUser($user);
                 $this->isSaved = false;
             }
-            $currentUser->hideUser($this->user);
+            $currentUser->hideUser($user);
             $this->isHidden = true;
-            $this->dispatch('user-hidden', userId: $this->user->id);
+            $this->dispatch('user-hidden', userId: $user->id);
         }
     }
 
     public function getUsername(): string
     {
-        return $this->user->username();
+        return $this->influencer->username ?? (string) $this->influencer->id;
     }
 
     public function render()
     {
-        $influencer = $this->user->influencer;
-
-        // Handle case where influencer relationship is missing
-        if (! $influencer) {
-            return view('livewire.influencer-card', [
-                'socialAccounts' => collect(),
-                'totalFollowers' => 0,
-            ]);
-        }
-
         // Get social accounts from the influencer relationship (InfluencerSocial)
-        $socialAccounts = $influencer->socialAccounts ?? collect();
-        $totalFollowers = $influencer->totalFollowers ?? 0;
+        $socialAccounts = $this->influencer->socialAccounts ?? collect();
+        $totalFollowers = $this->influencer->totalFollowers ?? 0;
 
         return view('livewire.influencer-card', [
             'socialAccounts' => $socialAccounts,

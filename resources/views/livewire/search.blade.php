@@ -299,22 +299,18 @@
                 @if($results->count() > 0)
                     <div wire:loading.class="opacity-50" class="transition-opacity">
                         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                            @foreach($results as $index => $user)
-                                <div wire:key="user-{{ $user->id }}">
+                            @foreach($results as $index => $result)
+                                <div wire:key="result-{{ $result->id }}-{{ class_basename($result) }}">
                                     @if($this->isBusinessUser)
-                                        @if($user->influencer)
-                                            <livewire:influencer-card
-                                                :user="$user"
-                                                :key="'influencer-card-'.$user->id"
-                                            />
-                                        @endif
+                                        <livewire:influencer-card
+                                            :influencer="$result"
+                                            :key="'influencer-card-'.$result->id"
+                                        />
                                     @else
-                                        @if($user->currentBusiness)
-                                            <livewire:business-card
-                                                :user="$user"
-                                                :key="'business-card-'.$user->id"
-                                            />
-                                        @endif
+                                        <livewire:business-card
+                                            :business="$result"
+                                            :key="'business-card-'.$result->id"
+                                        />
                                     @endif
                                 </div>
                             @endforeach
