@@ -1,23 +1,23 @@
 <?php
 
-namespace App\Livewire\Admin\Users;
+namespace App\Livewire\Admin\Influencers;
 
-use App\Models\User;
+use App\Models\Influencer;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
-class UserEdit extends Component
+class InfluencerEdit extends Component
 {
-    public User $user;
+    public Influencer $influencer;
 
-    public string $activeTab = 'account';
+    public string $activeTab = 'profile';
 
-    protected array $validTabs = ['account', 'profile', 'features'];
+    protected array $validTabs = ['profile', 'billing'];
 
-    public function mount(User $user, ?string $tab = null): void
+    public function mount(Influencer $influencer, ?string $tab = null): void
     {
-        $this->user = $user;
+        $this->influencer = $influencer->load(['user', 'subscriptions']);
 
         // Handle URL tab parameter
         if ($tab && in_array($tab, $this->validTabs)) {
@@ -35,12 +35,12 @@ class UserEdit extends Component
 
     protected function updateUrl(): void
     {
-        $url = '/admin/users/'.$this->user->id.'/edit/'.$this->activeTab;
+        $url = '/admin/influencers/'.$this->influencer->id.'/edit/'.$this->activeTab;
         $this->dispatch('update-url', url: $url);
     }
 
     public function render()
     {
-        return view('livewire.admin.users.user-edit');
+        return view('livewire.admin.influencers.influencer-edit');
     }
 }

@@ -42,13 +42,34 @@
             :current="$activeTab === 'features'">
             Feature Flags
         </flux:navbar.item>
-        <flux:navbar.item
-            wire:click="setActiveTab('billing')"
-            icon="credit-card"
-            :current="$activeTab === 'billing'">
-            Billing
-        </flux:navbar.item>
     </flux:navbar>
+
+    <!-- Profile Link Callout -->
+    @if($user->isBusinessAccount() && $user->currentBusiness)
+        <flux:callout icon="building-office" class="mb-6">
+            <flux:callout.heading>Business Profile</flux:callout.heading>
+            <flux:callout.text>
+                Billing, subscriptions, and credits are managed at the business level.
+            </flux:callout.text>
+            <x-slot:actions>
+                <flux:button href="{{ route('admin.businesses.edit', ['business' => $user->currentBusiness, 'tab' => 'billing']) }}" variant="primary" size="sm" icon="arrow-right">
+                    Manage Business Billing
+                </flux:button>
+            </x-slot:actions>
+        </flux:callout>
+    @elseif($user->isInfluencerAccount() && $user->influencer)
+        <flux:callout icon="user" class="mb-6">
+            <flux:callout.heading>Influencer Profile</flux:callout.heading>
+            <flux:callout.text>
+                Billing, subscriptions, and credits are managed at the influencer profile level.
+            </flux:callout.text>
+            <x-slot:actions>
+                <flux:button href="{{ route('admin.influencers.edit', ['influencer' => $user->influencer, 'tab' => 'billing']) }}" variant="primary" size="sm" icon="arrow-right">
+                    Manage Influencer Billing
+                </flux:button>
+            </x-slot:actions>
+        </flux:callout>
+    @endif
 
     <!-- Tab Content -->
     @if($activeTab === 'account')
@@ -61,9 +82,5 @@
 
     @if($activeTab === 'features')
         <livewire:admin.users.tabs.features-tab :user="$user" :key="'features-'.$user->id" />
-    @endif
-
-    @if($activeTab === 'billing')
-        <livewire:admin.users.tabs.billing-tab :user="$user" :key="'billing-'.$user->id" />
     @endif
 </div>

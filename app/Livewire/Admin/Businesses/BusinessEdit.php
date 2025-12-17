@@ -1,23 +1,23 @@
 <?php
 
-namespace App\Livewire\Admin\Users;
+namespace App\Livewire\Admin\Businesses;
 
-use App\Models\User;
+use App\Models\Business;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
-class UserEdit extends Component
+class BusinessEdit extends Component
 {
-    public User $user;
+    public Business $business;
 
-    public string $activeTab = 'account';
+    public string $activeTab = 'profile';
 
-    protected array $validTabs = ['account', 'profile', 'features'];
+    protected array $validTabs = ['profile', 'billing'];
 
-    public function mount(User $user, ?string $tab = null): void
+    public function mount(Business $business, ?string $tab = null): void
     {
-        $this->user = $user;
+        $this->business = $business->load(['owner', 'subscriptions']);
 
         // Handle URL tab parameter
         if ($tab && in_array($tab, $this->validTabs)) {
@@ -35,12 +35,12 @@ class UserEdit extends Component
 
     protected function updateUrl(): void
     {
-        $url = '/admin/users/'.$this->user->id.'/edit/'.$this->activeTab;
+        $url = '/admin/businesses/'.$this->business->id.'/edit/'.$this->activeTab;
         $this->dispatch('update-url', url: $url);
     }
 
     public function render()
     {
-        return view('livewire.admin.users.user-edit');
+        return view('livewire.admin.businesses.business-edit');
     }
 }
