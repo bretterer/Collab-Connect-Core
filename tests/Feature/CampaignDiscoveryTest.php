@@ -223,15 +223,15 @@ class CampaignDiscoveryTest extends TestCase
         $this->actingAs($this->businessUser);
 
         // Search for influencers by location
-        $results = SearchService::searchUsers([
+        $results = SearchService::searchProfiles('influencers', [
             'location' => '49503',
             'searchRadius' => 50,
         ], $this->businessUser);
 
         $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $results);
 
-        // Should find influencers in the area
-        $userIds = $results->pluck('id')->toArray();
+        // Should find influencers in the area (results are now Influencer models)
+        $userIds = $results->pluck('user_id')->toArray();
         $this->assertContains($fashionInfluencer->id, $userIds);
     }
 

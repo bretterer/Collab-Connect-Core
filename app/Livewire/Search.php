@@ -286,7 +286,9 @@ class Search extends BaseComponent
             'hideHidden' => $this->hideHidden,
         ];
 
-        $results = SearchService::searchUsers($criteria, $currentUser, 12);
+        // Determine search type based on current user's account type
+        $searchType = $this->isBusinessUser ? 'influencers' : 'businesses';
+        $results = SearchService::searchProfiles($searchType, $criteria, $currentUser, 12);
         $metadata = SearchService::getSearchMetadata($criteria);
 
         // Get counts for the filter badges

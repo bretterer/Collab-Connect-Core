@@ -7,6 +7,7 @@ use App\Enums\BusinessType;
 use App\Models\Traits\HasSubscriptionTier;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Cashier\Billable;
@@ -52,6 +53,8 @@ class Business extends Model implements HasMedia
             'business_goals' => 'array',
             'platforms' => 'array',
             'campaign_defaults' => 'array',
+            'is_promoted' => 'boolean',
+            'promoted_until' => 'datetime',
         ];
     }
 
@@ -147,6 +150,14 @@ class Business extends Model implements HasMedia
         return $this->belongsToMany(User::class, 'business_users')
             ->withPivot('role')
             ->wherePivot('role', 'owner');
+    }
+
+    /**
+     * Get the postal code info for the business location.
+     */
+    public function postalCodeInfo(): BelongsTo
+    {
+        return $this->belongsTo(PostalCode::class, 'postal_code', 'postal_code');
     }
 
     /**

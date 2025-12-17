@@ -46,6 +46,7 @@ class Influencer extends Model implements HasMedia
         'is_accepting_invitations',
         'preferred_campaign_types',
         'deliverable_types',
+        'promotion_credits',
     ];
 
     protected function casts(): array
@@ -58,9 +59,11 @@ class Influencer extends Model implements HasMedia
             'onboarding_complete' => 'boolean',
             'is_campaign_active' => 'boolean',
             'is_accepting_invitations' => 'boolean',
+            'is_promoted' => 'boolean',
             'preferred_campaign_types' => 'array',
             'deliverable_types' => 'array',
             'searchable_at' => 'datetime',
+            'promoted_until' => 'datetime',
         ];
     }
 

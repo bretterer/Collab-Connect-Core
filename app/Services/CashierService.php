@@ -11,6 +11,7 @@ class CashierService extends Cashier
     /**
      * Find a billable model by Stripe ID.
      * Automatically discovers and searches all models using the Billable trait.
+     * Supports both customer IDs (cus_*) and subscription IDs (sub_*).
      */
     public static function findBillable($stripeId)
     {
@@ -18,6 +19,11 @@ class CashierService extends Cashier
 
         if (! $stripeId) {
             return null;
+        }
+
+        // If this is a subscription ID, find the billable via the subscription
+        if (str_starts_with($stripeId, 'sub_')) {
+            return static::findBillableBySubscription($stripeId);
         }
 
         // Get all billable models dynamically
@@ -34,6 +40,28 @@ class CashierService extends Cashier
             if ($result) {
                 return $result;
             }
+        }
+
+        return null;
+    }
+
+    /**
+     * Find a billable model by subscription Stripe ID.
+     */
+    protected static function findBillableBySubscription(string $subscriptionId)
+    {
+        $subscription = \Laravel\Cashier\Subscription::where('stripe_id', $subscriptionId)->first();
+
+        if (! $subscription) {
+            return null;
+        }
+
+        if ($subscription->influencer_id) {
+            return \App\Models\Influencer::find($subscription->influencer_id);
+        }
+
+        if ($subscription->business_id) {
+            return \App\Models\Business::find($subscription->business_id);
         }
 
         return null;

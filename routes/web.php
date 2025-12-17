@@ -41,6 +41,18 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
             Route::get('/{user}/edit/{tab?}', App\Livewire\Admin\Users\UserEdit::class)->name('edit');
         });
 
+        // Business management
+        Route::prefix('businesses')->name('businesses.')->group(function () {
+            Route::get('/', App\Livewire\Admin\Businesses\BusinessIndex::class)->name('index');
+            Route::get('/{business}/edit/{tab?}', App\Livewire\Admin\Businesses\BusinessEdit::class)->name('edit');
+        });
+
+        // Influencer management
+        Route::prefix('influencers')->name('influencers.')->group(function () {
+            Route::get('/', App\Livewire\Admin\Influencers\InfluencerIndex::class)->name('index');
+            Route::get('/{influencer}/edit/{tab?}', App\Livewire\Admin\Influencers\InfluencerEdit::class)->name('edit');
+        });
+
         Route::get('/beta-invites', App\Livewire\Admin\BetaInvites::class)->name('beta-invites');
         Route::get('/feedback', App\Livewire\Admin\Feedback::class)->name('feedback');
 
@@ -110,6 +122,9 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
 
         // System Settings
         Route::get('/settings', App\Livewire\Admin\Settings::class)->name('settings');
+
+        // Audit Log
+        Route::get('/audit-log', App\Livewire\Admin\AuditLog::class)->name('audit-log');
 
         // Custom Signup Pages
         Route::prefix('custom-signup-pages')->name('custom-signup-pages.')->group(function () {

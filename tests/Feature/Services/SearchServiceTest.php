@@ -40,7 +40,7 @@ class SearchServiceTest extends TestCase
             'onboarding_complete' => false,
         ]);
 
-        $results = SearchService::searchInfluencers([], $this->businessUser);
+        $results = SearchService::searchProfiles('influencers', [], $this->businessUser);
 
         $this->assertCount(1, $results);
         $this->assertEquals($completedInfluencer->influencer->id, $results->first()->id);
@@ -55,7 +55,7 @@ class SearchServiceTest extends TestCase
         // Create another influencer
         $otherInfluencer = User::factory()->influencer()->withProfile()->create();
 
-        $results = SearchService::searchInfluencers([], $dualUser);
+        $results = SearchService::searchProfiles('influencers', [], $dualUser);
 
         // Should not include the searching user
         $userIds = $results->pluck('user_id')->toArray();
@@ -70,7 +70,7 @@ class SearchServiceTest extends TestCase
             User::factory()->influencer()->withProfile()->create();
         }
 
-        $results = SearchService::searchInfluencers([], $this->businessUser, perPage: 10);
+        $results = SearchService::searchProfiles('influencers', [], $this->businessUser, perPage: 10);
 
         $this->assertCount(10, $results);
         $this->assertEquals(15, $results->total());
@@ -88,7 +88,7 @@ class SearchServiceTest extends TestCase
         $otherInfluencer = User::factory()->influencer()->withProfile()->create();
         $otherInfluencer->influencer->update(['username' => 'food_lover']);
 
-        $results = SearchService::searchInfluencers(['search' => 'fashion'], $this->businessUser);
+        $results = SearchService::searchProfiles('influencers', ['search' => 'fashion'], $this->businessUser);
 
         $this->assertCount(1, $results);
         $this->assertEquals('unique_fashion_blogger', $results->first()->username);
@@ -103,7 +103,7 @@ class SearchServiceTest extends TestCase
         $otherInfluencer = User::factory()->influencer()->withProfile()->create();
         $otherInfluencer->influencer->update(['bio' => 'Food photography is my passion']);
 
-        $results = SearchService::searchInfluencers(['search' => 'travel'], $this->businessUser);
+        $results = SearchService::searchProfiles('influencers', ['search' => 'travel'], $this->businessUser);
 
         $this->assertCount(1, $results);
         $this->assertStringContainsString('travel', $results->first()->bio);
@@ -120,7 +120,7 @@ class SearchServiceTest extends TestCase
             'name' => 'Mike Smith',
         ]);
 
-        $results = SearchService::searchInfluencers(['search' => 'Sarah'], $this->businessUser);
+        $results = SearchService::searchProfiles('influencers', ['search' => 'Sarah'], $this->businessUser);
 
         $this->assertCount(1, $results);
         $this->assertEquals($targetInfluencer->id, $results->first()->user_id);
@@ -143,7 +143,7 @@ class SearchServiceTest extends TestCase
         $farInfluencer = User::factory()->influencer()->withProfile()->create();
         $farInfluencer->influencer->update(['postal_code' => '90210']);
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'location' => '45066',
             'searchRadius' => 50,
         ], $this->businessUser);
@@ -161,7 +161,7 @@ class SearchServiceTest extends TestCase
         $influencer->influencer->update(['postal_code' => '45066']);
 
         // Search with partial zip code (not 5 digits)
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'location' => '450',
         ], $this->businessUser);
 
@@ -180,7 +180,7 @@ class SearchServiceTest extends TestCase
         $foodInfluencer = User::factory()->influencer()->withProfile()->create();
         $foodInfluencer->influencer->update(['content_types' => ['food', 'cooking']]);
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'selectedNiches' => ['fashion'],
         ], $this->businessUser);
 
@@ -200,7 +200,7 @@ class SearchServiceTest extends TestCase
         $techInfluencer = User::factory()->influencer()->withProfile()->create();
         $techInfluencer->influencer->update(['content_types' => ['technology']]);
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'selectedNiches' => ['fashion', 'food'],
         ], $this->businessUser);
 
@@ -229,7 +229,7 @@ class SearchServiceTest extends TestCase
             'followers' => 5000,
         ]);
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'selectedPlatforms' => ['instagram'],
         ], $this->businessUser);
 
@@ -264,7 +264,7 @@ class SearchServiceTest extends TestCase
             'followers' => 5000,
         ]);
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'selectedPlatforms' => ['instagram', 'youtube'],
         ], $this->businessUser);
 
@@ -292,7 +292,7 @@ class SearchServiceTest extends TestCase
             'followers' => 50000,
         ]);
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'minFollowers' => 10000,
         ], $this->businessUser);
 
@@ -319,7 +319,7 @@ class SearchServiceTest extends TestCase
             'followers' => 50000,
         ]);
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'maxFollowers' => 5000,
         ], $this->businessUser);
 
@@ -354,7 +354,7 @@ class SearchServiceTest extends TestCase
             'followers' => 500000,
         ]);
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'minFollowers' => 1000,
             'maxFollowers' => 100000,
         ], $this->businessUser);
@@ -382,7 +382,7 @@ class SearchServiceTest extends TestCase
 
         // Total followers: 7000
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'minFollowers' => 5000,
         ], $this->businessUser);
 
@@ -401,7 +401,7 @@ class SearchServiceTest extends TestCase
         $newerInfluencer = User::factory()->influencer()->withProfile()->create();
         $newerInfluencer->influencer->update(['created_at' => now()]);
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'sortBy' => 'newest',
         ], $this->businessUser);
 
@@ -417,7 +417,7 @@ class SearchServiceTest extends TestCase
         $newerInfluencer = User::factory()->influencer()->withProfile()->create();
         $newerInfluencer->influencer->update(['created_at' => now()]);
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'sortBy' => 'oldest',
         ], $this->businessUser);
 
@@ -443,7 +443,7 @@ class SearchServiceTest extends TestCase
             'followers' => 100000,
         ]);
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'sortBy' => 'followers',
         ], $this->businessUser);
 
@@ -461,7 +461,7 @@ class SearchServiceTest extends TestCase
             'name' => 'Alice Brown',
         ]);
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'sortBy' => 'name',
         ], $this->businessUser);
 
@@ -477,7 +477,7 @@ class SearchServiceTest extends TestCase
         $highQualityInfluencer = User::factory()->influencer()->withProfile()->create();
         $highQualityInfluencer->influencer->update(['content_quality_score' => 95]);
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'sortBy' => 'quality',
         ], $this->businessUser);
 
@@ -499,7 +499,7 @@ class SearchServiceTest extends TestCase
             'type' => 'saved',
         ]);
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'showSavedOnly' => true,
         ], $this->businessUser);
 
@@ -520,7 +520,7 @@ class SearchServiceTest extends TestCase
             'type' => 'hidden',
         ]);
 
-        $results = SearchService::searchInfluencers([], $this->businessUser);
+        $results = SearchService::searchProfiles('influencers', [], $this->businessUser);
 
         $this->assertCount(1, $results);
         $this->assertEquals($visibleInfluencer->influencer->id, $results->first()->id);
@@ -538,7 +538,7 @@ class SearchServiceTest extends TestCase
             'type' => 'hidden',
         ]);
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'hideHidden' => false,
         ], $this->businessUser);
 
@@ -614,29 +614,38 @@ class SearchServiceTest extends TestCase
         $this->assertArrayHasKey('label', $options['sortOptions'][0]);
     }
 
-    // ==================== Legacy searchUsers Method Tests ====================
+    // ==================== searchProfiles API Tests ====================
 
     #[Test]
-    public function search_users_returns_user_models_for_business_users(): void
+    public function search_profiles_returns_influencer_models_for_business_users(): void
     {
         $influencer = User::factory()->influencer()->withProfile()->create();
 
-        $results = SearchService::searchUsers([], $this->businessUser);
+        $results = SearchService::searchProfiles('influencers', [], $this->businessUser);
 
-        // Results should be User models (not Influencer models)
-        $this->assertInstanceOf(User::class, $results->first());
-        $this->assertEquals($influencer->id, $results->first()->id);
+        // Results should be Influencer models
+        $this->assertInstanceOf(Influencer::class, $results->first());
+        $this->assertEquals($influencer->influencer->id, $results->first()->id);
     }
 
     #[Test]
-    public function search_users_includes_influencer_relationship(): void
+    public function search_profiles_includes_user_relationship(): void
     {
         $influencer = User::factory()->influencer()->withProfile()->create();
 
-        $results = SearchService::searchUsers([], $this->businessUser);
+        $results = SearchService::searchProfiles('influencers', [], $this->businessUser);
 
-        // The influencer relationship should be loaded
-        $this->assertTrue($results->first()->relationLoaded('influencer'));
+        // The user relationship should be loaded
+        $this->assertTrue($results->first()->relationLoaded('user'));
+    }
+
+    #[Test]
+    public function search_profiles_throws_exception_for_invalid_type(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Invalid search type: invalid. Must be 'businesses' or 'influencers'.");
+
+        SearchService::searchProfiles('invalid', [], $this->businessUser);
     }
 
     // ==================== Combined Filter Tests ====================
@@ -674,7 +683,7 @@ class SearchServiceTest extends TestCase
             'followers' => 1000,
         ]);
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'search' => 'Fashion',
             'selectedNiches' => ['fashion'],
             'selectedPlatforms' => ['instagram'],
@@ -690,7 +699,7 @@ class SearchServiceTest extends TestCase
     {
         User::factory()->influencer()->withProfile()->create();
 
-        $results = SearchService::searchInfluencers([
+        $results = SearchService::searchProfiles('influencers', [
             'search' => 'NonexistentSearchTermThatWillNeverMatch12345',
         ], $this->businessUser);
 

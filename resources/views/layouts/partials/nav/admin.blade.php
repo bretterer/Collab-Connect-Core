@@ -13,6 +13,18 @@
         Users
     </flux:navlist.item>
 
+    <flux:navlist.item href="{{ route('admin.businesses.index') }}" icon="building-office" :current="request()->routeIs('admin.businesses.*')">
+        Businesses
+    </flux:navlist.item>
+
+    <flux:navlist.item href="{{ route('admin.influencers.index') }}" icon="sparkles" :current="request()->routeIs('admin.influencers.*')">
+        Influencers
+    </flux:navlist.item>
+
+    <flux:navlist.item href="{{ route('admin.audit-log') }}" icon="clipboard-document-list" :current="request()->routeIs('admin.audit-log')">
+        Audit Log
+    </flux:navlist.item>
+
     <flux:navlist.item href="{{ route('admin.beta-invites') }}" icon="envelope" :current="request()->routeIs('admin.beta-invites')">
         Beta Invites
     </flux:navlist.item>

@@ -9,8 +9,12 @@ use App\Enums\CompensationType;
 use App\Enums\DeliverableType;
 use App\Enums\SocialPlatform;
 use App\Livewire\BaseComponent;
+use App\Models\StripePrice;
 use App\Models\User;
 use App\Rules\UniqueUsername;
+use App\Settings\PromotionSettings;
+use DateTime;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
 use Masmerise\Toaster\Toaster;
@@ -31,7 +35,7 @@ class InfluencerSettings extends BaseComponent
     // Account Settings
     public bool $is_searchable = true;
 
-    public string|null $searchable_at = null;
+    public ?string $searchable_at = null;
 
     public bool $is_accepting_invitations = true;
 
@@ -77,6 +81,15 @@ class InfluencerSettings extends BaseComponent
 
     public string $phone_number = '';
 
+    // Profile Promotion
+    public bool $is_promoted = false;
+
+    public ?DateTime $promotion_ends_at = null;
+
+    public int $promotion_credits = 0;
+
+    public int $creditQuantity = 1;
+
     // Social accounts
     public array $social_accounts = [];
 
@@ -102,6 +115,10 @@ class InfluencerSettings extends BaseComponent
         }
 
         $this->loadInfluencerProfile($user);
+
+        $this->is_promoted = $user->influencer->is_promoted ?? false;
+        $this->promotion_ends_at = $user->influencer->promoted_until ?? null;
+        $this->promotion_credits = $user->influencer->promotion_credits ?? 0;
     }
 
     public function setActiveTab(string $tab): void
@@ -226,6 +243,137 @@ class InfluencerSettings extends BaseComponent
         if (count($this->compensation_types) > 3) {
             $this->compensation_types = array_slice($this->compensation_types, 0, 3);
             \Flux::toast('You can only select up to 3 compensation types.', variant: 'danger', position: 'bottom right');
+        }
+    }
+
+    public function promoteProfile(): void
+    {
+        /** @var User $user */
+        $user = $this->getAuthenticatedUser();
+
+        if (! $user->isInfluencerAccount()) {
+            Toaster::error('Only influencer accounts can promote profiles.');
+
+            return;
+        }
+
+        $influencer = $user->influencer;
+
+        if (! $influencer) {
+            Toaster::error('Influencer profile not found.');
+
+            return;
+        }
+
+        if ($influencer->promotion_credits <= 0) {
+            Toaster::error('You do not have enough promotion credits to promote your profile.');
+
+            return;
+        }
+
+        $promotionSettings = app(PromotionSettings::class);
+        $days = $promotionSettings->profilePromotionDays;
+
+        $influencer->is_promoted = true;
+        $influencer->promoted_until = now()->addDays($days);
+        $influencer->promotion_credits -= 1;
+        $influencer->save();
+
+        $this->is_promoted = $influencer->is_promoted;
+        $this->promotion_ends_at = $influencer->promoted_until;
+        $this->promotion_credits = $influencer->promotion_credits;
+
+        Toaster::success("Your profile has been promoted for {$days} days!");
+    }
+
+    #[Computed]
+    public function promoCreditPrice(): ?StripePrice
+    {
+        return StripePrice::where('lookup_key', 'profile_promo_credit_current')
+            ->where('active', true)
+            ->first();
+    }
+
+    public function purchasePromotionCredits(): void
+    {
+        /** @var User $user */
+        $user = $this->getAuthenticatedUser();
+
+        if (! $user->isInfluencerAccount()) {
+            Toaster::error('Only influencer accounts can purchase promotion credits.');
+
+            return;
+        }
+
+        $influencer = $user->influencer;
+
+        if (! $influencer) {
+            Toaster::error('Influencer profile not found.');
+
+            return;
+        }
+
+        $price = $this->promoCreditPrice;
+
+        if (! $price) {
+            Toaster::error('Promotion credit pricing is not available. Please try again later.');
+
+            return;
+        }
+
+        if ($this->creditQuantity < 1 || $this->creditQuantity > 10) {
+            Toaster::error('Please select between 1 and 10 credits.');
+
+            return;
+        }
+
+        try {
+            // Calculate total amount (price is in cents)
+            $totalAmount = $price->unit_amount * $this->creditQuantity;
+
+            // Create or get Stripe customer
+            if (! $influencer->hasStripeId()) {
+                $influencer->createAsStripeCustomer([
+                    'name' => $user->name,
+                    'email' => $user->email,
+                ]);
+            }
+
+            // Check for default payment method
+            $paymentMethod = $influencer->defaultPaymentMethod();
+
+            if (! $paymentMethod) {
+                \Flux::modal('addPaymentMethodFirst')->show();
+
+                return;
+            }
+
+            // Create a one-time charge
+            $influencer->charge($totalAmount, $paymentMethod->id, [
+                'description' => "Profile Promotion Credits x{$this->creditQuantity}",
+                'metadata' => [
+                    'type' => 'promotion_credits',
+                    'quantity' => $this->creditQuantity,
+                    'influencer_id' => $influencer->id,
+                ],
+                'confirm' => true,
+                'payment_method_types' => ['card'],
+            ]);
+
+            // Add credits to the influencer
+            $purchasedQuantity = $this->creditQuantity;
+            $influencer->promotion_credits += $purchasedQuantity;
+            $influencer->save();
+
+            // Update local state
+            $this->promotion_credits = $influencer->promotion_credits;
+            $this->creditQuantity = 1;
+
+            \Flux::modal('purchaseCredits')->close();
+            Toaster::success("Successfully purchased {$purchasedQuantity} promotion credit(s)!");
+        } catch (\Exception $e) {
+            logger()->error('Failed to purchase promotion credits: '.$e->getMessage());
+            Toaster::error('Failed to purchase credits: '.$e->getMessage());
         }
     }
 

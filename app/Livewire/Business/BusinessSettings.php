@@ -12,8 +12,12 @@ use App\Jobs\InviteMemberToBusiness;
 use App\Livewire\BaseComponent;
 use App\Models\BusinessMemberInvite;
 use App\Models\BusinessUser;
+use App\Models\StripePrice;
 use App\Models\User;
 use App\Rules\UniqueUsername;
+use App\Settings\PromotionSettings;
+use DateTime;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
 use Masmerise\Toaster\Toaster;
@@ -100,6 +104,15 @@ class BusinessSettings extends BaseComponent
 
     public string $default_posting_restrictions = '';
 
+    // Profile Promotion
+    public bool $is_promoted = false;
+
+    public ?DateTime $promotion_ends_at = null;
+
+    public int $promotion_credits = 0;
+
+    public int $creditQuantity = 1;
+
     public function mount(?string $tab = null, ?string $subtab = null)
     {
         /** @var User $user */
@@ -120,6 +133,14 @@ class BusinessSettings extends BaseComponent
         }
 
         $this->loadBusinessProfile($user);
+
+        // Load promotion data
+        $business = $user->currentBusiness;
+        if ($business) {
+            $this->is_promoted = $business->is_promoted ?? false;
+            $this->promotion_ends_at = $business->promoted_until ?? null;
+            $this->promotion_credits = $business->promotion_credits ?? 0;
+        }
     }
 
     public function setActiveTab(string $tab): void
@@ -539,6 +560,137 @@ class BusinessSettings extends BaseComponent
         $invite->delete();
 
         Toaster::success('Invite rescinded successfully.');
+    }
+
+    #[Computed]
+    public function promoCreditPrice(): ?StripePrice
+    {
+        return StripePrice::where('lookup_key', 'profile_promo_credit_current')
+            ->where('active', true)
+            ->first();
+    }
+
+    public function promoteProfile(): void
+    {
+        /** @var User $user */
+        $user = $this->getAuthenticatedUser();
+
+        if (! $user->isBusinessAccount()) {
+            Toaster::error('Only business accounts can promote profiles.');
+
+            return;
+        }
+
+        $business = $user->currentBusiness;
+
+        if (! $business) {
+            Toaster::error('Business profile not found.');
+
+            return;
+        }
+
+        if ($business->promotion_credits <= 0) {
+            Toaster::error('You do not have enough promotion credits to promote your profile.');
+
+            return;
+        }
+
+        $promotionSettings = app(PromotionSettings::class);
+        $days = $promotionSettings->profilePromotionDays;
+
+        $business->is_promoted = true;
+        $business->promoted_until = now()->addDays($days);
+        $business->promotion_credits -= 1;
+        $business->save();
+
+        $this->is_promoted = $business->is_promoted;
+        $this->promotion_ends_at = $business->promoted_until;
+        $this->promotion_credits = $business->promotion_credits;
+
+        Toaster::success("Your profile has been promoted for {$days} days!");
+    }
+
+    public function purchasePromotionCredits(): void
+    {
+        /** @var User $user */
+        $user = $this->getAuthenticatedUser();
+
+        if (! $user->isBusinessAccount()) {
+            Toaster::error('Only business accounts can purchase promotion credits.');
+
+            return;
+        }
+
+        $business = $user->currentBusiness;
+
+        if (! $business) {
+            Toaster::error('Business profile not found.');
+
+            return;
+        }
+
+        $price = $this->promoCreditPrice;
+
+        if (! $price) {
+            Toaster::error('Promotion credit pricing is not available. Please try again later.');
+
+            return;
+        }
+
+        if ($this->creditQuantity < 1 || $this->creditQuantity > 10) {
+            Toaster::error('Please select between 1 and 10 credits.');
+
+            return;
+        }
+
+        try {
+            // Calculate total amount (price is in cents)
+            $totalAmount = $price->unit_amount * $this->creditQuantity;
+
+            // Create or get Stripe customer
+            if (! $business->hasStripeId()) {
+                $business->createAsStripeCustomer([
+                    'name' => $business->name,
+                    'email' => $business->email,
+                ]);
+            }
+
+            // Check for default payment method
+            $paymentMethod = $business->defaultPaymentMethod();
+
+            if (! $paymentMethod) {
+                \Flux::modal('addPaymentMethodFirst')->show();
+
+                return;
+            }
+
+            // Create a one-time charge
+            $business->charge($totalAmount, $paymentMethod->id, [
+                'description' => "Profile Promotion Credits x{$this->creditQuantity}",
+                'metadata' => [
+                    'type' => 'promotion_credits',
+                    'quantity' => $this->creditQuantity,
+                    'business_id' => $business->id,
+                ],
+                'confirm' => true,
+                'payment_method_types' => ['card'],
+            ]);
+
+            // Add credits to the business
+            $purchasedQuantity = $this->creditQuantity;
+            $business->promotion_credits += $purchasedQuantity;
+            $business->save();
+
+            // Update local state
+            $this->promotion_credits = $business->promotion_credits;
+            $this->creditQuantity = 1;
+
+            \Flux::modal('purchaseCredits')->close();
+            Toaster::success("Successfully purchased {$purchasedQuantity} promotion credit(s)!");
+        } catch (\Exception $e) {
+            logger()->error('Failed to purchase promotion credits: '.$e->getMessage());
+            Toaster::error('Failed to purchase credits: '.$e->getMessage());
+        }
     }
 
     public function render()

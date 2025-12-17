@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Settings\PromotionSettings;
 use App\Settings\RegistrationMarkets;
 use App\Settings\SubscriptionSettings;
 use Flux\Flux;
@@ -19,10 +20,14 @@ class Settings extends Component
     // Registration Settings
     public bool $marketsEnabled = false;
 
-    public function mount(SubscriptionSettings $subscriptionSettings, RegistrationMarkets $registrationMarkets): void
+    // Promotion Settings
+    public int $profilePromotionDays = 7;
+
+    public function mount(SubscriptionSettings $subscriptionSettings, RegistrationMarkets $registrationMarkets, PromotionSettings $promotionSettings): void
     {
         $this->trialPeriodDays = $subscriptionSettings->trialPeriodDays;
         $this->marketsEnabled = $registrationMarkets->enabled;
+        $this->profilePromotionDays = $promotionSettings->profilePromotionDays;
     }
 
     public function saveSubscriptionSettings(SubscriptionSettings $settings): void
@@ -49,6 +54,22 @@ class Settings extends Component
         Flux::toast(
             heading: 'Settings Saved',
             text: 'Registration settings have been updated.',
+            variant: 'success',
+        );
+    }
+
+    public function savePromotionSettings(PromotionSettings $settings): void
+    {
+        $this->validate([
+            'profilePromotionDays' => ['required', 'integer', 'min:1', 'max:365'],
+        ]);
+
+        $settings->profilePromotionDays = $this->profilePromotionDays;
+        $settings->save();
+
+        Flux::toast(
+            heading: 'Settings Saved',
+            text: 'Promotion settings have been updated.',
             variant: 'success',
         );
     }

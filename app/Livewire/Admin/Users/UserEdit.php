@@ -13,7 +13,7 @@ class UserEdit extends Component
 
     public string $activeTab = 'account';
 
-    protected array $validTabs = ['account', 'profile', 'features', 'billing'];
+    protected array $validTabs = ['account', 'profile', 'features'];
 
     public function mount(User $user, ?string $tab = null): void
     {

@@ -144,6 +144,198 @@
 
                     <flux:separator />
 
+                    {{-- Promote Profile --}}
+                    <div class="flex items-center justify-between gap-6 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50">
+                        <div class="flex items-center gap-4">
+                            <div class="flex-shrink-0">
+                                <div class="h-12 w-12 rounded-xl flex items-center justify-center {{ $is_promoted ? 'bg-yellow-100 dark:bg-yellow-900/50' : 'bg-zinc-200 dark:bg-zinc-700' }} transition-colors duration-200">
+                                    <flux:icon.bars-arrow-up class="h-6 w-6 {{ $is_promoted ? 'text-yellow-600 dark:text-yellow-400' : 'text-zinc-400 dark:text-zinc-500' }} transition-colors duration-200" />
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <flux:heading>Promote Profile</flux:heading>
+                                </div>
+                                <flux:text class="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">Boost your profile by promoting it for 1 week in search results.</flux:text>
+                            </div>
+                        </div>
+                        @if($is_promoted)
+                            <flux:button
+                                type="button"
+                                variant="ghost"
+                                disabled>
+                                Currently Promoted until {{ $promotion_ends_at->format('M j, Y') }}
+                            </flux:button>
+                        @elseif ($promotion_credits <= 0)
+                            <flux:modal.trigger name="purchaseCredits">
+                                <flux:button
+                                    type="button"
+                                    variant="primary">
+                                    Buy Promotion Credits
+                                </flux:button>
+                            </flux:modal.trigger>
+                        @else
+                        <flux:modal.trigger name="promoteProfile">
+                            <flux:button
+                                type="button"
+                                variant="primary"
+                                :disabled="$promotion_credits <= 0">
+                                Promote ({{ $promotion_credits }} credits available)
+                            </flux:button>
+                        </flux:modal.trigger>
+                        @endif
+
+
+                    </div>
+                    <flux:modal name="promoteProfile" class="max-w-lg">
+                        <div class="p-6">
+                            <flux:heading size="xl" class="mb-2">Promote Your Profile</flux:heading>
+                            <flux:text class="text-gray-600 dark:text-gray-400 mb-6">
+                                Boost your visibility and attract more collaboration opportunities.
+                            </flux:text>
+
+                            <div class="space-y-4">
+                                <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                                    <div class="flex items-start gap-3">
+                                        <flux:icon name="bars-arrow-up" class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                                        <div>
+                                            <flux:heading size="sm">1 Week Promotion</flux:heading>
+                                            <flux:text class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                                                Your profile will be highlighted in search results for 7 days.
+                                            </flux:text>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                                    <div class="flex items-center justify-between">
+                                        <flux:text class="text-sm text-gray-500 dark:text-gray-400">Promotion ends</flux:text>
+                                        <flux:text class="text-sm font-medium">End of day {{ now()->addDays(7)->format('M j, Y') }}</flux:text>
+                                    </div>
+                                    <div class="flex items-center justify-between mt-2">
+                                        <flux:text class="text-sm text-gray-500 dark:text-gray-400">Credits to use</flux:text>
+                                        <flux:text class="text-sm font-medium">1 credit</flux:text>
+                                    </div>
+                                    <div class="flex items-center justify-between mt-2">
+                                        <flux:text class="text-sm text-gray-500 dark:text-gray-400">Remaining after</flux:text>
+                                        <flux:text class="text-sm font-medium">{{ $promotion_credits - 1 }} credits</flux:text>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end gap-3 mt-6">
+                                <flux:modal.close>
+                                    <flux:button type="button" variant="ghost">Cancel</flux:button>
+                                </flux:modal.close>
+                                <flux:button type="button" wire:click="promoteProfile" variant="primary">
+                                    Promote Now
+                                </flux:button>
+                            </div>
+                        </div>
+                    </flux:modal>
+
+                    <flux:modal name="purchaseCredits" class="max-w-lg">
+                        <div class="p-6">
+                            <flux:heading size="xl" class="mb-2">Purchase Promotion Credits</flux:heading>
+                            <flux:text class="text-gray-600 dark:text-gray-400 mb-6">
+                                Promotion credits allow you to boost your profile visibility in search results for 1 week per credit.
+                            </flux:text>
+
+                            <div class="space-y-4">
+                                @if($this->promoCreditPrice)
+                                    <flux:field>
+                                        <flux:label>Number of Credits</flux:label>
+                                        <flux:select wire:model.live="creditQuantity">
+                                            @for($i = 1; $i <= 10; $i++)
+                                                <option value="{{ $i }}">{{ $i }} credit{{ $i > 1 ? 's' : '' }}</option>
+                                            @endfor
+                                        </flux:select>
+                                        <flux:description>Each credit promotes your profile for 1 week.</flux:description>
+                                    </flux:field>
+
+                                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <flux:text class="text-sm text-gray-500 dark:text-gray-400">Price per credit</flux:text>
+                                            <flux:text class="text-sm font-medium">${{ number_format($this->promoCreditPrice->unit_amount / 100, 2) }}</flux:text>
+                                        </div>
+                                        <div class="flex items-center justify-between mb-2">
+                                            <flux:text class="text-sm text-gray-500 dark:text-gray-400">Quantity</flux:text>
+                                            <flux:text class="text-sm font-medium">{{ $creditQuantity }}</flux:text>
+                                        </div>
+                                        <div class="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                                            <div class="flex items-center justify-between">
+                                                <flux:text class="font-medium">Total</flux:text>
+                                                <flux:text class="text-lg font-semibold text-green-600 dark:text-green-400">
+                                                    ${{ number_format(($this->promoCreditPrice->unit_amount * $creditQuantity) / 100, 2) }}
+                                                </flux:text>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                                        <div class="flex items-start gap-3">
+                                            <flux:icon name="information-circle" class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                                            <div>
+                                                <flux:text class="text-sm text-blue-700 dark:text-blue-300">
+                                                    Your default payment method will be charged immediately.
+                                                </flux:text>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                                        <div class="flex items-start gap-3">
+                                            <flux:icon name="exclamation-triangle" class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                                            <div>
+                                                <flux:text class="text-sm text-yellow-700 dark:text-yellow-300">
+                                                    Promotion credit pricing is currently unavailable. Please try again later.
+                                                </flux:text>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="flex justify-end gap-3 mt-6">
+                                <flux:modal.close>
+                                    <flux:button variant="ghost">Cancel</flux:button>
+                                </flux:modal.close>
+                                <flux:button
+                                    wire:click="purchasePromotionCredits"
+                                    variant="primary"
+                                    wire:loading.attr="disabled"
+                                    :disabled="!$this->promoCreditPrice">
+                                    <span wire:loading.remove wire:target="purchasePromotionCredits">Purchase Credits</span>
+                                    <span wire:loading wire:target="purchasePromotionCredits">Processing...</span>
+                                </flux:button>
+                            </div>
+                        </div>
+                    </flux:modal>
+
+                    <flux:modal name="addPaymentMethodFirst">
+                        <div class="p-6">
+                            <flux:heading size="xl" class="mb-2">Payment Method Required</flux:heading>
+                            <flux:text class="text-gray-600 dark:text-gray-400 mb-6">
+                                You need to add a payment method before purchasing promotion credits.
+                            </flux:text>
+
+                            <div class="flex justify-end gap-3 mt-6">
+                                <flux:modal.close>
+                                    <flux:button variant="ghost">Cancel</flux:button>
+                                </flux:modal.close>
+                                <flux:modal.close>
+                                    <flux:button
+                                        wire:click="setActiveTab('billing')"
+                                        variant="primary">
+                                        Go to Billing
+                                    </flux:button>
+                                </flux:modal.close>
+                            </div>
+                        </div>
+                    </flux:modal>
+
+                    <flux:separator />
+
                     {{-- Username --}}
                     <div>
                         <div class="flex items-center mb-6">

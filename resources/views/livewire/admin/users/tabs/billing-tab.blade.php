@@ -206,6 +206,78 @@
             </div>
         </flux:card>
 
+        <!-- Promotion Credits Section -->
+        <flux:card>
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <flux:heading>Promotion Credits</flux:heading>
+                    <flux:text class="text-gray-600 dark:text-gray-400 mt-1">
+                        Manage profile promotion credits for this {{ $user->isBusinessAccount() ? 'business' : 'influencer' }}.
+                    </flux:text>
+                </div>
+                <flux:badge color="{{ $this->promotionCredits > 0 ? 'green' : 'zinc' }}" size="sm">
+                    {{ $this->promotionCredits }} {{ Str::plural('credit', $this->promotionCredits) }}
+                </flux:badge>
+            </div>
+
+            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <flux:text class="text-sm text-gray-500 dark:text-gray-400">Available Credits</flux:text>
+                        <flux:text class="font-semibold text-gray-900 dark:text-white text-2xl">
+                            {{ $this->promotionCredits }}
+                        </flux:text>
+                    </div>
+                    <div>
+                        <flux:text class="text-sm text-gray-500 dark:text-gray-400">Promotion Status</flux:text>
+                        <div class="flex items-center gap-2">
+                            @if($this->isPromoted)
+                                <flux:badge color="green" size="sm">Active</flux:badge>
+                            @else
+                                <flux:badge color="zinc" size="sm">Inactive</flux:badge>
+                            @endif
+                        </div>
+                    </div>
+                    <div>
+                        <flux:text class="text-sm text-gray-500 dark:text-gray-400">Promoted Until</flux:text>
+                        <flux:text class="font-semibold text-gray-900 dark:text-white">
+                            {{ $this->promotedUntil ?? 'N/A' }}
+                        </flux:text>
+                    </div>
+                </div>
+            </div>
+
+            @if($this->isPromoted)
+                <div class="border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mb-6">
+                    <div class="flex items-start gap-3">
+                        <flux:icon name="sparkles" class="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
+                        <div>
+                            <flux:heading size="sm">Profile is Currently Promoted</flux:heading>
+                            <flux:text class="text-sm text-green-700 dark:text-green-300 mt-1">
+                                This profile is highlighted in search results until {{ $this->promotedUntil }}.
+                            </flux:text>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <flux:separator class="my-6" />
+
+            <div>
+                <flux:heading size="sm" class="mb-4">Credit Actions</flux:heading>
+                <div class="flex flex-wrap gap-3">
+                    <flux:button wire:click="$dispatch('open-grant-credits-modal', { userId: {{ $user->id }} })" variant="primary" icon="plus">
+                        Grant Credits
+                    </flux:button>
+                    @if($this->promotionCredits > 0)
+                        <flux:button wire:click="$dispatch('open-revoke-credits-modal', { userId: {{ $user->id }} })" variant="danger" icon="minus">
+                            Revoke Credits
+                        </flux:button>
+                    @endif
+                </div>
+            </div>
+        </flux:card>
+
         <!-- Payment Method Section -->
         <flux:card>
             <div class="flex items-center justify-between mb-6">
@@ -259,7 +331,7 @@
                 </flux:text>
             </div>
 
-            @if(count($this->invoices) > 0)
+            @if(count($this->billingHistory) > 0)
                 <div class="overflow-hidden border border-gray-200 dark:border-gray-700 rounded-lg">
                     <table class="w-full">
                         <thead class="bg-gray-50 dark:bg-gray-900/50">
@@ -272,34 +344,34 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                            @foreach($this->invoices as $invoice)
+                            @foreach($this->billingHistory as $item)
                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/30">
                                     <td class="px-4 py-3">
-                                        <flux:text class="text-sm">{{ $invoice['date'] }}</flux:text>
+                                        <flux:text class="text-sm">{{ $item['date'] }}</flux:text>
                                     </td>
                                     <td class="px-4 py-3">
-                                        <flux:text class="text-sm font-medium">{{ $invoice['description'] }}</flux:text>
+                                        <flux:text class="text-sm font-medium">{{ $item['description'] }}</flux:text>
                                     </td>
                                     <td class="px-4 py-3">
-                                        <flux:text class="text-sm font-medium">{{ $invoice['total'] }}</flux:text>
+                                        <flux:text class="text-sm font-medium">{{ $item['total'] }}</flux:text>
                                     </td>
                                     <td class="px-4 py-3">
                                         <flux:badge
-                                            color="{{ $invoice['status'] === 'paid' ? 'green' : ($invoice['status'] === 'open' ? 'yellow' : 'zinc') }}"
+                                            color="{{ $item['status'] === 'paid' ? 'green' : ($item['status'] === 'open' ? 'yellow' : 'zinc') }}"
                                             size="sm"
                                         >
-                                            {{ ucfirst($invoice['status']) }}
+                                            {{ ucfirst($item['status']) }}
                                         </flux:badge>
                                     </td>
                                     <td class="px-4 py-3 text-right">
                                         <div class="flex items-center justify-end gap-1">
-                                            @if($invoice['invoice_pdf'])
-                                                <flux:button href="{{ $invoice['invoice_pdf'] }}" target="_blank" variant="ghost" size="sm" icon="document-text" title="Download Invoice">
+                                            @if($item['invoice_pdf'])
+                                                <flux:button href="{{ $item['invoice_pdf'] }}" target="_blank" variant="ghost" size="sm" icon="document-text" title="Download Invoice">
                                                     Invoice
                                                 </flux:button>
                                             @endif
-                                            @if($invoice['status'] === 'paid' && $invoice['receipt_pdf'])
-                                                <flux:button href="{{ $invoice['receipt_pdf'] }}" target="_blank" variant="ghost" size="sm" icon="receipt-percent" title="Download Receipt">
+                                            @if($item['status'] === 'paid' && $item['receipt_url'])
+                                                <flux:button href="{{ $item['receipt_url'] }}" target="_blank" variant="ghost" size="sm" icon="receipt-percent" title="View Receipt">
                                                     Receipt
                                                 </flux:button>
                                             @endif
@@ -313,7 +385,7 @@
             @else
                 <div class="text-center py-8">
                     <flux:icon name="document-text" class="w-10 h-10 mx-auto text-gray-400 mb-3" />
-                    <flux:text class="text-gray-500 dark:text-gray-400">No invoices found.</flux:text>
+                    <flux:text class="text-gray-500 dark:text-gray-400">No billing history found.</flux:text>
                 </div>
             @endif
         </flux:card>
@@ -380,4 +452,6 @@
 <livewire:admin.users.modals.extend-trial-modal />
 <livewire:admin.users.modals.apply-coupon-modal />
 <livewire:admin.users.modals.swap-plan-modal />
+<livewire:admin.users.modals.grant-credits-modal />
+<livewire:admin.users.modals.revoke-credits-modal />
 </div>
