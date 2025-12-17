@@ -56,10 +56,23 @@ class CancelTrialModal extends Component
         return null;
     }
 
+    protected function setCashierModel(): void
+    {
+        $billable = $this->billable;
+
+        if ($billable instanceof Business) {
+            Cashier::useCustomerModel(Business::class);
+        } elseif ($billable instanceof Influencer) {
+            Cashier::useCustomerModel(Influencer::class);
+        }
+    }
+
     public function cancelTrial(): void
     {
         try {
             $this->isProcessing = true;
+            $this->setCashierModel();
+
             $subscription = $this->billable?->subscription('default');
 
             if (! $subscription) {

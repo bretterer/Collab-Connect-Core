@@ -6,6 +6,7 @@ use App\Models\Business;
 use App\Models\Influencer;
 use App\Models\User;
 use Flux\Flux;
+use Laravel\Cashier\Cashier;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -52,10 +53,23 @@ class CancelSubscriptionModal extends Component
         return null;
     }
 
+    protected function setCashierModel(): void
+    {
+        $billable = $this->billable;
+
+        if ($billable instanceof Business) {
+            Cashier::useCustomerModel(Business::class);
+        } elseif ($billable instanceof Influencer) {
+            Cashier::useCustomerModel(Influencer::class);
+        }
+    }
+
     public function cancelSubscription(): void
     {
         try {
             $this->isProcessing = true;
+            $this->setCashierModel();
+
             $subscription = $this->billable?->subscription('default');
 
             if (! $subscription) {
@@ -79,6 +93,8 @@ class CancelSubscriptionModal extends Component
     {
         try {
             $this->isProcessing = true;
+            $this->setCashierModel();
+
             $subscription = $this->billable?->subscription('default');
 
             if (! $subscription) {

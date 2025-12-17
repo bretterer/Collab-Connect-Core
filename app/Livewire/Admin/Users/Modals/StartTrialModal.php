@@ -8,6 +8,7 @@ use App\Models\StripeProduct;
 use App\Models\User;
 use App\Settings\SubscriptionSettings;
 use Flux\Flux;
+use Laravel\Cashier\Cashier;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -65,6 +66,17 @@ class StartTrialModal extends Component
         return null;
     }
 
+    protected function setCashierModel(): void
+    {
+        $billable = $this->billable;
+
+        if ($billable instanceof Business) {
+            Cashier::useCustomerModel(Business::class);
+        } elseif ($billable instanceof Influencer) {
+            Cashier::useCustomerModel(Influencer::class);
+        }
+    }
+
     #[Computed]
     public function availablePlans(): \Illuminate\Support\Collection
     {
@@ -97,6 +109,8 @@ class StartTrialModal extends Component
 
         try {
             $this->isProcessing = true;
+            $this->setCashierModel();
+
             $billable = $this->billable;
             $user = $this->user;
 

@@ -31,10 +31,24 @@ class BillingTab extends Component
     {
         $this->user = $user->load(['businesses', 'influencer']);
 
+        // Set the correct Cashier model based on billable type
+        $this->setCashierModel();
+
         // Validate Stripe data
         if ($this->billable) {
             $this->validateStripeCustomer();
             $this->validateStripeSubscription();
+        }
+    }
+
+    protected function setCashierModel(): void
+    {
+        $billable = $this->billable;
+
+        if ($billable instanceof Business) {
+            Cashier::useCustomerModel(Business::class);
+        } elseif ($billable instanceof Influencer) {
+            Cashier::useCustomerModel(Influencer::class);
         }
     }
 
