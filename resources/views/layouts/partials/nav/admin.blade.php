@@ -21,6 +21,10 @@
         Influencers
     </flux:navlist.item>
 
+    <flux:navlist.item href="{{ route('admin.audit-log') }}" icon="clipboard-document-list" :current="request()->routeIs('admin.audit-log')">
+        Audit Log
+    </flux:navlist.item>
+
     <flux:navlist.item href="{{ route('admin.beta-invites') }}" icon="envelope" :current="request()->routeIs('admin.beta-invites')">
         Beta Invites
     </flux:navlist.item>
