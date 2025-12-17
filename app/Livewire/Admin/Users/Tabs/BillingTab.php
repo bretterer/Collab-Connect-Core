@@ -432,26 +432,25 @@ class BillingTab extends Component
     }
 
     #[Computed]
-    public function invoices(): array
+    public function billingHistory(): array
     {
         if (! $this->billable?->hasStripeId() || $this->stripeCustomerInvalid) {
             return [];
         }
 
+        $items = collect();
+
+        // Get invoices (subscription payments)
         try {
-            return $this->billable->invoices()->map(function ($invoice) {
+            $invoiceItems = $this->billable->invoices()->map(function ($invoice) {
                 $stripeInvoice = $invoice->asStripeInvoice();
 
-                // Get receipt PDF URL from the charge if invoice is paid
-                $receiptPdfUrl = null;
+                $receiptUrl = null;
                 if ($stripeInvoice->status === 'paid' && $stripeInvoice->charge) {
                     try {
                         $charge = Cashier::stripe()->charges->retrieve($stripeInvoice->charge);
-                        if ($charge->receipt_url) {
-                            // Convert receipt URL to direct PDF download by adding /pdf before query params
-                            $receiptPdfUrl = preg_replace('/(\?|$)/', '/pdf$1', $charge->receipt_url, 1);
-                        }
-                    } catch (\Exception $e) {
+                        $receiptUrl = $charge->receipt_url;
+                    } catch (\Exception) {
                         // Ignore if we can't fetch the charge
                     }
                 }
@@ -459,16 +458,71 @@ class BillingTab extends Component
                 return [
                     'id' => $invoice->id,
                     'date' => $invoice->date()->format('M j, Y'),
+                    'timestamp' => $invoice->date()->timestamp,
                     'total' => $invoice->total(),
                     'status' => $stripeInvoice->status,
                     'invoice_pdf' => $stripeInvoice->invoice_pdf,
-                    'receipt_pdf' => $receiptPdfUrl,
+                    'receipt_url' => $receiptUrl,
                     'description' => $invoice->lines->first()?->description ?? 'Invoice',
+                    'type' => 'invoice',
                 ];
-            })->toArray();
-        } catch (\Exception $e) {
-            return [];
+            });
+            $items = $items->merge($invoiceItems);
+        } catch (\Exception) {
+            // Ignore invoice fetch errors
         }
+
+        // Get standalone charges (one-time payments like credit purchases)
+        try {
+            $charges = Cashier::stripe()->charges->all([
+                'customer' => $this->billable->stripe_id,
+                'limit' => 100,
+            ]);
+
+            // Get charge IDs that are already in invoices
+            $invoiceChargeIds = $items->pluck('id')
+                ->filter(fn ($id) => str_starts_with($id, 'in_'))
+                ->map(function ($invoiceId) {
+                    try {
+                        $invoice = Cashier::stripe()->invoices->retrieve($invoiceId);
+
+                        return $invoice->charge;
+                    } catch (\Exception) {
+                        return null;
+                    }
+                })
+                ->filter()
+                ->toArray();
+
+            foreach ($charges->data as $charge) {
+                // Skip charges that are part of an invoice (already shown above)
+                if ($charge->invoice || in_array($charge->id, $invoiceChargeIds)) {
+                    continue;
+                }
+
+                // Only show successful charges
+                if ($charge->status !== 'succeeded') {
+                    continue;
+                }
+
+                $items->push([
+                    'id' => $charge->id,
+                    'date' => \Carbon\Carbon::createFromTimestamp($charge->created)->format('M j, Y'),
+                    'timestamp' => $charge->created,
+                    'total' => '$'.number_format($charge->amount / 100, 2),
+                    'status' => 'paid',
+                    'invoice_pdf' => null,
+                    'receipt_url' => $charge->receipt_url,
+                    'description' => $charge->description ?? 'One-time payment',
+                    'type' => 'charge',
+                ]);
+            }
+        } catch (\Exception) {
+            // Ignore charge fetch errors
+        }
+
+        // Sort by date descending
+        return $items->sortByDesc('timestamp')->values()->toArray();
     }
 
     #[Computed]
@@ -608,7 +662,7 @@ class BillingTab extends Component
 
             Toaster::success('Stripe customer synced successfully.');
 
-            unset($this->stripeCustomer, $this->paymentMethods, $this->invoices);
+            unset($this->stripeCustomer, $this->paymentMethods, $this->billingHistory);
 
             $this->isProcessing = false;
         } catch (\Exception $e) {
