@@ -23,3 +23,4 @@ Schedule::job(new \App\Jobs\ProcessReferralPayouts(attemptNumber: 2))->monthlyOn
 Schedule::job(new \App\Jobs\ProcessReferralPayouts(attemptNumber: 3))->monthlyOn(21, '10:00');
 
 Schedule::job(new \App\Jobs\ReenableInfluencers)->dailyAt('02:00');
+Schedule::job(new \App\Jobs\HandleProfilePromotionUpdates)->dailyAt('23:00');

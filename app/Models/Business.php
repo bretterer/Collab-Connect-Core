@@ -52,6 +52,8 @@ class Business extends Model implements HasMedia
             'business_goals' => 'array',
             'platforms' => 'array',
             'campaign_defaults' => 'array',
+            'is_promoted' => 'boolean',
+            'promoted_until' => 'datetime',
         ];
     }
 
