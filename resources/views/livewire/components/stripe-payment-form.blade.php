@@ -146,7 +146,6 @@
             };
 
             const cleanupStripeElements = () => {
-                console.log('Cleaning up Stripe Elements');
 
                 if (window.stripeElements) {
                     try {
@@ -154,7 +153,6 @@
                         window.stripeElements.cardExpiry?.unmount();
                         window.stripeElements.cardCvc?.unmount();
                     } catch (e) {
-                        console.log('Stripe elements already unmounted');
                     }
                     window.stripeElements = null;
                 }
@@ -163,7 +161,7 @@
             };
 
             const initializeStripeElements = () => {
-                console.log('Stripe.js loaded, initializing elements');
+
                 if (paymentformInitialized) {
                     hideLoadingOverlay();
                 }
@@ -175,7 +173,7 @@
                     clearTimeout(timeoutId);
                 }
 
-                console.log('Initializing Stripe Payment Form');
+
 
                 const stripe = window.Stripe;
                 const elements = stripe.elements();
@@ -236,7 +234,6 @@
                     cardCvc: cardCvc
                 };
 
-                console.log('Stripe Elements initialized successfully');
 
                 // Hide loading overlay
                 hideLoadingOverlay();
@@ -261,9 +258,7 @@
             }
 
             Livewire.on('reloadStripeFromLivewire', async () => {
-                console.log('Received Livewire event to reload Stripe Elements');
                 cleanupStripeElements();
-                console.log('Re-initializing Stripe Elements from Livewire event');
                 setTimeout(() => initializeStripeElements(), 100);
             });
 
