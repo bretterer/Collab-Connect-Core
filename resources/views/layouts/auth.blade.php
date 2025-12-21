@@ -38,22 +38,13 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    @if(!app()->environment('local'))
-            <script
-                defer
-                data-website-id="68953b233e0aad41246ad8b4"
-                data-domain="collabconnect.app"
-                src="https://datafa.st/js/script.js">
-            </script>
-        @endif
+        {{-- Analytics and Meta Pixel are loaded dynamically based on cookie consent --}}
 
-        <x-metapixel-head :userIdAsString="true"/>
-
+    <x-head />
 </head>
 
 <body class="h-full bg-white dark:bg-gray-900">
-    {{-- Pixel code --}}
-    <x-metapixel-body/>
+    <x-body />
     @php
         $bgImage = collect([
             [
@@ -101,6 +92,7 @@
     </div>
 
     @fluxScripts()
+    @livewireScripts
 
     <x-toaster-hub />
 

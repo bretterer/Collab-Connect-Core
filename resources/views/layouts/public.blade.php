@@ -18,23 +18,18 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    @if(!app()->environment('local'))
-        <script
-            defer
-            data-website-id="68953b233e0aad41246ad8b4"
-            data-domain="collabconnect.app"
-            src="https://datafa.st/js/script.js">
-        </script>
-    @endif
+    <x-head />
 
     @stack('styles')
-
-    <x-metapixel-head :userIdAsString="true"/>
 </head>
 <body class="antialiased">
-    <x-metapixel-body/>
+    <x-body />
     {{ $slot }}
 
     @stack('scripts')
+
+    @fluxScripts()
+    @livewireScripts
+
 </body>
 </html>

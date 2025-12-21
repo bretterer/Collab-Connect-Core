@@ -16,11 +16,15 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HandleToastMessages::class,
             \App\Http\Middleware\SetCashierModel::class,
             \App\Http\Middleware\SecurityHeaders::class,
-            \Combindma\FacebookPixel\MetaPixelMiddleware::class,
+            // MetaPixelMiddleware removed - pixel loaded dynamically based on cookie consent
         ]);
 
         $middleware->validateCsrfTokens(except: [
             'stripe/webhook',
+        ]);
+
+        $middleware->encryptCookies(except: [
+            'cookie_consent',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
