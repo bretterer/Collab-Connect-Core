@@ -43,10 +43,14 @@
         src="https://datafa.st/js/script.js">
     </script>
     @endif
+
+    <x-metapixel-head :userIdAsString="true"/>
 </head>
 
 <body class="h-full bg-gray-50 dark:bg-gray-900 font-sans antialiased">
+    <x-metapixel-body/>
     <div class="min-h-full">
+
         {{ $slot }}
     </div>
 

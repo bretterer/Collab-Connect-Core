@@ -13,6 +13,7 @@ use App\Models\ReferralEnrollment;
 use App\Models\User;
 use App\Models\Waitlist;
 use App\Settings\RegistrationMarkets;
+use Combindma\FacebookPixel\Facades\MetaPixel;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -252,8 +253,10 @@ class Register extends Component
 
         // Redirect to market waitlist page if not approved (and markets enabled), otherwise to email verification
         if ($this->registrationMarketsEnabled && ! $isMarketApproved) {
+            MetaPixel::flashEvent('CompleteRegistration', ['user_id' => $user->id, 'market_waitlist' => true]);
             $this->redirect(route('market-waitlist'), navigate: true);
         } else {
+            MetaPixel::flashEvent('CompleteRegistration', ['user_id' => $user->id]);
             $this->redirect(route('verification.notice', absolute: false), navigate: true);
         }
     }

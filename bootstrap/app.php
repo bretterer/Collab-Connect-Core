@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HandleToastMessages::class,
             \App\Http\Middleware\SetCashierModel::class,
             \App\Http\Middleware\SecurityHeaders::class,
+            \Combindma\FacebookPixel\MetaPixelMiddleware::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [

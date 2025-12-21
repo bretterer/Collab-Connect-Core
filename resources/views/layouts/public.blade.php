@@ -28,8 +28,11 @@
     @endif
 
     @stack('styles')
+
+    <x-metapixel-head :userIdAsString="true"/>
 </head>
 <body class="antialiased">
+    <x-metapixel-body/>
     {{ $slot }}
 
     @stack('scripts')

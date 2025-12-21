@@ -11,6 +11,8 @@ use App\Models\MarketZipcode;
 use App\Models\PostalCode;
 use App\Models\User;
 use App\Settings\RegistrationMarkets;
+use Combindma\FacebookPixel\Facades\MetaPixel;
+use FacebookAds\Object\ServerSide\CustomData;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -66,6 +68,12 @@ class CustomSignup extends Component
 
         // Check if payment is required
         $this->requiresPayment = $this->signupPage->hasOneTimePayment();
+
+        // Track Lead event when user lands on custom signup page
+        MetaPixel::track('Lead', [
+            'content_category' => 'custom_signup',
+            'content_name' => $this->signupPage->slug,
+        ]);
     }
 
     public function register(): void
@@ -74,6 +82,14 @@ class CustomSignup extends Component
         if ($this->requiresPayment) {
             $this->validateRegistration();
             $this->isProcessing = true;
+
+            // Track InitiateCheckout when starting payment flow
+            MetaPixel::track('InitiateCheckout', [
+                'content_name' => $this->signupPage->name,
+                'value' => $this->signupPage->getOneTimePaymentAmount() / 100,
+                'currency' => 'USD',
+            ]);
+
             $this->dispatch('createStripePaymentMethod');
 
             return;
@@ -262,6 +278,14 @@ class CustomSignup extends Component
                 'payment_method_types' => ['card'],
             ]
         );
+
+        // Track Purchase event via server-side Conversions API for reliability
+        $customData = (new CustomData)
+            ->setCurrency('USD')
+            ->setValue($this->signupPage->getOneTimePaymentAmount() / 100)
+            ->setContentName($this->signupPage->name);
+
+        MetaPixel::send('Purchase', uniqid('purchase_', true), $customData);
     }
 
     protected function createSubscription(User $user, Business|Influencer $billableModel, ?string $paymentMethodId): void
@@ -301,6 +325,15 @@ class CustomSignup extends Component
                     'signup_page_slug' => $this->signupPage->slug,
                 ],
             ]);
+
+        // Track StartTrial event for subscription with trial
+        if ($trialDays > 0) {
+            MetaPixel::track('StartTrial', [
+                'value' => 0,
+                'currency' => 'USD',
+                'predicted_ltv' => 0,
+            ]);
+        }
     }
 
     protected function sendWebhookNotification(User $user): void

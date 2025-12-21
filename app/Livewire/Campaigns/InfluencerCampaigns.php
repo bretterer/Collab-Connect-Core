@@ -8,6 +8,7 @@ use App\Enums\CampaignStatus;
 use App\Facades\MatchScore;
 use App\Livewire\BaseComponent;
 use App\Models\Campaign;
+use Combindma\FacebookPixel\Facades\MetaPixel;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -68,6 +69,12 @@ class InfluencerCampaigns extends BaseComponent
             return redirect()->route('campaigns.index');
         }
         // URL parameters will be automatically loaded due to $queryString property
+
+        // Track ViewContent for campaign discovery page
+        MetaPixel::track('ViewContent', [
+            'content_type' => 'campaign_discovery',
+            'content_category' => 'campaigns',
+        ]);
     }
 
     public function getOpenCampaigns()
@@ -173,6 +180,14 @@ class InfluencerCampaigns extends BaseComponent
     public function updatedSearch()
     {
         $this->resetPage();
+
+        // Track Search event when search query changes
+        if (! empty($this->search)) {
+            MetaPixel::track('Search', [
+                'search_string' => $this->search,
+                'content_category' => 'campaigns',
+            ]);
+        }
     }
 
     public function updatedSelectedNiches()

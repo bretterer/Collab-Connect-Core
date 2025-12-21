@@ -227,8 +227,11 @@
                 color: var(--primary-600);
             }
         </style>
+
+        <x-metapixel-head :userIdAsString="true"/>
     </head>
     <body class="font-inter bg-white dark:bg-gray-900 min-h-screen">
+        <x-metapixel-body/>
         <!-- Modern Professional Header -->
         <header class="bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50" x-data="{ mobileMenuOpen: false }">
             <div class="container-custom">

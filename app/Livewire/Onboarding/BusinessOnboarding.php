@@ -12,6 +12,8 @@ use App\Models\BusinessUser;
 use App\Models\StripeProduct;
 use App\Rules\UniqueUsername;
 use App\Settings\SubscriptionSettings;
+use Combindma\FacebookPixel\Facades\MetaPixel;
+use FacebookAds\Object\ServerSide\CustomData;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Layout;
@@ -178,6 +180,11 @@ class BusinessOnboarding extends Component
 
         $this->selectedPriceId = $this->getSubscriptionProducts()->first()?->prices->first()?->id ?? null;
 
+        // Track Lead event when user starts business onboarding
+        MetaPixel::track('Lead', [
+            'content_category' => 'onboarding',
+            'content_name' => 'business_onboarding',
+        ]);
     }
 
     private function fillBusinessData(): void
@@ -324,6 +331,14 @@ class BusinessOnboarding extends Component
         // If on step 5 (subscription), handle Stripe payment first
         if ($this->business !== null && ! $this->business->subscribed('default') && $this->step === 5) {
             if (! empty($this->selectedPriceId)) {
+                // Track InitiateCheckout when user starts payment flow
+                $price = \App\Models\StripePrice::find($this->selectedPriceId);
+                MetaPixel::track('InitiateCheckout', [
+                    'content_name' => $price?->product?->name ?? 'Business Subscription',
+                    'value' => $price ? $price->unit_amount / 100 : 0,
+                    'currency' => 'USD',
+                ]);
+
                 // Dispatch event to create Stripe payment method
                 $this->dispatch('createStripePaymentMethod');
                 $this->isNavigationDisabled = true;
@@ -370,6 +385,20 @@ class BusinessOnboarding extends Component
                     'business_name' => $business->name,
                     'individual_name' => $user->name,
                 ]);
+
+            if (! $subscription) {
+                $this->dispatch('stripePaymentMethodError', message: 'Failed to create subscription. Please try again.');
+
+                return;
+            }
+
+            // Track Subscribe event via server-side Conversions API for reliability
+            $customData = (new CustomData)
+                ->setCurrency('USD')
+                ->setValue($price->unit_amount / 100)
+                ->setPredictedLtv(($price->unit_amount / 100) * 12);
+
+            MetaPixel::send('Subscribe', uniqid('subscribe_', true), $customData);
 
             if ($this->step < $this->getMaxSteps()) {
                 $this->step++;

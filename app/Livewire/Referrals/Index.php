@@ -6,6 +6,7 @@ use App\Enums\PercentageChangeType;
 use App\Enums\ReferralStatus;
 use App\Models\ReferralEnrollment;
 use App\Models\ReferralPercentageHistory;
+use Combindma\FacebookPixel\Facades\MetaPixel;
 use Flux\Flux;
 use Illuminate\Support\Str;
 use Laravel\Pennant\Feature;
@@ -76,6 +77,11 @@ class Index extends Component
             $this->stats = $this->refreshReferralStats();
         }
 
+        // Track ViewContent for referral program page
+        MetaPixel::track('ViewContent', [
+            'content_type' => 'referral_program',
+            'content_category' => 'referrals',
+        ]);
     }
 
     public function enrollInProgram()

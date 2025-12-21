@@ -38,11 +38,12 @@
                     <a href="#information-sharing" class="block px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 rounded-md transition-colors">4. Information Sharing</a>
                     <a href="#data-security" class="block px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 rounded-md transition-colors">5. Data Security</a>
                     <a href="#cookies" class="block px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 rounded-md transition-colors">6. Cookies & Analytics</a>
-                    <a href="#your-rights" class="block px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 rounded-md transition-colors">7. Your Rights</a>
-                    <a href="#children" class="block px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 rounded-md transition-colors">8. Children's Privacy</a>
-                    <a href="#international" class="block px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 rounded-md transition-colors">9. International Users</a>
-                    <a href="#changes" class="block px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 rounded-md transition-colors">10. Policy Changes</a>
-                    <a href="#contact" class="block px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 rounded-md transition-colors">11. Contact Us</a>
+                    <a href="#meta-pixel" class="block px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 rounded-md transition-colors">7. Meta (Facebook) Pixel</a>
+                    <a href="#your-rights" class="block px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 rounded-md transition-colors">8. Your Rights</a>
+                    <a href="#children" class="block px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 rounded-md transition-colors">9. Children's Privacy</a>
+                    <a href="#international" class="block px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 rounded-md transition-colors">10. International Users</a>
+                    <a href="#changes" class="block px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 rounded-md transition-colors">11. Policy Changes</a>
+                    <a href="#contact" class="block px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 rounded-md transition-colors">12. Contact Us</a>
                 </nav>
             </div>
         </div>
@@ -164,9 +165,69 @@
                 </p>
             </section>
 
+            <!-- Meta (Facebook) Pixel -->
+            <section id="meta-pixel" class="feature-card">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">7. Meta (Facebook) Pixel</h2>
+                <p class="text-gray-600 dark:text-gray-300 mb-4">
+                    We use Meta Pixel (formerly Facebook Pixel) to measure the effectiveness of our advertising and understand how users interact with our platform. This technology helps us improve our services and deliver more relevant advertisements.
+                </p>
+
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">What Data is Collected</h3>
+                <p class="text-gray-600 dark:text-gray-300 mb-4">
+                    When you interact with our platform, the Meta Pixel may collect the following types of data:
+                </p>
+                <ul class="list-disc pl-6 text-gray-600 dark:text-gray-300 mb-4">
+                    <li><strong>User Actions (Events):</strong> Registration, subscription, payment completions, page views, search queries, and form submissions</li>
+                    <li><strong>Device Information:</strong> Browser type, operating system, device type, and screen resolution</li>
+                    <li><strong>Technical Data:</strong> IP address (used for geographic targeting), browser cookies, and pixel identifiers</li>
+                    <li><strong>Page Information:</strong> URLs visited and referrer data</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">Events We Track</h3>
+                <p class="text-gray-600 dark:text-gray-300 mb-4">
+                    We use Meta Pixel to track the following standard events to optimize our advertising:
+                </p>
+                <ul class="list-disc pl-6 text-gray-600 dark:text-gray-300 mb-4">
+                    <li><strong>Lead:</strong> When users begin onboarding or open application modals</li>
+                    <li><strong>CompleteRegistration:</strong> When users complete account registration</li>
+                    <li><strong>InitiateCheckout:</strong> When users start a payment or subscription flow</li>
+                    <li><strong>Subscribe:</strong> When users successfully subscribe to a plan</li>
+                    <li><strong>Purchase:</strong> When users complete one-time payments</li>
+                    <li><strong>StartTrial:</strong> When users begin a free trial period</li>
+                    <li><strong>ViewContent:</strong> When users view campaigns, profiles, or other content</li>
+                    <li><strong>Search:</strong> When users search for campaigns or users</li>
+                    <li><strong>SubmitApplication:</strong> When influencers apply to campaigns</li>
+                    <li><strong>Contact:</strong> When users submit contact forms</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">How This Data is Used</h3>
+                <p class="text-gray-600 dark:text-gray-300 mb-4">
+                    Data collected by Meta Pixel is used to:
+                </p>
+                <ul class="list-disc pl-6 text-gray-600 dark:text-gray-300 mb-4">
+                    <li>Measure the effectiveness of our Facebook and Instagram advertisements</li>
+                    <li>Create custom audiences for advertising purposes</li>
+                    <li>Optimize ad delivery to reach users most likely to take action</li>
+                    <li>Understand user behavior to improve our platform</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">Opting Out</h3>
+                <p class="text-gray-600 dark:text-gray-300 mb-4">
+                    You can control how Meta uses your data for advertising through:
+                </p>
+                <ul class="list-disc pl-6 text-gray-600 dark:text-gray-300 mb-4">
+                    <li><strong>Facebook Settings:</strong> Adjust your ad preferences at <a href="https://www.facebook.com/settings/?tab=ads" class="text-blue-600 dark:text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">facebook.com/settings/?tab=ads</a></li>
+                    <li><strong>Digital Advertising Alliance:</strong> Opt out at <a href="https://optout.aboutads.info" class="text-blue-600 dark:text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">optout.aboutads.info</a></li>
+                    <li><strong>Browser Settings:</strong> Block third-party cookies or use browser extensions that block tracking pixels</li>
+                </ul>
+                <p class="text-gray-600 dark:text-gray-300">
+                    For more information about how Meta processes your data, please review <a href="https://www.facebook.com/privacy/policy/" class="text-blue-600 dark:text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">Meta's Privacy Policy</a>.
+                </p>
+            </section>
+
             <!-- Your Rights -->
             <section id="your-rights" class="feature-card">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">7. Your Rights</h2>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">8. Your Rights</h2>
                 <p class="text-gray-600 dark:text-gray-300 mb-4">You have the right to:</p>
                 <ul class="list-disc pl-6 text-gray-600 dark:text-gray-300 mb-4">
                     <li><strong>Access:</strong> Request a copy of the personal information we hold about you</li>
@@ -184,7 +245,7 @@
 
             <!-- Children's Privacy -->
             <section id="children" class="feature-card">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">8. Children's Privacy</h2>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">9. Children's Privacy</h2>
                 <p class="text-gray-600 dark:text-gray-300">
                     CollabConnect is not intended for use by children under 13. We do not knowingly collect personal information from children under 13. If we become aware that a child under 13 has provided us with personal information, we will delete such information immediately.
                 </p>
@@ -192,7 +253,7 @@
 
             <!-- International Users -->
             <section id="international" class="feature-card">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">9. International Users</h2>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">10. International Users</h2>
                 <p class="text-gray-600 dark:text-gray-300 mb-4">
                     CollabConnect is based in the United States. If you are accessing our services from outside the US, please be aware that your information may be transferred to, stored, and processed in the US.
                 </p>
@@ -203,7 +264,7 @@
 
             <!-- Policy Changes -->
             <section id="changes" class="feature-card">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">10. Policy Changes</h2>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">11. Policy Changes</h2>
                 <p class="text-gray-600 dark:text-gray-300 mb-4">
                     We may update this Privacy Policy from time to time. We will notify you of any material changes by:
                 </p>
@@ -219,7 +280,7 @@
 
             <!-- Contact -->
             <section id="contact" class="feature-card">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">11. Contact Us</h2>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">12. Contact Us</h2>
                 <p class="text-gray-600 dark:text-gray-300 mb-4">
                     If you have questions about this Privacy Policy or our data practices, please contact us:
                 </p>

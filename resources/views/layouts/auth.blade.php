@@ -47,9 +47,13 @@
             </script>
         @endif
 
+        <x-metapixel-head :userIdAsString="true"/>
+
 </head>
 
 <body class="h-full bg-white dark:bg-gray-900">
+    {{-- Pixel code --}}
+    <x-metapixel-body/>
     @php
         $bgImage = collect([
             [

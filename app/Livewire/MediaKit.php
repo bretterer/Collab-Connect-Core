@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Combindma\FacebookPixel\Facades\MetaPixel;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -15,6 +16,12 @@ class MediaKit extends Component
         if (! Auth::user()->isInfluencerAccount()) {
             return redirect()->route('dashboard');
         }
+
+        // Track ViewContent for media kit page
+        MetaPixel::track('ViewContent', [
+            'content_type' => 'media_kit',
+            'content_category' => 'profile',
+        ]);
     }
 
     public function render()

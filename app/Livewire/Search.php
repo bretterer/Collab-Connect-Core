@@ -6,6 +6,7 @@ use App\Enums\AccountType;
 use App\Enums\BusinessIndustry;
 use App\Enums\SocialPlatform;
 use App\Services\SearchService;
+use Combindma\FacebookPixel\Facades\MetaPixel;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -16,8 +17,19 @@ class Search extends BaseComponent
 {
     use WithPagination;
 
+    public bool $searchTracked = false;
+
     #[Url(except: '')]
     public string $search = '';
+
+    public function mount(): void
+    {
+        // Track ViewContent for search page
+        MetaPixel::track('ViewContent', [
+            'content_type' => 'user_search',
+            'content_category' => 'search',
+        ]);
+    }
 
     #[Url(except: [])]
     public array $selectedNiches = [];
@@ -69,6 +81,15 @@ class Search extends BaseComponent
             'hideHidden',
         ])) {
             $this->resetPage();
+
+            // Track Search event when search is performed (only once per search session)
+            if ($baseProperty === 'search' && ! empty($this->search) && ! $this->searchTracked) {
+                MetaPixel::track('Search', [
+                    'search_string' => $this->search,
+                    'content_category' => 'users',
+                ]);
+                $this->searchTracked = true;
+            }
         }
 
         // Auto-set distance sorting when location is entered
