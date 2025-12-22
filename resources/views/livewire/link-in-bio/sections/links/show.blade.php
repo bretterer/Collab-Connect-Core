@@ -42,6 +42,9 @@
                         href="{{ $link['url'] }}"
                         target="_blank"
                         rel="noopener noreferrer"
+                        data-track-link
+                        data-link-index="{{ $loop->index }}"
+                        data-link-title="{{ $link['title'] ?? 'Link' }}"
                         class="flex flex-col items-center justify-center p-4 text-center transition-all aspect-square hover:scale-[1.02] hover:opacity-90 {{ $containerStyle === 'round' ? 'rounded-3xl' : ($containerStyle === 'square' ? 'rounded-xl' : 'rounded-none') }}"
                         :style="'background-color: ' + linkBgColor + '; {{ $shadow ? 'box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);' : '' }} ' + ({{ $outline ? 'true' : 'false' }} ? 'border: 1px solid ' + borderColor + ';' : '')"
                     >
@@ -71,6 +74,9 @@
                         href="{{ $link['url'] }}"
                         target="_blank"
                         rel="noopener noreferrer"
+                        data-track-link
+                        data-link-index="{{ $loop->index }}"
+                        data-link-title="{{ $link['title'] ?? 'Link' }}"
                         class="block w-full py-4 px-6 text-center transition-all hover:scale-[1.02] hover:opacity-90 {{ $containerStyle === 'round' ? 'rounded-full' : ($containerStyle === 'square' ? 'rounded-xl' : 'rounded-none') }}"
                         :style="'background-color: ' + linkBgColor + '; {{ $shadow ? 'box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);' : '' }} ' + ({{ $outline ? 'true' : 'false' }} ? 'border: 1px solid ' + borderColor + ';' : '')"
                     >

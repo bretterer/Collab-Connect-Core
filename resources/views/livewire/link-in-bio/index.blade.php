@@ -72,6 +72,18 @@
                 >
                     View
                 </flux:button>
+                <flux:button
+                    href="{{ route('link-in-bio.analytics') }}"
+                    wire:navigate
+                    variant="outline"
+                    size="sm"
+                    icon="chart-bar"
+                >
+                    Analytics
+                    @if(!auth()->user()?->influencer?->hasFeatureAccess('analytics_advanced'))
+                        <flux:badge size="sm" color="amber" class="ml-1">Elite</flux:badge>
+                    @endif
+                </flux:button>
             </div>
         </div>
     </flux:card>
