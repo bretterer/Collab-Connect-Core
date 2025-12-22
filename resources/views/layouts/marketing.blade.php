@@ -437,12 +437,12 @@
             }
         </script>
 
-        @fluxScripts
-        @livewireScripts
-
         <!-- Developer Tools Drawer (local only) -->
         @if(app()->environment('local'))
             <livewire:developer-tools-drawer />
         @endif
+
+        @fluxScripts
+        @livewireScripts
     </body>
 </html>
