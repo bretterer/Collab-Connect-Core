@@ -82,6 +82,14 @@ class LinkInBioSettings extends Model
                 'iconSize' => 'small',
                 'openNewTab' => true,
             ],
+
+            // Work With Me Section
+            'workWithMe' => [
+                'enabled' => true,
+                'text' => 'Work With Me',
+                'style' => 'primary',
+                'buttonColor' => '#000000',
+            ],
         ];
     }
 

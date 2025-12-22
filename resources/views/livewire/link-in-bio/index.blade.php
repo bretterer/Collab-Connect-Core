@@ -163,6 +163,9 @@
             {{-- Links Section --}}
             <livewire:link-in-bio.sections.links.index :settings="$linksSettings" key="links-section" />
 
+            {{-- Work With Me Section --}}
+            <livewire:link-in-bio.sections.work-with-me.index :settings="$workWithMeSettings" key="work-with-me-section" />
+
             {{-- Footer Section --}}
             <livewire:link-in-bio.sections.footer.index :settings="$footerSettings" key="footer-section" />
 
@@ -239,6 +242,13 @@
                                     'settings' => $linksSettings,
                                     'designSettings' => ['containerStyle' => $containerStyle],
                                     'isPreview' => true,
+                                ])
+
+                                {{-- Work With Me Section --}}
+                                @include('livewire.link-in-bio.sections.work-with-me.show', [
+                                    'settings' => $workWithMeSettings,
+                                    'designSettings' => ['containerStyle' => $containerStyle],
+                                    'profileUrl' => route('influencer.profile', ['username' => auth()->user()?->influencer?->username ?? auth()->user()?->influencer?->user_id ?? 'profile']),
                                 ])
 
                                 {{-- Footer/Branding --}}

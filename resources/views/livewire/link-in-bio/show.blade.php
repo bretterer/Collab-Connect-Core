@@ -131,6 +131,13 @@
             'isPreview' => false,
         ])
 
+        {{-- Work With Me Section --}}
+        @include('livewire.link-in-bio.sections.work-with-me.show', [
+            'settings' => $workWithMeSettings,
+            'designSettings' => ['containerStyle' => $containerStyle],
+            'profileUrl' => route('influencer.profile', ['username' => $influencer->username ?? $influencer->user_id]),
+        ])
+
         {{-- Footer / Branding --}}
         @include('livewire.link-in-bio.sections.footer.show')
     </div>
