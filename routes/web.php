@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DataFastProxyController;
+use App\Http\Controllers\LinkInBioTrackingController;
 use App\Http\Middleware\EnsureNeedsOnboarding;
 use App\Http\Middleware\EnsureOnboardingCompleted;
 use App\Livewire\LinkInBio;
@@ -19,6 +20,12 @@ Route::get('/signup/{slug}', App\Livewire\CustomSignup::class)->name('signup.sho
 
 // Public Link in Bio pages
 Route::get('/p/{username}', LinkInBio\Show::class)->name('public.link-in-bio');
+
+// Link in Bio tracking endpoints (public, no auth required)
+Route::post('/p/{username}/track/view', [LinkInBioTrackingController::class, 'trackView'])
+    ->name('link-in-bio.track.view');
+Route::post('/p/{username}/track/click', [LinkInBioTrackingController::class, 'trackClick'])
+    ->name('link-in-bio.track.click');
 
 // Broadcasting routes
 Broadcast::routes(['middleware' => ['web', 'auth']]);
@@ -241,6 +248,7 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
         // Link in Bio Routes
         Route::prefix('link-in-bio')->name('link-in-bio.')->group(function () {
             Route::get('/', LinkInBio\Index::class)->name('index');
+            Route::get('/analytics', LinkInBio\Analytics::class)->name('analytics');
         });
     });
 });

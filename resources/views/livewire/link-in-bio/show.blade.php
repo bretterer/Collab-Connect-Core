@@ -151,3 +151,59 @@
         @include('livewire.link-in-bio.sections.footer.show')
     </div>
 </div>
+
+@if(!$isOwner)
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check DNT header - respect user privacy preferences
+    if (navigator.doNotTrack === '1' || window.doNotTrack === '1') {
+        return;
+    }
+
+    var csrfToken = '{{ csrf_token() }}';
+    var trackViewUrl = '{{ route('link-in-bio.track.view', ['username' => $influencer->username]) }}';
+    var trackClickUrl = '{{ route('link-in-bio.track.click', ['username' => $influencer->username]) }}';
+
+    // Track page view using sendBeacon
+    function trackView() {
+        var data = new FormData();
+        data.append('_token', csrfToken);
+
+        if (navigator.sendBeacon) {
+            navigator.sendBeacon(trackViewUrl, data);
+        } else {
+            fetch(trackViewUrl, {
+                method: 'POST',
+                body: data,
+                keepalive: true
+            }).catch(function() {});
+        }
+    }
+
+    trackView();
+
+    // Track link clicks
+    document.querySelectorAll('[data-track-link]').forEach(function(link) {
+        link.addEventListener('click', function() {
+            var data = new FormData();
+            data.append('_token', csrfToken);
+            data.append('link_index', this.dataset.linkIndex);
+            data.append('link_title', this.dataset.linkTitle);
+            data.append('link_url', this.href);
+
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon(trackClickUrl, data);
+            } else {
+                fetch(trackClickUrl, {
+                    method: 'POST',
+                    body: data,
+                    keepalive: true
+                }).catch(function() {});
+            }
+        });
+    });
+});
+</script>
+@endpush
+@endif
