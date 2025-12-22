@@ -29,38 +29,49 @@
                         placeholder="Work With Me"
                     />
 
-                    {{-- Button Style --}}
-                    <div>
-                        <flux:label class="mb-3">Button Style</flux:label>
-                        <div class="grid grid-cols-3 gap-3">
-                            @foreach(['primary' => 'Solid', 'secondary' => 'Subtle', 'outline' => 'Outline'] as $value => $label)
-                                <button
-                                    type="button"
-                                    wire:click="$set('style', '{{ $value }}')"
-                                    class="px-4 py-2 border rounded-lg text-sm transition-all {{ $style === $value ? 'border-gray-900 dark:border-white bg-gray-100 dark:bg-gray-700' : 'border-gray-200 dark:border-gray-600' }}"
-                                >
-                                    {{ $label }}
-                                </button>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    {{-- Button Color (only for Solid style) --}}
-                    @if($style === 'primary')
-                        <div>
-                            <flux:label class="mb-3">Button Color</flux:label>
-                            <div class="flex gap-2 flex-wrap">
-                                @foreach(['#000000', '#dc2626', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899'] as $color)
-                                    <button
-                                        type="button"
-                                        wire:click="$set('buttonColor', '{{ $color }}')"
-                                        class="w-10 h-10 rounded-full border-2 transition-all {{ $buttonColor === $color ? 'border-gray-900 dark:border-white ring-2 ring-offset-2 ring-gray-400' : 'border-gray-200 dark:border-gray-600' }}"
-                                        style="background-color: {{ $color }}"
-                                    ></button>
-                                @endforeach
+                    {{-- Button Style & Color (Elite Feature) --}}
+                    <x-tier-locked
+                        :locked="!$this->hasCustomizationAccess"
+                        :required-tier="$this->requiredTierForCustomization"
+                        title="Elite Feature"
+                        description="Customize your button style with the Elite plan."
+                        overlay-style="blur"
+                    >
+                        <div class="space-y-4 p-4 -mx-4">
+                            {{-- Button Style --}}
+                            <div>
+                                <flux:label class="mb-3">Button Style</flux:label>
+                                <div class="grid grid-cols-3 gap-3">
+                                    @foreach(['primary' => 'Solid', 'secondary' => 'Subtle', 'outline' => 'Outline'] as $value => $label)
+                                        <button
+                                            type="button"
+                                            wire:click="$set('style', '{{ $value }}')"
+                                            class="px-4 py-2 border rounded-lg text-sm transition-all {{ $style === $value ? 'border-gray-900 dark:border-white bg-gray-100 dark:bg-gray-700' : 'border-gray-200 dark:border-gray-600' }}"
+                                        >
+                                            {{ $label }}
+                                        </button>
+                                    @endforeach
+                                </div>
                             </div>
+
+                            {{-- Button Color (only for Solid style) --}}
+                            @if($style === 'primary')
+                                <div>
+                                    <flux:label class="mb-3">Button Color</flux:label>
+                                    <div class="flex gap-2 flex-wrap">
+                                        @foreach(['#000000', '#dc2626', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899'] as $color)
+                                            <button
+                                                type="button"
+                                                wire:click="$set('buttonColor', '{{ $color }}')"
+                                                class="w-10 h-10 rounded-full border-2 transition-all {{ $buttonColor === $color ? 'border-gray-900 dark:border-white ring-2 ring-offset-2 ring-gray-400' : 'border-gray-200 dark:border-gray-600' }}"
+                                                style="background-color: {{ $color }}"
+                                            ></button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
                         </div>
-                    @endif
+                    </x-tier-locked>
 
                     {{-- Link Info --}}
                     <div class="text-sm text-gray-500 dark:text-gray-400">

@@ -87,7 +87,7 @@ class LinkInBioSettings extends Model
             'workWithMe' => [
                 'enabled' => true,
                 'text' => 'Work With Me',
-                'style' => 'primary',
+                'style' => 'secondary',
                 'buttonColor' => '#000000',
             ],
         ];

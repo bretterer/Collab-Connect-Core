@@ -68,7 +68,7 @@ class WorkWithMeIndexTest extends TestCase
         Livewire::test(Index::class)
             ->assertSet('enabled', true)
             ->assertSet('text', 'Work With Me')
-            ->assertSet('style', 'primary')
+            ->assertSet('style', 'secondary')
             ->assertSet('buttonColor', '#000000');
     }
 
@@ -141,7 +141,7 @@ class WorkWithMeIndexTest extends TestCase
         $this->assertEquals([
             'enabled' => true,
             'text' => 'Work With Me',
-            'style' => 'primary',
+            'style' => 'secondary',
             'buttonColor' => '#000000',
         ], $defaults);
     }

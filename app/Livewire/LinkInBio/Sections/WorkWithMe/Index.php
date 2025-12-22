@@ -4,18 +4,20 @@ namespace App\Livewire\LinkInBio\Sections\WorkWithMe;
 
 use App\Livewire\LinkInBio\Contracts\SectionContract;
 use App\Livewire\LinkInBio\Traits\HasSectionSettings;
+use App\Livewire\Traits\EnforcesTierAccess;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class Index extends Component implements SectionContract
 {
+    use EnforcesTierAccess;
     use HasSectionSettings;
 
     public bool $enabled = true;
 
     public string $text = 'Work With Me';
 
-    public string $style = 'primary';
+    public string $style = 'secondary';
 
     public string $buttonColor = '#000000';
 
@@ -29,7 +31,7 @@ class Index extends Component implements SectionContract
         return [
             'enabled' => true,
             'text' => 'Work With Me',
-            'style' => 'primary',
+            'style' => 'secondary',
             'buttonColor' => '#000000',
         ];
     }
@@ -38,7 +40,7 @@ class Index extends Component implements SectionContract
     {
         $this->enabled = $settings['enabled'] ?? true;
         $this->text = $settings['text'] ?? 'Work With Me';
-        $this->style = $settings['style'] ?? 'primary';
+        $this->style = $settings['style'] ?? 'secondary';
         $this->buttonColor = $settings['buttonColor'] ?? '#000000';
     }
 
@@ -82,6 +84,24 @@ class Index extends Component implements SectionContract
     public function isProfileSearchable(): bool
     {
         return $this->influencer?->is_searchable ?? false;
+    }
+
+    #[Computed]
+    public function hasCustomizationAccess(): bool
+    {
+        $influencer = $this->influencer;
+
+        if (! $influencer) {
+            return false;
+        }
+
+        return $influencer->hasFeatureAccess('link_in_bio_customization');
+    }
+
+    #[Computed]
+    public function requiredTierForCustomization(): ?string
+    {
+        return $this->influencer?->getTierRequiredFor('link_in_bio_customization');
     }
 
     public function render()
