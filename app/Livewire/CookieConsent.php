@@ -17,6 +17,8 @@ class CookieConsent extends Component
 
     public bool $marketingEnabled = false;
 
+    protected $listeners = ['reset-cookie-consent' => 'resetConsent'];
+
     public function mount(): void
     {
         $consent = $this->getConsent();
