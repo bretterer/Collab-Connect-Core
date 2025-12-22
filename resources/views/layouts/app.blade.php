@@ -268,6 +268,10 @@
     <x-toaster-hub />
 
     @stack('scripts')
+    <!-- Developer Tools Drawer (local only) -->
+    @if(app()->environment('local'))
+        <livewire:developer-tools-drawer />
+    @endif
     <!-- Feedback Widget -->
     <livewire:feedback-widget />
 </body>
