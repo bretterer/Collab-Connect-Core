@@ -38,13 +38,13 @@ class PayoutCancelledNotification extends Notification implements ShouldQueue
         $amount = number_format($this->payout->amount, 2);
 
         return (new MailMessage)
-            ->subject('Referral Payout Cancelled')
+            ->subject('Affiliate Payout Cancelled')
             ->greeting("Hi {$notifiable->first_name},")
-            ->line("Unfortunately, your referral commission payout of **\${$amount}** has been cancelled.")
+            ->line("Unfortunately, your affiliate commission payout of **\${$amount}** has been cancelled.")
             ->line("**Reason:** {$this->reason}")
             ->line('After 3 attempts to process your payout, we were unable to complete the transaction because no PayPal email was provided.')
-            ->line('To ensure future payouts are processed successfully, please add your PayPal email to your referral account.')
-            ->action('Add PayPal Email', route('referral.index'))
+            ->line('To ensure future payouts are processed successfully, please add your PayPal email to your affiliate account.')
+            ->action('Add PayPal Email', route('affiliate.index'))
             ->line('If you have any questions, please contact our support team.');
     }
 

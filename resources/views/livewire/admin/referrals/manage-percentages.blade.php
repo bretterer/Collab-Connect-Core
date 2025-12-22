@@ -1,9 +1,9 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Header -->
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Manage Referral Percentages</h1>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Manage Affiliate Percentages</h1>
         <p class="text-gray-600 dark:text-gray-400 mt-2">
-            Update and manage referral commission percentages for enrolled referrers.
+            Update and manage affiliate commission percentages for enrolled affiliates.
         </p>
     </div>
 
@@ -12,7 +12,7 @@
         <div class="px-4 py-5 sm:p-6">
             <div class="max-w-md">
                 <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Search Referrers
+                    Search Affiliates
                 </label>
                 <input type="text"
                        wire:model.live.debounce.300ms="search"
@@ -29,13 +29,13 @@
                 <thead class="bg-gray-50 dark:bg-gray-700">
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Referrer
+                            Affiliate
                         </th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Current %
                         </th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Active Referrals
+                            Active Affiliates
                         </th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Last Updated
@@ -105,12 +105,12 @@
                                     <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                     </svg>
-                                    <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-1">No referrers found</h3>
+                                    <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-1">No affiliates found</h3>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">
                                         @if($search)
                                             Try adjusting your search criteria.
                                         @else
-                                            No enrolled referrers yet.
+                                            No enrolled affiliates yet.
                                         @endif
                                     </p>
                                 </div>
@@ -133,7 +133,7 @@
     @if($currentEnrollment)
         <flux:modal name="edit-percentage-modal" wire:model="editingEnrollmentId" variant="slideout" class="space-y-6">
             <div>
-                <flux:heading size="lg">Update Referral Percentage</flux:heading>
+                <flux:heading size="lg">Update Affiliate Percentage</flux:heading>
                 <flux:subheading>
                     <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                         <div class="font-medium text-gray-900 dark:text-white">{{ $currentEnrollment->user->name }}</div>

@@ -3,7 +3,7 @@
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Payout Management</h1>
         <p class="text-gray-600 dark:text-gray-400 mt-2">
-            Review, filter, and retrigger referral payouts.
+            Review, filter, and retrigger affiliate payouts.
         </p>
     </div>
 

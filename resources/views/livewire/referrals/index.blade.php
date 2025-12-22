@@ -2,7 +2,7 @@
 {{-- Business Member - Owner Not Enrolled State --}}
 @if(!$isBusinessOwner && $isEligible && !$isEnrolled)
 <div class="max-w-4xl mx-auto px-4 py-8">
-    <flux:heading size="xl" class="mb-6">Referral Program</flux:heading>
+    <flux:heading size="xl" class="mb-6">Affiliate Program</flux:heading>
 
     <flux:card class="p-8">
         <div class="flex flex-col items-center text-center space-y-6">
@@ -11,24 +11,24 @@
             </div>
 
             <div class="space-y-3">
-                <flux:heading size="lg">Referral Program Available</flux:heading>
+                <flux:heading size="lg">Affiliate Program Available</flux:heading>
                 <flux:text class="text-zinc-600 dark:text-zinc-400 max-w-2xl">
-                    Your business is eligible for the referral program, but it hasn't been set up yet by the business owner.
+                    Your business is eligible for the affiliate program, but it hasn't been set up yet by the business owner.
                 </flux:text>
             </div>
 
             <flux:separator class="w-full max-w-2xl" />
 
             <div class="w-full max-w-2xl space-y-4">
-                <flux:heading size="sm">What is the Referral Program?</flux:heading>
+                <flux:heading size="sm">What is the Affiliate Program?</flux:heading>
                 <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
-                    Our referral program allows your business to earn 10% recurring commission on subscription payments from referred users. Once enrolled, you and your team can share the referral link to start earning.
+                    Our affiliate program allows your business to earn 10% recurring commission on subscription payments from referred users. Once enrolled, you and your team can share the affiliate link to start earning.
                 </flux:text>
             </div>
 
             <flux:callout variant="warning" class="w-full max-w-2xl text-left">
                 <flux:text class="text-sm">
-                    <strong>Action Required:</strong> Please contact your business owner to enroll in the referral program. Once enrolled, you'll be able to share the referral link and track earnings together.
+                    <strong>Action Required:</strong> Please contact your business owner to enroll in the affiliate program. Once enrolled, you'll be able to share the affiliate link and track earnings together.
                 </flux:text>
             </flux:callout>
 
@@ -70,7 +70,7 @@
 {{-- Business Member State (Non-Owner) --}}
 @elseif(!$isBusinessOwner)
 <div class="max-w-4xl mx-auto px-4 py-8">
-    <flux:heading size="xl" class="mb-6">Referral Program</flux:heading>
+    <flux:heading size="xl" class="mb-6">Affiliate Program</flux:heading>
 
     <flux:card class="p-8">
         <div class="flex flex-col items-center text-center space-y-6">
@@ -79,9 +79,9 @@
             </div>
 
             <div class="space-y-3">
-                <flux:heading size="lg">Business Referral Code</flux:heading>
+                <flux:heading size="lg">Business Affiliate Code</flux:heading>
                 <flux:text class="text-zinc-600 dark:text-zinc-400 max-w-2xl">
-                    Share your business's referral link to help grow the team. All referral earnings go to the business owner.
+                    Share your business's affiliate link to help grow the team. All affiliate earnings go to the business owner.
                 </flux:text>
             </div>
 
@@ -89,7 +89,7 @@
 
             <div class="w-full max-w-2xl space-y-4">
                 <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
-                    Business Referral Link
+                    Business Affiliate Link
                 </flux:text>
 
                 <div class="flex gap-3" x-data="{ copied: false }">
@@ -124,7 +124,7 @@
 
             <flux:callout variant="info" class="w-full max-w-2xl text-left">
                 <flux:text class="text-sm">
-                    <strong>Note:</strong> As a business team member, you can share this referral link to help your business grow. All referral rewards and earnings are credited to the business owner's account. Contact your business owner for more details about the referral program benefits.
+                    <strong>Note:</strong> As a business team member, you can share this affiliate link to help your business grow. All affiliate rewards and earnings are credited to the business owner's account. Contact your business owner for more details about the affiliate program benefits.
                 </flux:text>
             </flux:callout>
         </div>
@@ -134,7 +134,7 @@
 {{-- Not Eligible State --}}
 @elseif(!$isEligible)
 <div class="max-w-4xl mx-auto px-4 py-8">
-    <flux:heading size="xl" class="mb-6">Referral Program</flux:heading>
+    <flux:heading size="xl" class="mb-6">Affiliate Program</flux:heading>
 
     <flux:card class="p-8">
         <div class="flex flex-col items-center text-center space-y-6">
@@ -143,9 +143,9 @@
             </div>
 
             <div class="space-y-3">
-                <flux:heading size="lg">Join Our Referral Program</flux:heading>
+                <flux:heading size="lg">Join Our Affiliate Program</flux:heading>
                 <flux:text class="text-zinc-600 dark:text-zinc-400 max-w-2xl">
-                    You're not quite eligible yet. To join our referral program, you need to be an active subscriber with at least one completed payment.
+                    You're not quite eligible yet. To join our affiliate program, you need to be an active subscriber with at least one completed payment.
                 </flux:text>
             </div>
 
@@ -179,7 +179,7 @@
 {{-- Enrollment State --}}
 @elseif(!$isEnrolled)
 <div class="max-w-4xl mx-auto px-4 py-8">
-    <flux:heading size="xl" class="mb-6">Referral Program</flux:heading>
+    <flux:heading size="xl" class="mb-6">Affiliate Program</flux:heading>
 
     <flux:card class="p-8">
         <div class="flex flex-col items-center text-center space-y-6">
@@ -190,7 +190,7 @@
             <div class="space-y-3">
                 <flux:heading size="lg">You're Eligible!</flux:heading>
                 <flux:text class="text-zinc-600 dark:text-zinc-400 max-w-2xl">
-                    Great news! You qualify for our referral program. Earn 10% of every subscription payment from people you refer.
+                    Great news! You qualify for our affiliate program. Earn 10% of every subscription payment from people you refer.
                 </flux:text>
             </div>
 
@@ -203,7 +203,7 @@
                     </div>
                     <flux:heading size="sm">Share Your Link</flux:heading>
                     <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
-                        Share your unique referral link with friends and colleagues
+                        Share your unique affiliate link with friends and colleagues
                     </flux:text>
                 </div>
 
@@ -230,22 +230,22 @@
 
             <flux:callout variant="info" class="w-full max-w-2xl text-left">
                 <flux:text class="text-sm">
-                    <strong>How it works:</strong> You'll receive 10% of each monthly or annual subscription payment made by anyone who signs up using your referral link. Payouts begin after their first completed payment and continue as long as you both remain active subscribers.
+                    <strong>How it works:</strong> You'll receive 10% of each monthly or annual subscription payment made by anyone who signs up using your affiliate link. Payouts begin after their first completed payment and continue as long as you both remain active subscribers.
                 </flux:text>
             </flux:callout>
 
             <flux:button variant="primary" wire:click="enrollInProgram" class="mt-4">
-                Enroll in Referral Program
+                Enroll in Affiliate Program
             </flux:button>
         </div>
     </flux:card>
 </div>
 
-{{-- Active Referral Dashboard --}}
+{{-- Active Affiliate Dashboard --}}
 @else
 <div class="max-w-6xl mx-auto px-4 py-8">
     <div class="flex items-center justify-between mb-6">
-        <flux:heading size="xl">Referral Program</flux:heading>
+        <flux:heading size="xl">Affiliate Program</flux:heading>
         <flux:badge variant="success">Active</flux:badge>
     </div>
 
@@ -286,7 +286,7 @@
                 </div>
 
                 <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
-                    All referral commission payouts will be sent to this PayPal account. Paypal fees may apply.
+                    All affiliate commission payouts will be sent to this PayPal account. Paypal fees may apply.
                 </flux:text>
             </div>
         @else
@@ -297,7 +297,7 @@
                         <div class="flex-1">
                             <flux:text class="font-semibold mb-1">Connect Your PayPal Account</flux:text>
                             <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
-                                You need to connect a PayPal account to receive your referral commission payouts. Set this up now to ensure you don't miss any payments.
+                                You need to connect a PayPal account to receive your affiliate commission payouts. Set this up now to ensure you don't miss any payments.
                             </flux:text>
                         </div>
                     </div>
@@ -310,9 +310,9 @@
         @endif
     </flux:card>
 
-    {{-- Referral Link Card --}}
+    {{-- Affiliate Link Card --}}
     <flux:card class="p-6 mb-6">
-        <flux:heading size="lg" class="mb-4">Your Referral Link</flux:heading>
+        <flux:heading size="lg" class="mb-4">Your Affiliate Link</flux:heading>
         <flux:text class="text-zinc-600 dark:text-zinc-400 mb-4">
             Share this link with friends and colleagues to start earning. You'll receive 10% of their subscription payments.
         </flux:text>
@@ -349,10 +349,10 @@
 
     {{-- Stats Overview --}}
     <div class="grid md:grid-cols-3 gap-6 mb-6">
-        {{-- Pending Referrals --}}
+        {{-- Pending Affiliates --}}
         <flux:card class="p-6">
             <div class="flex items-start justify-between mb-3">
-                <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">Pending Referrals</flux:text>
+                <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">Pending Affiliates</flux:text>
                 <div class="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
                     <flux:icon.clock class="w-5 h-5 text-amber-600 dark:text-amber-500" />
                 </div>
@@ -363,10 +363,10 @@
             </flux:text>
         </flux:card>
 
-        {{-- Active Referrals --}}
+        {{-- Active Affiliates --}}
         <flux:card class="p-6">
             <div class="flex items-start justify-between mb-3">
-                <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">Active Referrals</flux:text>
+                <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">Active Affiliates</flux:text>
                 <div class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
                     <flux:icon.check-circle class="w-5 h-5 text-green-600 dark:text-green-500" />
                 </div>
@@ -377,10 +377,10 @@
             </flux:text>
         </flux:card>
 
-        {{-- Lifetime Referrals --}}
+        {{-- Lifetime Affiliates --}}
         <flux:card class="p-6">
             <div class="flex items-start justify-between mb-3">
-                <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">Total Referrals</flux:text>
+                <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">Total Affiliates</flux:text>
                 <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
                     <flux:icon.users class="w-5 h-5 text-blue-600 dark:text-blue-500" />
                 </div>
@@ -421,7 +421,7 @@
                 <div>
                     <flux:text class="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Lifetime Earnings</flux:text>
                     <flux:text class="text-xs text-zinc-500 dark:text-zinc-500">
-                        Total earnings from referrals
+                        Total earnings from affiliates
                     </flux:text>
                 </div>
                 <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
@@ -447,7 +447,7 @@
                 <div>
                     <flux:text class="font-medium mb-1">Earn 10% Commission</flux:text>
                     <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
-                        Receive 10% of every subscription payment made by your referrals
+                        Receive 10% of every subscription payment made by your affiliates
                     </flux:text>
                 </div>
             </div>
@@ -457,7 +457,7 @@
                 <div>
                     <flux:text class="font-medium mb-1">Recurring Earnings</flux:text>
                     <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
-                        Continue earning as long as your referrals remain active subscribers
+                        Continue earning as long as your affiliates remain active subscribers
                     </flux:text>
                 </div>
             </div>
@@ -487,7 +487,7 @@
 
         <flux:callout variant="info">
             <flux:text class="text-sm">
-                <strong>Note:</strong> Earnings begin after your referral's first successful subscription payment. They must remain an active subscriber in good standing for you to continue receiving commission payments.
+                <strong>Note:</strong> Earnings begin after your affiliate's first successful subscription payment. They must remain an active subscriber in good standing for you to continue receiving commission payments.
             </flux:text>
         </flux:callout>
     </flux:card>
@@ -499,7 +499,7 @@
     <div>
         <flux:heading size="lg">Connect Your PayPal Account</flux:heading>
         <flux:text class="text-zinc-600 dark:text-zinc-400 mt-2">
-            Connect your PayPal account to receive commission payouts from your referrals.
+            Connect your PayPal account to receive commission payouts from your affiliates.
         </flux:text>
     </div>
 

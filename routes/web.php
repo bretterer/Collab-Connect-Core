@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/marketing.php';
 
-Route::get('/r/{code}', App\Livewire\ReferralRedirect::class)->name('referral.redirect');
+Route::get('/a/{code}', App\Livewire\ReferralRedirect::class)->name('affiliate.redirect');
 
 // Tier violation page (shown after unauthorized access attempt)
 Route::get('/tier-violation', App\Livewire\TierViolation::class)->name('tier-violation');
@@ -114,8 +114,8 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
 
         });
 
-        // Referral Program Management
-        Route::prefix('referrals')->name('referrals.')->group(function () {
+        // Affiliate Program Management
+        Route::prefix('affiliates')->name('affiliates.')->group(function () {
             Route::get('/', App\Livewire\Admin\Referrals\ReferralIndex::class)->name('index');
             Route::get('/settings', App\Livewire\Admin\Referrals\ReferralSettings::class)->name('settings');
             Route::get('/review', App\Livewire\Admin\Referrals\ReferralReview::class)->name('review');
@@ -187,8 +187,8 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
             Route::get('/{chatId}', App\Livewire\Chat::class)->name('show');
         });
 
-        // Referral routes
-        Route::get('/referrals', App\Livewire\Referrals\Index::class)->name('referral.index');
+        // Affiliate routes
+        Route::get('/affiliates', App\Livewire\Referrals\Index::class)->name('affiliate.index');
 
         // Profile routes
         Route::get('/profile', App\Livewire\Profile\EditProfile::class)->name('profile.edit');

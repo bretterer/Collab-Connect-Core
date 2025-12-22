@@ -27,7 +27,7 @@ class Index extends Component
 
     public ?ReferralEnrollment $enrollment = null;
 
-    public string $referralLink = 'https://collabconnect.test/r/ABC123XYZ';
+    public string $referralLink = 'https://collabconnect.test/a/ABC123XYZ';
 
     public array $stats = [
         'pending_count' => 0,
@@ -71,9 +71,9 @@ class Index extends Component
         $this->enrollment = $user->referralEnrollment;
         $this->isEnrolled = $this->enrollment !== null;
 
-        // Generate referral link if enrolled
+        // Generate affiliate link if enrolled
         if ($this->isEnrolled && $this->enrollment) {
-            $this->referralLink = url('/r/'.$this->enrollment->code);
+            $this->referralLink = url('/a/'.$this->enrollment->code);
             $this->stats = $this->refreshReferralStats();
         }
 
@@ -120,11 +120,11 @@ class Index extends Component
         $this->enrollment = $enrollment->fresh();
         $this->isEnrolled = true;
         $this->showPayPalStep = true;
-        $this->referralLink = url('/r/'.$enrollment->code);
+        $this->referralLink = url('/a/'.$enrollment->code);
 
         Flux::toast(
             heading: 'Enrolled!',
-            text: 'You have successfully enrolled in the referral program. Connect your PayPal account to receive payouts.',
+            text: 'You have successfully enrolled in the affiliate program. Connect your PayPal account to receive payouts.',
             variant: 'success',
         );
     }
@@ -134,7 +134,7 @@ class Index extends Component
         $this->showPayPalStep = false;
         Flux::toast(
             heading: 'PayPal Setup Skipped',
-            text: 'You can connect your PayPal account anytime from your referral dashboard.',
+            text: 'You can connect your PayPal account anytime from your affiliate dashboard.',
             variant: 'info',
         );
     }

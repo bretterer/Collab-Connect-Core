@@ -12,8 +12,8 @@
     </flux:navlist.item>
 
     @feature('referral-program')
-    <flux:navlist.item href="{{ route('referral.index') }}" icon="user-group" :current="request()->routeIs('referral.*')">
-        Referrals
+    <flux:navlist.item href="{{ route('affiliate.index') }}" icon="user-group" :current="request()->routeIs('affiliate.*')">
+        Affiliates
     </flux:navlist.item>
     @endfeature
 
