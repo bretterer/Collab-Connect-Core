@@ -108,18 +108,50 @@
 
             <flux:separator />
 
-            <!-- Actions -->
+            <!-- Cookie Consent Status -->
             <div>
-                <flux:heading size="sm" class="mb-3">Actions</flux:heading>
-                <div class="space-y-2">
+                <flux:heading size="sm" class="mb-3">Cookie Consent</flux:heading>
+                @if($cookieConsent)
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between items-center">
+                            <span class="text-zinc-500 dark:text-zinc-400">Essential</span>
+                            <flux:badge size="sm" color="green">Enabled</flux:badge>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-zinc-500 dark:text-zinc-400">Analytics</span>
+                            @if($cookieConsent['analytics'] ?? false)
+                                <flux:badge size="sm" color="green">Enabled</flux:badge>
+                            @else
+                                <flux:badge size="sm" color="zinc">Disabled</flux:badge>
+                            @endif
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-zinc-500 dark:text-zinc-400">Marketing</span>
+                            @if($cookieConsent['marketing'] ?? false)
+                                <flux:badge size="sm" color="green">Enabled</flux:badge>
+                            @else
+                                <flux:badge size="sm" color="zinc">Disabled</flux:badge>
+                            @endif
+                        </div>
+                        @if(isset($cookieConsent['timestamp']))
+                            <div class="flex justify-between pt-1">
+                                <span class="text-zinc-500 dark:text-zinc-400">Set</span>
+                                <span class="font-mono text-zinc-800 dark:text-zinc-200 text-xs">{{ \Carbon\Carbon::parse($cookieConsent['timestamp'])->diffForHumans() }}</span>
+                            </div>
+                        @endif
+                    </div>
                     <button
                         wire:click="$dispatch('reset-cookie-consent')"
-                        class="flex w-full items-center gap-2 px-3 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-md transition-colors"
+                        class="mt-3 flex w-full items-center justify-center gap-2 px-3 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-md transition-colors"
                     >
                         <flux:icon name="trash" class="w-4 h-4" />
-                        Clear Consent Cookies
+                        Clear Consent
                     </button>
-                </div>
+                @else
+                    <div class="text-sm text-zinc-500 dark:text-zinc-400 italic">
+                        No consent given yet
+                    </div>
+                @endif
             </div>
 
             <flux:separator />
