@@ -32,6 +32,8 @@ class Index extends BaseComponent
 
     public array $workWithMeSettings = [];
 
+    public array $joinReferralSettings = [];
+
     public bool $isPublished = false;
 
     public function mount(): void
@@ -59,6 +61,7 @@ class Index extends BaseComponent
             $this->ratesSettings = $mergedSettings['rates'] ?? [];
             $this->footerSettings = ['enabled' => true];
             $this->workWithMeSettings = $mergedSettings['workWithMe'] ?? [];
+            $this->joinReferralSettings = $mergedSettings['joinReferral'] ?? [];
 
             // Load publish status
             $this->isPublished = $settings->is_published;
@@ -77,6 +80,7 @@ class Index extends BaseComponent
             $this->ratesSettings = $defaults['rates'];
             $this->footerSettings = ['enabled' => true];
             $this->workWithMeSettings = $defaults['workWithMe'];
+            $this->joinReferralSettings = $defaults['joinReferral'];
         }
     }
 
@@ -89,6 +93,7 @@ class Index extends BaseComponent
             'rates' => $this->ratesSettings = $settings,
             'footer' => $this->footerSettings = $settings,
             'workWithMe' => $this->workWithMeSettings = $settings,
+            'joinReferral' => $this->joinReferralSettings = $settings,
             default => null,
         };
     }
@@ -162,6 +167,7 @@ class Index extends BaseComponent
             'links' => $this->linksSettings,
             'rates' => $this->ratesSettings,
             'workWithMe' => $this->workWithMeSettings,
+            'joinReferral' => $this->joinReferralSettings,
         ];
 
         $influencer->linkInBioSettings()->updateOrCreate(

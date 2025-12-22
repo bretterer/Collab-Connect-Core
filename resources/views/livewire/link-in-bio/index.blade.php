@@ -166,6 +166,9 @@
             {{-- Work With Me Section --}}
             <livewire:link-in-bio.sections.work-with-me.index :settings="$workWithMeSettings" key="work-with-me-section" />
 
+            {{-- Join Referral Section (Elite only, requires referral enrollment) --}}
+            <livewire:link-in-bio.sections.join-referral.index :settings="$joinReferralSettings" key="join-referral-section" />
+
             {{-- Footer Section --}}
             <livewire:link-in-bio.sections.footer.index :settings="$footerSettings" key="footer-section" />
 
@@ -250,6 +253,15 @@
                                     'designSettings' => ['containerStyle' => $containerStyle],
                                     'profileUrl' => route('influencer.profile', ['username' => auth()->user()?->influencer?->username ?? auth()->user()?->influencer?->user_id ?? 'profile']),
                                 ])
+
+                                {{-- Join Referral Section --}}
+                                @if(auth()->user()?->referralEnrollment)
+                                    @include('livewire.link-in-bio.sections.join-referral.show', [
+                                        'settings' => $joinReferralSettings,
+                                        'designSettings' => ['containerStyle' => $containerStyle],
+                                        'referralUrl' => url('/r/' . auth()->user()->referralEnrollment->code),
+                                    ])
+                                @endif
 
                                 {{-- Footer/Branding --}}
                                 @include('livewire.link-in-bio.sections.footer.show')
