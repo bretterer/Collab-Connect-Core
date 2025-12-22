@@ -33,8 +33,8 @@
         Feedback
     </flux:navlist.item>
 
-    <flux:navlist.item href="{{ route('admin.referrals.index') }}" icon="user-group" :current="request()->routeIs('admin.referrals.*')">
-        Referrals
+    <flux:navlist.item href="{{ route('admin.affiliates.index') }}" icon="user-group" :current="request()->routeIs('admin.affiliates.*')">
+        Affiliates
     </flux:navlist.item>
 
     <flux:navlist.item href="{{ route('admin.custom-signup-pages.index') }}" icon="user-plus" :current="request()->routeIs('admin.custom-signup-pages.*')">

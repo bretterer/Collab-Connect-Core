@@ -3,7 +3,7 @@
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Review Monthly Payouts</h1>
         <p class="text-gray-600 dark:text-gray-400 mt-2">
-            Approve, edit, and process referral payouts for {{ now()->month($selectedMonth)->format('F Y') }}.
+            Approve, edit, and process affiliate payouts for {{ now()->month($selectedMonth)->format('F Y') }}.
         </p>
     </div>
 

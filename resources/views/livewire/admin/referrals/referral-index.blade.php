@@ -1,9 +1,9 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Header -->
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Referral Program Management</h1>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Affiliate Program Management</h1>
         <p class="text-gray-600 dark:text-gray-400 mt-2">
-            Manage enrolled users, track referrals, and process payouts.
+            Manage enrolled users, track affiliates, and process payouts.
         </p>
     </div>
 
@@ -27,7 +27,7 @@
                     </div>
                 </div>
                 <div class="flex-shrink-0">
-                    <flux:button size="sm" href="{{ route('admin.referrals.review') }}" variant="filled">
+                    <flux:button size="sm" href="{{ route('admin.affiliates.review') }}" variant="filled">
                         Review Payouts
                     </flux:button>
                 </div>
@@ -60,7 +60,7 @@
         <flux:card size="sm">
             <div class="flex items-center justify-between">
                 <div>
-                    <flux:text class="text-sm text-gray-600 dark:text-gray-400">Active Referrals</flux:text>
+                    <flux:text class="text-sm text-gray-600 dark:text-gray-400">Active Affiliates</flux:text>
                     <flux:heading size="lg" class="mt-1">{{ number_format($stats['total_active_referrals']) }}</flux:heading>
                 </div>
                 <div class="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg">
@@ -165,7 +165,7 @@
                             Current Percentage
                         </th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Active Referrals
+                            Active Affiliates
                         </th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Lifetime Earnings
@@ -230,7 +230,7 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="{{ route('admin.referrals.show', $enrollment->user) }}"
+                                <a href="{{ route('admin.affiliates.show', $enrollment->user) }}"
                                    class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
                                     View Details
                                 </a>

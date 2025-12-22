@@ -24,9 +24,9 @@ class ReferralEnrollmentStatesTest extends TestCase
 
         Livewire::test(\App\Livewire\Referrals\Index::class)
             ->assertStatus(200)
-            ->assertSeeText('Join Our Referral Program')
-            ->assertSeeText('To join our referral program, you need to be an active subscriber')
-            ->assertDontSeeText('Your Referral Link');
+            ->assertSeeText('Join Our Affiliate Program')
+            ->assertSeeText('To join our affiliate program, you need to be an active subscriber')
+            ->assertDontSeeText('Your Affiliate Link');
     }
 
     #[Test]
@@ -58,8 +58,8 @@ class ReferralEnrollmentStatesTest extends TestCase
         // Test - should see owner not enrolled state
         Livewire::test(\App\Livewire\Referrals\Index::class)
             ->assertStatus(200)
-            ->assertSee('Referral Program Available')
-            ->assertSee('Your business is eligible for the referral program')
+            ->assertSee('Affiliate Program Available')
+            ->assertSee('Your business is eligible for the affiliate program')
             ->assertSee('been set up yet by the business owner')
             ->assertSee('Action Required')
             ->assertSeeText('contact your business owner to enroll');
@@ -76,9 +76,9 @@ class ReferralEnrollmentStatesTest extends TestCase
 
         Livewire::test(\App\Livewire\Referrals\Index::class)
             ->assertStatus(200)
-            ->assertSeeText('Join Our Referral Program')
-            ->assertSeeText('To join our referral program, you need to be an active subscriber')
-            ->assertDontSeeText('Your Referral Link');
+            ->assertSeeText('Join Our Affiliate Program')
+            ->assertSeeText('To join our affiliate program, you need to be an active subscriber')
+            ->assertDontSeeText('Your Affiliate Link');
     }
 
     #[Test]
@@ -91,8 +91,8 @@ class ReferralEnrollmentStatesTest extends TestCase
         Feature::activate('referral-program');
         Livewire::test(\App\Livewire\Referrals\Index::class)
             ->assertStatus(200)
-            ->assertSeeText('You qualify for our referral program')
-            ->assertSeeText('Enroll in Referral Program');
+            ->assertSeeText('You qualify for our affiliate program')
+            ->assertSeeText('Enroll in Affiliate Program');
     }
 
     #[Test]
@@ -106,11 +106,11 @@ class ReferralEnrollmentStatesTest extends TestCase
 
         Livewire::test(\App\Livewire\Referrals\Index::class)
             ->assertStatus(200)
-            ->assertSeeText('You qualify for our referral program')
-            ->assertSeeText('Enroll in Referral Program')
+            ->assertSeeText('You qualify for our affiliate program')
+            ->assertSeeText('Enroll in Affiliate Program')
             ->call('enrollInProgram')
-            ->assertDontSeeText('Enroll in Referral Program')
-            ->assertSeeText('Your Referral Link');
+            ->assertDontSeeText('Enroll in Affiliate Program')
+            ->assertSeeText('Your Affiliate Link');
     }
 
     #[Test]

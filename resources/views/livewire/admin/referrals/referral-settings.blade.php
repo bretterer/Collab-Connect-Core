@@ -1,6 +1,6 @@
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Referral Program Settings</h1>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Affiliate Program Settings</h1>
         <p class="text-gray-600 dark:text-gray-400 mt-2">Configure default percentages, payout thresholds, and eligibility rules.</p>
     </div>
 

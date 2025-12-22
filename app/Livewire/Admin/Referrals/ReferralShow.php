@@ -171,7 +171,7 @@ class ReferralShow extends Component
             'pending_payout' => $this->user->referralEnrollment?->getPendingPayout()?->amount ?? 0,
         ];
 
-        $referralLink = route('referral.redirect', ['code' => $this->user->referralEnrollment?->code ?? '']);
+        $referralLink = route('affiliate.redirect', ['code' => $this->user->referralEnrollment?->code ?? '']);
 
         return view('livewire.admin.referrals.referral-show', [
             'stats' => $stats,

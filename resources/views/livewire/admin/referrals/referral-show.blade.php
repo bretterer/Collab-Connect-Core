@@ -4,10 +4,10 @@
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ $user->name }}</h1>
-                <p class="text-gray-600 dark:text-gray-400 mt-2">Referral Program Details</p>
+                <p class="text-gray-600 dark:text-gray-400 mt-2">Affiliate Program Details</p>
             </div>
             <div class="flex gap-3">
-                <flux:button href="{{ route('admin.referrals.index') }}" variant="ghost">
+                <flux:button href="{{ route('admin.affiliates.index') }}" variant="ghost">
                     Back to List
                 </flux:button>
             </div>
@@ -49,10 +49,10 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {{-- Left Column - Forms --}}
             <div class="lg:col-span-2 space-y-8">
-                {{-- Referral Details --}}
+                {{-- Affiliate Details --}}
                 <flux:card>
                     <div class="mb-6">
-                        <flux:heading size="lg">Referral Partner Information</flux:heading>
+                        <flux:heading size="lg">Affiliate Partner Information</flux:heading>
                         <flux:text class="text-gray-600 dark:text-gray-400 mt-1">View partner details and manage payout settings</flux:text>
                     </div>
 
@@ -72,7 +72,7 @@
                             <flux:input wire:model="paypal_email" type="email" placeholder="paypal@example.com" />
                             <flux:error name="paypal_email" />
                             <flux:text class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                Email address for receiving referral payments via PayPal
+                                Email address for receiving affiliate payments via PayPal
                             </flux:text>
                             @if($user->referralEnrollment->hasPayPalConnected())
                                 <div class="mt-2 flex items-center gap-2">
@@ -98,12 +98,12 @@
                     </div>
                 </flux:card>
 
-                {{-- Referral Commission Percentage --}}
+                {{-- Affiliate Commission Percentage --}}
                 <flux:card>
                     <div class="mb-6">
                         <flux:heading size="lg">Commission Percentage</flux:heading>
                         <flux:text class="text-gray-600 dark:text-gray-400 mt-1">
-                            Manage commission rates for this referral partner. You can set permanent changes or temporary promotional rates that apply to all users referred during the promotional period.
+                            Manage commission rates for this affiliate partner. You can set permanent changes or temporary promotional rates that apply to all users referred during the promotional period.
                         </flux:text>
                     </div>
 
@@ -126,13 +126,13 @@
                 {{-- Share Links --}}
                 <flux:card>
                     <div class="mb-6">
-                        <flux:heading size="lg">Referral Links</flux:heading>
-                        <flux:text class="text-gray-600 dark:text-gray-400 mt-1">Copy and share with this referral partner.</flux:text>
+                        <flux:heading size="lg">Affiliate Links</flux:heading>
+                        <flux:text class="text-gray-600 dark:text-gray-400 mt-1">Copy and share with this affiliate partner.</flux:text>
                     </div>
 
                     <div class="space-y-4">
                         <flux:field>
-                            <flux:label>CollabConnect Partner Referral Link</flux:label>
+                            <flux:label>CollabConnect Partner Affiliate Link</flux:label>
                             <div class="flex gap-2">
                                 <div class="flex-1">
                                     <flux:input value="{{ $referralLink }}" readonly />
@@ -221,7 +221,7 @@
 
                     <div class="space-y-3">
                         <div>
-                            <flux:text class="text-sm text-gray-600 dark:text-gray-400">Referral Code</flux:text>
+                            <flux:text class="text-sm text-gray-600 dark:text-gray-400">Affiliate Code</flux:text>
                             <flux:text class="font-mono font-medium">{{ $user->referralEnrollment->code }}</flux:text>
                         </div>
 
@@ -369,7 +369,7 @@
         </flux:modal>
     @else
         <flux:callout variant="warning">
-            This user is not enrolled in the referral program.
+            This user is not enrolled in the affiliate program.
         </flux:callout>
     @endif
 </div>

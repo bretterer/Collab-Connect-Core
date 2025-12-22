@@ -41,7 +41,7 @@ class PayPalEmailRequiredNotification extends Notification implements ShouldQueu
         $message = (new MailMessage)
             ->subject('Action Required: PayPal Email Needed for Payout')
             ->greeting("Hi {$notifiable->first_name},")
-            ->line("You have a referral commission payout of **\${$amount}** ready to be processed!");
+            ->line("You have an affiliate commission payout of **\${$amount}** ready to be processed!");
 
         if ($isFinalAttempt) {
             $message->line('**This is our final attempt to process your payout.**')
@@ -52,8 +52,8 @@ class PayPalEmailRequiredNotification extends Notification implements ShouldQueu
         }
 
         return $message
-            ->action('Add PayPal Email', route('referral.index'))
-            ->line('Thank you for being part of our referral program!');
+            ->action('Add PayPal Email', route('affiliate.index'))
+            ->line('Thank you for being part of our affiliate program!');
     }
 
     /**

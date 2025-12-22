@@ -44,7 +44,7 @@ class ManagePercentagesTest extends TestCase
 
         Livewire::test(ManagePercentages::class)
             ->assertStatus(200)
-            ->assertSee('Manage Referral Percentages');
+            ->assertSee('Manage Affiliate Percentages');
     }
 
     #[Test]
