@@ -9,6 +9,7 @@ use App\Models\Chat;
 use App\Models\User;
 use App\Services\CampaignService;
 use App\Services\CollaborationService;
+use Combindma\FacebookPixel\Facades\MetaPixel;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -44,6 +45,13 @@ class ShowCampaign extends Component
 
         // Use the policy to authorize viewing
         $this->authorize('view', $campaign);
+
+        // Track ViewContent for campaign viewing
+        MetaPixel::track('ViewContent', [
+            'content_type' => 'campaign',
+            'content_ids' => [$campaign->id],
+            'content_name' => $campaign->campaign_goal,
+        ]);
     }
 
     public function render()

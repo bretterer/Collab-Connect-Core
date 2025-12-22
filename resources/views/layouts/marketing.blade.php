@@ -35,14 +35,7 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-        @if(!app()->environment('local'))
-            <script
-                defer
-                data-website-id="68953b233e0aad41246ad8b4"
-                data-domain="collabconnect.app"
-                src="https://datafa.st/js/script.js">
-            </script>
-        @endif
+        {{-- Analytics is loaded dynamically based on cookie consent --}}
 
         <style>
             /* Modern SaaS Design System */
@@ -227,8 +220,13 @@
                 color: var(--primary-600);
             }
         </style>
+
+        <x-head />
+
     </head>
     <body class="font-inter bg-white dark:bg-gray-900 min-h-screen">
+        <x-body />
+
         <!-- Modern Professional Header -->
         <header class="bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50" x-data="{ mobileMenuOpen: false }">
             <div class="container-custom">
@@ -410,6 +408,7 @@
                             <ul class="space-y-4">
                                 <li><a href="/privacy" class="hover:text-blue-400 transition-colors">Privacy Policy</a></li>
                                 <li><a href="/terms" class="hover:text-blue-400 transition-colors">Terms of Service</a></li>
+                                <li><button onclick="window.openCookiePreferences()" class="hover:text-blue-400 transition-colors">Cookie Preferences</button></li>
                             </ul>
                         </div>
                     </div>
@@ -438,6 +437,12 @@
             }
         </script>
 
-        @fluxScripts()
+        <!-- Developer Tools Drawer (local only) -->
+        @if(app()->environment('local'))
+            <livewire:developer-tools-drawer />
+        @endif
+
+        @fluxScripts
+        @livewireScripts
     </body>
 </html>

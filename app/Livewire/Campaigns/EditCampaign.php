@@ -11,6 +11,7 @@ use App\Livewire\BaseComponent;
 use App\Livewire\Traits\HasWizardSteps;
 use App\Models\Campaign;
 use App\Services\CampaignService;
+use Combindma\FacebookPixel\Facades\MetaPixel;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 
@@ -256,6 +257,13 @@ class EditCampaign extends BaseComponent
         $campaign = CampaignService::saveDraft($this->getAuthenticatedUser(), $campaignData);
         $this->campaignId = $campaign->id;
         $this->markSaved();
+
+        // Track AddToCart when campaign draft is first created
+        MetaPixel::track('AddToCart', [
+            'content_ids' => [$campaign->id],
+            'content_name' => $this->campaignGoal ?: 'New Campaign',
+            'content_type' => 'campaign_draft',
+        ]);
     }
 
     protected function markSaved(): void
@@ -514,6 +522,13 @@ class EditCampaign extends BaseComponent
             session()->flash('message', 'Campaign published successfully!');
         } else {
             CampaignService::scheduleCampaign($campaign, $this->scheduledDate);
+
+            // Track Schedule event when campaign is scheduled
+            MetaPixel::track('Schedule', [
+                'content_ids' => [$campaign->id],
+                'content_name' => $this->campaignGoal,
+            ]);
+
             session()->flash('message', 'Campaign scheduled successfully!');
         }
 

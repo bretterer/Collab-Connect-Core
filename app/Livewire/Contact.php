@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\User;
+use Combindma\FacebookPixel\Facades\MetaPixel;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
@@ -23,7 +24,6 @@ class Contact extends BaseComponent
 
     public function mount()
     {
-        dd('here');
         // Pre-fill user information if authenticated
         /** @var User $user */
         $user = $this->getAuthenticatedUser();
@@ -56,6 +56,11 @@ class Contact extends BaseComponent
             });
 
             $this->flashSuccess('Your message has been sent successfully! We\'ll get back to you soon.');
+
+            // Track Contact event
+            MetaPixel::track('Contact', [
+                'content_name' => $this->getCategoryLabel(),
+            ]);
 
             // Clear the form
             $this->reset(['subject', 'message', 'category']);

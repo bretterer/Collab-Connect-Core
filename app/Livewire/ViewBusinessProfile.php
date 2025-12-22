@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Enums\AccountType;
 use App\Models\User;
 use App\Services\ReviewService;
+use Combindma\FacebookPixel\Facades\MetaPixel;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -22,6 +23,13 @@ class ViewBusinessProfile extends Component
         })
             ->with(['businesses', 'influencer'])
             ->firstOrFail();
+
+        // Track ViewContent for business profile viewing
+        MetaPixel::track('ViewContent', [
+            'content_type' => 'business_profile',
+            'content_ids' => [$this->user->currentBusiness?->id ?? $this->user->id],
+            'content_name' => $this->user->currentBusiness?->name ?? $this->user->name,
+        ]);
     }
 
     public function render()

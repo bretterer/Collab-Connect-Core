@@ -7,6 +7,7 @@ use App\Events\CampaignApplicationSubmitted;
 use App\Livewire\BaseComponent;
 use App\Models\Campaign;
 use App\Models\CampaignApplication;
+use Combindma\FacebookPixel\Facades\MetaPixel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 
@@ -56,6 +57,13 @@ class ApplyToCampaign extends BaseComponent
     public function openModal()
     {
         $this->showModal = true;
+
+        // Track Lead event when user opens application modal
+        MetaPixel::track('Lead', [
+            'content_category' => 'campaign_application',
+            'content_ids' => [$this->campaign->id],
+            'content_name' => $this->campaign->campaign_goal,
+        ]);
     }
 
     public function closeModal()
@@ -104,6 +112,12 @@ class ApplyToCampaign extends BaseComponent
         CampaignApplicationSubmitted::dispatch($this->campaign, $user, $application);
 
         $this->campaign->business->owner->each(fn ($owner) => $owner->notify(new \App\Notifications\CampaignApplicationSubmittedNotification($application)));
+
+        // Track SubmitApplication event
+        MetaPixel::track('SubmitApplication', [
+            'content_ids' => [$this->campaign->id],
+            'content_name' => $this->campaign->campaign_goal,
+        ]);
 
         // Update the existing application property
         $this->existingApplication = $application;

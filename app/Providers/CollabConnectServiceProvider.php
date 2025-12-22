@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Pennant\Feature;
@@ -24,6 +25,8 @@ class CollabConnectServiceProvider extends ServiceProvider
         Feature::discover();
 
         $this->registerStrMacros();
+
+        $this->registerCookieConsentBladeDirective();
     }
 
     /**
@@ -75,6 +78,21 @@ class CollabConnectServiceProvider extends ServiceProvider
             }
 
             return 'a '.$word;
+        });
+    }
+
+    /**
+     * Register Blade directive for cookie consent.
+     */
+    protected function registerCookieConsentBladeDirective(): void
+    {
+        // add Blade Directive @cookieAllowed('{type}') to check if consent is given for a specific type
+        Blade::directive('cookieAllowed', function ($type) {
+            return "<?php if (\\App\\Livewire\\CookieConsent::isConsentGiven({$type})): ?>";
+        });
+
+        Blade::directive('endCookieAllowed', function () {
+            return "<?php endif; ?>";
         });
     }
 }

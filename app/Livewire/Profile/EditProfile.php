@@ -4,6 +4,7 @@ namespace App\Livewire\Profile;
 
 use App\Livewire\BaseComponent;
 use App\Models\User;
+use Combindma\FacebookPixel\Facades\MetaPixel;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
@@ -33,6 +34,12 @@ class EditProfile extends BaseComponent
 
         $this->name = $user->name;
         $this->email = $user->email;
+
+        // Track ViewContent for profile edit page
+        MetaPixel::track('ViewContent', [
+            'content_type' => 'profile_edit',
+            'content_category' => 'profile',
+        ]);
     }
 
     public function resetOnboarding(): void

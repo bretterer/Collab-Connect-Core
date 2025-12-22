@@ -35,22 +35,24 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    @if(!app()->environment('local'))
-    <script
-        defer
-        data-website-id="68953b233e0aad41246ad8b4"
-        data-domain="collabconnect.app"
-        src="https://datafa.st/js/script.js">
-    </script>
-    @endif
+    <x-head />
 </head>
 
 <body class="h-full bg-gray-50 dark:bg-gray-900 font-sans antialiased">
+    <x-body />
+
     <div class="min-h-full">
+
         {{ $slot }}
     </div>
 
+    <!-- Developer Tools Drawer (local only) -->
+    @if(app()->environment('local'))
+        <livewire:developer-tools-drawer />
+    @endif
+
     @fluxScripts()
+    @livewireScripts
     <x-toaster-hub />
     @stack('scripts')
 </body>
