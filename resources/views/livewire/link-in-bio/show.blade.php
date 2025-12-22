@@ -138,6 +138,15 @@
             'profileUrl' => route('influencer.profile', ['username' => $influencer->username ?? $influencer->user_id]),
         ])
 
+        {{-- Join Referral Section --}}
+        @if($influencer->user?->referralEnrollment)
+            @include('livewire.link-in-bio.sections.join-referral.show', [
+                'settings' => $joinReferralSettings,
+                'designSettings' => ['containerStyle' => $containerStyle],
+                'referralUrl' => url('/r/' . $influencer->user->referralEnrollment->code),
+            ])
+        @endif
+
         {{-- Footer / Branding --}}
         @include('livewire.link-in-bio.sections.footer.show')
     </div>

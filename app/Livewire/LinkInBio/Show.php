@@ -3,6 +3,7 @@
 namespace App\Livewire\LinkInBio;
 
 use App\Livewire\LinkInBio\Sections\Header\Index as HeaderSection;
+use App\Livewire\LinkInBio\Sections\JoinReferral\Index as JoinReferralSection;
 use App\Livewire\LinkInBio\Sections\Links\Index as LinksSection;
 use App\Livewire\LinkInBio\Sections\RatesCard\Index as RatesCardSection;
 use App\Livewire\LinkInBio\Sections\WorkWithMe\Index as WorkWithMeSection;
@@ -35,6 +36,8 @@ class Show extends Component
     public array $ratesSettings = [];
 
     public array $workWithMeSettings = [];
+
+    public array $joinReferralSettings = [];
 
     public function mount(string $username): void
     {
@@ -81,6 +84,7 @@ class Show extends Component
         $this->linksSettings = $settings['links'] ?? LinksSection::defaultSettings();
         $this->ratesSettings = $settings['rates'] ?? RatesCardSection::defaultSettings();
         $this->workWithMeSettings = $settings['workWithMe'] ?? WorkWithMeSection::defaultSettings();
+        $this->joinReferralSettings = $settings['joinReferral'] ?? JoinReferralSection::defaultSettings();
 
         // Ensure displayName has a fallback
         if (empty($this->headerSettings['displayName'])) {
@@ -134,6 +138,9 @@ class Show extends Component
 
         // Work With Me defaults
         $this->workWithMeSettings = WorkWithMeSection::defaultSettings();
+
+        // Join Referral defaults
+        $this->joinReferralSettings = JoinReferralSection::defaultSettings();
     }
 
     public function getDesignSettings(): array

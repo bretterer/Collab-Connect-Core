@@ -90,6 +90,14 @@ class LinkInBioSettings extends Model
                 'style' => 'secondary',
                 'buttonColor' => '#000000',
             ],
+
+            // Join Referral Section (Elite only, requires referral enrollment)
+            'joinReferral' => [
+                'enabled' => false,
+                'text' => 'Join CollabConnect',
+                'style' => 'secondary',
+                'buttonColor' => '#000000',
+            ],
         ];
     }
 

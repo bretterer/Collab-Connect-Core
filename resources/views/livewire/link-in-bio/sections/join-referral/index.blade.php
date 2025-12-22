@@ -1,33 +1,37 @@
+<div>
+@if($this->canShowSection)
 <flux:card class="p-0 overflow-hidden">
     <flux:accordion transition>
         <flux:accordion.item>
             <flux:accordion.heading class="py-4 px-4">
                 <div class="flex items-center justify-between w-full">
                     <div class="flex items-center gap-3">
-                        <flux:icon name="briefcase" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                        <span class="font-semibold text-gray-900 dark:text-white">Work With Me</span>
+                        <flux:icon name="user-plus" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                        <span class="font-semibold text-gray-900 dark:text-white">Join Referral</span>
                     </div>
-                    <flux:switch wire:model.live="enabled" wire:click.stop />
+                    @if($this->hasEliteAccess)
+                        <flux:switch wire:model.live="enabled" wire:click.stop />
+                    @else
+                        <x-upgrade-badge tier="{{ $this->requiredTierForAccess }}" size="xs" />
+                    @endif
                 </div>
             </flux:accordion.heading>
             <flux:accordion.content>
                 <div class="space-y-4 p-4 pt-0">
-                    {{-- Warning if profile not searchable --}}
-                    @if(!$this->isProfileSearchable)
-                        <flux:callout color="amber" icon="exclamation-triangle">
-                            <flux:callout.heading>Profile Hidden</flux:callout.heading>
-                            <flux:callout.text>
-                                Your profile is hidden from search. Visitors can still access it via this direct link.
-                            </flux:callout.text>
-                        </flux:callout>
-                    @endif
+                    {{-- Info about referral program --}}
+                    <flux:callout color="sky" icon="information-circle">
+                        <flux:callout.heading>Earn Commissions</flux:callout.heading>
+                        <flux:callout.text>
+                            When visitors sign up using your referral link, you earn a commission on their subscription payments.
+                        </flux:callout.text>
+                    </flux:callout>
 
                     {{-- Button Customization (Elite Feature) --}}
                     <x-tier-locked
-                        :locked="!$this->hasCustomizationAccess"
-                        :required-tier="$this->requiredTierForCustomization"
+                        :locked="!$this->hasEliteAccess"
+                        :required-tier="$this->requiredTierForAccess"
                         title="Elite Feature"
-                        description="Customize your button with the Elite plan."
+                        description="Enable the Join CollabConnect button with the Elite plan."
                         overlay-style="blur"
                     >
                         <div class="space-y-4 p-4 -mx-4">
@@ -35,7 +39,7 @@
                             <flux:input
                                 wire:model.live.debounce.500ms="text"
                                 label="Button Text"
-                                placeholder="Work With Me"
+                                placeholder="Join CollabConnect"
                             />
 
                             {{-- Button Style --}}
@@ -76,10 +80,12 @@
                     {{-- Link Info --}}
                     <div class="text-sm text-gray-500 dark:text-gray-400">
                         <flux:icon name="arrow-top-right-on-square" class="inline w-4 h-4 mr-1" />
-                        Links to your CollabConnect profile (opens in new tab)
+                        Links to your referral signup page (opens in new tab)
                     </div>
                 </div>
             </flux:accordion.content>
         </flux:accordion.item>
     </flux:accordion>
 </flux:card>
+@endif
+</div>
