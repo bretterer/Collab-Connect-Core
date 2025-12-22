@@ -108,6 +108,22 @@
 
             <flux:separator />
 
+            <!-- Actions -->
+            <div>
+                <flux:heading size="sm" class="mb-3">Actions</flux:heading>
+                <div class="space-y-2">
+                    <button
+                        x-on:click="document.cookie = 'cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; window.location.reload();"
+                        class="flex w-full items-center gap-2 px-3 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-md transition-colors"
+                    >
+                        <flux:icon name="trash" class="w-4 h-4" />
+                        Clear Consent Cookies
+                    </button>
+                </div>
+            </div>
+
+            <flux:separator />
+
             <!-- Current User Info -->
             @auth
                 <div>
