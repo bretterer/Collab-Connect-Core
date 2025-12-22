@@ -7,7 +7,11 @@
                         <flux:icon name="briefcase" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
                         <span class="font-semibold text-gray-900 dark:text-white">Work With Me</span>
                     </div>
-                    <flux:switch wire:model.live="enabled" wire:click.stop />
+                    @if($this->hasCustomizationAccess)
+                        <flux:switch wire:model.live="enabled" wire:click.stop />
+                    @else
+                        <x-upgrade-badge tier="{{ $this->requiredTierForCustomization }}" size="xs" />
+                    @endif
                 </div>
             </flux:accordion.heading>
             <flux:accordion.content>
@@ -22,22 +26,22 @@
                         </flux:callout>
                     @endif
 
-                    {{-- Button Text --}}
-                    <flux:input
-                        wire:model.live.debounce.500ms="text"
-                        label="Button Text"
-                        placeholder="Work With Me"
-                    />
-
-                    {{-- Button Style & Color (Elite Feature) --}}
+                    {{-- Button Customization (Elite Feature) --}}
                     <x-tier-locked
                         :locked="!$this->hasCustomizationAccess"
                         :required-tier="$this->requiredTierForCustomization"
                         title="Elite Feature"
-                        description="Customize your button style with the Elite plan."
+                        description="Customize your button with the Elite plan."
                         overlay-style="blur"
                     >
                         <div class="space-y-4 p-4 -mx-4">
+                            {{-- Button Text --}}
+                            <flux:input
+                                wire:model.live.debounce.500ms="text"
+                                label="Button Text"
+                                placeholder="Work With Me"
+                            />
+
                             {{-- Button Style --}}
                             <div>
                                 <flux:label class="mb-3">Button Style</flux:label>
