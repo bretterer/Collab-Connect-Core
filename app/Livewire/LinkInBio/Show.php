@@ -5,6 +5,7 @@ namespace App\Livewire\LinkInBio;
 use App\Livewire\LinkInBio\Sections\Header\Index as HeaderSection;
 use App\Livewire\LinkInBio\Sections\Links\Index as LinksSection;
 use App\Livewire\LinkInBio\Sections\RatesCard\Index as RatesCardSection;
+use App\Livewire\LinkInBio\Sections\WorkWithMe\Index as WorkWithMeSection;
 use App\Models\Influencer;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -32,6 +33,8 @@ class Show extends Component
     public array $linksSettings = [];
 
     public array $ratesSettings = [];
+
+    public array $workWithMeSettings = [];
 
     public function mount(string $username): void
     {
@@ -77,6 +80,7 @@ class Show extends Component
         $this->headerSettings = $settings['header'] ?? HeaderSection::defaultSettings();
         $this->linksSettings = $settings['links'] ?? LinksSection::defaultSettings();
         $this->ratesSettings = $settings['rates'] ?? RatesCardSection::defaultSettings();
+        $this->workWithMeSettings = $settings['workWithMe'] ?? WorkWithMeSection::defaultSettings();
 
         // Ensure displayName has a fallback
         if (empty($this->headerSettings['displayName'])) {
@@ -127,6 +131,9 @@ class Show extends Component
             RatesCardSection::defaultSettings(),
             ['items' => $ratesItems]
         );
+
+        // Work With Me defaults
+        $this->workWithMeSettings = WorkWithMeSection::defaultSettings();
     }
 
     public function getDesignSettings(): array

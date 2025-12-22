@@ -30,6 +30,8 @@ class Index extends BaseComponent
 
     public array $footerSettings = [];
 
+    public array $workWithMeSettings = [];
+
     public bool $isPublished = false;
 
     public function mount(): void
@@ -56,6 +58,7 @@ class Index extends BaseComponent
             $this->linksSettings = $mergedSettings['links'] ?? [];
             $this->ratesSettings = $mergedSettings['rates'] ?? [];
             $this->footerSettings = ['enabled' => true];
+            $this->workWithMeSettings = $mergedSettings['workWithMe'] ?? [];
 
             // Load publish status
             $this->isPublished = $settings->is_published;
@@ -73,6 +76,7 @@ class Index extends BaseComponent
             $this->linksSettings = $defaults['links'];
             $this->ratesSettings = $defaults['rates'];
             $this->footerSettings = ['enabled' => true];
+            $this->workWithMeSettings = $defaults['workWithMe'];
         }
     }
 
@@ -84,6 +88,7 @@ class Index extends BaseComponent
             'links' => $this->linksSettings = $settings,
             'rates' => $this->ratesSettings = $settings,
             'footer' => $this->footerSettings = $settings,
+            'workWithMe' => $this->workWithMeSettings = $settings,
             default => null,
         };
     }
@@ -156,6 +161,7 @@ class Index extends BaseComponent
             'header' => $this->headerSettings,
             'links' => $this->linksSettings,
             'rates' => $this->ratesSettings,
+            'workWithMe' => $this->workWithMeSettings,
         ];
 
         $influencer->linkInBioSettings()->updateOrCreate(
