@@ -8,7 +8,11 @@ use App\Jobs\ProcessCampaignLifecycle;
 use App\Models\Campaign;
 use App\Models\CampaignApplication;
 use App\Models\User;
+use App\Notifications\CampaignAutoCompletedNotification;
+use App\Notifications\CampaignAutoPublishedNotification;
+use App\Notifications\CampaignAutoStartedNotification;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -331,5 +335,82 @@ class ProcessCampaignLifecycleTest extends TestCase
             ->assertSuccessful()
             ->expectsOutput('Processing campaign lifecycle transitions synchronously...')
             ->expectsOutput('Campaign lifecycle transitions processed successfully.');
+    }
+
+    #[Test]
+    public function sends_notification_to_business_users_when_campaign_is_auto_published(): void
+    {
+        Notification::fake();
+
+        $businessUser = User::factory()->business()->withProfile()->create();
+
+        $campaign = Campaign::factory()->create([
+            'business_id' => $businessUser->currentBusiness->id,
+            'status' => CampaignStatus::SCHEDULED,
+            'scheduled_date' => now()->subDay(),
+        ]);
+
+        (new ProcessCampaignLifecycle)->handle();
+
+        Notification::assertSentTo(
+            $businessUser,
+            CampaignAutoPublishedNotification::class,
+            function ($notification) use ($campaign) {
+                return $notification->campaign->id === $campaign->id;
+            }
+        );
+    }
+
+    #[Test]
+    public function sends_notification_to_business_users_when_campaign_is_auto_started(): void
+    {
+        Notification::fake();
+
+        $businessUser = User::factory()->business()->withProfile()->create();
+        $influencer = User::factory()->influencer()->withProfile()->create();
+
+        $campaign = Campaign::factory()->published()->create([
+            'business_id' => $businessUser->currentBusiness->id,
+            'campaign_start_date' => now()->subDay()->toDateString(),
+        ]);
+
+        CampaignApplication::factory()->create([
+            'campaign_id' => $campaign->id,
+            'user_id' => $influencer->id,
+            'status' => CampaignApplicationStatus::ACCEPTED,
+        ]);
+
+        (new ProcessCampaignLifecycle)->handle();
+
+        Notification::assertSentTo(
+            $businessUser,
+            CampaignAutoStartedNotification::class,
+            function ($notification) use ($campaign) {
+                return $notification->campaign->id === $campaign->id;
+            }
+        );
+    }
+
+    #[Test]
+    public function sends_notification_to_business_users_when_campaign_is_auto_completed(): void
+    {
+        Notification::fake();
+
+        $businessUser = User::factory()->business()->withProfile()->create();
+
+        $campaign = Campaign::factory()->inProgress()->create([
+            'business_id' => $businessUser->currentBusiness->id,
+            'campaign_completion_date' => now()->subDay()->toDateString(),
+        ]);
+
+        (new ProcessCampaignLifecycle)->handle();
+
+        Notification::assertSentTo(
+            $businessUser,
+            CampaignAutoCompletedNotification::class,
+            function ($notification) use ($campaign) {
+                return $notification->campaign->id === $campaign->id;
+            }
+        );
     }
 }

@@ -3,10 +3,14 @@
 namespace App\Jobs;
 
 use App\Models\Campaign;
+use App\Notifications\CampaignAutoCompletedNotification;
+use App\Notifications\CampaignAutoPublishedNotification;
+use App\Notifications\CampaignAutoStartedNotification;
 use App\Services\CampaignService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 class ProcessCampaignLifecycle implements ShouldQueue
 {
@@ -42,6 +46,8 @@ class ProcessCampaignLifecycle implements ShouldQueue
             try {
                 CampaignService::publishCampaign($campaign);
 
+                $this->notifyBusinessUsers($campaign, new CampaignAutoPublishedNotification($campaign));
+
                 Log::info('ProcessCampaignLifecycle: Auto-published campaign', [
                     'campaign_id' => $campaign->id,
                     'project_name' => $campaign->project_name,
@@ -72,6 +78,8 @@ class ProcessCampaignLifecycle implements ShouldQueue
         foreach ($campaigns as $campaign) {
             try {
                 CampaignService::startCampaign($campaign);
+
+                $this->notifyBusinessUsers($campaign, new CampaignAutoStartedNotification($campaign));
 
                 Log::info('ProcessCampaignLifecycle: Auto-started campaign', [
                     'campaign_id' => $campaign->id,
@@ -104,6 +112,8 @@ class ProcessCampaignLifecycle implements ShouldQueue
             try {
                 CampaignService::completeCampaign($campaign);
 
+                $this->notifyBusinessUsers($campaign, new CampaignAutoCompletedNotification($campaign));
+
                 Log::info('ProcessCampaignLifecycle: Auto-completed campaign', [
                     'campaign_id' => $campaign->id,
                     'project_name' => $campaign->project_name,
@@ -119,5 +129,14 @@ class ProcessCampaignLifecycle implements ShouldQueue
         }
 
         Log::info("ProcessCampaignLifecycle: Completed {$campaigns->count()} campaign(s).");
+    }
+
+    protected function notifyBusinessUsers(Campaign $campaign, $notification): void
+    {
+        $users = $campaign->business->users;
+
+        if ($users->isNotEmpty()) {
+            Notification::send($users, $notification);
+        }
     }
 }
