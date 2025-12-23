@@ -84,6 +84,11 @@ class Message extends Model
      */
     public function isReadBy(User $user): bool
     {
+        // Use eager-loaded reads if available (avoids N+1 queries)
+        if ($this->relationLoaded('reads')) {
+            return $this->reads->contains('user_id', $user->id);
+        }
+
         return $this->reads()->where('user_id', $user->id)->exists();
     }
 

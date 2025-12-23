@@ -26,28 +26,37 @@ class CheckUnreadChatMessages implements ShouldQueue
 
     /**
      * Execute the job.
+     *
+     * This properly targets notifications to the INTENDED recipient:
+     * - If business member sends message → notify influencer if they haven't read it
+     * - If influencer sends message → notify business members who haven't read it
      */
     public function handle(): void
     {
-        // Get all messages that are unread and older than the threshold
+        // Get all user messages older than threshold (not system messages)
+        // We load reads to check per-recipient read status, not just "any read"
         $staleMessages = Message::query()
             ->where('is_system_message', false)
             ->where('created_at', '<', now()->subHours($this->hoursThreshold))
-            ->whereDoesntHave('reads')
-            ->with(['chat.business.users', 'chat.influencer.user', 'user'])
+            ->with([
+                'chat.business.users',
+                'chat.influencer.user',
+                'user',
+                'reads', // Load reads to check specific recipients
+            ])
             ->get();
 
         // Group messages by chat to avoid spamming users
         $messagesByChat = $staleMessages->groupBy('chat_id');
 
         foreach ($messagesByChat as $chatId => $messages) {
-            $chat = Chat::with(['business.users', 'influencer.user'])->find($chatId);
+            $chat = $messages->first()->chat;
 
             if (! $chat || ! $chat->isActive()) {
                 continue;
             }
 
-            // Determine who needs to be notified
+            // Determine who needs to be notified based on who HASN'T read
             $usersToNotify = collect();
 
             foreach ($messages as $message) {
@@ -55,14 +64,19 @@ class CheckUnreadChatMessages implements ShouldQueue
                 $senderRole = $chat->getUserRole($message->user);
 
                 if ($senderRole === 'business') {
-                    // Business member sent the message, notify the influencer
-                    if ($chat->influencer && $chat->influencer->user) {
-                        $usersToNotify->push($chat->influencer->user);
+                    // Business member sent the message → check if influencer has read it
+                    $influencerUser = $chat->influencer?->user;
+                    if ($influencerUser && ! $message->isReadBy($influencerUser)) {
+                        $usersToNotify->push($influencerUser);
                     }
                 } elseif ($senderRole === 'influencer') {
-                    // Influencer sent the message, notify all business members
+                    // Influencer sent the message → check each business member
                     if ($chat->business) {
-                        $usersToNotify = $usersToNotify->merge($chat->business->users);
+                        foreach ($chat->business->users as $businessUser) {
+                            if (! $message->isReadBy($businessUser)) {
+                                $usersToNotify->push($businessUser);
+                            }
+                        }
                     }
                 }
             }

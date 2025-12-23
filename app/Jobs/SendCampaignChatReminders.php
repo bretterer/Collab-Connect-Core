@@ -27,13 +27,15 @@ class SendCampaignChatReminders implements ShouldQueue
 
     /**
      * Execute the job.
+     *
+     * Note: "Campaign started" and "Campaign ended" messages are now sent by
+     * CampaignService::startCampaign() and completeCampaign() to avoid duplicates.
+     * This job only handles the "soon" reminder messages.
      */
     public function handle(): void
     {
         $this->sendCampaignStartingSoonReminders();
-        $this->sendCampaignStartedMessages();
         $this->sendCampaignEndingSoonReminders();
-        $this->sendCampaignEndedMessages();
     }
 
     /**
