@@ -13,7 +13,9 @@ Schedule::command('campaigns:complete-due')->dailyAt('01:10');
 // Review period expiration - run daily at 1:15am
 Schedule::command('reviews:expire-periods')->dailyAt('01:15');
 
-Schedule::job(new \App\Jobs\NotifyUsersOfStaleUnreadMessages)->hourly();
+// Chat-related scheduled jobs
+Schedule::job(new \App\Jobs\CheckUnreadChatMessages)->everyThirtyMinutes();
+Schedule::job(new \App\Jobs\SendCampaignChatReminders)->dailyAt('08:00');
 
 Schedule::job(new \App\Jobs\CalculateReferralPayouts)->monthlyOn(1, '06:00');
 Schedule::job(new \App\Jobs\MonitorTemporaryReferralPayouts)->dailyAt('00:01');

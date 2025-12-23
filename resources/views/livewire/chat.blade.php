@@ -7,421 +7,577 @@
             :features="[
                 'Unlimited messaging',
                 'Real-time notifications',
-                'File sharing',
+                'Message reactions',
                 'Message history'
             ]"
         />
     @else
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="chatInterface()">
-        @if(session('message'))
-            <div class="mb-6 rounded-md bg-green-50 dark:bg-green-900/20 p-4">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-green-800 dark:text-green-200">
-                            {{ session('message') }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        @endif
+    <livewire:components.beta-notification />
 
-        @if(session('error'))
-            <div class="mb-6 rounded-md bg-red-50 dark:bg-red-900/20 p-4">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-red-800 dark:text-red-200">
-                            {{ session('error') }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        @endif
-
-        <div class="bg-white dark:bg-gray-800 shadow rounded-lg h-[700px] flex">
-            <!-- Chat List Sidebar -->
-            <div class="w-1/3 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-                <!-- Header -->
+    <div class="flex gap-6" x-data="chatApp()" x-init="init()">
+        {{-- Sidebar --}}
+        <div class="w-80 flex-shrink-0">
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                {{-- Sidebar Header --}}
                 <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Messages</h2>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ $chats->count() }} conversations</p>
-                </div>
+                    <flux:heading size="lg">Messages</flux:heading>
+                    <flux:text class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ $this->filteredActiveChats->count() }} active, {{ $this->filteredArchivedChats->count() }} archived
+                    </flux:text>
 
-                <!-- Chat List -->
-                <div class="flex-1 overflow-y-auto">
-                    @forelse($chats as $chat)
-                        @php
-                            $displayName = $chat->getDisplayNameFor($currentUser);
-                            $latestMessage = $chat->latestMessage;
-                            $initials = $chat->isInfluencer($currentUser)
-                                ? ($chat->business->name ? Str::substr($chat->business->name, 0, 2) : 'B')
-                                : ($chat->influencer->user->initials() ?? 'I');
-                        @endphp
-
-                        <div wire:click="selectChat({{ $chat->id }})"
-                             class="p-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer transition-colors
-                                    {{ $selectedChatId === $chat->id ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'hover:bg-gray-50 dark:hover:bg-gray-700' }}">
-                            <div class="flex items-center space-x-3">
-                                <!-- Avatar -->
-                                <div class="flex-shrink-0 relative">
-                                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                                        {{ $initials }}
-                                    </div>
-                                </div>
-
-                                <!-- Chat Info -->
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                        {{ $displayName }}
-                                    </p>
-                                    @if($chat->campaign)
-                                        <p class="text-xs text-blue-600 dark:text-blue-400 truncate">
-                                            {{ $chat->campaign->project_name }}
-                                        </p>
-                                    @endif
-                                    @if($latestMessage)
-                                        <p class="text-sm text-gray-600 dark:text-gray-400 truncate">
-                                            <span class="font-medium">{{ $latestMessage->user->name }}:</span>
-                                            {{ Str::limit($latestMessage->body, 30) }}
-                                        </p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-500">
-                                            {{ $latestMessage->created_at->diffForHumans() }}
-                                        </p>
-                                    @else
-                                        <p class="text-sm text-gray-500 dark:text-gray-500">No messages yet</p>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="p-8 text-center">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                            <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">No conversations yet</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-500">Start a conversation to see it here</p>
-                        </div>
-                    @endforelse
-                </div>
-            </div>
-
-            <!-- Chat Messages Area -->
-            <div class="flex-1 flex flex-col">
-                @if($selectedChat)
-                    @php
-                        $displayName = $selectedChat->getDisplayNameFor($currentUser);
-                        $initials = $selectedChat->isInfluencer($currentUser)
-                            ? ($selectedChat->business->name ? Str::substr($selectedChat->business->name, 0, 2) : 'B')
-                            : ($selectedChat->influencer->user->initials() ?? 'I');
-                    @endphp
-
-                    <!-- Chat Header -->
-                    <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="relative">
-                                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                                        {{ $initials }}
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                                        {{ $displayName }}
-                                    </h3>
-                                    @if($selectedChat->campaign)
-                                        <p class="text-xs text-blue-600 dark:text-blue-400">
-                                            {{ $selectedChat->campaign->project_name }}
-                                        </p>
-                                    @endif
-                                </div>
-                            </div>
-
-                            <!-- Online users count -->
-                            <div class="text-xs text-gray-500 dark:text-gray-400">
-                                <span x-text="onlineUsers.length"></span> online
-                            </div>
-                        </div>
+                    <div class="mt-3">
+                        <flux:input
+                            wire:model.live.debounce.300ms="searchQuery"
+                            placeholder="Search conversations..."
+                            icon="magnifying-glass"
+                            size="sm"
+                        />
                     </div>
+                </div>
 
-                    <!-- Messages Container -->
-                    <div class="flex-1 overflow-y-auto p-4 space-y-4"
-                         id="messages-container"
-                         x-ref="messagesContainer">
-                        @forelse($messages as $message)
-                            <div class="flex {{ $message->user_id === $currentUser->id ? 'justify-end' : 'justify-start' }}">
-                                <div class="max-w-sm lg:max-w-md">
-                                    <div class="flex items-end space-x-2 {{ $message->user_id === $currentUser->id ? 'flex-row-reverse space-x-reverse' : '' }}">
-                                        <!-- Avatar -->
-                                        <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
-                                            {{ $message->user->initials() }}
+                {{-- Chat List --}}
+                <div class="max-h-[calc(100vh-20rem)] overflow-y-auto">
+                    @if($this->filteredActiveChats->isNotEmpty())
+                        <div class="px-4 py-2">
+                            <flux:text class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Active Chats
+                            </flux:text>
+                        </div>
+
+                        @foreach($this->filteredActiveChats as $chat)
+                            @php
+                                $displayName = $chat->getDisplayNameFor($currentUser);
+                                $subtitle = $chat->getSubtitle();
+                                $latestMessage = $chat->latestMessage;
+                                $unreadCount = $this->unreadCounts[$chat->id] ?? 0;
+                                $isSelected = $selectedChatId === $chat->id;
+                            @endphp
+
+                            <div
+                                wire:key="chat-{{ $chat->id }}"
+                                wire:click="selectChat({{ $chat->id }})"
+                                class="mx-2 mb-1 p-3 rounded-lg cursor-pointer transition-all duration-150
+                                    {{ $isSelected
+                                        ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800'
+                                        : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent' }}"
+                            >
+                                <div class="flex items-start gap-3">
+                                    <div class="relative flex-shrink-0">
+                                        <flux:avatar size="sm" name="{{ $displayName }}" />
+                                        @if($unreadCount > 0)
+                                            <div class="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+                                                <span class="text-xs text-white font-bold">{{ $unreadCount > 9 ? '9+' : $unreadCount }}</span>
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span class="font-medium text-gray-900 dark:text-white truncate {{ $unreadCount > 0 ? 'font-semibold' : '' }}">
+                                                {{ $displayName }}
+                                            </span>
+                                            @if($latestMessage)
+                                                <span class="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
+                                                    {{ $latestMessage->created_at->shortAbsoluteDiffForHumans() }}
+                                                </span>
+                                            @endif
                                         </div>
 
-                                        <!-- Message Bubble -->
-                                        <div>
-                                            @if($message->user_id !== $currentUser->id)
-                                                <p class="text-xs text-gray-600 dark:text-gray-400 mb-1 {{ $message->user_id === $currentUser->id ? 'text-right' : '' }}">
-                                                    {{ $message->user->name }}
-                                                </p>
-                                            @endif
-                                            <div class="px-4 py-2 rounded-lg {{ $message->user_id === $currentUser->id
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' }}">
-                                                <p class="text-sm">{{ $message->body }}</p>
-                                                <p class="text-xs mt-1 opacity-70">
-                                                    {{ $message->created_at->format('g:i A') }}
-                                                </p>
+                                        <span class="text-xs text-blue-600 dark:text-blue-400 truncate block">
+                                            {{ $subtitle }}
+                                        </span>
+
+                                        @if($latestMessage)
+                                            <span class="text-sm text-gray-600 dark:text-gray-400 truncate block mt-1 {{ $unreadCount > 0 ? 'font-medium' : '' }}">
+                                                @if($latestMessage->is_system_message)
+                                                    <span class="italic">{{ Str::limit($latestMessage->body, 40) }}</span>
+                                                @else
+                                                    <span class="font-medium">{{ $latestMessage->user_id === $currentUser->id ? 'You' : $latestMessage->user->first_name }}:</span>
+                                                    {{ Str::limit($latestMessage->body, 30) }}
+                                                @endif
+                                            </span>
+                                        @else
+                                            <span class="text-sm text-gray-500 dark:text-gray-400 italic mt-1 block">No messages yet</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+
+                    @if($this->filteredArchivedChats->isNotEmpty())
+                        <div class="px-4 py-2 mt-2" x-data="{ showArchived: false }">
+                            <button
+                                @click="showArchived = !showArchived"
+                                class="flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hover:text-gray-700 dark:hover:text-gray-300 transition-colors w-full"
+                            >
+                                <flux:icon.archive-box class="w-4 h-4" />
+                                <span>Archived ({{ $this->filteredArchivedChats->count() }})</span>
+                                <flux:icon.chevron-down class="w-4 h-4 ml-auto transition-transform duration-200" x-bind:class="{ 'rotate-180': showArchived }" />
+                            </button>
+
+                            <div x-show="showArchived" x-collapse class="mt-2">
+                                @foreach($this->filteredArchivedChats as $chat)
+                                    @php
+                                        $displayName = $chat->getDisplayNameFor($currentUser);
+                                        $subtitle = $chat->getSubtitle();
+                                        $isSelected = $selectedChatId === $chat->id;
+                                    @endphp
+
+                                    <div
+                                        wire:key="archived-chat-{{ $chat->id }}"
+                                        wire:click="selectChat({{ $chat->id }})"
+                                        class="mb-1 p-3 rounded-lg cursor-pointer transition-all duration-150 opacity-60
+                                            {{ $isSelected
+                                                ? 'bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600'
+                                                : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent' }}"
+                                    >
+                                        <div class="flex items-start gap-3">
+                                            <flux:avatar size="sm" name="{{ $displayName }}" class="grayscale" />
+                                            <div class="flex-1 min-w-0">
+                                                <span class="font-medium text-gray-700 dark:text-gray-300 truncate block">{{ $displayName }}</span>
+                                                <span class="text-xs text-gray-500 dark:text-gray-400 truncate block">{{ $subtitle }}</span>
                                             </div>
                                         </div>
                                     </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($this->filteredActiveChats->isEmpty() && $this->filteredArchivedChats->isEmpty())
+                        <div class="p-8 text-center">
+                            <flux:icon.chat-bubble-left-right class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto" />
+                            <flux:heading size="sm" class="mt-4">No conversations</flux:heading>
+                            <flux:text class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                @if($searchQuery)
+                                    No chats match your search
+                                @else
+                                    When you're accepted into campaigns, your chats will appear here
+                                @endif
+                            </flux:text>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        {{-- Main Chat Area --}}
+        <div class="flex-1 min-w-0">
+            {{-- Loading Skeleton --}}
+            <flux:skeleton.group animate="shimmer" wire:loading.delay wire:target="selectChat" class="w-full bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-col h-[calc(100vh-12rem)]">
+                {{-- Skeleton Header --}}
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center gap-3">
+                        <flux:skeleton class="size-10 rounded-full" />
+                        <div class="flex-1">
+                            <flux:skeleton.line class="w-32" />
+                            <flux:skeleton.line class="w-48 mt-1" />
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Skeleton Messages --}}
+                <div class="flex-1 overflow-hidden p-6 space-y-4">
+                    {{-- System message skeleton --}}
+                    <div class="flex justify-center">
+                        <flux:skeleton.line class="w-64" />
+                    </div>
+
+                    {{-- Incoming message skeleton --}}
+                    <div class="flex justify-start gap-2">
+                        <flux:skeleton class="size-8 rounded-full flex-shrink-0" />
+                        <div>
+                            <flux:skeleton.line class="w-24 mb-1" />
+                            <flux:skeleton class="h-16 w-64 rounded-2xl rounded-bl-md" />
+                        </div>
+                    </div>
+
+                    {{-- Outgoing message skeleton --}}
+                    <div class="flex justify-end">
+                        <flux:skeleton class="h-12 w-48 rounded-2xl rounded-br-md" />
+                    </div>
+
+                    {{-- Incoming message skeleton --}}
+                    <div class="flex justify-start gap-2">
+                        <flux:skeleton class="size-8 rounded-full flex-shrink-0" />
+                        <div>
+                            <flux:skeleton.line class="w-20 mb-1" />
+                            <flux:skeleton class="h-10 w-56 rounded-2xl rounded-bl-md" />
+                        </div>
+                    </div>
+
+                    {{-- Outgoing message skeleton --}}
+                    <div class="flex justify-end">
+                        <flux:skeleton class="h-20 w-72 rounded-2xl rounded-br-md" />
+                    </div>
+                </div>
+
+                {{-- Skeleton Input --}}
+                <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-end gap-3">
+                        <flux:skeleton class="flex-1 h-10 rounded-xl" />
+                        <flux:skeleton class="size-10 rounded-lg" />
+                    </div>
+                </div>
+            </flux:skeleton.group>
+
+            <div wire:loading.remove wire:target="selectChat">
+            @if($this->selectedChat)
+                @php
+                    $chat = $this->selectedChat;
+                    $displayName = $chat->getDisplayNameFor($currentUser);
+                    $isArchived = $chat->isArchived();
+                @endphp
+
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-col h-[calc(100vh-12rem)]">
+                    {{-- Chat Header --}}
+                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <flux:avatar size="sm" name="{{ $displayName }}" />
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-semibold text-gray-900 dark:text-white">{{ $displayName }}</span>
+                                        @if($isArchived)
+                                            <flux:badge size="sm" color="zinc">Archived</flux:badge>
+                                        @endif
+                                    </div>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ $chat->getSubtitle() }}</span>
                                 </div>
+                            </div>
+
+                            <div class="text-sm text-gray-500 dark:text-gray-400" x-show="onlineUsers.length > 0">
+                                <span class="inline-flex items-center gap-1.5">
+                                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    <span x-text="onlineUsers.length + ' online'"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if($isArchived)
+                        <div class="px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800/50">
+                            <div class="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+                                <flux:icon.archive-box class="w-4 h-4" />
+                                <span class="text-sm">This chat is archived. You can view messages but cannot send new ones.</span>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Messages --}}
+                    <div class="flex-1 overflow-y-auto p-6 space-y-4" id="messages-container" x-ref="messagesContainer">
+                        @forelse($this->chatMessages as $message)
+                            @php
+                                $isOwn = $message->user_id === $currentUser->id;
+                                $isSystem = $message->is_system_message;
+                                $senderRole = $message->getSenderRole();
+                                $reactions = $message->getReactionCounts();
+                            @endphp
+
+                            <div wire:key="message-{{ $message->id }}">
+                                @if($isSystem)
+                                    <div class="flex justify-center my-2">
+                                        <div class="inline-flex items-center gap-2 px-3 py-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                            @if($message->system_message_type)
+                                                <flux:icon :name="$message->system_message_type->icon()" class="w-3.5 h-3.5" />
+                                            @endif
+                                            <span>{{ $message->body }}</span>
+                                            <span class="text-gray-400 dark:text-gray-500">·</span>
+                                            <span class="text-gray-400 dark:text-gray-500">{{ $message->created_at->format('M j, g:i A') }}</span>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="flex {{ $isOwn ? 'justify-end' : 'justify-start' }} group">
+                                        <div class="flex gap-2 max-w-[70%] {{ $isOwn ? 'flex-row-reverse' : '' }}">
+                                            @if(!$isOwn)
+                                                <flux:avatar size="xs" name="{{ $message->user->name }}" class="flex-shrink-0 mt-0.5" />
+                                            @endif
+
+                                            <div class="flex flex-col {{ $isOwn ? 'items-end' : 'items-start' }}">
+                                                @if(!$isOwn)
+                                                    <div class="flex items-center gap-1.5 mb-1">
+                                                        <span class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ $message->user->first_name }}</span>
+                                                        @if($senderRole === 'business')
+                                                            <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">Business</span>
+                                                        @elseif($senderRole === 'influencer')
+                                                            <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300">Influencer</span>
+                                                        @endif
+                                                        <span class="text-[10px] text-gray-400 dark:text-gray-500">{{ $message->created_at->format('g:i A') }}</span>
+                                                    </div>
+                                                @endif
+
+                                                <div class="relative" x-data="{ showReactions: false }">
+                                                    <div class="px-4 py-2 rounded-2xl {{ $isOwn
+                                                        ? 'bg-blue-600 text-white rounded-br-md'
+                                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-md' }}">
+                                                        <p class="text-sm whitespace-pre-wrap break-words">{{ $message->body }}</p>
+                                                    </div>
+
+                                                    @if(!$isArchived)
+                                                        <button
+                                                            @click="showReactions = !showReactions"
+                                                            class="absolute {{ $isOwn ? '-left-7' : '-right-7' }} top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600"
+                                                        >
+                                                            <flux:icon.face-smile class="w-4 h-4 text-gray-400" />
+                                                        </button>
+
+                                                        <div
+                                                            x-show="showReactions"
+                                                            @click.outside="showReactions = false"
+                                                            x-transition
+                                                            class="absolute {{ $isOwn ? 'right-0' : 'left-0' }} -top-10 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 px-1 py-1 flex gap-0.5 z-10"
+                                                        >
+                                                            @foreach($this->reactionTypes as $reaction)
+                                                                <button
+                                                                    wire:click="toggleReaction({{ $message->id }}, '{{ $reaction['value'] }}')"
+                                                                    @click="showReactions = false"
+                                                                    class="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors text-base"
+                                                                    title="{{ $reaction['label'] }}"
+                                                                >
+                                                                    {{ $reaction['emoji'] }}
+                                                                </button>
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+
+                                                    @if(!empty($reactions))
+                                                        <div class="flex flex-wrap gap-1 mt-1 {{ $isOwn ? 'justify-end' : 'justify-start' }}">
+                                                            @foreach($reactions as $type => $count)
+                                                                @php
+                                                                    $reactionType = \App\Enums\ReactionType::tryFrom($type);
+                                                                    $hasReacted = $message->hasReactionFrom($currentUser, $reactionType);
+                                                                @endphp
+                                                                @if($reactionType)
+                                                                    <button
+                                                                        wire:click="toggleReaction({{ $message->id }}, '{{ $type }}')"
+                                                                        class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs transition-colors
+                                                                            {{ $hasReacted
+                                                                                ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
+                                                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600' }}"
+                                                                        @if($isArchived) disabled @endif
+                                                                    >
+                                                                        <span>{{ $reactionType->emoji() }}</span>
+                                                                        <span class="font-medium">{{ $count }}</span>
+                                                                    </button>
+                                                                @endif
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+                                                </div>
+
+                                                @if($isOwn)
+                                                    <span class="text-[10px] text-gray-400 dark:text-gray-500 mt-1 mr-1">{{ $message->created_at->format('g:i A') }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         @empty
                             <div class="flex items-center justify-center h-full">
                                 <div class="text-center">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                    </svg>
-                                    <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">No messages yet</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-500">Send a message to start the conversation</p>
+                                    <flux:icon.chat-bubble-left-right class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto" />
+                                    <p class="font-medium text-gray-700 dark:text-gray-300 mt-4">Start the conversation</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Send a message to begin collaborating</p>
                                 </div>
                             </div>
                         @endforelse
 
-                        <!-- Typing Indicator -->
-                        <div x-show="typingUsers.length > 0" class="flex justify-start">
-                            <div class="max-w-sm lg:max-w-md">
-                                <div class="flex items-end space-x-2">
-                                    <div class="w-6 h-6 bg-gradient-to-br from-gray-400 to-gray-500 rounded-full flex items-center justify-center text-white font-semibold text-xs">
-                                        <span x-text="typingUsers[0]?.initials || typingUsers[0]?.name?.charAt(0) || '?'"></span>
-                                    </div>
-                                    <div class="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700">
-                                        <div class="flex space-x-1">
-                                            <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse"></div>
-                                            <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
-                                            <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.4s"></div>
-                                        </div>
-                                    </div>
+                        <div x-show="typingUsers.length > 0" x-transition class="flex justify-start">
+                            <div class="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-2xl rounded-bl-md">
+                                <div class="flex gap-1">
+                                    <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+                                    <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+                                    <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
                                 </div>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-8">
-                                    <span x-text="typingUsers[0]?.name"></span> is typing...
-                                </p>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">
+                                    <span x-text="typingUsers.map(u => u.name).join(', ')"></span>
+                                    <span x-text="typingUsers.length === 1 ? ' is typing...' : ' are typing...'"></span>
+                                </span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Message Input -->
-                    <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-                        <form wire:submit="sendMessage" class="flex space-x-4">
-                            <div class="flex-1">
-                                <textarea
-                                    wire:model="messageBody"
-                                    x-ref="messageInput"
-                                    placeholder="Type your message..."
-                                    rows="1"
-                                    class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 resize-none"
-                                    x-data="{
-                                        resize() {
-                                            $el.style.height = 'auto';
-                                            $el.style.height = Math.min($el.scrollHeight, 120) + 'px';
-                                        }
-                                    }"
-                                    x-init="resize()"
-                                    @input="resize(); onTyping()"
-                                    @keydown.enter.prevent="if (!$event.shiftKey) { onStoppedTyping(); $wire.sendMessage(); resize(); }"
-                                    @blur="onStoppedTyping()"
-                                ></textarea>
-                                @error('messageBody')
-                                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <button
-                                type="submit"
-                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                :disabled="!$wire.messageBody.trim()"
-                            >
-                                Send
-                            </button>
-                        </form>
-
-                    </div>
-                @else
-                    <!-- No Chat Selected -->
-                    <div class="flex-1 flex items-center justify-center">
-                        <div class="text-center">
-                            <svg class="mx-auto h-16 w-16 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                            <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">Select a conversation</h3>
-                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Choose a chat from the sidebar to start messaging</p>
+                    {{-- Message Input --}}
+                    @if(!$isArchived)
+                        <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                            <form wire:submit="sendMessage" class="flex items-end gap-3">
+                                <div class="flex-1">
+                                    <textarea
+                                        wire:model="messageBody"
+                                        placeholder="Type a message..."
+                                        rows="1"
+                                        class="block w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm py-2.5 px-4"
+                                        x-data="{
+                                            resize() {
+                                                $el.style.height = 'auto';
+                                                $el.style.height = Math.min($el.scrollHeight, 120) + 'px';
+                                            }
+                                        }"
+                                        x-init="resize()"
+                                        @input="resize(); onTyping()"
+                                        @keydown.enter.prevent="if (!$event.shiftKey) { onStoppedTyping(); $wire.sendMessage(); $el.style.height = 'auto'; }"
+                                        @blur="onStoppedTyping()"
+                                    ></textarea>
+                                    @error('messageBody')
+                                        <p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <flux:button type="submit" variant="primary" icon="paper-airplane" />
+                            </form>
                         </div>
+                    @endif
+                </div>
+            @else
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 h-[calc(100vh-12rem)] flex items-center justify-center">
+                    <div class="text-center">
+                        <flux:icon.chat-bubble-left-right class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto" />
+                        <p class="text-lg font-medium text-gray-700 dark:text-gray-300 mt-4">Select a conversation</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Choose a chat from the sidebar to start messaging</p>
                     </div>
-                @endif
+                </div>
+            @endif
             </div>
         </div>
+    </div>
 
-        <script>
-            function chatInterface() {
-                return {
-                    currentChannel: null,
-                    currentUser: {!! json_encode($currentUser) !!},
-                    selectedChatId: {{ $selectedChatId ?? 'null' }},
-                    onlineUsers: [],
-                    typingUsers: [],
-                    typingTimeout: null,
+    <script>
+        function chatApp() {
+            return {
+                currentChannelName: null,
+                currentChannelInstance: null,
+                currentUser: @json($currentUser),
+                selectedChatId: @json($selectedChatId),
+                onlineUsers: [],
+                typingUsers: [],
+                typingTimeout: null,
 
-                    init() {
+                init() {
+                    this.$nextTick(() => {
                         this.scrollToBottom();
+                    });
 
-                        // If a chat is already selected (from mount), subscribe to it
-                        if (this.selectedChatId) {
-                            this.subscribeToChat(this.selectedChatId);
+                    if (this.selectedChatId) {
+                        this.subscribeToChat(this.selectedChatId);
+                    }
+
+                    Livewire.on('chatSelected', (data) => {
+                        this.selectedChatId = data.chatId;
+                        this.subscribeToChat(data.chatId);
+                        this.typingUsers = [];
+                        this.$nextTick(() => this.scrollToBottom());
+                    });
+
+                    Livewire.on('messageAdded', () => {
+                        this.$nextTick(() => this.scrollToBottom());
+                    });
+
+                    Livewire.hook('morph.updated', ({ el }) => {
+                        if (el.id === 'messages-container' || el.closest('#messages-container')) {
+                            this.$nextTick(() => this.scrollToBottom());
                         }
+                    });
+                },
 
-                        // Listen for chat selection
-                        Livewire.on('chatSelected', (data) => {
-                            this.selectedChatId = data.chatId;
-                            this.subscribeToChat(data.chatId);
-                            setTimeout(() => this.scrollToBottom(), 100);
-                        });
+                subscribeToChat(chatId) {
+                    if (this.currentChannelName) {
+                        window.Echo.leave(this.currentChannelName);
+                        this.currentChannelInstance = null;
+                    }
 
-                        // Listen for new messages sent by current user
-                        Livewire.on('messageAdded', () => {
-                            setTimeout(() => this.scrollToBottom(), 100);
-                        });
+                    const channelName = `chat.${chatId}`;
+                    this.currentChannelName = channelName;
 
-                    },
-
-                    subscribeToChat(chatId) {
-                        // Leave previous channel if exists
-                        if (this.currentChannel) {
-                            window.Echo.leave(this.currentChannel);
-                        }
-
-                        // Subscribe to the presence channel for this chat
-                        const channelName = `chat.${chatId}`;
-                        this.currentChannel = channelName;
-
-                        try {
-                            window.Echo.join(channelName)
-                                .here((users) => {
-                                    this.onlineUsers = users;
-                                })
-                                .joining((user) => {
+                    try {
+                        this.currentChannelInstance = window.Echo.join(channelName)
+                            .here((users) => {
+                                this.onlineUsers = users;
+                            })
+                            .joining((user) => {
+                                if (!this.onlineUsers.find(u => u.id === user.id)) {
                                     this.onlineUsers.push(user);
-                                })
-                                .leaving((user) => {
-                                    this.onlineUsers = this.onlineUsers.filter(u => u.id !== user.id);
-                                    this.typingUsers = this.typingUsers.filter(u => u.id !== user.id);
-                                })
-                                .listen('MessageSent', (e) => {
-                                    let messageData = e.message;
-                                    if (typeof e.message === 'string') {
-                                        try {
-                                            messageData = JSON.parse(e.message);
-                                        } catch (parseError) {
-                                            return;
+                                }
+                            })
+                            .leaving((user) => {
+                                this.onlineUsers = this.onlineUsers.filter(u => u.id !== user.id);
+                                this.typingUsers = this.typingUsers.filter(u => u.id !== user.id);
+                            })
+                            .listen('.message.sent', (e) => {
+                                if (e.message && e.message.user_id !== this.currentUser.id) {
+                                    this.typingUsers = this.typingUsers.filter(u => u.id !== e.message.user_id);
+                                    this.$wire.$refresh().then(() => {
+                                        this.$wire.handleNewMessage();
+                                        this.$nextTick(() => this.scrollToBottom());
+                                    });
+                                }
+                            })
+                            .listen('.reaction.toggled', () => {
+                                this.$wire.$refresh();
+                            })
+                            .listen('.user.typing', (e) => {
+                                if (e.user_id !== this.currentUser.id) {
+                                    if (e.is_typing) {
+                                        if (!this.typingUsers.find(u => u.id === e.user_id)) {
+                                            this.typingUsers.push({ id: e.user_id, name: e.user_name });
                                         }
+                                    } else {
+                                        this.typingUsers = this.typingUsers.filter(u => u.id !== e.user_id);
                                     }
-                                    this.handleNewMessage(messageData);
-                                })
-                                .listenForWhisper('typing', (e) => {
-                                    this.handleTyping(e);
-                                })
-                                .listenForWhisper('stopped-typing', (e) => {
-                                    this.handleStoppedTyping(e);
-                                });
-
-                        } catch (error) {
-                            console.error('Error subscribing to chat channel:', error);
-                        }
-                    },
-
-                    handleNewMessage(messageData) {
-                        // Don't add message if it's from the current user (already added by Livewire)
-                        if (messageData.user_id === this.currentUser.id) {
-                            return;
-                        }
-
-                        // Remove typing indicator for the sender
-                        this.typingUsers = this.typingUsers.filter(u => u.id !== messageData.user_id);
-
-                        // Refresh the Livewire component to show the new message
-                        this.$wire.$refresh();
-
-                        // Scroll to bottom after DOM update
-                        setTimeout(() => this.scrollToBottom(), 200);
-                    },
-
-                    handleTyping(e) {
-                        if (e.user.id !== this.currentUser.id) {
-                            // Add user to typing list if not already there
-                            if (!this.typingUsers.find(u => u.id === e.user.id)) {
-                                this.typingUsers.push(e.user);
-                            }
-                        }
-                    },
-
-                    handleStoppedTyping(e) {
-                        this.typingUsers = this.typingUsers.filter(u => u.id !== e.user.id);
-                    },
-
-                    onTyping() {
-                        if (!this.currentChannel) return;
-
-                        // Send typing whisper
-                        window.Echo.join(this.currentChannel)
-                            .whisper('typing', {
-                                user: this.currentUser
+                                }
+                            })
+                            .listenForWhisper('typing', (e) => {
+                                if (e.user && e.user.id !== this.currentUser.id) {
+                                    if (!this.typingUsers.find(u => u.id === e.user.id)) {
+                                        this.typingUsers.push(e.user);
+                                    }
+                                }
+                            })
+                            .listenForWhisper('stopped-typing', (e) => {
+                                if (e.user) {
+                                    this.typingUsers = this.typingUsers.filter(u => u.id !== e.user.id);
+                                }
                             });
+                    } catch (error) {
+                        console.error('Error subscribing to chat channel:', error);
+                    }
+                },
 
-                        // Clear existing timeout
-                        if (this.typingTimeout) {
-                            clearTimeout(this.typingTimeout);
-                        }
+                onTyping() {
+                    if (!this.currentChannelInstance) return;
 
-                        // Set timeout to stop typing after 3 seconds
-                        this.typingTimeout = setTimeout(() => {
-                            this.onStoppedTyping();
-                        }, 3000);
-                    },
+                    this.currentChannelInstance.whisper('typing', { user: this.currentUser });
 
-                    onStoppedTyping() {
-                        if (!this.currentChannel) return;
+                    if (this.typingTimeout) {
+                        clearTimeout(this.typingTimeout);
+                    }
 
-                        window.Echo.join(this.currentChannel)
-                            .whisper('stopped-typing', {
-                                user: this.currentUser
-                            });
+                    this.typingTimeout = setTimeout(() => {
+                        this.onStoppedTyping();
+                    }, 3000);
+                },
 
-                        if (this.typingTimeout) {
-                            clearTimeout(this.typingTimeout);
-                            this.typingTimeout = null;
-                        }
-                    },
+                onStoppedTyping() {
+                    if (!this.currentChannelInstance) return;
 
-                    scrollToBottom() {
-                        const container = document.getElementById('messages-container');
-                        if (container) {
+                    this.currentChannelInstance.whisper('stopped-typing', { user: this.currentUser });
+
+                    if (this.typingTimeout) {
+                        clearTimeout(this.typingTimeout);
+                        this.typingTimeout = null;
+                    }
+                },
+
+                scrollToBottom() {
+                    const container = document.getElementById('messages-container');
+                    if (container) {
+                        requestAnimationFrame(() => {
                             container.scrollTop = container.scrollHeight;
-
-                            // Force scroll if needed
-                            setTimeout(() => {
-                                container.scrollTop = container.scrollHeight;
-                            }, 50);
-                        }
+                        });
                     }
                 }
             }
-        </script>
-    </div>
+        }
+    </script>
     @endif
 </div>

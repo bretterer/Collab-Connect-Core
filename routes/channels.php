@@ -17,9 +17,16 @@ Broadcast::channel('chat.{chatId}', function ($user, $chatId) {
         return false;
     }
 
-    return $chat->hasParticipant($user) ? [
+    if (! $chat->hasParticipant($user)) {
+        return false;
+    }
+
+    return [
         'id' => $user->id,
         'name' => $user->name,
+        'first_name' => $user->first_name,
         'initials' => $user->initials(),
-    ] : false;
+        'avatar_url' => $user->avatar_url,
+        'role' => $chat->getUserRole($user),
+    ];
 });

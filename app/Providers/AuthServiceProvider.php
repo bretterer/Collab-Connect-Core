@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Models\Campaign;
+use App\Models\Chat;
 use App\Policies\CampaignPolicy;
+use App\Policies\ChatPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -15,6 +17,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         Campaign::class => CampaignPolicy::class,
+        Chat::class => ChatPolicy::class,
     ];
 
     /**
