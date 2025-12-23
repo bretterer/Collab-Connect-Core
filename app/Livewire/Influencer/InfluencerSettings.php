@@ -377,6 +377,72 @@ class InfluencerSettings extends BaseComponent
         }
     }
 
+    /**
+     * Get validation rules for a specific tab.
+     *
+     * @return array<string, mixed>
+     */
+    protected function getValidationRulesForTab(string $tab, ?int $influencerId = null): array
+    {
+        return match ($tab) {
+            'account' => $this->getAccountTabRules($influencerId),
+            'match' => $this->getMatchTabRules(),
+            'social' => [], // Social accounts don't have validation rules
+            default => [],
+        };
+    }
+
+    /**
+     * Get validation rules for the account tab.
+     *
+     * @return array<string, mixed>
+     */
+    protected function getAccountTabRules(?int $influencerId = null): array
+    {
+        $rules = [
+            'username' => ['nullable', 'string', 'max:255', 'alpha_dash', new UniqueUsername(null, $influencerId)],
+            'bio' => 'nullable|string|max:1000',
+            'address' => 'nullable|string|max:255',
+            'city' => 'required|string|max:100',
+            'state' => 'required|string|max:100',
+            'county' => 'nullable|string|max:100',
+            'postal_code' => 'required|string|max:20',
+            'phone_number' => 'required|string|max:20',
+            'is_searchable' => 'boolean',
+            'searchable_at' => 'nullable|date',
+            'is_accepting_invitations' => 'boolean',
+        ];
+
+        if ($this->profile_image) {
+            $rules['profile_image'] = 'image|max:5120';
+        }
+        if ($this->banner_image) {
+            $rules['banner_image'] = 'image|max:5120';
+        }
+
+        return $rules;
+    }
+
+    /**
+     * Get validation rules for the match tab.
+     *
+     * @return array<string, mixed>
+     */
+    protected function getMatchTabRules(): array
+    {
+        return [
+            'about_yourself' => 'nullable|string|max:2000',
+            'passions' => 'nullable|string|max:2000',
+            'primary_industry' => ['nullable', BusinessIndustry::validationRule()],
+            'content_types' => 'nullable|array|max:3',
+            'preferred_business_types' => 'nullable|array|max:2',
+            'preferred_campaign_types' => 'nullable|array',
+            'deliverable_types' => 'nullable|array',
+            'compensation_types' => 'nullable|array|max:3',
+            'typical_lead_time_days' => 'required|integer|min:1|max:365',
+        ];
+    }
+
     public function updateInfluencerSettings(): void
     {
         /** @var User $user */
@@ -390,76 +456,50 @@ class InfluencerSettings extends BaseComponent
 
         $influencer = $user->influencer;
 
-        $rules = [
-            'username' => ['nullable', 'string', 'max:255', 'alpha_dash', new UniqueUsername(null, $influencer?->id)],
-            'bio' => 'nullable|string|max:1000',
-            'about_yourself' => 'nullable|string|max:2000',
-            'passions' => 'nullable|string|max:2000',
-            'primary_industry' => ['nullable', BusinessIndustry::validationRule()],
-            'content_types' => 'nullable|array|max:3',
-            'preferred_business_types' => 'nullable|array|max:2',
-            'preferred_campaign_types' => 'nullable|array',
-            'deliverable_types' => 'nullable|array',
-            'address' => 'nullable|string|max:255',
-            'city' => 'required|string|max:100',
-            'state' => 'required|string|max:100',
-            'county' => 'nullable|string|max:100',
-            'postal_code' => 'required|string|max:20',
-            'phone_number' => 'required|string|max:20',
-            'compensation_types' => 'nullable|array|max:3',
-            'typical_lead_time_days' => 'required|integer|min:1|max:365',
-            'is_searchable' => 'boolean',
-            'searchable_at' => 'nullable|date',
-            'is_accepting_invitations' => 'boolean',
-        ];
+        // Only validate and save the current tab's fields
+        $rules = $this->getValidationRulesForTab($this->activeTab, $influencer?->id);
 
-        if ($this->profile_image) {
-            $rules['profile_image'] = 'image|max:5120';
-        }
-        if ($this->banner_image) {
-            $rules['banner_image'] = 'image|max:5120';
+        if (! empty($rules)) {
+            try {
+                $this->validate($rules);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                Toaster::error('Could not save, errors on the page.');
+
+                throw $e;
+            }
         }
 
-        $this->validate($rules);
+        // Save based on current tab
+        match ($this->activeTab) {
+            'account' => $this->saveAccountTab($user, $influencer),
+            'match' => $this->saveMatchTab($user, $influencer),
+            'social' => $this->saveSocialTab($user, $influencer),
+            default => null,
+        };
 
+        Toaster::success('Settings saved successfully!');
+    }
+
+    /**
+     * Save account tab fields.
+     */
+    protected function saveAccountTab(User $user, $influencer): void
+    {
         $profileData = [
             'username' => $this->username,
             'bio' => $this->bio,
-            'about_yourself' => $this->about_yourself,
-            'passions' => $this->passions,
-            'primary_industry' => ! empty($this->primary_industry) ? BusinessIndustry::from($this->primary_industry) : null,
-            'content_types' => array_filter($this->content_types),
-            'preferred_business_types' => array_filter($this->preferred_business_types),
-            'preferred_campaign_types' => array_filter($this->preferred_campaign_types),
-            'deliverable_types' => array_filter($this->deliverable_types),
             'address' => $this->address,
             'city' => $this->city,
             'state' => $this->state,
             'county' => $this->county,
             'postal_code' => $this->postal_code,
             'phone_number' => $this->phone_number,
-            'compensation_types' => array_filter($this->compensation_types),
-            'typical_lead_time_days' => $this->typical_lead_time_days,
             'is_searchable' => $this->is_searchable,
             'searchable_at' => $this->searchable_at,
             'is_accepting_invitations' => $this->is_accepting_invitations,
         ];
 
         $influencer = $user->influencer()->updateOrCreate(['user_id' => $user->id], $profileData);
-
-        // Update social accounts
-        $influencer->socialAccounts()->delete();
-
-        foreach ($this->social_accounts as $accountData) {
-            if (! empty($accountData['username'])) {
-                $influencer->socialAccounts()->create([
-                    'platform' => $accountData['platform'],
-                    'username' => $accountData['username'],
-                    'url' => SocialPlatform::from($accountData['platform'])->generateUrl($accountData['username']),
-                    'followers' => $accountData['followers'] ?: null,
-                ]);
-            }
-        }
 
         // Handle image uploads
         if ($this->profile_image) {
@@ -487,8 +527,48 @@ class InfluencerSettings extends BaseComponent
                 $this->addError('banner_image', 'Failed to upload banner image: '.$e->getMessage());
             }
         }
+    }
 
-        Toaster::success('Influencer settings updated successfully!');
+    /**
+     * Save match tab fields.
+     */
+    protected function saveMatchTab(User $user, $influencer): void
+    {
+        $profileData = [
+            'about_yourself' => $this->about_yourself,
+            'passions' => $this->passions,
+            'primary_industry' => ! empty($this->primary_industry) ? BusinessIndustry::from($this->primary_industry) : null,
+            'content_types' => array_filter($this->content_types),
+            'preferred_business_types' => array_filter($this->preferred_business_types),
+            'preferred_campaign_types' => array_filter($this->preferred_campaign_types),
+            'deliverable_types' => array_filter($this->deliverable_types),
+            'compensation_types' => array_filter($this->compensation_types),
+            'typical_lead_time_days' => $this->typical_lead_time_days,
+        ];
+
+        $user->influencer()->updateOrCreate(['user_id' => $user->id], $profileData);
+    }
+
+    /**
+     * Save social tab fields.
+     */
+    protected function saveSocialTab(User $user, $influencer): void
+    {
+        $influencer = $user->influencer()->updateOrCreate(['user_id' => $user->id], []);
+
+        // Update social accounts
+        $influencer->socialAccounts()->delete();
+
+        foreach ($this->social_accounts as $accountData) {
+            if (! empty($accountData['username'])) {
+                $influencer->socialAccounts()->create([
+                    'platform' => $accountData['platform'],
+                    'username' => $accountData['username'],
+                    'url' => SocialPlatform::from($accountData['platform'])->generateUrl($accountData['username']),
+                    'followers' => $accountData['followers'] ?: null,
+                ]);
+            }
+        }
     }
 
     /**

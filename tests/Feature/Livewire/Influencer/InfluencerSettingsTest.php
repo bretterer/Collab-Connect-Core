@@ -46,14 +46,21 @@ class InfluencerSettingsTest extends TestCase
 
         $this->actingAs($user);
 
+        // Save account tab settings
         Livewire::test(InfluencerSettings::class)
             ->set('username', 'testinfluencer')
             ->set('bio', 'This is my updated bio for testing purposes.')
-            ->set('primary_industry', BusinessIndustry::FOOD_BEVERAGE->value)
             ->set('city', 'Springfield')
             ->set('state', 'OH')
             ->set('postal_code', '45066')
             ->set('phone_number', '555-123-4567')
+            ->call('updateInfluencerSettings')
+            ->assertHasNoErrors();
+
+        // Save match tab settings
+        Livewire::test(InfluencerSettings::class)
+            ->call('setActiveTab', 'match')
+            ->set('primary_industry', BusinessIndustry::FOOD_BEVERAGE->value)
             ->set('typical_lead_time_days', 7)
             ->call('updateInfluencerSettings')
             ->assertHasNoErrors();
@@ -84,11 +91,8 @@ class InfluencerSettingsTest extends TestCase
         ];
 
         Livewire::test(InfluencerSettings::class)
+            ->call('setActiveTab', 'match')
             ->set('content_types', $contentTypes)
-            ->set('city', 'Springfield')
-            ->set('state', 'OH')
-            ->set('postal_code', '45066')
-            ->set('phone_number', '555-123-4567')
             ->set('typical_lead_time_days', 7)
             ->call('updateInfluencerSettings')
             ->assertHasNoErrors();
@@ -109,11 +113,8 @@ class InfluencerSettingsTest extends TestCase
         ];
 
         Livewire::test(InfluencerSettings::class)
+            ->call('setActiveTab', 'match')
             ->set('preferred_business_types', $businessTypes)
-            ->set('city', 'Springfield')
-            ->set('state', 'OH')
-            ->set('postal_code', '45066')
-            ->set('phone_number', '555-123-4567')
             ->set('typical_lead_time_days', 7)
             ->call('updateInfluencerSettings')
             ->assertHasNoErrors();
@@ -135,11 +136,8 @@ class InfluencerSettingsTest extends TestCase
         ];
 
         Livewire::test(InfluencerSettings::class)
+            ->call('setActiveTab', 'match')
             ->set('compensation_types', $compensationTypes)
-            ->set('city', 'Springfield')
-            ->set('state', 'OH')
-            ->set('postal_code', '45066')
-            ->set('phone_number', '555-123-4567')
             ->set('typical_lead_time_days', 7)
             ->call('updateInfluencerSettings')
             ->assertHasNoErrors();
@@ -160,7 +158,6 @@ class InfluencerSettingsTest extends TestCase
             ->set('state', 'OH')
             ->set('postal_code', '45066')
             ->set('phone_number', '555-123-4567')
-            ->set('typical_lead_time_days', 7)
             ->call('updateInfluencerSettings')
             ->assertHasErrors(['city']);
     }
@@ -177,7 +174,6 @@ class InfluencerSettingsTest extends TestCase
             ->set('state', '')
             ->set('postal_code', '45066')
             ->set('phone_number', '555-123-4567')
-            ->set('typical_lead_time_days', 7)
             ->call('updateInfluencerSettings')
             ->assertHasErrors(['state']);
     }
@@ -194,7 +190,6 @@ class InfluencerSettingsTest extends TestCase
             ->set('state', 'OH')
             ->set('postal_code', '')
             ->set('phone_number', '555-123-4567')
-            ->set('typical_lead_time_days', 7)
             ->call('updateInfluencerSettings')
             ->assertHasErrors(['postal_code']);
     }
@@ -211,7 +206,6 @@ class InfluencerSettingsTest extends TestCase
             ->set('state', 'OH')
             ->set('postal_code', '45066')
             ->set('phone_number', '')
-            ->set('typical_lead_time_days', 7)
             ->call('updateInfluencerSettings')
             ->assertHasErrors(['phone_number']);
     }
@@ -224,10 +218,7 @@ class InfluencerSettingsTest extends TestCase
         $this->actingAs($user);
 
         Livewire::test(InfluencerSettings::class)
-            ->set('city', 'Springfield')
-            ->set('state', 'OH')
-            ->set('postal_code', '45066')
-            ->set('phone_number', '555-123-4567')
+            ->call('setActiveTab', 'match')
             ->set('typical_lead_time_days', null)
             ->call('updateInfluencerSettings')
             ->assertHasErrors(['typical_lead_time_days']);
@@ -241,15 +232,11 @@ class InfluencerSettingsTest extends TestCase
         $this->actingAs($user);
 
         Livewire::test(InfluencerSettings::class)
+            ->call('setActiveTab', 'social')
             ->set('social_accounts.instagram.username', 'myinstahandle')
             ->set('social_accounts.instagram.followers', 10000)
             ->set('social_accounts.tiktok.username', 'mytiktokhandle')
             ->set('social_accounts.tiktok.followers', 50000)
-            ->set('city', 'Springfield')
-            ->set('state', 'OH')
-            ->set('postal_code', '45066')
-            ->set('phone_number', '555-123-4567')
-            ->set('typical_lead_time_days', 7)
             ->call('updateInfluencerSettings')
             ->assertHasNoErrors();
 
@@ -307,13 +294,10 @@ class InfluencerSettingsTest extends TestCase
 
         $this->actingAs($user);
 
-        // Test that the component properly sets and saves primary_industry
+        // Test that the component properly sets and saves primary_industry on the match tab
         Livewire::test(InfluencerSettings::class)
+            ->call('setActiveTab', 'match')
             ->set('primary_industry', BusinessIndustry::RETAIL->value)
-            ->set('city', 'Springfield')
-            ->set('state', 'OH')
-            ->set('postal_code', '45066')
-            ->set('phone_number', '555-123-4567')
             ->set('typical_lead_time_days', 7)
             ->call('updateInfluencerSettings')
             ->assertHasNoErrors();
