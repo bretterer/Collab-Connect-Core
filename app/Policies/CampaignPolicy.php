@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Enums\AccountType;
+use App\Enums\CampaignApplicationStatus;
 use App\Enums\CampaignStatus;
 use App\Models\Campaign;
 use App\Models\User;
@@ -41,6 +42,18 @@ class CampaignPolicy
         // Published campaigns are viewable by anyone
         if ($campaign->status === CampaignStatus::PUBLISHED) {
             return true;
+        }
+
+        // Allow viewing campaign if influencer is the accepted applicant
+        if ($user->account_type === AccountType::INFLUENCER) {
+            $application = $campaign->applications()
+                ->where('user_id', $user->id)
+                ->where('status', CampaignApplicationStatus::ACCEPTED)
+                ->orWhere('status', CampaignApplicationStatus::CONTRACTED)
+                ->first();
+            if ($application) {
+                return true;
+            }
         }
 
         // Unpublished campaigns only viewable by business members

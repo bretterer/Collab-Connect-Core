@@ -11,6 +11,10 @@
         Applications
     </flux:navlist.item>
 
+    <flux:navlist.item href="{{ route('collaborations.index') }}" icon="briefcase" :current="request()->routeIs('collaborations.*')">
+        Collaborations
+    </flux:navlist.item>
+
     <flux:navlist.item href="{{ route('search') }}" icon="magnifying-glass" :current="request()->routeIs('search')">
         Find Influencers
     </flux:navlist.item>

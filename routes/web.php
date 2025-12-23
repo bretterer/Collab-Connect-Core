@@ -172,8 +172,10 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
             Route::get('/{application}', App\Livewire\Applications\ViewApplication::class)->name('show');
         });
 
-        // Collaboration review routes
+        // Collaboration routes
         Route::prefix('collaborations')->name('collaborations.')->group(function () {
+            Route::get('/', App\Livewire\Collaborations\Index::class)->name('index');
+            Route::get('/{collaboration}', App\Livewire\Collaborations\Dashboard::class)->name('show');
             Route::get('/{collaboration}/review', App\Livewire\Reviews\SubmitReview::class)->name('review');
             Route::get('/{collaboration}/reviews', App\Livewire\Reviews\ViewReviews::class)->name('reviews');
         });

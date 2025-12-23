@@ -83,6 +83,123 @@ class Collaboration extends Model
         return $this->hasOne(Review::class)->where('reviewer_type', 'influencer');
     }
 
+    public function deliverables(): HasMany
+    {
+        return $this->hasMany(CollaborationDeliverable::class);
+    }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(CollaborationActivity::class)->orderByDesc('created_at');
+    }
+
+    /**
+     * Get the chat associated with this collaboration.
+     */
+    public function chat(): ?Chat
+    {
+        if (! $this->business || ! $this->campaign) {
+            return null;
+        }
+
+        $influencer = $this->influencer?->influencer;
+        if (! $influencer) {
+            return null;
+        }
+
+        return Chat::where('business_id', $this->business_id)
+            ->where('campaign_id', $this->campaign_id)
+            ->where('influencer_id', $influencer->id)
+            ->first();
+    }
+
+    /**
+     * Check if a user is a participant in this collaboration.
+     */
+    public function hasParticipant(User $user): bool
+    {
+        return $this->isInfluencer($user) || $this->isBusinessMember($user);
+    }
+
+    /**
+     * Check if the given user is the influencer in this collaboration.
+     */
+    public function isInfluencer(User $user): bool
+    {
+        return $this->influencer_id === $user->id;
+    }
+
+    /**
+     * Check if the given user is a member of the business in this collaboration.
+     */
+    public function isBusinessMember(User $user): bool
+    {
+        if (! $this->business) {
+            return false;
+        }
+
+        if ($this->business->relationLoaded('users')) {
+            return $this->business->users->contains('id', $user->id);
+        }
+
+        return $this->business->users()->where('users.id', $user->id)->exists();
+    }
+
+    /**
+     * Get the role of a user in this collaboration.
+     */
+    public function getUserRole(User $user): ?string
+    {
+        if ($this->isInfluencer($user)) {
+            return 'influencer';
+        }
+
+        if ($this->isBusinessMember($user)) {
+            return 'business';
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the count of approved deliverables.
+     */
+    public function getApprovedDeliverablesCountAttribute(): int
+    {
+        return $this->deliverables()->approved()->count();
+    }
+
+    /**
+     * Get the total count of deliverables.
+     */
+    public function getTotalDeliverablesCountAttribute(): int
+    {
+        return $this->deliverables()->count();
+    }
+
+    /**
+     * Get the progress percentage for this collaboration.
+     */
+    public function getProgressPercentageAttribute(): int
+    {
+        $total = $this->total_deliverables_count;
+        if ($total === 0) {
+            return 0;
+        }
+
+        return (int) round(($this->approved_deliverables_count / $total) * 100);
+    }
+
+    /**
+     * Check if all deliverables are approved.
+     */
+    public function areAllDeliverablesApproved(): bool
+    {
+        $total = $this->deliverables()->count();
+
+        return $total > 0 && $this->deliverables()->approved()->count() === $total;
+    }
+
     public function isActive(): bool
     {
         return $this->status === CollaborationStatus::ACTIVE;

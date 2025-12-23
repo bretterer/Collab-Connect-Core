@@ -384,6 +384,99 @@
                 </div>
                 @endif
 
+
+
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Business Info Card -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Business Information</h3>
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                            {{ substr($campaign->business->name ?? $campaign->user->name, 0, 2) }}
+                        </div>
+                        <div class="ml-4">
+                            <p class="font-medium text-gray-900 dark:text-white">{{ $campaign->business->name ?? $campaign->user->name }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $campaign->business->industry?->label() ?? 'Business' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions Card -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        @if($isOwner)
+                        Campaign Management
+                        @else
+                        Quick Actions
+                        @endif
+                    </h3>
+                    <div class="space-y-3">
+                        @if($isOwner)
+                        {{-- Edit is only available for draft/scheduled campaigns --}}
+                        @if($campaign->status->isEditable())
+                        <a href="{{ route('campaigns.edit', $campaign) }}" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 text-center block">
+                            Edit Campaign
+                        </a>
+                        @endif
+
+                        {{-- Start Campaign - only for published campaigns with accepted applications --}}
+                        @if($campaign->status === \App\Enums\CampaignStatus::PUBLISHED)
+                            @if($this->getAcceptedApplicationsCount() > 0)
+                            <button wire:click="startCampaign" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                Start Campaign ({{ $this->getAcceptedApplicationsCount() }} accepted)
+                            </button>
+                            @else
+                            <div class="w-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 font-medium py-3 px-4 rounded-lg text-center text-sm">
+                                Accept applications to start
+                            </div>
+                            @endif
+                        <button wire:click="unpublishCampaign" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                            Unpublish Campaign
+                        </button>
+                        @endif
+
+                        {{-- Complete Campaign - only for in-progress campaigns --}}
+                        @if($campaign->status === \App\Enums\CampaignStatus::IN_PROGRESS)
+                        <button wire:click="completeCampaign" class="w-full bg-lime-600 hover:bg-lime-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                            Complete Campaign
+                        </button>
+                        @endif
+
+                        {{-- Publish - for draft campaigns --}}
+                        @if($campaign->status === \App\Enums\CampaignStatus::DRAFT)
+                        <button wire:click="publishCampaign" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                            Publish Campaign Now
+                        </button>
+                        @endif
+
+                        {{-- Archive - for published or in_progress campaigns --}}
+                        @if($campaign->status === \App\Enums\CampaignStatus::PUBLISHED || $campaign->status === \App\Enums\CampaignStatus::IN_PROGRESS)
+                        <button wire:click="archiveCampaign" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                            Archive Campaign
+                        </button>
+                        @endif
+
+                        <a href="{{ route('dashboard') }}" class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-4 rounded-lg transition-colors duration-200 text-center block">
+                            Back to Dashboard
+                        </a>
+                        @elseif(auth()->check() && auth()->user()->isInfluencerAccount() && auth()->user()->profile->appliedToCampaign($campaign) === false)
+                        <button wire:click="applyToCampaign" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                            Apply to Campaign
+                        </button>
+                        <a href="{{ route('discover') }}" class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-4 rounded-lg transition-colors duration-200 text-center block">
+                            Back to Discover
+                        </a>
+                        @else
+                        <a href="{{ route('campaigns.index') }}" class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-4 rounded-lg transition-colors duration-200 text-center block">
+                            Campaigns
+                        </a>
+                        @endif
+                    </div>
+                </div>
+
                 <!-- Applications Section (for campaign owners) -->
                 @if($isOwner)
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4">
@@ -469,19 +562,46 @@
                                 @if($collaboration->deliverables_submitted_at)
                                 <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">Delivered</span>
                                 @endif
+                                @if($collaboration->isCompleted() && $collaboration->review_status && $collaboration->review_status->value === 'open')
+                                <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">Awaiting Review</span>
+                                @endif
+                                <flux:dropdown position="bottom" align="end">
+                                    <flux:button variant="ghost" size="sm" icon="ellipsis-vertical" class="!p-1" />
+                                    <flux:menu>
+                                        <flux:menu.item href="{{ route('collaborations.show', $collaboration) }}" icon="eye">
+                                            View Dashboard
+                                        </flux:menu.item>
+                                        <flux:menu.item wire:click="openChatWithUser({{ $collaboration->influencer->id }})" icon="chat-bubble-left-right">
+                                            Message
+                                        </flux:menu.item>
+                                        @if($collaboration->isActive())
+                                        <flux:menu.separator />
+                                        <flux:modal.trigger :name="'complete-collaboration-'.$collaboration->id">
+                                            <flux:menu.item icon="check-circle">
+                                                Complete Collaboration
+                                            </flux:menu.item>
+                                        </flux:modal.trigger>
+                                        @endif
+                                        @if($collaboration->isCompleted() && $collaboration->review_status)
+                                            @if($collaboration->canSubmitReview())
+                                            <flux:menu.separator />
+                                            <flux:menu.item href="{{ route('collaborations.review', $collaboration) }}" icon="star">
+                                                Leave Review{{ $collaboration->daysRemainingForReview() !== null ? ' ('.$collaboration->daysRemainingForReview().'d left)' : '' }}
+                                            </flux:menu.item>
+                                            @elseif($collaboration->areReviewsVisible())
+                                            <flux:menu.separator />
+                                            <flux:menu.item href="{{ route('collaborations.reviews', $collaboration) }}" icon="star">
+                                                View Reviews
+                                            </flux:menu.item>
+                                            @endif
+                                        @endif
+                                    </flux:menu>
+                                </flux:dropdown>
                                 @if($collaboration->isActive())
-                                <flux:modal.trigger :name="'complete-collaboration-'.$collaboration->id">
-                                    <button class="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded text-white bg-green-600 hover:bg-green-700">
-                                        <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                        Complete
-                                    </button>
-                                </flux:modal.trigger>
                                 <flux:modal :name="'complete-collaboration-'.$collaboration->id" class="min-w-[22rem]">
                                     <div class="space-y-6">
                                         <div>
-                                            <flux:heading size="lg">Complete collaboration?</flux:heading>
+                                            <flux:heading size="base">Complete collaboration?</flux:heading>
                                             <flux:text class="mt-2">
                                                 You're about to mark the collaboration with <strong>{{ $collaboration->influencer->name }}</strong> as complete.<br><br>
                                                 This will start a 15-day review period where both parties can leave reviews.
@@ -497,30 +617,6 @@
                                     </div>
                                 </flux:modal>
                                 @endif
-                                @if($collaboration->isCompleted() && $collaboration->review_status)
-                                    @if($collaboration->canSubmitReview())
-                                    <a href="{{ route('collaborations.review', $collaboration) }}" wire:navigate class="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded text-white bg-blue-600 hover:bg-blue-700">
-                                        <svg class="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                        </svg>
-                                        Review{{ $collaboration->daysRemainingForReview() !== null ? ' ('.$collaboration->daysRemainingForReview().'d)' : '' }}
-                                    </a>
-                                    @elseif($collaboration->areReviewsVisible())
-                                    <a href="{{ route('collaborations.reviews', $collaboration) }}" wire:navigate class="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">
-                                        <svg class="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                        </svg>
-                                        View
-                                    </a>
-                                    @elseif($collaboration->review_status->value === 'open')
-                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">Awaiting</span>
-                                    @endif
-                                @endif
-                                <button wire:click="openChatWithUser({{ $collaboration->influencer->id }})" class="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">
-                                    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-                                    </svg>
-                                </button>
                             </div>
                         </div>
                         @endforeach
@@ -536,96 +632,6 @@
                 </div>
                 @endif
 
-            </div>
-
-            <!-- Sidebar -->
-            <div class="space-y-6">
-                <!-- Business Info Card -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Business Information</h3>
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                            {{ substr($campaign->business->name ?? $campaign->user->name, 0, 2) }}
-                        </div>
-                        <div class="ml-4">
-                            <p class="font-medium text-gray-900 dark:text-white">{{ $campaign->business->name ?? $campaign->user->name }}</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $campaign->business->industry?->label() ?? 'Business' }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Quick Actions Card -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        @if($isOwner)
-                        Campaign Management
-                        @else
-                        Quick Actions
-                        @endif
-                    </h3>
-                    <div class="space-y-3">
-                        @if($isOwner)
-                        {{-- Edit is only available for draft/scheduled campaigns --}}
-                        @if($campaign->status->isEditable())
-                        <a href="{{ route('campaigns.edit', $campaign) }}" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 text-center block">
-                            Edit Campaign
-                        </a>
-                        @endif
-
-                        {{-- Start Campaign - only for published campaigns with accepted applications --}}
-                        @if($campaign->status === \App\Enums\CampaignStatus::PUBLISHED)
-                            @if($this->getAcceptedApplicationsCount() > 0)
-                            <button wire:click="startCampaign" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                                Start Campaign ({{ $this->getAcceptedApplicationsCount() }} accepted)
-                            </button>
-                            @else
-                            <div class="w-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 font-medium py-3 px-4 rounded-lg text-center text-sm">
-                                Accept applications to start
-                            </div>
-                            @endif
-                        <button wire:click="unpublishCampaign" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                            Unpublish Campaign
-                        </button>
-                        @endif
-
-                        {{-- Complete Campaign - only for in-progress campaigns --}}
-                        @if($campaign->status === \App\Enums\CampaignStatus::IN_PROGRESS)
-                        <button wire:click="completeCampaign" class="w-full bg-lime-600 hover:bg-lime-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                            Complete Campaign
-                        </button>
-                        @endif
-
-                        {{-- Publish - for draft campaigns --}}
-                        @if($campaign->status === \App\Enums\CampaignStatus::DRAFT)
-                        <button wire:click="publishCampaign" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                            Publish Campaign Now
-                        </button>
-                        @endif
-
-                        {{-- Archive - for published or in_progress campaigns --}}
-                        @if($campaign->status === \App\Enums\CampaignStatus::PUBLISHED || $campaign->status === \App\Enums\CampaignStatus::IN_PROGRESS)
-                        <button wire:click="archiveCampaign" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                            Archive Campaign
-                        </button>
-                        @endif
-
-                        <a href="{{ route('dashboard') }}" class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-4 rounded-lg transition-colors duration-200 text-center block">
-                            Back to Dashboard
-                        </a>
-                        @elseif(auth()->check() && auth()->user()->isInfluencerAccount())
-                        <button wire:click="applyToCampaign" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                            Apply to Campaign
-                        </button>
-                        <a href="{{ route('discover') }}" class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-4 rounded-lg transition-colors duration-200 text-center block">
-                            Back to Discover
-                        </a>
-                        @else
-                        <a href="{{ route('campaigns.index') }}" class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-4 rounded-lg transition-colors duration-200 text-center block">
-                            Campaigns
-                        </a>
-                        @endif
-                    </div>
-                </div>
             </div>
         </div>
         @endif
