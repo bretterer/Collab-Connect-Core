@@ -75,7 +75,7 @@ class Index extends Component implements SectionContract
             return '';
         }
 
-        $username = $influencer->username ?? $influencer->user_id;
+        $username = $influencer->username ?: $influencer->user_id;
 
         return route('influencer.profile', ['username' => $username]);
     }

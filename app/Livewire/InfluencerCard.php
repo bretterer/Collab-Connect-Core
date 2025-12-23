@@ -122,7 +122,7 @@ class InfluencerCard extends Component
 
     public function getUsername(): string
     {
-        return $this->influencer->username ?? (string) $this->influencer->id;
+        return $this->influencer->username ?: (string) $this->influencer->id;
     }
 
     public function render()

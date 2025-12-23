@@ -263,7 +263,7 @@
                                 @include('livewire.link-in-bio.sections.work-with-me.show', [
                                     'settings' => $workWithMeSettings,
                                     'designSettings' => ['containerStyle' => $containerStyle],
-                                    'profileUrl' => route('influencer.profile', ['username' => auth()->user()?->influencer?->username ?? auth()->user()?->influencer?->user_id ?? 'profile']),
+                                    'profileUrl' => route('influencer.profile', ['username' => auth()->user()?->influencer?->username ?: auth()->user()?->influencer?->user_id ?: 'profile']),
                                 ])
 
                                 {{-- Join Referral Section --}}

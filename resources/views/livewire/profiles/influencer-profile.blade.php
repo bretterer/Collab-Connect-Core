@@ -234,7 +234,7 @@
                             @endforeach
                         </div>
                         <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                            <a href="{{ route('influencer.reviews', ['username' => $influencer?->username ?? $user->id]) }}" wire:navigate class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                            <a href="{{ route('influencer.reviews', ['username' => $influencer?->username ?: $user->id]) }}" wire:navigate class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
                                 View all {{ $reviewCount }} {{ Str::plural('review', $reviewCount) }} →
                             </a>
                         </div>

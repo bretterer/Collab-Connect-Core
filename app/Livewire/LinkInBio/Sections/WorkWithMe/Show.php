@@ -26,7 +26,7 @@ class Show extends Component
         $this->style = $settings['style'] ?? 'primary';
 
         // Generate the profile URL
-        $username = $influencer->username ?? $influencer->user_id;
+        $username = $influencer->username ?: $influencer->user_id;
         $this->profileUrl = route('influencer.profile', ['username' => $username]);
     }
 

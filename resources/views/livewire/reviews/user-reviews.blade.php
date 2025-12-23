@@ -64,12 +64,12 @@
                         {{-- Back Button --}}
                         <div>
                             @if($type === 'business')
-                                <flux:button variant="ghost" href="{{ route('business.profile', ['username' => $business?->username ?? $business?->id]) }}" wire:navigate>
+                                <flux:button variant="ghost" href="{{ route('business.profile', ['username' => $business?->username ?: $business?->id]) }}" wire:navigate>
                                     <flux:icon.arrow-left class="w-4 h-4 mr-1" />
                                     Back to Profile
                                 </flux:button>
                             @else
-                                <flux:button variant="ghost" href="{{ route('influencer.profile', ['username' => $user?->influencer?->username ?? $user?->id]) }}" wire:navigate>
+                                <flux:button variant="ghost" href="{{ route('influencer.profile', ['username' => $user?->influencer?->username ?: $user?->id]) }}" wire:navigate>
                                     <flux:icon.arrow-left class="w-4 h-4 mr-1" />
                                     Back to Profile
                                 </flux:button>

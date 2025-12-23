@@ -24,7 +24,7 @@ class Overview extends BaseComponent
                 'type' => 'business',
                 'name' => $this->collaboration->business->name ?? 'Business',
                 'avatar' => $this->collaboration->business->logo_url ?? null,
-                'profile_url' => route('business.profile', $this->collaboration->business->username ?? $this->collaboration->business->id),
+                'profile_url' => route('business.profile', $this->collaboration->business->username ?: $this->collaboration->business->id),
             ];
         }
 
@@ -32,7 +32,7 @@ class Overview extends BaseComponent
             'type' => 'influencer',
             'name' => $this->collaboration->influencer->name ?? 'Influencer',
             'avatar' => $this->collaboration->influencer->avatar_url ?? null,
-            'profile_url' => route('influencer.profile', $this->collaboration->influencer->username ?? $this->collaboration->influencer->id),
+            'profile_url' => route('influencer.profile', $this->collaboration->influencer->username ?: $this->collaboration->influencer->id),
         ];
     }
 
