@@ -231,7 +231,6 @@ class ShowCampaign extends Component
 
         // Determine which user is business and which is influencer
         if ($currentUser->account_type === AccountType::BUSINESS) {
-            $businessUser = $currentUser;
             $influencerUser = $otherUser;
 
             // Verify the influencer has an application for this campaign
@@ -243,24 +242,30 @@ class ShowCampaign extends Component
                 abort(403, 'You cannot message this user.');
             }
         } else {
-            $businessUser = $otherUser;
             $influencerUser = $currentUser;
 
             // Verify the current user (influencer) has applied to this campaign
-            // and the other user is a member of the campaign's business
             $hasApplication = $this->campaign->applications()
                 ->where('user_id', $influencerUser->id)
                 ->exists();
 
-            $isBusinessMember = $this->campaign->business->members->contains('id', $businessUser->id);
-
-            if (! $hasApplication || ! $isBusinessMember) {
+            if (! $hasApplication) {
                 abort(403, 'You cannot message this user.');
             }
         }
 
-        // Find or create chat between users
-        $chat = Chat::findOrCreateBetweenUsers($businessUser, $influencerUser);
+        // Get the influencer profile
+        $influencerProfile = $influencerUser->influencer;
+        if (! $influencerProfile) {
+            abort(403, 'Influencer profile not found.');
+        }
+
+        // Find or create chat for this campaign
+        $chat = Chat::findOrCreateForCampaign(
+            $this->campaign->business,
+            $influencerProfile,
+            $this->campaign
+        );
 
         // Redirect to chat with specific chat selected
         return redirect()->route('chat.show', ['chatId' => $chat->id]);

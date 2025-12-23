@@ -612,6 +612,9 @@ document.addEventListener('livewire:init', function () {
 });
 </code-snippet>
 
+### General
+- Do not use `wire:confirm`, instead use a modal
+
 
 === pint/core rules ===
 

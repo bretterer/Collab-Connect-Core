@@ -184,4 +184,11 @@ class Influencer extends Model implements HasMedia
     {
         return $this->hasMany(Chat::class);
     }
+
+    public function appliedToCampaign(Campaign $campaign): bool
+    {
+        return $campaign->applications()
+            ->where('user_id', $this->user_id)
+            ->exists();
+    }
 }

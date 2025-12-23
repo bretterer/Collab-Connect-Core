@@ -14,7 +14,7 @@ class CollaborationService
     {
         $campaign = $application->campaign;
 
-        return Collaboration::create([
+        $collaboration = Collaboration::create([
             'campaign_id' => $campaign->id,
             'campaign_application_id' => $application->id,
             'influencer_id' => $application->user_id,
@@ -22,6 +22,11 @@ class CollaborationService
             'status' => CollaborationStatus::ACTIVE,
             'started_at' => now(),
         ]);
+
+        // Initialize deliverables from campaign
+        CollaborationDeliverableService::initializeDeliverablesFromCampaign($collaboration);
+
+        return $collaboration;
     }
 
     public static function complete(Collaboration $collaboration, ?string $notes = null): Collaboration
