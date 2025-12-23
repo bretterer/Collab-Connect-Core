@@ -3,12 +3,14 @@
 namespace App\Services;
 
 use App\Enums\CampaignStatus;
+use App\Enums\SystemMessageType;
 use App\Events\CampaignArchived;
 use App\Events\CampaignEdited;
 use App\Events\CampaignPublished;
 use App\Events\CampaignScheduled;
 use App\Events\CampaignUnpublished;
 use App\Models\Campaign;
+use App\Models\Chat;
 use App\Models\User;
 
 class CampaignService
@@ -153,6 +155,13 @@ class CampaignService
         // Create collaborations for all accepted applications
         self::createCollaborationsFromAcceptedApplications($campaign);
 
+        // Send system message to all active chats for this campaign
+        self::sendSystemMessageToAllCampaignChats(
+            $campaign,
+            SystemMessageType::CampaignStarted,
+            "The campaign \"{$campaign->project_name}\" has started! Good luck with your content creation."
+        );
+
         return $campaign;
     }
 
@@ -171,6 +180,16 @@ class CampaignService
                 CollaborationService::complete($collaboration);
             });
 
+        // Send system message to all active chats for this campaign
+        self::sendSystemMessageToAllCampaignChats(
+            $campaign,
+            SystemMessageType::CampaignEnded,
+            "The campaign \"{$campaign->project_name}\" has ended. Thank you for your participation!"
+        );
+
+        // Archive all chats for this campaign so no more messages can be sent
+        ChatService::archiveCampaignChats($campaign);
+
         return $campaign;
     }
 
@@ -186,15 +205,19 @@ class CampaignService
                 'status' => \App\Enums\CampaignApplicationStatus::CONTRACTED,
             ]);
 
-            // Create collaboration record
-            \App\Models\Collaboration::create([
-                'campaign_id' => $campaign->id,
-                'campaign_application_id' => $application->id,
-                'influencer_id' => $application->user_id,
-                'business_id' => $campaign->business_id,
-                'status' => \App\Enums\CollaborationStatus::ACTIVE,
-                'started_at' => now(),
-            ]);
+            // Create collaboration record if it doesn't already exist
+            \App\Models\Collaboration::firstOrCreate(
+                [
+                    'campaign_id' => $campaign->id,
+                    'influencer_id' => $application->user_id,
+                ],
+                [
+                    'campaign_application_id' => $application->id,
+                    'business_id' => $campaign->business_id,
+                    'status' => \App\Enums\CollaborationStatus::ACTIVE,
+                    'started_at' => now(),
+                ]
+            );
         }
     }
 
@@ -339,5 +362,22 @@ class CampaignService
         }
 
         return $difference;
+    }
+
+    /**
+     * Send a system message to all active chats for a campaign.
+     */
+    protected static function sendSystemMessageToAllCampaignChats(
+        Campaign $campaign,
+        SystemMessageType $type,
+        string $message
+    ): void {
+        $chats = Chat::forCampaign($campaign)
+            ->active()
+            ->get();
+
+        foreach ($chats as $chat) {
+            ChatService::sendSystemMessage($chat, $type, $message);
+        }
     }
 }

@@ -163,6 +163,7 @@ class CampaignDiscoveryTest extends TestCase
         $publishedCampaign = Campaign::factory()->published()->create([
             'business_id' => $this->businessUser->currentBusiness->id,
             'campaign_goal' => 'Published campaign',
+            'application_deadline' => now()->addDays(7), // Explicit future deadline to avoid flaky tests
         ]);
 
         // Draft campaign - should not be visible

@@ -13,14 +13,11 @@ class MessageSent implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $message;
+    public Message $message;
 
-    /**
-     * Create a new event instance.
-     */
     public function __construct(Message $message)
     {
-        $this->message = $message->load(['user', 'chat']);
+        $this->message = $message->load(['user', 'chat', 'reactions']);
     }
 
     /**
@@ -37,18 +34,33 @@ class MessageSent implements ShouldBroadcastNow
 
     /**
      * Get the data to broadcast.
+     *
+     * @return array<string, mixed>
      */
     public function broadcastWith(): array
     {
         return [
             'message' => [
                 'id' => $this->message->id,
-                'body' => $this->message->body,
-                'user_id' => $this->message->user_id,
-                'user_name' => $this->message->user->name,
                 'chat_id' => $this->message->chat_id,
+                'user_id' => $this->message->user_id,
+                'body' => $this->message->body,
+                'is_system_message' => $this->message->is_system_message,
+                'system_message_type' => $this->message->system_message_type?->value,
+                'sender_name' => $this->message->getSenderName(),
+                'sender_role' => $this->message->getSenderRole(),
+                'sender_avatar' => $this->message->user?->avatar_url,
+                'reactions' => $this->message->getReactionCounts(),
                 'created_at' => $this->message->created_at->toISOString(),
             ],
         ];
+    }
+
+    /**
+     * The event's broadcast name.
+     */
+    public function broadcastAs(): string
+    {
+        return 'message.sent';
     }
 }

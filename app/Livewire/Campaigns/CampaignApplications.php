@@ -2,9 +2,12 @@
 
 namespace App\Livewire\Campaigns;
 
+use App\Enums\SystemMessageType;
 use App\Livewire\BaseComponent;
 use App\Models\Campaign;
 use App\Models\CampaignApplication;
+use App\Models\Chat;
+use App\Services\ChatService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\WithPagination;
@@ -66,7 +69,32 @@ class CampaignApplications extends BaseComponent
             'reviewed_at' => now(),
         ]);
 
+        // Create chat when application is accepted
+        if ($status === 'accepted') {
+            $this->createChatForApplication($application);
+        }
+
         session()->flash('success', 'Application status updated successfully.');
+    }
+
+    /**
+     * Create a chat for an accepted application.
+     */
+    protected function createChatForApplication(CampaignApplication $application): void
+    {
+        $campaign = $application->campaign;
+        $influencer = $application->user->influencer;
+        $business = $campaign->business;
+
+        // Create or find existing chat
+        $chat = Chat::findOrCreateForCampaign($business, $influencer, $campaign);
+
+        // Send welcome system message
+        ChatService::sendSystemMessage(
+            $chat,
+            SystemMessageType::InfluencerAccepted,
+            "Welcome! {$influencer->user->name} has been accepted to the \"{$campaign->project_name}\" campaign. You can now start collaborating!"
+        );
     }
 
     public function getStatusBadgeClass($status): string
