@@ -26,6 +26,7 @@ class ReferralEnrollment extends Model
         'paypal_email',
         'paypal_verified',
         'paypal_connected_at',
+        'paypal_metadata',
     ];
 
     /**
@@ -40,6 +41,7 @@ class ReferralEnrollment extends Model
             'disabled_at' => 'datetime',
             'paypal_verified' => 'boolean',
             'paypal_connected_at' => 'datetime',
+            'paypal_metadata' => 'array',
         ];
     }
 

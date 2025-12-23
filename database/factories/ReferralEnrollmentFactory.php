@@ -25,6 +25,7 @@ class ReferralEnrollmentFactory extends Factory
             'paypal_email' => null,
             'paypal_verified' => false,
             'paypal_connected_at' => null,
+            'paypal_metadata' => null,
         ];
     }
 }
