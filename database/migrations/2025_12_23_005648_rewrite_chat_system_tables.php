@@ -22,9 +22,16 @@ return new class extends Migration
         Schema::table('messages', function (Blueprint $table) {
             $table->boolean('is_system_message')->default(false)->after('body');
             $table->string('system_message_type')->nullable()->after('is_system_message');
+        });
 
-            // Drop old read tracking columns (we'll use message_reads table instead)
+        // Drop old read tracking columns in separate statement (SQLite requires index drop first)
+        Schema::table('messages', function (Blueprint $table) {
+            // Drop index first (SQLite requires this before dropping columns in the index)
+            $table->dropIndex(['chat_id', 'read_at']);
             $table->dropForeign(['read_by_user_id']);
+        });
+
+        Schema::table('messages', function (Blueprint $table) {
             $table->dropColumn(['read_at', 'read_by_user_id']);
         });
 
@@ -75,8 +82,12 @@ return new class extends Migration
         // Restore messages table
         Schema::table('messages', function (Blueprint $table) {
             $table->dropColumn(['is_system_message', 'system_message_type']);
+        });
+
+        Schema::table('messages', function (Blueprint $table) {
             $table->timestamp('read_at')->nullable();
             $table->foreignId('read_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->index(['chat_id', 'read_at']);
         });
 
         // Restore chats table
