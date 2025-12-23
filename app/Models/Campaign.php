@@ -67,6 +67,8 @@ class Campaign extends Model
         'social_requirements',
         'placement_requirements',
         'additional_requirements',
+        'is_boosted',
+        'boosted_until',
     ];
 
     protected function casts(): array
@@ -92,6 +94,8 @@ class Campaign extends Model
             'target_platforms' => 'array',
             'deliverables' => 'array',
             'success_metrics' => 'array',
+            'is_boosted' => 'boolean',
+            'boosted_until' => 'datetime',
         ];
     }
 
@@ -175,6 +179,26 @@ class Campaign extends Model
         return true;
     }
 
+    /**
+     * Check if campaign is currently boosted.
+     */
+    public function isBoosted(): bool
+    {
+        return $this->is_boosted && $this->boosted_until?->isFuture();
+    }
+
+    /**
+     * Get remaining days of boost.
+     */
+    public function boostDaysRemaining(): ?int
+    {
+        if (! $this->isBoosted()) {
+            return null;
+        }
+
+        return max(0, (int) now()->diffInDays($this->boosted_until, false));
+    }
+
     public function hasStarted(): bool
     {
         return $this->started_at !== null;
@@ -219,6 +243,18 @@ class Campaign extends Model
     public function scopeArchived($query)
     {
         return $query->where('status', CampaignStatus::ARCHIVED);
+    }
+
+    public function scopeBoosted($query)
+    {
+        return $query->where('is_boosted', true)
+            ->where('boosted_until', '>', now());
+    }
+
+    public function scopeBoostExpired($query)
+    {
+        return $query->where('is_boosted', true)
+            ->where('boosted_until', '<=', now());
     }
 
     public function scopeReadyToStart($query)

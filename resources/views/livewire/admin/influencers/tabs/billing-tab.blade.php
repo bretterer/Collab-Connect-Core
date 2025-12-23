@@ -213,6 +213,54 @@
             @endif
         </flux:card>
 
+        <!-- Subscription Credits Section -->
+        @if($this->isSubscribed && count($this->subscriptionCredits) > 0)
+            <flux:card>
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <flux:heading>Subscription Credits</flux:heading>
+                        <flux:text class="text-gray-600 dark:text-gray-400 mt-1">
+                            View and manage credits included with the subscription plan.
+                        </flux:text>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    @foreach($this->subscriptionCredits as $credit)
+                        <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <flux:text class="font-medium text-gray-900 dark:text-white">
+                                        {{ $credit['label'] }}
+                                    </flux:text>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        @if($credit['is_unlimited'])
+                                            <flux:badge color="blue" size="sm">Unlimited</flux:badge>
+                                        @else
+                                            <flux:badge color="{{ $credit['remaining'] > 0 ? 'green' : 'red' }}" size="sm">
+                                                {{ $credit['remaining'] }} / {{ $credit['limit'] }}
+                                            </flux:badge>
+                                            <flux:text class="text-sm text-gray-500 dark:text-gray-400">
+                                                remaining this billing cycle
+                                            </flux:text>
+                                        @endif
+                                    </div>
+                                </div>
+                                <flux:button
+                                    wire:click="$dispatch('open-adjust-subscription-credits-modal', { billableType: 'influencer', billableId: {{ $influencer->id }}, creditKey: '{{ $credit['key'] }}' })"
+                                    variant="ghost"
+                                    size="sm"
+                                    icon="pencil"
+                                >
+                                    Adjust
+                                </flux:button>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </flux:card>
+        @endif
+
         <!-- Promotion Credits Section -->
         <flux:card>
             <div class="flex items-center justify-between mb-6">
@@ -446,4 +494,5 @@
     <livewire:admin.users.modals.swap-plan-modal />
     <livewire:admin.users.modals.grant-credits-modal />
     <livewire:admin.users.modals.revoke-credits-modal />
+    <livewire:admin.subscriptions.modals.adjust-subscription-credits-modal />
 </div>

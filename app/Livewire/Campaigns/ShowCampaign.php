@@ -4,12 +4,16 @@ namespace App\Livewire\Campaigns;
 
 use App\Enums\AccountType;
 use App\Enums\CampaignApplicationStatus;
+use App\Facades\SubscriptionLimits;
 use App\Models\Campaign;
 use App\Models\Chat;
 use App\Models\User;
 use App\Services\CampaignService;
 use App\Services\CollaborationService;
+use App\Settings\PromotionSettings;
+use App\Subscription\SubscriptionMetadataSchema;
 use Combindma\FacebookPixel\Facades\MetaPixel;
+use Flux\Flux;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -74,7 +78,24 @@ class ShowCampaign extends Component
     public function publishCampaign()
     {
         $this->authorize('publish', $this->campaign);
+
+        // Check if business can publish a campaign (subscription limit)
+        $business = $this->campaign->business;
+        if (! SubscriptionLimits::canPublishCampaign($business)) {
+            Flux::toast(
+                heading: 'Campaign Limit Reached',
+                text: 'You have reached your campaign publish limit for this billing cycle. Upgrade your plan for more credits.',
+                variant: 'danger',
+            );
+
+            return;
+        }
+
         CampaignService::publishCampaign($this->campaign);
+
+        // Deduct campaign publish credit
+        SubscriptionLimits::deductCredit($business, SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT);
+
         $this->campaign->refresh();
         session()->flash('message', 'Campaign published successfully!');
     }
@@ -85,6 +106,62 @@ class ShowCampaign extends Component
         CampaignService::unpublishCampaign($this->campaign);
         $this->campaign->refresh();
         session()->flash('message', 'Campaign unpublished successfully!');
+    }
+
+    public function boostCampaign(PromotionSettings $settings)
+    {
+        $this->authorize('update', $this->campaign);
+
+        // Only published or in_progress campaigns can be boosted
+        if (! $this->campaign->isPublished() && ! $this->campaign->isInProgress()) {
+            Flux::toast(
+                heading: 'Cannot Boost',
+                text: 'Only published or in-progress campaigns can be boosted.',
+                variant: 'danger',
+            );
+
+            return;
+        }
+
+        // Check if already boosted
+        if ($this->campaign->isBoosted()) {
+            Flux::toast(
+                heading: 'Already Boosted',
+                text: 'This campaign is already boosted until '.$this->campaign->boosted_until->format('M j, Y').'.',
+                variant: 'warning',
+            );
+
+            return;
+        }
+
+        // Check subscription limit
+        $business = $this->campaign->business;
+        if (! SubscriptionLimits::canBoostCampaign($business)) {
+            Flux::toast(
+                heading: 'Boost Limit Reached',
+                text: 'You have used all your campaign boost credits for this billing cycle.',
+                variant: 'danger',
+            );
+
+            return;
+        }
+
+        // Deduct credit and boost the campaign
+        SubscriptionLimits::deductCredit($business, SubscriptionMetadataSchema::CAMPAIGN_BOOST_CREDITS);
+
+        $boostDays = $settings->campaignBoostDays;
+        $this->campaign->update([
+            'is_boosted' => true,
+            'boosted_until' => now()->addDays($boostDays),
+        ]);
+
+        $this->campaign->refresh();
+
+        Flux::toast(
+            heading: 'Campaign Boosted!',
+            text: 'Your campaign will receive increased visibility for '.$boostDays.' days.',
+            variant: 'success',
+        );
     }
 
     public function archiveCampaign()

@@ -8,6 +8,8 @@ class PromotionSettings extends Settings
 {
     public int $profilePromotionDays;
 
+    public int $campaignBoostDays;
+
     public static function group(): string
     {
         return 'promotion';

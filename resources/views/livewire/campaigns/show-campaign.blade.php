@@ -52,6 +52,27 @@
         />
         @endif
         @else
+        <!-- Boost Status Banner -->
+        @if($isOwner && $campaign->isBoosted())
+        <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl shadow-lg mb-4 p-4 text-white">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <div>
+                        <span class="font-semibold">Campaign Boosted</span>
+                        <span class="text-amber-100 ml-2">+5% match score bonus</span>
+                    </div>
+                </div>
+                <div class="text-sm">
+                    <span class="font-medium">{{ $campaign->boostDaysRemaining() }} {{ Str::plural('day', $campaign->boostDaysRemaining()) }} remaining</span>
+                    <span class="text-amber-100 ml-2">(until {{ $campaign->boosted_until->format('M j, Y') }})</span>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <!-- Hero Card -->
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg mb-8 overflow-hidden">
             <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
@@ -433,6 +454,22 @@
                                 Accept applications to start
                             </div>
                             @endif
+                        {{-- Boost Campaign Button --}}
+                        @if(!$campaign->isBoosted())
+                        <div class="space-y-2">
+                            <livewire:components.subscription-limit-info
+                                limit-key="{{ \App\Subscription\SubscriptionMetadataSchema::CAMPAIGN_BOOST_CREDITS }}"
+                                action-text="Boosting this campaign"
+                                credit-name="campaign boost credit"
+                            />
+                            <button wire:click="boostCampaign" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                Boost Campaign
+                            </button>
+                        </div>
+                        @endif
                         <button wire:click="unpublishCampaign" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
                             Unpublish Campaign
                         </button>
@@ -443,6 +480,22 @@
                         <button wire:click="completeCampaign" class="w-full bg-lime-600 hover:bg-lime-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
                             Complete Campaign
                         </button>
+                        {{-- Boost Campaign Button --}}
+                        @if(!$campaign->isBoosted())
+                        <div class="space-y-2">
+                            <livewire:components.subscription-limit-info
+                                limit-key="{{ \App\Subscription\SubscriptionMetadataSchema::CAMPAIGN_BOOST_CREDITS }}"
+                                action-text="Boosting this campaign"
+                                credit-name="campaign boost credit"
+                            />
+                            <button wire:click="boostCampaign" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                Boost Campaign
+                            </button>
+                        </div>
+                        @endif
                         @endif
 
                         {{-- Publish - for draft campaigns --}}

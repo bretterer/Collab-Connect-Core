@@ -944,6 +944,13 @@
                         </div>
                     </div>
 
+                    {{-- Team Member Limit Info --}}
+                    <livewire:components.subscription-limit-info
+                        limit-key="{{ \App\Subscription\SubscriptionMetadataSchema::TEAM_MEMBER_LIMIT }}"
+                        action-text="Adding a team member"
+                        credit-name="team member slot"
+                    />
+
                     <!-- Invite form -->
                     <div class="flex flex-row items-center mb-6 space-x-2">
                         <flux:input

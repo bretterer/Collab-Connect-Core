@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\CampaignStatus;
 use App\Enums\CampaignType;
+use App\Enums\CompensationType;
 use App\Models\Business;
 use App\Models\Campaign;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -45,6 +46,8 @@ class CampaignFactory extends Factory
             'scheduled_date' => null,
             'current_step' => 4,
             'published_at' => null,
+            'compensation_type' => $this->faker->randomElement(CompensationType::cases()),
+            'compensation_amount' => $this->faker->randomFloat(2, 50, 1000),
         ];
     }
 
@@ -106,6 +109,17 @@ class CampaignFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => CampaignStatus::ARCHIVED,
             'archived_at' => now(),
+        ]);
+    }
+
+    /**
+     * Indicate that the campaign is boosted.
+     */
+    public function boosted(int $days = 7): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_boosted' => true,
+            'boosted_until' => now()->addDays($days),
         ]);
     }
 

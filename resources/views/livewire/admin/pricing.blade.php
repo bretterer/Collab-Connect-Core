@@ -155,9 +155,9 @@
 
                                         <!-- Actions -->
                                         <div class="text-right">
-                                            <button wire:click="editPrice({{ $price->id }})" 
+                                            <button wire:click="editPrice({{ $price->id }})"
                                                     class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                                Edit Features
+                                                Edit Settings
                                             </button>
                                         </div>
                                     </div>
@@ -191,119 +191,221 @@
     </div>
 
     <!-- Edit Metadata Modal -->
-    @if($showEditModal)
-        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75 transition-opacity" aria-hidden="true"></div>
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                
-                <div class="relative inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                    <div>
-                        <div class="mt-3 text-center sm:mt-0 sm:text-left">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">
-                                @if($editType === 'price')
-                                    Edit Price Features
-                                @elseif($editType === 'product')
-                                    Edit Product Account Type
-                                @endif
-                            </h3>
-                            <div class="mt-2">
-                                <p class="text-sm text-gray-500 dark:text-gray-400">
-                                    @if($editType === 'price')
-                                        Manage features for price: <strong class="text-gray-900 dark:text-white">{{ $selectedPrice?->stripe_id }}</strong>
-                                        <br>Product: <strong class="text-gray-900 dark:text-white">{{ $selectedPrice?->stripeProduct?->name }}</strong>
-                                        <br><span class="text-xs">Features will be stored as JSON in the price metadata.</span>
-                                    @elseif($editType === 'product')
-                                        Set account type for product: <strong class="text-gray-900 dark:text-white">{{ $selectedProduct?->name }}</strong>
-                                    @endif
+    <flux:modal wire:model.self="showEditModal" @close="closeModal" class="md:w-xl max-w-xl">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">
+                    @if($editType === 'price')
+                        Edit Price Settings
+                    @elseif($editType === 'product')
+                        Edit Product Account Type
+                    @endif
+                </flux:heading>
+                <flux:text class="mt-2">
+                    @if($editType === 'price')
+                        Configure features and subscription limits for price: <strong>{{ $selectedPrice?->stripe_id }}</strong>
+                        <br>Product: <strong>{{ $selectedPrice?->stripeProduct?->name }}</strong>
+                    @elseif($editType === 'product')
+                        Set account type for product: <strong>{{ $selectedProduct?->name }}</strong>
+                    @endif
+                </flux:text>
+            </div>
+
+            <form wire:submit="saveMetadata" class="space-y-6">
+                @if($editType === 'product')
+                    <!-- Product Account Type Selection -->
+                    <flux:field>
+                        <flux:label>Account Type</flux:label>
+                        <flux:select
+                            wire:model="selectedAccountType"
+                            variant="listbox"
+                            placeholder="Select Account Type">
+                            @foreach($this->accountTypeOptions as $option)
+                                <flux:select.option value="{{ $option['value'] }}">{{ $option['label'] }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                    </flux:field>
+                @elseif($editType === 'price')
+                    <!-- Price Features Management -->
+                    <flux:field>
+                        <flux:label>Features List</flux:label>
+                        <div class="space-y-3">
+                            @foreach($priceFeatures as $index => $feature)
+                                <div class="flex gap-3 items-start">
+                                    <div class="flex-1">
+                                        <flux:input
+                                            wire:model="priceFeatures.{{ $index }}"
+                                            placeholder="Enter feature description" />
+                                    </div>
+                                    <flux:button
+                                        wire:click="removeFeature({{ $index }})"
+                                        variant="danger"
+                                        size="sm"
+                                        icon="trash"
+                                        type="button" />
+                                </div>
+                            @endforeach
+
+                            @if(empty($priceFeatures))
+                                <p class="text-sm text-gray-500 dark:text-gray-400 italic">
+                                    No features added yet. Click "Add Feature" to get started.
                                 </p>
+                            @endif
+                        </div>
+
+                        <div class="mt-3">
+                            <flux:button
+                                wire:click="addFeature"
+                                variant="ghost"
+                                size="sm"
+                                icon="plus"
+                                type="button">
+                                Add Feature
+                            </flux:button>
+                        </div>
+                    </flux:field>
+
+                    <!-- Subscription Limits Section -->
+                    @if($this->priceAccountType)
+                        <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                            <flux:heading size="base" class="mb-2">
+                                Subscription Limits
+                                <flux:badge size="sm" :color="$this->priceAccountType === \App\Enums\AccountType::BUSINESS ? 'purple' : 'pink'">
+                                    {{ $this->priceAccountType->label() }}
+                                </flux:badge>
+                            </flux:heading>
+                            <flux:text size="sm" class="mb-4">
+                                Use <strong>-1</strong> for unlimited. Use <strong>0</strong> to disable the feature.
+                            </flux:text>
+
+                            <div class="space-y-4">
+                                @if($this->priceAccountType === \App\Enums\AccountType::INFLUENCER)
+                                    {{-- Influencer Limits --}}
+                                    <flux:field>
+                                        <flux:label>{{ $this->metadataLabels[\App\Subscription\SubscriptionMetadataSchema::ACTIVE_APPLICATIONS_LIMIT] }}</flux:label>
+                                        <flux:input
+                                            type="number"
+                                            wire:model="activeApplicationsLimit"
+                                            min="-1"
+                                            placeholder="0" />
+                                        <flux:description>
+                                            {{ \App\Subscription\SubscriptionMetadataSchema::getDescription(\App\Subscription\SubscriptionMetadataSchema::ACTIVE_APPLICATIONS_LIMIT) }}
+                                        </flux:description>
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label>{{ $this->metadataLabels[\App\Subscription\SubscriptionMetadataSchema::COLLABORATION_LIMIT] }}</flux:label>
+                                        <flux:input
+                                            type="number"
+                                            wire:model="collaborationLimit"
+                                            min="-1"
+                                            placeholder="0" />
+                                        <flux:description>
+                                            {{ \App\Subscription\SubscriptionMetadataSchema::getDescription(\App\Subscription\SubscriptionMetadataSchema::COLLABORATION_LIMIT) }}
+                                        </flux:description>
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label>{{ $this->metadataLabels[\App\Subscription\SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS] }}</flux:label>
+                                        <flux:input
+                                            type="number"
+                                            wire:model="profilePromotionCredits"
+                                            min="-1"
+                                            placeholder="0" />
+                                        <flux:description>
+                                            {{ \App\Subscription\SubscriptionMetadataSchema::getDescription(\App\Subscription\SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS) }}
+                                        </flux:description>
+                                    </flux:field>
+
+                                @elseif($this->priceAccountType === \App\Enums\AccountType::BUSINESS)
+                                    {{-- Business Limits --}}
+                                    <flux:field>
+                                        <flux:label>{{ $this->metadataLabels[\App\Subscription\SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT] }}</flux:label>
+                                        <flux:input
+                                            type="number"
+                                            wire:model="campaignsPublishedLimit"
+                                            min="-1"
+                                            placeholder="0" />
+                                        <flux:description>
+                                            {{ \App\Subscription\SubscriptionMetadataSchema::getDescription(\App\Subscription\SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT) }}
+                                        </flux:description>
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label>{{ $this->metadataLabels[\App\Subscription\SubscriptionMetadataSchema::COLLABORATION_LIMIT] }}</flux:label>
+                                        <flux:input
+                                            type="number"
+                                            wire:model="collaborationLimit"
+                                            min="-1"
+                                            placeholder="0" />
+                                        <flux:description>
+                                            {{ \App\Subscription\SubscriptionMetadataSchema::getDescription(\App\Subscription\SubscriptionMetadataSchema::COLLABORATION_LIMIT) }}
+                                        </flux:description>
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label>{{ $this->metadataLabels[\App\Subscription\SubscriptionMetadataSchema::CAMPAIGN_BOOST_CREDITS] }}</flux:label>
+                                        <flux:input
+                                            type="number"
+                                            wire:model="campaignBoostCredits"
+                                            min="-1"
+                                            placeholder="0" />
+                                        <flux:description>
+                                            {{ \App\Subscription\SubscriptionMetadataSchema::getDescription(\App\Subscription\SubscriptionMetadataSchema::CAMPAIGN_BOOST_CREDITS) }}
+                                        </flux:description>
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label>{{ $this->metadataLabels[\App\Subscription\SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS] }}</flux:label>
+                                        <flux:input
+                                            type="number"
+                                            wire:model="profilePromotionCredits"
+                                            min="-1"
+                                            placeholder="0" />
+                                        <flux:description>
+                                            {{ \App\Subscription\SubscriptionMetadataSchema::getDescription(\App\Subscription\SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS) }}
+                                        </flux:description>
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label>{{ $this->metadataLabels[\App\Subscription\SubscriptionMetadataSchema::TEAM_MEMBER_LIMIT] }}</flux:label>
+                                        <flux:input
+                                            type="number"
+                                            wire:model="teamMemberLimit"
+                                            min="-1"
+                                            placeholder="0" />
+                                        <flux:description>
+                                            {{ \App\Subscription\SubscriptionMetadataSchema::getDescription(\App\Subscription\SubscriptionMetadataSchema::TEAM_MEMBER_LIMIT) }}
+                                        </flux:description>
+                                    </flux:field>
+                                @endif
                             </div>
                         </div>
-                    </div>
+                    @else
+                        <flux:callout variant="warning" icon="exclamation-triangle">
+                            <flux:callout.heading>Account Type Not Set</flux:callout.heading>
+                            <flux:callout.text>
+                                Set an account type on the parent product to configure subscription limits.
+                            </flux:callout.text>
+                        </flux:callout>
+                    @endif
+                @endif
 
-                    <div class="mt-6">
-                        <form wire:submit="saveMetadata">
-                            @if($editType === 'product')
-                                <!-- Product Account Type Selection -->
-                                <div class="space-y-4">
-                                    <flux:field>
-                                        <flux:label>Account Type</flux:label>
-                                        <flux:select
-                                            wire:model="selectedAccountType"
-                                            variant="listbox"
-                                            placeholder="Select Account Type">
-                                            @foreach($this->accountTypeOptions as $option)
-                                                <flux:select.option value="{{ $option['value'] }}">{{ $option['label'] }}</flux:select.option>
-                                            @endforeach
-                                        </flux:select>
-                                    </flux:field>
-                                </div>
-                            @elseif($editType === 'price')
-                                <!-- Price Features Management -->
-                                <div class="space-y-4">
-                                    <flux:field>
-                                        <flux:label>Features List</flux:label>
-                                        <div class="space-y-3">
-                                            @foreach($priceFeatures as $index => $feature)
-                                                <div class="flex gap-3 items-start">
-                                                    <div class="flex-1">
-                                                        <flux:input 
-                                                            wire:model="priceFeatures.{{ $index }}" 
-                                                            placeholder="Enter feature description" />
-                                                    </div>
-                                                    <flux:button 
-                                                        wire:click="removeFeature({{ $index }})"
-                                                        variant="danger" 
-                                                        size="sm"
-                                                        icon="trash"
-                                                        type="button" />
-                                                </div>
-                                            @endforeach
-                                            
-                                            @if(empty($priceFeatures))
-                                                <p class="text-sm text-gray-500 dark:text-gray-400 italic">
-                                                    No features added yet. Click "Add Feature" to get started.
-                                                </p>
-                                            @endif
-                                        </div>
-                                        
-                                        <div class="mt-3">
-                                            <flux:button 
-                                                wire:click="addFeature"
-                                                variant="ghost" 
-                                                size="sm"
-                                                icon="plus"
-                                                type="button">
-                                                Add Feature
-                                            </flux:button>
-                                        </div>
-                                    </flux:field>
-                                </div>
-                            @endif
-
-                            <div class="mt-6 flex justify-end gap-3">
-                                <flux:button 
-                                    wire:click="closeModal"
-                                    variant="ghost"
-                                    type="button">
-                                    Cancel
-                                </flux:button>
-                                <flux:button 
-                                    type="submit"
-                                    variant="primary">
-                                    @if($editType === 'price')
-                                        Save Features
-                                    @elseif($editType === 'product')
-                                        Save Account Type
-                                    @else
-                                        Save
-                                    @endif
-                                </flux:button>
-                            </div>
-                        </form>
-                    </div>
+                <div class="flex justify-end gap-3">
+                    <flux:modal.close>
+                        <flux:button variant="ghost">Cancel</flux:button>
+                    </flux:modal.close>
+                    <flux:button type="submit" variant="primary">
+                        @if($editType === 'price')
+                            Save Settings
+                        @elseif($editType === 'product')
+                            Save Account Type
+                        @else
+                            Save
+                        @endif
+                    </flux:button>
                 </div>
-            </div>
+            </form>
         </div>
-    @endif
+    </flux:modal>
 </div>

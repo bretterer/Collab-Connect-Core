@@ -210,13 +210,21 @@
             <div wire:key="campaign-{{ $campaign->id }}" class="bg-white dark:bg-zinc-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 flex flex-col">
                 <!-- Match Score Badge & Actions -->
                 <div class="relative">
-                    <div class="absolute top-3 left-3 z-10">
+                    <div class="absolute top-3 left-3 z-10 flex flex-col gap-1">
                         <div class="flex items-center gap-1 bg-white dark:bg-zinc-700 rounded-full px-3 py-1 shadow-md">
                             <div class="w-2 h-2 rounded-full {{ $campaign->match_score >= 80 ? 'bg-green-500' : ($campaign->match_score >= 60 ? 'bg-yellow-500' : 'bg-red-500') }}"></div>
                             <span class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
                                 {{ number_format($campaign->match_score, 0) }}% Match
                             </span>
                         </div>
+                        @if($campaign->isBoosted())
+                        <div class="flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full px-3 py-1 shadow-md">
+                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            <span class="text-xs font-semibold text-white">Boosted</span>
+                        </div>
+                        @endif
                     </div>
 
                     <!-- Actions Dropdown -->
@@ -536,6 +544,14 @@
                             {{ number_format($quickViewCampaign->match_score, 0) }}% Match
                         </span>
                     </div>
+                    @if($quickViewCampaign->isBoosted())
+                    <div class="flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full px-3 py-1">
+                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <span class="text-xs font-semibold text-white">Boosted</span>
+                    </div>
+                    @endif
                 </div>
                 <flux:heading size="xl">{{ $quickViewCampaign->project_name ?: $quickViewCampaign->campaign_goal }}</flux:heading>
                 @if(auth()->user()->profile->subscribed('default'))

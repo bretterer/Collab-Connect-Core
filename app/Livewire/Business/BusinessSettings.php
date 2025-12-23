@@ -8,6 +8,7 @@ use App\Enums\CompanySize;
 use App\Enums\ContactRole;
 use App\Enums\SocialPlatform;
 use App\Enums\YearsInBusiness;
+use App\Facades\SubscriptionLimits;
 use App\Jobs\InviteMemberToBusiness;
 use App\Livewire\BaseComponent;
 use App\Models\BusinessMemberInvite;
@@ -478,6 +479,14 @@ class BusinessSettings extends BaseComponent
         if ($existingMember) {
             Toaster::error('This user is already a member of your business.');
             $this->addError('invite_email', 'This user is already a member of your business.');
+
+            return;
+        }
+
+        // Check if business can invite more team members (subscription limit)
+        if (! SubscriptionLimits::canInviteTeamMember($business)) {
+            Toaster::error('Team member limit reached. Upgrade to Professional for more team members.');
+            $this->addError('invite_email', 'Team member limit reached for your subscription tier.');
 
             return;
         }

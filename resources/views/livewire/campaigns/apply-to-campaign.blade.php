@@ -80,6 +80,15 @@
                         </div>
                     </div>
 
+                    {{-- Subscription Limit Info --}}
+                    <div class="mt-4">
+                        <livewire:components.subscription-limit-info
+                            limit-key="{{ \App\Subscription\SubscriptionMetadataSchema::ACTIVE_APPLICATIONS_LIMIT }}"
+                            action-text="Submitting this application"
+                            credit-name="application credit"
+                        />
+                    </div>
+
                     <!-- Application Form -->
                     <div class="mt-6">
                         <label for="message" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
