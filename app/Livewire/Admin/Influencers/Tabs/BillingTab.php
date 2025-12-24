@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Admin\Influencers\Tabs;
 
+use App\Facades\SubscriptionLimits;
 use App\Models\Influencer;
 use App\Models\StripePrice;
 use App\Models\User;
+use App\Subscription\SubscriptionMetadataSchema;
 use Laravel\Cashier\Cashier;
 use Laravel\Cashier\Subscription;
 use Livewire\Attributes\Computed;
@@ -50,6 +52,7 @@ class BillingTab extends Component
     #[On('subscription-updated')]
     #[On('coupon-applied')]
     #[On('credits-updated')]
+    #[On('subscription-credits-updated')]
     public function refreshData(): void
     {
         // Refresh the influencer from the database
@@ -87,7 +90,8 @@ class BillingTab extends Component
             $this->promotionCredits,
             $this->isPromoted,
             $this->promotedUntil,
-            $this->influencerUser
+            $this->influencerUser,
+            $this->subscriptionCredits
         );
     }
 
@@ -512,7 +516,10 @@ class BillingTab extends Component
     #[Computed]
     public function promotionCredits(): int
     {
-        return $this->influencer->promotion_credits ?? 0;
+        return SubscriptionLimits::getRemainingCredits(
+            $this->influencer,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
     }
 
     #[Computed]
@@ -525,6 +532,42 @@ class BillingTab extends Component
     public function promotedUntil(): ?string
     {
         return $this->influencer->promoted_until?->format('F j, Y');
+    }
+
+    #[Computed]
+    public function subscriptionCredits(): array
+    {
+        if (! $this->isSubscribed) {
+            return [];
+        }
+
+        $credits = [];
+        $keys = SubscriptionMetadataSchema::getInfluencerKeys();
+        $labels = SubscriptionMetadataSchema::getLabels();
+
+        foreach ($keys as $key) {
+            $limit = SubscriptionLimits::getLimit($this->influencer, $key);
+            $isUnlimited = $limit === SubscriptionMetadataSchema::UNLIMITED;
+            $isCredit = SubscriptionMetadataSchema::isCredit($key);
+
+            // Skip hard limits (like collaborations) - only show credits
+            if (! $isCredit) {
+                continue;
+            }
+
+            $remaining = SubscriptionLimits::getRemainingCredits($this->influencer, $key);
+
+            $credits[] = [
+                'key' => $key,
+                'label' => $labels[$key] ?? $key,
+                'limit' => $limit,
+                'remaining' => $remaining,
+                'is_unlimited' => $isUnlimited,
+                'is_one_time_grant' => SubscriptionMetadataSchema::isOneTimeGrant($key),
+            ];
+        }
+
+        return $credits;
     }
 
     protected function validateStripeCustomer(): void

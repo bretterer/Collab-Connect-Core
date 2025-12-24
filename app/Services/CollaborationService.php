@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Enums\CollaborationStatus;
+use App\Exceptions\CollaborationLimitException;
+use App\Facades\SubscriptionLimits;
 use App\Models\Campaign;
 use App\Models\CampaignApplication;
 use App\Models\Collaboration;
@@ -10,9 +12,32 @@ use App\Models\User;
 
 class CollaborationService
 {
+    /**
+     * Create a collaboration from an accepted application.
+     *
+     * @throws CollaborationLimitException If either party has reached their collaboration limit
+     */
     public static function createFromApplication(CampaignApplication $application): Collaboration
     {
         $campaign = $application->campaign;
+        $influencer = $application->user->influencer;
+        $business = $campaign->business;
+
+        // Check if influencer can start a new collaboration
+        if (! SubscriptionLimits::canStartCollaboration($influencer)) {
+            throw new CollaborationLimitException(
+                'The influencer has reached their maximum concurrent collaboration limit.',
+                'influencer'
+            );
+        }
+
+        // Check if business can start a new collaboration
+        if (! SubscriptionLimits::canStartCollaboration($business)) {
+            throw new CollaborationLimitException(
+                'Your business has reached its maximum concurrent collaboration limit.',
+                'business'
+            );
+        }
 
         $collaboration = Collaboration::create([
             'campaign_id' => $campaign->id,

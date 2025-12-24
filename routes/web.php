@@ -75,6 +75,7 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureMarketApproved:
 
         // Subscription & Payment Management
         Route::get('/pricing', App\Livewire\Admin\Pricing::class)->name('pricing');
+        Route::get('/pricing/addon-mapping', App\Livewire\Admin\Pricing\AddonMapping::class)->name('pricing.addon-mapping');
 
         // Market Management
         Route::prefix('markets')->name('markets.')->group(function () {

@@ -123,13 +123,29 @@ class UserFactory extends Factory
             }
 
             if ($billable) {
+                // Create a Stripe price with unlimited access for testing
+                $priceId = 'price_test_'.Str::random(14);
+
+                // Create StripePrice record with unlimited metadata for all limit keys
+                \App\Models\StripePrice::factory()->create([
+                    'stripe_id' => $priceId,
+                    'metadata' => [
+                        \App\Subscription\SubscriptionMetadataSchema::ACTIVE_APPLICATIONS_LIMIT => -1,
+                        \App\Subscription\SubscriptionMetadataSchema::COLLABORATION_LIMIT => -1,
+                        \App\Subscription\SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT => -1,
+                        \App\Subscription\SubscriptionMetadataSchema::CAMPAIGN_BOOST_CREDITS => 10,
+                        \App\Subscription\SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS => 10,
+                        \App\Subscription\SubscriptionMetadataSchema::TEAM_MEMBER_LIMIT => -1,
+                    ],
+                ]);
+
                 // Create a subscription record directly in the database
                 // This bypasses Stripe for testing purposes
                 $billable->subscriptions()->create([
                     'type' => 'default',
                     'stripe_id' => 'sub_test_'.Str::random(14),
                     'stripe_status' => 'active',
-                    'stripe_price' => 'price_test_'.Str::random(14),
+                    'stripe_price' => $priceId,
                     'quantity' => 1,
                     'trial_ends_at' => null,
                     'ends_at' => null,

@@ -220,6 +220,22 @@ Class-based block architecture for building marketing landing pages:
 - Create migrations: `php artisan make:settings-migration CreateGeneralSettings`
 - Use `encrypted: true` for sensitive values
 
+### Laravel Cashier / Stripe Payments
+- Uses Laravel Cashier for subscription and one-time payment handling
+- **CRITICAL - One-time charges with stored payment methods:**
+  ```php
+  $billable->charge($amount, $paymentMethodId, [
+      'description' => 'Description here',
+      'metadata' => [...],
+      'confirm' => true,
+      'payment_method_types' => ['card'],  // Required to avoid redirect URL errors
+  ]);
+  ```
+- Always include `'confirm' => true` and `'payment_method_types' => ['card']` when charging stored payment methods
+- Without these options, Stripe's automatic payment methods feature requires a `return_url` for redirect-based payment methods
+- Subscription credits are managed via `SubscriptionLimitsService` and `SubscriptionCredit` model
+- One-time credit purchases use `SubscriptionLimits::addCredits($billable, $key, $amount)` after successful charge
+
 ## Key Files to Understand
 
 ### Core Architecture

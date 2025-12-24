@@ -4,10 +4,13 @@ namespace App\Livewire\Campaigns;
 
 use App\Enums\CampaignApplicationStatus;
 use App\Events\CampaignApplicationSubmitted;
+use App\Facades\SubscriptionLimits;
 use App\Livewire\BaseComponent;
 use App\Models\Campaign;
 use App\Models\CampaignApplication;
+use App\Subscription\SubscriptionMetadataSchema;
 use Combindma\FacebookPixel\Facades\MetaPixel;
+use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 
@@ -23,12 +26,15 @@ class ApplyToCampaign extends BaseComponent
 
     public string $buttonVariant = 'primary';
 
+    public string $buttonClass = 'flex-1';
+
     public ?CampaignApplication $existingApplication = null;
 
     public function mount(
         Campaign $campaign,
         string $buttonText = 'Apply Now',
         string $buttonVariant = 'primary',
+        string $buttonClass = 'flex-1',
         mixed $existingApplication = null,
         bool $applicationPreloaded = false
     ) {
@@ -39,6 +45,7 @@ class ApplyToCampaign extends BaseComponent
 
         $this->buttonText = $buttonText;
         $this->buttonVariant = $buttonVariant;
+        $this->buttonClass = $buttonClass;
 
         // Handle the existing application - could be a model instance or null
         if ($existingApplication instanceof CampaignApplication) {
@@ -94,6 +101,18 @@ class ApplyToCampaign extends BaseComponent
             return;
         }
 
+        // Check if influencer can submit an application (subscription limit)
+        $influencer = Auth::user()->influencer;
+        if (! SubscriptionLimits::canSubmitApplication($influencer)) {
+            Flux::toast(
+                heading: 'Application Limit Reached',
+                text: 'You have reached your application limit for this billing cycle. Upgrade to Elite for unlimited applications.',
+                variant: 'danger',
+            );
+
+            return;
+        }
+
         $this->validate([
             'message' => 'required|string|min:50|max:1000',
         ]);
@@ -108,6 +127,9 @@ class ApplyToCampaign extends BaseComponent
             'status' => CampaignApplicationStatus::PENDING,
             'submitted_at' => now(),
         ]);
+
+        // Deduct application credit
+        SubscriptionLimits::deductCredit($influencer, SubscriptionMetadataSchema::ACTIVE_APPLICATIONS_LIMIT);
 
         CampaignApplicationSubmitted::dispatch($this->campaign, $user, $application);
 
@@ -124,7 +146,6 @@ class ApplyToCampaign extends BaseComponent
 
         $this->flashSuccess('Your application has been submitted successfully!');
         $this->closeModal();
-
     }
 
     public function getMatchScore()

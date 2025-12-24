@@ -109,6 +109,11 @@ class MatchScoreService
         $this->postalCodeCache = [];
     }
 
+    /**
+     * The boost bonus percentage for boosted campaigns.
+     */
+    public const BOOST_BONUS = 5.0;
+
     public function calculateMatchScore(Campaign $campaign, $influencerProfile, int $searchRadius = 50): float
     {
         $score = 0.0;
@@ -119,7 +124,14 @@ class MatchScoreService
         $score += $this->calculateCampaignTypeScore($campaign, $influencerProfile) * 0.2;
         $score += $this->calculateCompensationScore($campaign, $influencerProfile) * 0.1;
 
-        return min($score, $maxScore);
+        $finalScore = min($score, $maxScore);
+
+        // Add boost bonus if campaign is currently boosted
+        if ($campaign->isBoosted()) {
+            $finalScore = min($finalScore + self::BOOST_BONUS, $maxScore);
+        }
+
+        return $finalScore;
     }
 
     public function calculateLocationScore(Campaign $campaign, $influencerProfile, int $searchRadius): float

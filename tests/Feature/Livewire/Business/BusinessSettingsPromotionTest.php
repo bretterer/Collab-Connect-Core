@@ -2,10 +2,13 @@
 
 namespace Tests\Feature\Livewire\Business;
 
+use App\Facades\SubscriptionLimits;
 use App\Livewire\Business\BusinessSettings;
+use App\Models\AddonPriceMapping;
 use App\Models\StripePrice;
 use App\Models\StripeProduct;
 use App\Models\User;
+use App\Subscription\SubscriptionMetadataSchema;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -28,33 +31,70 @@ class BusinessSettingsPromotionTest extends TestCase
     public function business_can_promote_profile_with_credits(): void
     {
         $user = User::factory()->business()->withProfile()->create();
-        $user->currentBusiness->update(['promotion_credits' => 3]);
+        $business = $user->currentBusiness;
+
+        // Create subscription and credits using the new system
+        $price = StripePrice::factory()->create([
+            'metadata' => [
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS => 5,
+            ],
+        ]);
+        $business->subscriptions()->create([
+            'type' => 'default',
+            'stripe_id' => 'sub_test_'.uniqid(),
+            'stripe_status' => 'active',
+            'stripe_price' => $price->stripe_id,
+        ]);
+        SubscriptionLimits::initializeCredits($business);
+
+        // Verify initial credits
+        $initialCredits = SubscriptionLimits::getRemainingCredits(
+            $business,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
 
         $this->actingAs($user);
 
         Livewire::test(BusinessSettings::class)
-            ->assertSet('promotion_credits', 3)
             ->assertSet('is_promoted', false)
             ->call('promoteProfile')
-            ->assertSet('is_promoted', true)
-            ->assertSet('promotion_credits', 2);
+            ->assertSet('is_promoted', true);
 
         $user->refresh();
         $this->assertTrue($user->currentBusiness->is_promoted);
-        $this->assertEquals(2, $user->currentBusiness->promotion_credits);
         $this->assertNotNull($user->currentBusiness->promoted_until);
+
+        // Verify credit was deducted
+        $remainingCredits = SubscriptionLimits::getRemainingCredits(
+            $business,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
+        $this->assertEquals($initialCredits - 1, $remainingCredits);
     }
 
     #[Test]
     public function business_cannot_promote_profile_without_credits(): void
     {
         $user = User::factory()->business()->withProfile()->create();
-        $user->currentBusiness->update(['promotion_credits' => 0]);
+        $business = $user->currentBusiness;
+
+        // Create subscription with 0 credits
+        $price = StripePrice::factory()->create([
+            'metadata' => [
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS => 0,
+            ],
+        ]);
+        $business->subscriptions()->create([
+            'type' => 'default',
+            'stripe_id' => 'sub_test_'.uniqid(),
+            'stripe_status' => 'active',
+            'stripe_price' => $price->stripe_id,
+        ]);
+        SubscriptionLimits::initializeCredits($business);
 
         $this->actingAs($user);
 
         Livewire::test(BusinessSettings::class)
-            ->assertSet('promotion_credits', 0)
             ->call('promoteProfile')
             ->assertSet('is_promoted', false);
 
@@ -66,7 +106,21 @@ class BusinessSettingsPromotionTest extends TestCase
     public function business_promotion_lasts_seven_days(): void
     {
         $user = User::factory()->business()->withProfile()->create();
-        $user->currentBusiness->update(['promotion_credits' => 1]);
+        $business = $user->currentBusiness;
+
+        // Create subscription with credits
+        $price = StripePrice::factory()->create([
+            'metadata' => [
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS => 1,
+            ],
+        ]);
+        $business->subscriptions()->create([
+            'type' => 'default',
+            'stripe_id' => 'sub_test_'.uniqid(),
+            'stripe_status' => 'active',
+            'stripe_price' => $price->stripe_id,
+        ]);
+        SubscriptionLimits::initializeCredits($business);
 
         $this->actingAs($user);
 
@@ -84,7 +138,21 @@ class BusinessSettingsPromotionTest extends TestCase
     public function business_sees_promotion_credits_count(): void
     {
         $user = User::factory()->business()->withProfile()->create();
-        $user->currentBusiness->update(['promotion_credits' => 5]);
+        $business = $user->currentBusiness;
+
+        // Create subscription with 5 credits
+        $price = StripePrice::factory()->create([
+            'metadata' => [
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS => 5,
+            ],
+        ]);
+        $business->subscriptions()->create([
+            'type' => 'default',
+            'stripe_id' => 'sub_test_'.uniqid(),
+            'stripe_status' => 'active',
+            'stripe_price' => $price->stripe_id,
+        ]);
+        SubscriptionLimits::initializeCredits($business);
 
         $this->actingAs($user);
 
@@ -97,7 +165,21 @@ class BusinessSettingsPromotionTest extends TestCase
     public function business_sees_buy_credits_button_when_no_credits(): void
     {
         $user = User::factory()->business()->withProfile()->create();
-        $user->currentBusiness->update(['promotion_credits' => 0]);
+        $business = $user->currentBusiness;
+
+        // Create subscription with 0 credits
+        $price = StripePrice::factory()->create([
+            'metadata' => [
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS => 0,
+            ],
+        ]);
+        $business->subscriptions()->create([
+            'type' => 'default',
+            'stripe_id' => 'sub_test_'.uniqid(),
+            'stripe_status' => 'active',
+            'stripe_price' => $price->stripe_id,
+        ]);
+        SubscriptionLimits::initializeCredits($business);
 
         $this->actingAs($user);
 
@@ -122,34 +204,50 @@ class BusinessSettingsPromotionTest extends TestCase
     }
 
     #[Test]
-    public function promo_credit_price_computed_property_returns_active_price(): void
+    public function promo_credit_price_computed_property_returns_active_mapping(): void
     {
         $user = User::factory()->business()->withProfile()->create();
 
         $product = StripeProduct::factory()->create();
         $price = StripePrice::factory()->oneTime()->forProduct($product)->create([
-            'lookup_key' => 'profile_promo_credit_current',
             'active' => true,
             'unit_amount' => 999,
+        ]);
+
+        // Create addon mapping
+        $mapping = AddonPriceMapping::create([
+            'stripe_price_id' => $price->id,
+            'credit_key' => SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS,
+            'credits_granted' => 1,
+            'account_type' => 'both',
+            'is_active' => true,
         ]);
 
         $this->actingAs($user);
 
         $component = Livewire::test(BusinessSettings::class);
         $promoCreditPrice = $component->get('promoCreditPrice');
-        $this->assertEquals($price->id, $promoCreditPrice->id);
-        $this->assertEquals(999, $promoCreditPrice->unit_amount);
+        $this->assertEquals($mapping->id, $promoCreditPrice->id);
+        $this->assertEquals(999, $promoCreditPrice->stripePrice->unit_amount);
     }
 
     #[Test]
-    public function promo_credit_price_returns_null_when_no_active_price(): void
+    public function promo_credit_price_returns_null_when_no_active_mapping(): void
     {
         $user = User::factory()->business()->withProfile()->create();
 
         $product = StripeProduct::factory()->create();
-        StripePrice::factory()->oneTime()->forProduct($product)->create([
-            'lookup_key' => 'profile_promo_credit_current',
-            'active' => false,
+        $price = StripePrice::factory()->oneTime()->forProduct($product)->create([
+            'active' => true,
+        ]);
+
+        // Create inactive addon mapping
+        AddonPriceMapping::create([
+            'stripe_price_id' => $price->id,
+            'credit_key' => SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS,
+            'credits_granted' => 1,
+            'account_type' => 'both',
+            'is_active' => false,
         ]);
 
         $this->actingAs($user);
@@ -175,13 +273,36 @@ class BusinessSettingsPromotionTest extends TestCase
     public function purchase_credits_fails_with_invalid_quantity(): void
     {
         $user = User::factory()->business()->withProfile()->create();
+        $business = $user->currentBusiness;
 
         $product = StripeProduct::factory()->create();
-        StripePrice::factory()->oneTime()->forProduct($product)->create([
-            'lookup_key' => 'profile_promo_credit_current',
+        $price = StripePrice::factory()->oneTime()->forProduct($product)->create([
             'active' => true,
             'unit_amount' => 999,
         ]);
+
+        // Create addon mapping
+        AddonPriceMapping::create([
+            'stripe_price_id' => $price->id,
+            'credit_key' => SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS,
+            'credits_granted' => 1,
+            'account_type' => 'both',
+            'is_active' => true,
+        ]);
+
+        // Create subscription with 0 credits to start
+        $subscriptionPrice = StripePrice::factory()->create([
+            'metadata' => [
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS => 0,
+            ],
+        ]);
+        $business->subscriptions()->create([
+            'type' => 'default',
+            'stripe_id' => 'sub_test_'.uniqid(),
+            'stripe_status' => 'active',
+            'stripe_price' => $subscriptionPrice->stripe_id,
+        ]);
+        SubscriptionLimits::initializeCredits($business);
 
         $this->actingAs($user);
 
@@ -190,22 +311,43 @@ class BusinessSettingsPromotionTest extends TestCase
             ->set('creditQuantity', 0)
             ->call('purchasePromotionCredits');
 
-        $user->refresh();
-        $this->assertEquals(0, $user->currentBusiness->promotion_credits);
+        $remainingCredits = SubscriptionLimits::getRemainingCredits(
+            $business,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
+        $this->assertEquals(0, $remainingCredits);
 
         // Test quantity too high
         Livewire::test(BusinessSettings::class)
             ->set('creditQuantity', 11)
             ->call('purchasePromotionCredits');
 
-        $user->refresh();
-        $this->assertEquals(0, $user->currentBusiness->promotion_credits);
+        $remainingCredits = SubscriptionLimits::getRemainingCredits(
+            $business,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
+        $this->assertEquals(0, $remainingCredits);
     }
 
     #[Test]
-    public function purchase_credits_fails_when_price_not_available(): void
+    public function purchase_credits_fails_when_no_mapping_available(): void
     {
         $user = User::factory()->business()->withProfile()->create();
+        $business = $user->currentBusiness;
+
+        // Create subscription with 0 credits
+        $subscriptionPrice = StripePrice::factory()->create([
+            'metadata' => [
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS => 0,
+            ],
+        ]);
+        $business->subscriptions()->create([
+            'type' => 'default',
+            'stripe_id' => 'sub_test_'.uniqid(),
+            'stripe_status' => 'active',
+            'stripe_price' => $subscriptionPrice->stripe_id,
+        ]);
+        SubscriptionLimits::initializeCredits($business);
 
         $this->actingAs($user);
 
@@ -213,8 +355,11 @@ class BusinessSettingsPromotionTest extends TestCase
             ->set('creditQuantity', 1)
             ->call('purchasePromotionCredits');
 
-        $user->refresh();
-        $this->assertEquals(0, $user->currentBusiness->promotion_credits);
+        $remainingCredits = SubscriptionLimits::getRemainingCredits(
+            $business,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
+        $this->assertEquals(0, $remainingCredits);
     }
 
     #[Test]

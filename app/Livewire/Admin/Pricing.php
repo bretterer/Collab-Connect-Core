@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Enums\AccountType;
 use App\Models\StripePrice;
+use App\Subscription\SubscriptionMetadataSchema;
 use Laravel\Cashier\Cashier;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -29,12 +30,110 @@ class Pricing extends Component
     // Price-specific fields (for features)
     public $priceFeatures = [];
 
+    // Subscription limit fields (for price editing)
+    public ?int $activeApplicationsLimit = null;
+
+    public ?int $collaborationLimit = null;
+
+    public ?int $campaignsPublishedLimit = null;
+
+    public ?int $campaignBoostCredits = null;
+
+    public ?int $profilePromotionCredits = null;
+
+    public ?int $teamMemberLimit = null;
+
     public function mount()
     {
         $this->priceMetadata = [];
         $this->productMetadata = [];
         $this->priceFeatures = [];
         $this->selectedAccountType = null;
+        $this->resetLimitFields();
+    }
+
+    /**
+     * Reset all limit fields to null.
+     */
+    private function resetLimitFields(): void
+    {
+        $this->activeApplicationsLimit = null;
+        $this->collaborationLimit = null;
+        $this->campaignsPublishedLimit = null;
+        $this->campaignBoostCredits = null;
+        $this->profilePromotionCredits = null;
+        $this->teamMemberLimit = null;
+    }
+
+    /**
+     * Load limit fields from price metadata.
+     */
+    private function loadLimitFields(): void
+    {
+        $metadata = $this->priceMetadata;
+
+        $this->activeApplicationsLimit = isset($metadata[SubscriptionMetadataSchema::ACTIVE_APPLICATIONS_LIMIT])
+            ? (int) $metadata[SubscriptionMetadataSchema::ACTIVE_APPLICATIONS_LIMIT]
+            : null;
+
+        $this->collaborationLimit = isset($metadata[SubscriptionMetadataSchema::COLLABORATION_LIMIT])
+            ? (int) $metadata[SubscriptionMetadataSchema::COLLABORATION_LIMIT]
+            : null;
+
+        $this->campaignsPublishedLimit = isset($metadata[SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT])
+            ? (int) $metadata[SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT]
+            : null;
+
+        $this->campaignBoostCredits = isset($metadata[SubscriptionMetadataSchema::CAMPAIGN_BOOST_CREDITS])
+            ? (int) $metadata[SubscriptionMetadataSchema::CAMPAIGN_BOOST_CREDITS]
+            : null;
+
+        $this->profilePromotionCredits = isset($metadata[SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS])
+            ? (int) $metadata[SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS]
+            : null;
+
+        $this->teamMemberLimit = isset($metadata[SubscriptionMetadataSchema::TEAM_MEMBER_LIMIT])
+            ? (int) $metadata[SubscriptionMetadataSchema::TEAM_MEMBER_LIMIT]
+            : null;
+    }
+
+    /**
+     * Get the account type for the currently selected price's product.
+     */
+    public function getPriceAccountTypeProperty(): ?AccountType
+    {
+        if (! $this->selectedPrice) {
+            return null;
+        }
+
+        $product = $this->selectedPrice->product;
+        if (! $product) {
+            return null;
+        }
+
+        $accountTypeValue = $product->metadata['account_type'] ?? null;
+
+        if (! $accountTypeValue) {
+            return null;
+        }
+
+        foreach (AccountType::cases() as $case) {
+            if ($case->name === $accountTypeValue || $case->value == $accountTypeValue) {
+                return $case;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the metadata labels for display.
+     *
+     * @return array<string, string>
+     */
+    public function getMetadataLabelsProperty(): array
+    {
+        return SubscriptionMetadataSchema::getLabels();
     }
 
     public function render()
@@ -56,7 +155,7 @@ class Pricing extends Component
 
     public function editPrice($priceId)
     {
-        $this->selectedPrice = StripePrice::findOrFail($priceId);
+        $this->selectedPrice = StripePrice::with('product')->findOrFail($priceId);
         $this->priceMetadata = $this->selectedPrice->metadata ?? [];
 
         // Load existing features from metadata
@@ -67,6 +166,9 @@ class Pricing extends Component
                 $this->priceMetadata['features'];
             $this->priceFeatures = $features ?? [];
         }
+
+        // Load limit fields from metadata
+        $this->loadLimitFields();
 
         $this->editType = 'price';
         $this->showEditModal = true;
@@ -103,6 +205,12 @@ class Pricing extends Component
         if ($this->editType === 'price') {
             $this->validate([
                 'priceFeatures' => 'array',
+                'activeApplicationsLimit' => 'nullable|integer|min:-1',
+                'collaborationLimit' => 'nullable|integer|min:-1',
+                'campaignsPublishedLimit' => 'nullable|integer|min:-1',
+                'campaignBoostCredits' => 'nullable|integer|min:-1',
+                'profilePromotionCredits' => 'nullable|integer|min:-1',
+                'teamMemberLimit' => 'nullable|integer|min:-1',
             ]);
 
             try {
@@ -112,14 +220,34 @@ class Pricing extends Component
                 $metadata = $this->priceMetadata;
                 $metadata['features'] = json_encode($this->priceFeatures);
 
+                // Add subscription limit fields to metadata
+                if ($this->activeApplicationsLimit !== null) {
+                    $metadata[SubscriptionMetadataSchema::ACTIVE_APPLICATIONS_LIMIT] = (string) $this->activeApplicationsLimit;
+                }
+                if ($this->collaborationLimit !== null) {
+                    $metadata[SubscriptionMetadataSchema::COLLABORATION_LIMIT] = (string) $this->collaborationLimit;
+                }
+                if ($this->campaignsPublishedLimit !== null) {
+                    $metadata[SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT] = (string) $this->campaignsPublishedLimit;
+                }
+                if ($this->campaignBoostCredits !== null) {
+                    $metadata[SubscriptionMetadataSchema::CAMPAIGN_BOOST_CREDITS] = (string) $this->campaignBoostCredits;
+                }
+                if ($this->profilePromotionCredits !== null) {
+                    $metadata[SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS] = (string) $this->profilePromotionCredits;
+                }
+                if ($this->teamMemberLimit !== null) {
+                    $metadata[SubscriptionMetadataSchema::TEAM_MEMBER_LIMIT] = (string) $this->teamMemberLimit;
+                }
+
                 $stripe->prices->update($this->selectedPrice->stripe_id, [
                     'metadata' => $metadata,
                 ]);
 
-                session()->flash('message', 'Price features updated successfully. Changes will sync via webhook.');
+                session()->flash('message', 'Price settings updated successfully. Changes will sync via webhook.');
                 $this->closeModal();
             } catch (\Exception $e) {
-                session()->flash('error', 'Failed to update price features: '.$e->getMessage());
+                session()->flash('error', 'Failed to update price settings: '.$e->getMessage());
             }
         } elseif ($this->editType === 'product') {
             $this->validate([
@@ -158,6 +286,7 @@ class Pricing extends Component
         $this->productMetadata = [];
         $this->priceFeatures = [];
         $this->selectedAccountType = null;
+        $this->resetLimitFields();
     }
 
     public function addFeature()

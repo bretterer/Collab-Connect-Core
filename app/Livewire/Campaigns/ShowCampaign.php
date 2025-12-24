@@ -4,14 +4,21 @@ namespace App\Livewire\Campaigns;
 
 use App\Enums\AccountType;
 use App\Enums\CampaignApplicationStatus;
+use App\Facades\AddonPricing;
+use App\Facades\SubscriptionLimits;
+use App\Models\AddonPriceMapping;
 use App\Models\Campaign;
 use App\Models\Chat;
 use App\Models\User;
 use App\Services\CampaignService;
 use App\Services\CollaborationService;
+use App\Settings\PromotionSettings;
+use App\Subscription\SubscriptionMetadataSchema;
 use Combindma\FacebookPixel\Facades\MetaPixel;
+use Flux\Flux;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Masmerise\Toaster\Toaster;
@@ -24,6 +31,26 @@ class ShowCampaign extends Component
     public bool $isOwner = false;
 
     public Collection $applications;
+
+    public int $boostCreditQuantity = 1;
+
+    #[Computed]
+    public function boostCredits(): int
+    {
+        return SubscriptionLimits::getRemainingCredits(
+            $this->campaign->business,
+            SubscriptionMetadataSchema::CAMPAIGN_BOOST_CREDITS
+        );
+    }
+
+    #[Computed]
+    public function boostCreditPrice(): ?AddonPriceMapping
+    {
+        return AddonPricing::getPrimaryAddonPrice(
+            SubscriptionMetadataSchema::CAMPAIGN_BOOST_CREDITS,
+            AccountType::BUSINESS
+        );
+    }
 
     public function mount(Campaign $campaign)
     {
@@ -74,7 +101,30 @@ class ShowCampaign extends Component
     public function publishCampaign()
     {
         $this->authorize('publish', $this->campaign);
+
+        $business = $this->campaign->business;
+
+        // Check if this is a re-publish (campaign was previously published)
+        $isRepublish = $this->campaign->published_at !== null;
+
+        // Only check limits for first-time publishes
+        if (! $isRepublish && ! SubscriptionLimits::canPublishCampaign($business)) {
+            Flux::toast(
+                heading: 'Campaign Limit Reached',
+                text: 'You have reached your campaign publish limit for this billing cycle. Upgrade your plan for more credits.',
+                variant: 'danger',
+            );
+
+            return;
+        }
+
         CampaignService::publishCampaign($this->campaign);
+
+        // Only deduct credit for first-time publishes
+        if (! $isRepublish) {
+            SubscriptionLimits::deductCredit($business, SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT);
+        }
+
         $this->campaign->refresh();
         session()->flash('message', 'Campaign published successfully!');
     }
@@ -85,6 +135,147 @@ class ShowCampaign extends Component
         CampaignService::unpublishCampaign($this->campaign);
         $this->campaign->refresh();
         session()->flash('message', 'Campaign unpublished successfully!');
+    }
+
+    public function boostCampaign(PromotionSettings $settings)
+    {
+        $this->authorize('update', $this->campaign);
+
+        // Only published or in_progress campaigns can be boosted
+        if (! $this->campaign->isPublished() && ! $this->campaign->isInProgress()) {
+            Flux::toast(
+                heading: 'Cannot Boost',
+                text: 'Only published or in-progress campaigns can be boosted.',
+                variant: 'danger',
+            );
+
+            return;
+        }
+
+        // Check if already boosted
+        if ($this->campaign->isBoosted()) {
+            Flux::toast(
+                heading: 'Already Boosted',
+                text: 'This campaign is already boosted until '.$this->campaign->boosted_until->format('M j, Y').'.',
+                variant: 'warning',
+            );
+
+            return;
+        }
+
+        // Check subscription limit
+        $business = $this->campaign->business;
+        if (! SubscriptionLimits::canBoostCampaign($business)) {
+            Flux::toast(
+                heading: 'Boost Limit Reached',
+                text: 'You have used all your campaign boost credits for this billing cycle.',
+                variant: 'danger',
+            );
+
+            return;
+        }
+
+        // Deduct credit and boost the campaign
+        SubscriptionLimits::deductCredit($business, SubscriptionMetadataSchema::CAMPAIGN_BOOST_CREDITS);
+
+        $boostDays = $settings->campaignBoostDays;
+        $this->campaign->update([
+            'is_boosted' => true,
+            'boosted_until' => now()->addDays($boostDays),
+        ]);
+
+        $this->campaign->refresh();
+
+        Flux::modal('boostCampaign')->close();
+
+        Flux::toast(
+            heading: 'Campaign Boosted!',
+            text: 'Your campaign will receive increased visibility for '.$boostDays.' days.',
+            variant: 'success',
+        );
+    }
+
+    public function purchaseBoostCredits(): void
+    {
+        $this->authorize('update', $this->campaign);
+
+        $business = $this->campaign->business;
+
+        // Validate quantity
+        if ($this->boostCreditQuantity < 1 || $this->boostCreditQuantity > 10) {
+            Flux::toast(
+                heading: 'Invalid Quantity',
+                text: 'Please select between 1 and 10 credits.',
+                variant: 'danger',
+            );
+
+            return;
+        }
+
+        // Check if we have a valid price mapping
+        $mapping = $this->boostCreditPrice;
+        if (! $mapping) {
+            Flux::toast(
+                heading: 'Pricing Unavailable',
+                text: 'Campaign boost pricing is currently unavailable. Please try again later.',
+                variant: 'danger',
+            );
+
+            return;
+        }
+
+        // Check if business has a valid payment method
+        if (! $business->hasDefaultPaymentMethod()) {
+            Flux::modal('purchaseBoostCredits')->close();
+            Flux::modal('addPaymentMethodFirst')->show();
+
+            return;
+        }
+
+        try {
+            $stripePrice = $mapping->stripePrice;
+
+            // Charge the customer for the credits
+            $business->charge(
+                $stripePrice->unit_amount * $this->boostCreditQuantity,
+                $business->defaultPaymentMethod()->id,
+                [
+                    'description' => "Campaign Boost Credits x{$this->boostCreditQuantity}",
+                    'metadata' => [
+                        'credit_key' => SubscriptionMetadataSchema::CAMPAIGN_BOOST_CREDITS,
+                        'quantity' => $this->boostCreditQuantity,
+                        'credits_granted' => $mapping->credits_granted * $this->boostCreditQuantity,
+                    ],
+                    'confirm' => true,
+                    'payment_method_types' => ['card'],
+                ]
+            );
+
+            // Grant the credits
+            $creditsToGrant = $mapping->credits_granted * $this->boostCreditQuantity;
+            SubscriptionLimits::addCredits(
+                $business,
+                SubscriptionMetadataSchema::CAMPAIGN_BOOST_CREDITS,
+                $creditsToGrant
+            );
+
+            Flux::modal('purchaseBoostCredits')->close();
+
+            Flux::toast(
+                heading: 'Credits Purchased!',
+                text: "You now have {$creditsToGrant} additional campaign boost credit".($creditsToGrant > 1 ? 's' : '').'.',
+                variant: 'success',
+            );
+
+            // Reset quantity
+            $this->boostCreditQuantity = 1;
+        } catch (\Exception $e) {
+            Flux::toast(
+                heading: 'Payment Failed',
+                text: 'Unable to process payment. Please try again or update your payment method.',
+                variant: 'danger',
+            );
+        }
     }
 
     public function archiveCampaign()
@@ -162,14 +353,6 @@ class ShowCampaign extends Component
         }
 
         return $this->campaign->collaborations()->with('influencer.influencer')->get();
-    }
-
-    public function applyToCampaign()
-    {
-        $this->authorize('apply', $this->campaign);
-
-        // This will be handled by the ApplyToCampaign component
-        return redirect()->route('campaigns.show', $this->campaign);
     }
 
     public function getApplicationsCount()

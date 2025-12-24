@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Admin\Businesses\Tabs;
 
+use App\Facades\SubscriptionLimits;
 use App\Models\Business;
 use App\Models\StripePrice;
 use App\Models\User;
+use App\Subscription\SubscriptionMetadataSchema;
 use Laravel\Cashier\Cashier;
 use Laravel\Cashier\Subscription;
 use Livewire\Attributes\Computed;
@@ -50,6 +52,7 @@ class BillingTab extends Component
     #[On('subscription-updated')]
     #[On('coupon-applied')]
     #[On('credits-updated')]
+    #[On('subscription-credits-updated')]
     public function refreshData(): void
     {
         // Refresh the business from the database
@@ -87,7 +90,8 @@ class BillingTab extends Component
             $this->promotionCredits,
             $this->isPromoted,
             $this->promotedUntil,
-            $this->ownerUser
+            $this->ownerUser,
+            $this->subscriptionCredits
         );
     }
 
@@ -512,7 +516,10 @@ class BillingTab extends Component
     #[Computed]
     public function promotionCredits(): int
     {
-        return $this->business->promotion_credits ?? 0;
+        return SubscriptionLimits::getRemainingCredits(
+            $this->business,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
     }
 
     #[Computed]
@@ -525,6 +532,42 @@ class BillingTab extends Component
     public function promotedUntil(): ?string
     {
         return $this->business->promoted_until?->format('F j, Y');
+    }
+
+    #[Computed]
+    public function subscriptionCredits(): array
+    {
+        if (! $this->isSubscribed) {
+            return [];
+        }
+
+        $credits = [];
+        $keys = SubscriptionMetadataSchema::getBusinessKeys();
+        $labels = SubscriptionMetadataSchema::getLabels();
+
+        foreach ($keys as $key) {
+            $limit = SubscriptionLimits::getLimit($this->business, $key);
+            $isUnlimited = $limit === SubscriptionMetadataSchema::UNLIMITED;
+            $isCredit = SubscriptionMetadataSchema::isCredit($key);
+
+            // Skip hard limits (like team members, collaborations) - only show credits
+            if (! $isCredit) {
+                continue;
+            }
+
+            $remaining = SubscriptionLimits::getRemainingCredits($this->business, $key);
+
+            $credits[] = [
+                'key' => $key,
+                'label' => $labels[$key] ?? $key,
+                'limit' => $limit,
+                'remaining' => $remaining,
+                'is_unlimited' => $isUnlimited,
+                'is_one_time_grant' => SubscriptionMetadataSchema::isOneTimeGrant($key),
+            ];
+        }
+
+        return $credits;
     }
 
     protected function validateStripeCustomer(): void

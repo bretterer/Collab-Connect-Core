@@ -2,17 +2,21 @@
 
 namespace App\Livewire\Influencer;
 
+use App\Enums\AccountType;
 use App\Enums\BusinessIndustry;
 use App\Enums\BusinessType;
 use App\Enums\CampaignType;
 use App\Enums\CompensationType;
 use App\Enums\DeliverableType;
 use App\Enums\SocialPlatform;
+use App\Facades\AddonPricing;
+use App\Facades\SubscriptionLimits;
 use App\Livewire\BaseComponent;
-use App\Models\StripePrice;
+use App\Models\AddonPriceMapping;
 use App\Models\User;
 use App\Rules\UniqueUsername;
 use App\Settings\PromotionSettings;
+use App\Subscription\SubscriptionMetadataSchema;
 use DateTime;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -116,9 +120,13 @@ class InfluencerSettings extends BaseComponent
 
         $this->loadInfluencerProfile($user);
 
-        $this->is_promoted = $user->influencer->is_promoted ?? false;
-        $this->promotion_ends_at = $user->influencer->promoted_until ?? null;
-        $this->promotion_credits = $user->influencer->promotion_credits ?? 0;
+        $influencer = $user->influencer;
+        $this->is_promoted = $influencer->is_promoted ?? false;
+        $this->promotion_ends_at = $influencer->promoted_until ?? null;
+        $this->promotion_credits = SubscriptionLimits::getRemainingCredits(
+            $influencer,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
     }
 
     public function setActiveTab(string $tab): void
@@ -265,7 +273,7 @@ class InfluencerSettings extends BaseComponent
             return;
         }
 
-        if ($influencer->promotion_credits <= 0) {
+        if (! SubscriptionLimits::canPromoteProfile($influencer)) {
             Toaster::error('You do not have enough promotion credits to promote your profile.');
 
             return;
@@ -274,24 +282,31 @@ class InfluencerSettings extends BaseComponent
         $promotionSettings = app(PromotionSettings::class);
         $days = $promotionSettings->profilePromotionDays;
 
+        // Deduct from subscription credits
+        SubscriptionLimits::deductCredit($influencer, SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS);
+
+        // Update profile promotion status
         $influencer->is_promoted = true;
         $influencer->promoted_until = now()->addDays($days);
-        $influencer->promotion_credits -= 1;
         $influencer->save();
 
         $this->is_promoted = $influencer->is_promoted;
         $this->promotion_ends_at = $influencer->promoted_until;
-        $this->promotion_credits = $influencer->promotion_credits;
+        $this->promotion_credits = SubscriptionLimits::getRemainingCredits(
+            $influencer,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
 
         Toaster::success("Your profile has been promoted for {$days} days!");
     }
 
     #[Computed]
-    public function promoCreditPrice(): ?StripePrice
+    public function promoCreditPrice(): ?AddonPriceMapping
     {
-        return StripePrice::where('lookup_key', 'profile_promo_credit_current')
-            ->where('active', true)
-            ->first();
+        return AddonPricing::getPrimaryAddonPrice(
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS,
+            AccountType::INFLUENCER
+        );
     }
 
     public function purchasePromotionCredits(): void
@@ -313,9 +328,9 @@ class InfluencerSettings extends BaseComponent
             return;
         }
 
-        $price = $this->promoCreditPrice;
+        $mapping = $this->promoCreditPrice;
 
-        if (! $price) {
+        if (! $mapping || ! $mapping->stripePrice) {
             Toaster::error('Promotion credit pricing is not available. Please try again later.');
 
             return;
@@ -329,7 +344,7 @@ class InfluencerSettings extends BaseComponent
 
         try {
             // Calculate total amount (price is in cents)
-            $totalAmount = $price->unit_amount * $this->creditQuantity;
+            $totalAmount = $mapping->stripePrice->unit_amount * $this->creditQuantity;
 
             // Create or get Stripe customer
             if (! $influencer->hasStripeId()) {
@@ -360,13 +375,20 @@ class InfluencerSettings extends BaseComponent
                 'payment_method_types' => ['card'],
             ]);
 
-            // Add credits to the influencer
-            $purchasedQuantity = $this->creditQuantity;
-            $influencer->promotion_credits += $purchasedQuantity;
-            $influencer->save();
+            // Add credits to the subscription credit system
+            // credits_granted from mapping * quantity purchased
+            $purchasedQuantity = $this->creditQuantity * $mapping->credits_granted;
+            SubscriptionLimits::addCredits(
+                $influencer,
+                $mapping->credit_key,
+                $purchasedQuantity
+            );
 
             // Update local state
-            $this->promotion_credits = $influencer->promotion_credits;
+            $this->promotion_credits = SubscriptionLimits::getRemainingCredits(
+                $influencer,
+                $mapping->credit_key
+            );
             $this->creditQuantity = 1;
 
             \Flux::modal('purchaseCredits')->close();

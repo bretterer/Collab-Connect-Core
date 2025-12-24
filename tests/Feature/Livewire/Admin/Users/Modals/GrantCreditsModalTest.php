@@ -3,11 +3,14 @@
 namespace Tests\Feature\Livewire\Admin\Users\Modals;
 
 use App\Enums\AccountType;
+use App\Facades\SubscriptionLimits;
 use App\Livewire\Admin\Users\Modals\GrantCreditsModal;
 use App\Models\AuditLog;
 use App\Models\Business;
 use App\Models\Influencer;
+use App\Models\StripePrice;
 use App\Models\User;
+use App\Subscription\SubscriptionMetadataSchema;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
@@ -36,6 +39,48 @@ class GrantCreditsModalTest extends TestCase
     private function createInfluencerUser(): User
     {
         return User::factory()->influencer()->withProfile()->create();
+    }
+
+    private function createSubscribedInfluencer(): User
+    {
+        $user = $this->createInfluencerUser();
+        $influencer = $user->influencer;
+
+        $price = StripePrice::factory()->create([
+            'metadata' => [
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS => 5,
+            ],
+        ]);
+
+        $influencer->subscriptions()->create([
+            'type' => 'default',
+            'stripe_id' => 'sub_test_'.uniqid(),
+            'stripe_status' => 'active',
+            'stripe_price' => $price->stripe_id,
+        ]);
+
+        return $user;
+    }
+
+    private function createSubscribedBusiness(): User
+    {
+        $user = $this->createBusinessUser();
+        $business = $user->businesses()->wherePivot('role', 'owner')->first();
+
+        $price = StripePrice::factory()->create([
+            'metadata' => [
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS => 5,
+            ],
+        ]);
+
+        $business->subscriptions()->create([
+            'type' => 'default',
+            'stripe_id' => 'sub_test_'.uniqid(),
+            'stripe_status' => 'active',
+            'stripe_price' => $price->stripe_id,
+        ]);
+
+        return $user;
     }
 
     #[Test]
@@ -110,8 +155,11 @@ class GrantCreditsModalTest extends TestCase
     #[Test]
     public function it_computes_current_credits_correctly(): void
     {
-        $user = $this->createInfluencerUser();
-        $user->influencer->update(['promotion_credits' => 5]);
+        $user = $this->createSubscribedInfluencer();
+        $influencer = $user->influencer;
+
+        // Initialize credits
+        SubscriptionLimits::initializeCredits($influencer);
 
         $component = Livewire::actingAs($this->admin)
             ->test(GrantCreditsModal::class)
@@ -125,8 +173,6 @@ class GrantCreditsModalTest extends TestCase
     {
         $user = $this->createBusinessUser();
 
-        // When setting credits to empty string, PHP coerces int to 0
-        // So the min validation catches this case
         Livewire::actingAs($this->admin)
             ->test(GrantCreditsModal::class)
             ->call('open', $user->id)
@@ -181,26 +227,35 @@ class GrantCreditsModalTest extends TestCase
     #[Test]
     public function it_can_grant_credits_to_influencer(): void
     {
-        $user = $this->createInfluencerUser();
-        $user->influencer->update(['promotion_credits' => 0]);
+        $user = $this->createSubscribedInfluencer();
+        $influencer = $user->influencer;
+
+        // Initialize credits (starts at 5)
+        SubscriptionLimits::initializeCredits($influencer);
 
         Livewire::actingAs($this->admin)
             ->test(GrantCreditsModal::class)
             ->call('open', $user->id)
-            ->set('credits', 5)
+            ->set('credits', 3)
             ->set('reason', 'Promotional bonus')
             ->call('grantCredits')
             ->assertDispatched('credits-updated');
 
-        $this->assertEquals(5, $user->influencer->fresh()->promotion_credits);
+        $newCredits = SubscriptionLimits::getRemainingCredits(
+            $influencer,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
+        $this->assertEquals(8, $newCredits);
     }
 
     #[Test]
     public function it_can_grant_credits_to_business(): void
     {
-        $user = $this->createBusinessUser();
+        $user = $this->createSubscribedBusiness();
         $business = $user->businesses()->wherePivot('role', 'owner')->first();
-        $business->update(['promotion_credits' => 2]);
+
+        // Initialize credits (starts at 5)
+        SubscriptionLimits::initializeCredits($business);
 
         Livewire::actingAs($this->admin)
             ->test(GrantCreditsModal::class)
@@ -210,14 +265,21 @@ class GrantCreditsModalTest extends TestCase
             ->call('grantCredits')
             ->assertDispatched('credits-updated');
 
-        $this->assertEquals(5, $business->fresh()->promotion_credits);
+        $newCredits = SubscriptionLimits::getRemainingCredits(
+            $business,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
+        $this->assertEquals(8, $newCredits);
     }
 
     #[Test]
     public function it_creates_audit_log_when_granting_credits(): void
     {
-        $user = $this->createInfluencerUser();
-        $user->influencer->update(['promotion_credits' => 0]);
+        $user = $this->createSubscribedInfluencer();
+        $influencer = $user->influencer;
+
+        // Initialize credits (starts at 5)
+        SubscriptionLimits::initializeCredits($influencer);
 
         Livewire::actingAs($this->admin)
             ->test(GrantCreditsModal::class)
@@ -230,12 +292,12 @@ class GrantCreditsModalTest extends TestCase
             'admin_id' => $this->admin->id,
             'action' => 'credit.grant',
             'auditable_type' => Influencer::class,
-            'auditable_id' => $user->influencer->id,
+            'auditable_id' => $influencer->id,
         ]);
 
         $log = AuditLog::where('action', 'credit.grant')->first();
-        $this->assertEquals(['promotion_credits' => 0], $log->old_values);
-        $this->assertEquals(['promotion_credits' => 10], $log->new_values);
+        $this->assertEquals(['profile_promotion_credits' => 5], $log->old_values);
+        $this->assertEquals(['profile_promotion_credits' => 15], $log->new_values);
         $this->assertEquals(10, $log->metadata['credits_added']);
         $this->assertEquals('Contest winner', $log->metadata['reason']);
     }

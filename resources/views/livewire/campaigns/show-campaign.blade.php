@@ -52,6 +52,27 @@
         />
         @endif
         @else
+        <!-- Boost Status Banner -->
+        @if($isOwner && $campaign->isBoosted())
+        <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl shadow-lg mb-4 p-4 text-white">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <div>
+                        <span class="font-semibold">Campaign Boosted</span>
+                        <span class="text-amber-100 ml-2">+5% match score bonus</span>
+                    </div>
+                </div>
+                <div class="text-sm">
+                    <span class="font-medium">{{ $campaign->boostDaysRemaining() }} {{ Str::plural('day', $campaign->boostDaysRemaining()) }} remaining</span>
+                    <span class="text-amber-100 ml-2">(until {{ $campaign->boosted_until->format('M j, Y') }})</span>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <!-- Hero Card -->
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg mb-8 overflow-hidden">
             <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
@@ -433,6 +454,30 @@
                                 Accept applications to start
                             </div>
                             @endif
+                        {{-- Boost Campaign Button --}}
+                        @if(!$campaign->isBoosted())
+                        <div>
+                            @if($this->boostCredits > 0)
+                            <flux:modal.trigger name="boostCampaign">
+                                <button class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    Boost Campaign
+                                </button>
+                            </flux:modal.trigger>
+                            @else
+                            <flux:modal.trigger name="purchaseBoostCredits">
+                                <button class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    Buy Boost Credits
+                                </button>
+                            </flux:modal.trigger>
+                            @endif
+                        </div>
+                        @endif
                         <button wire:click="unpublishCampaign" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
                             Unpublish Campaign
                         </button>
@@ -443,6 +488,30 @@
                         <button wire:click="completeCampaign" class="w-full bg-lime-600 hover:bg-lime-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
                             Complete Campaign
                         </button>
+                        {{-- Boost Campaign Button --}}
+                        @if(!$campaign->isBoosted())
+                        <div>
+                            @if($this->boostCredits > 0)
+                            <flux:modal.trigger name="boostCampaign">
+                                <button class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    Boost Campaign
+                                </button>
+                            </flux:modal.trigger>
+                            @else
+                            <flux:modal.trigger name="purchaseBoostCredits">
+                                <button class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    Buy Boost Credits
+                                </button>
+                            </flux:modal.trigger>
+                            @endif
+                        </div>
+                        @endif
                         @endif
 
                         {{-- Publish - for draft campaigns --}}
@@ -462,10 +531,8 @@
                         <a href="{{ route('dashboard') }}" class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-4 rounded-lg transition-colors duration-200 text-center block">
                             Back to Dashboard
                         </a>
-                        @elseif(auth()->check() && auth()->user()->isInfluencerAccount() && auth()->user()->profile->appliedToCampaign($campaign) === false)
-                        <button wire:click="applyToCampaign" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                            Apply to Campaign
-                        </button>
+                        @elseif(auth()->check() && auth()->user()->isInfluencerAccount())
+                        @livewire('campaigns.apply-to-campaign', ['campaign' => $campaign, 'buttonText' => 'Apply to Campaign', 'buttonClass' => 'w-full'])
                         <a href="{{ route('discover') }}" class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-4 rounded-lg transition-colors duration-200 text-center block">
                             Back to Discover
                         </a>
@@ -634,6 +701,95 @@
 
             </div>
         </div>
+        @endif
+
+        {{-- Boost Campaign Confirmation Modal --}}
+        @if($isOwner && !$campaign->isBoosted())
+        <flux:modal name="boostCampaign" class="max-w-lg not-prose">
+            <div class="p-6">
+                <flux:heading size="xl" class="mb-2">Boost Your Campaign</flux:heading>
+                <flux:text class="text-gray-600 dark:text-gray-400 mb-6">
+                    Increase your campaign's visibility and attract more qualified influencers.
+                </flux:text>
+
+                <div class="space-y-4">
+                    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            <div>
+                                <flux:heading size="sm">+5% Match Score Bonus</flux:heading>
+                                <flux:text class="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                                    Your campaign will rank higher in influencer search results for {{ app(\App\Settings\PromotionSettings::class)->campaignBoostDays }} days.
+                                </flux:text>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <flux:text class="text-sm text-gray-500 dark:text-gray-400">Boost ends</flux:text>
+                            <flux:text class="text-sm font-medium">End of day {{ now()->addDays(app(\App\Settings\PromotionSettings::class)->campaignBoostDays)->format('M j, Y') }}</flux:text>
+                        </div>
+                        <div class="flex items-center justify-between mt-2">
+                            <flux:text class="text-sm text-gray-500 dark:text-gray-400">Credits to use</flux:text>
+                            <flux:text class="text-sm font-medium">1 credit</flux:text>
+                        </div>
+                        <div class="flex items-center justify-between mt-2">
+                            <flux:text class="text-sm text-gray-500 dark:text-gray-400">Remaining after</flux:text>
+                            <flux:text class="text-sm font-medium">{{ $this->boostCredits - 1 }} credits</flux:text>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-6">
+                    <flux:modal.close>
+                        <flux:button type="button" variant="ghost">Cancel</flux:button>
+                    </flux:modal.close>
+                    <flux:button type="button" wire:click="boostCampaign" variant="primary">
+                        Boost Now
+                    </flux:button>
+                </div>
+            </div>
+        </flux:modal>
+
+        {{-- Purchase Boost Credits Modal --}}
+        <x-purchase-credits-modal
+            name="purchaseBoostCredits"
+            title="Purchase Boost Credits"
+            description="Boost credits give your campaigns increased visibility with a +5% match score bonus."
+            credit-description="Each credit boosts one campaign for {{ app(\App\Settings\PromotionSettings::class)->campaignBoostDays }} days."
+            :unit-amount="$this->boostCreditPrice?->stripePrice->unit_amount ?? 0"
+            :quantity="$boostCreditQuantity"
+            quantity-model="boostCreditQuantity"
+            purchase-action="purchaseBoostCredits"
+            :has-price="(bool) $this->boostCreditPrice"
+            unavailable-message="Boost credit pricing is currently unavailable. Please try again later."
+        />
+
+        {{-- Add Payment Method Modal --}}
+        <flux:modal name="addPaymentMethodFirst" class=" not-prose">
+            <div class="p-6">
+                <flux:heading size="xl" class="mb-2">Payment Method Required</flux:heading>
+                <flux:text class="text-gray-600 dark:text-gray-400 mb-6">
+                    You need to add a payment method before purchasing boost credits.
+                </flux:text>
+
+                <div class="flex justify-end gap-3 mt-6">
+                    <flux:modal.close>
+                        <flux:button variant="ghost">Cancel</flux:button>
+                    </flux:modal.close>
+                    <flux:modal.close>
+                        <flux:button
+                            href="{{ route('business.settings', ['tab' => 'billing']) }}"
+                            variant="primary">
+                            Go to Billing
+                        </flux:button>
+                    </flux:modal.close>
+                </div>
+            </div>
+        </flux:modal>
         @endif
     </div>
 </div>

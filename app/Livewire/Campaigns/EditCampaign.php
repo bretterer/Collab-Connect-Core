@@ -7,11 +7,14 @@ use App\Enums\CompensationType;
 use App\Enums\DeliverableType;
 use App\Enums\SuccessMetric;
 use App\Enums\TargetPlatform;
+use App\Facades\SubscriptionLimits;
 use App\Livewire\BaseComponent;
 use App\Livewire\Traits\HasWizardSteps;
 use App\Models\Campaign;
 use App\Services\CampaignService;
+use App\Subscription\SubscriptionMetadataSchema;
 use Combindma\FacebookPixel\Facades\MetaPixel;
+use Flux\Flux;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 
@@ -321,7 +324,9 @@ class EditCampaign extends BaseComponent
         $this->additionalRequirements = $campaign->additional_requirements ?? '';
 
         // Step 4: Review & Publish
-        $this->publishAction = $campaign->status->value;
+        // For draft campaigns, default to 'publish'. For scheduled, keep 'schedule'.
+        // Other statuses shouldn't reach this edit page, but default to 'publish' as fallback.
+        $this->publishAction = $campaign->status->value === 'scheduled' ? 'schedule' : 'publish';
         $this->scheduledDate = $campaign->scheduled_date?->format('Y-m-d') ?? '';
     }
 
@@ -507,20 +512,69 @@ class EditCampaign extends BaseComponent
 
     public function publishCampaign()
     {
+        logger()->info('publishCampaign() called', [
+            'campaignId' => $this->campaignId,
+            'publishAction' => $this->publishAction,
+            'scheduledDate' => $this->scheduledDate,
+        ]);
+
         $this->validateAllSteps();
+        logger()->info('validateAllSteps() passed');
 
         if ($this->publishAction === 'schedule') {
             $this->validate(['scheduledDate' => 'required|date|after:today']);
+            logger()->info('Schedule date validation passed');
         }
 
+        // Check if this is a re-publish (campaign was previously published)
+        $existingCampaign = Campaign::find($this->campaignId);
+        $isRepublish = $existingCampaign?->published_at !== null;
+
+        // Check if business can publish a campaign (subscription limit) - only for first-time publishes
+        $business = auth()->user()->currentBusiness;
+        logger()->info('Business info', [
+            'business_id' => $business?->id,
+            'business_name' => $business?->name,
+            'isRepublish' => $isRepublish,
+        ]);
+
+        $canPublish = $isRepublish || SubscriptionLimits::canPublishCampaign($business);
+        logger()->info('canPublishCampaign check', [
+            'canPublish' => $canPublish,
+            'publishAction' => $this->publishAction,
+        ]);
+
+        if ($this->publishAction === 'publish' && ! $canPublish) {
+            logger()->warning('Campaign publish blocked - limit reached');
+            Flux::toast(
+                heading: 'Campaign Limit Reached',
+                text: 'You have reached your campaign publish limit for this billing cycle. Upgrade your plan for more credits.',
+                variant: 'danger',
+            );
+
+            return;
+        }
+
+        logger()->info('Building campaign data');
         $campaignData = $this->buildCampaignData($this->publishAction);
+        logger()->info('Updating campaign');
         $campaign = CampaignService::updateCampaign($this->campaignId, $campaignData);
         $this->markSaved();
+        logger()->info('Campaign updated successfully', ['campaign_id' => $campaign->id]);
 
         if ($this->publishAction === 'publish') {
+            logger()->info('Publishing campaign now');
             CampaignService::publishCampaign($campaign);
+
+            // Only deduct credit for first-time publishes
+            if (! $isRepublish) {
+                SubscriptionLimits::deductCredit($business, SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT);
+                logger()->info('Credit deducted');
+            }
+
             session()->flash('message', 'Campaign published successfully!');
-        } else {
+        } elseif ($this->publishAction === 'schedule') {
+            logger()->info('Scheduling campaign', ['scheduledDate' => $this->scheduledDate]);
             CampaignService::scheduleCampaign($campaign, $this->scheduledDate);
 
             // Track Schedule event when campaign is scheduled
@@ -530,7 +584,20 @@ class EditCampaign extends BaseComponent
             ]);
 
             session()->flash('message', 'Campaign scheduled successfully!');
+        } else {
+            // Invalid publishAction - default to publish
+            logger()->warning('Invalid publishAction, defaulting to publish', ['publishAction' => $this->publishAction]);
+            CampaignService::publishCampaign($campaign);
+
+            // Only deduct credit for first-time publishes
+            if (! $isRepublish) {
+                SubscriptionLimits::deductCredit($business, SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT);
+            }
+
+            session()->flash('message', 'Campaign published successfully!');
         }
+
+        logger()->info('Redirecting to campaign show page');
 
         return redirect()->route('campaigns.show', $campaign->id);
     }

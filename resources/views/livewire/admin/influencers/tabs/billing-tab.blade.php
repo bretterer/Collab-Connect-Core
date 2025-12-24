@@ -213,79 +213,75 @@
             @endif
         </flux:card>
 
-        <!-- Promotion Credits Section -->
-        <flux:card>
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <flux:heading>Promotion Credits</flux:heading>
-                    <flux:text class="text-gray-600 dark:text-gray-400 mt-1">
-                        Manage profile promotion credits for this influencer.
-                    </flux:text>
-                </div>
-                <flux:badge color="{{ $this->promotionCredits > 0 ? 'green' : 'zinc' }}" size="sm">
-                    {{ $this->promotionCredits }} {{ Str::plural('credit', $this->promotionCredits) }}
-                </flux:badge>
-            </div>
-
-            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Subscription Credits Section -->
+        @if($this->isSubscribed && count($this->subscriptionCredits) > 0)
+            <flux:card>
+                <div class="flex items-center justify-between mb-6">
                     <div>
-                        <flux:text class="text-sm text-gray-500 dark:text-gray-400">Available Credits</flux:text>
-                        <flux:text class="font-semibold text-gray-900 dark:text-white text-2xl">
-                            {{ $this->promotionCredits }}
-                        </flux:text>
-                    </div>
-                    <div>
-                        <flux:text class="text-sm text-gray-500 dark:text-gray-400">Promotion Status</flux:text>
-                        <div class="flex items-center gap-2">
-                            @if($this->isPromoted)
-                                <flux:badge color="green" size="sm">Active</flux:badge>
-                            @else
-                                <flux:badge color="zinc" size="sm">Inactive</flux:badge>
-                            @endif
-                        </div>
-                    </div>
-                    <div>
-                        <flux:text class="text-sm text-gray-500 dark:text-gray-400">Promoted Until</flux:text>
-                        <flux:text class="font-semibold text-gray-900 dark:text-white">
-                            {{ $this->promotedUntil ?? 'N/A' }}
+                        <flux:heading>Subscription Credits</flux:heading>
+                        <flux:text class="text-gray-600 dark:text-gray-400 mt-1">
+                            View and manage credits included with the subscription plan.
                         </flux:text>
                     </div>
                 </div>
-            </div>
 
-            @if($this->isPromoted)
-                <div class="border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mb-6">
-                    <div class="flex items-start gap-3">
-                        <flux:icon name="sparkles" class="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
-                        <div>
-                            <flux:heading size="sm">Profile is Currently Promoted</flux:heading>
-                            <flux:text class="text-sm text-green-700 dark:text-green-300 mt-1">
-                                This profile is highlighted in search results until {{ $this->promotedUntil }}.
-                            </flux:text>
+                <div class="space-y-3">
+                    @foreach($this->subscriptionCredits as $credit)
+                        <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <flux:text class="font-medium text-gray-900 dark:text-white">
+                                        {{ $credit['label'] }}
+                                    </flux:text>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        @if($credit['is_unlimited'])
+                                            <flux:badge color="blue" size="sm">Unlimited</flux:badge>
+                                        @elseif($credit['is_one_time_grant'])
+                                            <flux:badge color="{{ $credit['remaining'] > 0 ? 'green' : 'red' }}" size="sm">
+                                                {{ $credit['remaining'] }}
+                                            </flux:badge>
+                                            <flux:text class="text-sm text-gray-500 dark:text-gray-400">
+                                                remaining
+                                            </flux:text>
+                                        @else
+                                            <flux:badge color="{{ $credit['remaining'] > 0 ? 'green' : 'red' }}" size="sm">
+                                                {{ $credit['remaining'] }} / {{ $credit['limit'] }}
+                                            </flux:badge>
+                                            <flux:text class="text-sm text-gray-500 dark:text-gray-400">
+                                                remaining this billing cycle
+                                            </flux:text>
+                                        @endif
+                                    </div>
+                                </div>
+                                <flux:button
+                                    wire:click="$dispatch('open-adjust-subscription-credits-modal', { billableType: 'influencer', billableId: {{ $influencer->id }}, creditKey: '{{ $credit['key'] }}' })"
+                                    variant="ghost"
+                                    size="sm"
+                                    icon="pencil"
+                                >
+                                    Adjust
+                                </flux:button>
+                            </div>
                         </div>
+                    @endforeach
+                </div>
+            </flux:card>
+        @endif
+
+        <!-- Profile Promotion Status -->
+        @if($this->isPromoted)
+            <div class="border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+                <div class="flex items-start gap-3">
+                    <flux:icon name="sparkles" class="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
+                    <div>
+                        <flux:heading size="sm">Profile is Currently Promoted</flux:heading>
+                        <flux:text class="text-sm text-green-700 dark:text-green-300 mt-1">
+                            This profile is highlighted in search results until {{ $this->promotedUntil }}.
+                        </flux:text>
                     </div>
                 </div>
-            @endif
-
-            <flux:separator class="my-6" />
-
-            @if($this->influencerUser)
-                <div>
-                    <flux:heading size="sm" class="mb-4">Credit Actions</flux:heading>
-                    <div class="flex flex-wrap gap-3">
-                        <flux:button wire:click="$dispatch('open-grant-credits-modal', { userId: {{ $this->influencerUser->id }} })" variant="primary" icon="plus">
-                            Grant Credits
-                        </flux:button>
-                        @if($this->promotionCredits > 0)
-                            <flux:button wire:click="$dispatch('open-revoke-credits-modal', { userId: {{ $this->influencerUser->id }} })" variant="danger" icon="minus">
-                                Revoke Credits
-                            </flux:button>
-                        @endif
-                    </div>
-                </div>
-            @endif
-        </flux:card>
+            </div>
+        @endif
 
         <!-- Payment Method Section -->
         <flux:card>
@@ -446,4 +442,5 @@
     <livewire:admin.users.modals.swap-plan-modal />
     <livewire:admin.users.modals.grant-credits-modal />
     <livewire:admin.users.modals.revoke-credits-modal />
+    <livewire:admin.subscriptions.modals.adjust-subscription-credits-modal />
 </div>

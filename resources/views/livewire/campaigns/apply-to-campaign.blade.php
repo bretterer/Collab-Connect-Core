@@ -16,7 +16,7 @@
         </div>
     @else
         <!-- Apply Button -->
-        <flux:button wire:click="openModal" variant="{{ $buttonVariant }}" class="flex-1">
+        <flux:button wire:click="openModal" variant="{{ $buttonVariant }}" class="{{ $buttonClass }}">
             {{ $buttonText }}
         </flux:button>
     @endif
@@ -78,6 +78,15 @@
                                 <span class="font-medium text-gray-900 dark:text-white">{{ number_format($this->getMatchScore(), 1) }}%</span>
                             </div>
                         </div>
+                    </div>
+
+                    {{-- Subscription Limit Info --}}
+                    <div class="mt-4">
+                        <livewire:components.subscription-limit-info
+                            limit-key="{{ \App\Subscription\SubscriptionMetadataSchema::ACTIVE_APPLICATIONS_LIMIT }}"
+                            action-text="Submitting this application"
+                            credit-name="application credit"
+                        />
                     </div>
 
                     <!-- Application Form -->

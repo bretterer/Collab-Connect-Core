@@ -27,6 +27,10 @@ Schedule::job(new \App\Jobs\ProcessReferralPayouts(attemptNumber: 3))->monthlyOn
 
 Schedule::job(new \App\Jobs\ReenableInfluencers)->dailyAt('02:00');
 Schedule::job(new \App\Jobs\HandleProfilePromotionUpdates)->dailyAt('23:00');
+Schedule::job(new \App\Jobs\HandleCampaignBoostUpdates)->dailyAt('23:30');
+
+// Subscription credit reset - safety net in case webhook fails
+Schedule::job(new \App\Jobs\ResetSubscriptionCredits)->dailyAt('00:05');
 
 // Link in Bio Analytics cleanup - run daily at 3am
 Schedule::job(new \App\Jobs\CleanupLinkInBioAnalytics)->dailyAt('03:00');

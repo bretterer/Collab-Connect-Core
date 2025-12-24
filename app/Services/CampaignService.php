@@ -223,9 +223,10 @@ class CampaignService
 
     public static function unpublishCampaign(Campaign $campaign, ?User $unpublisher = null): Campaign
     {
+        // Keep published_at to track that this campaign was previously published
+        // (used to avoid double-charging credits on re-publish)
         $campaign->update([
             'status' => CampaignStatus::DRAFT,
-            'published_at' => null,
         ]);
 
         // Fire the CampaignUnpublished event

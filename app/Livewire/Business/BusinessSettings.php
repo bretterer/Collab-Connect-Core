@@ -2,20 +2,24 @@
 
 namespace App\Livewire\Business;
 
+use App\Enums\AccountType;
 use App\Enums\BusinessIndustry;
 use App\Enums\BusinessType;
 use App\Enums\CompanySize;
 use App\Enums\ContactRole;
 use App\Enums\SocialPlatform;
 use App\Enums\YearsInBusiness;
+use App\Facades\AddonPricing;
+use App\Facades\SubscriptionLimits;
 use App\Jobs\InviteMemberToBusiness;
 use App\Livewire\BaseComponent;
+use App\Models\AddonPriceMapping;
 use App\Models\BusinessMemberInvite;
 use App\Models\BusinessUser;
-use App\Models\StripePrice;
 use App\Models\User;
 use App\Rules\UniqueUsername;
 use App\Settings\PromotionSettings;
+use App\Subscription\SubscriptionMetadataSchema;
 use DateTime;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -139,7 +143,10 @@ class BusinessSettings extends BaseComponent
         if ($business) {
             $this->is_promoted = $business->is_promoted ?? false;
             $this->promotion_ends_at = $business->promoted_until ?? null;
-            $this->promotion_credits = $business->promotion_credits ?? 0;
+            $this->promotion_credits = SubscriptionLimits::getRemainingCredits(
+                $business,
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+            );
         }
     }
 
@@ -482,6 +489,14 @@ class BusinessSettings extends BaseComponent
             return;
         }
 
+        // Check if business can invite more team members (subscription limit)
+        if (! SubscriptionLimits::canInviteTeamMember($business)) {
+            Toaster::error('Team member limit reached. Upgrade to Professional for more team members.');
+            $this->addError('invite_email', 'Team member limit reached for your subscription tier.');
+
+            return;
+        }
+
         InviteMemberToBusiness::dispatchSync($business, $this->invite_email, $user);
 
         Toaster::success('Invitation sent to '.$this->invite_email);
@@ -563,11 +578,12 @@ class BusinessSettings extends BaseComponent
     }
 
     #[Computed]
-    public function promoCreditPrice(): ?StripePrice
+    public function promoCreditPrice(): ?AddonPriceMapping
     {
-        return StripePrice::where('lookup_key', 'profile_promo_credit_current')
-            ->where('active', true)
-            ->first();
+        return AddonPricing::getPrimaryAddonPrice(
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS,
+            AccountType::BUSINESS
+        );
     }
 
     public function promoteProfile(): void
@@ -589,7 +605,7 @@ class BusinessSettings extends BaseComponent
             return;
         }
 
-        if ($business->promotion_credits <= 0) {
+        if (! SubscriptionLimits::canPromoteProfile($business)) {
             Toaster::error('You do not have enough promotion credits to promote your profile.');
 
             return;
@@ -598,14 +614,20 @@ class BusinessSettings extends BaseComponent
         $promotionSettings = app(PromotionSettings::class);
         $days = $promotionSettings->profilePromotionDays;
 
+        // Deduct from subscription credits
+        SubscriptionLimits::deductCredit($business, SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS);
+
+        // Update profile promotion status
         $business->is_promoted = true;
         $business->promoted_until = now()->addDays($days);
-        $business->promotion_credits -= 1;
         $business->save();
 
         $this->is_promoted = $business->is_promoted;
         $this->promotion_ends_at = $business->promoted_until;
-        $this->promotion_credits = $business->promotion_credits;
+        $this->promotion_credits = SubscriptionLimits::getRemainingCredits(
+            $business,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
 
         Toaster::success("Your profile has been promoted for {$days} days!");
     }
@@ -629,9 +651,9 @@ class BusinessSettings extends BaseComponent
             return;
         }
 
-        $price = $this->promoCreditPrice;
+        $mapping = $this->promoCreditPrice;
 
-        if (! $price) {
+        if (! $mapping || ! $mapping->stripePrice) {
             Toaster::error('Promotion credit pricing is not available. Please try again later.');
 
             return;
@@ -645,7 +667,7 @@ class BusinessSettings extends BaseComponent
 
         try {
             // Calculate total amount (price is in cents)
-            $totalAmount = $price->unit_amount * $this->creditQuantity;
+            $totalAmount = $mapping->stripePrice->unit_amount * $this->creditQuantity;
 
             // Create or get Stripe customer
             if (! $business->hasStripeId()) {
@@ -676,13 +698,20 @@ class BusinessSettings extends BaseComponent
                 'payment_method_types' => ['card'],
             ]);
 
-            // Add credits to the business
-            $purchasedQuantity = $this->creditQuantity;
-            $business->promotion_credits += $purchasedQuantity;
-            $business->save();
+            // Add credits to the subscription credit system
+            // credits_granted from mapping * quantity purchased
+            $purchasedQuantity = $this->creditQuantity * $mapping->credits_granted;
+            SubscriptionLimits::addCredits(
+                $business,
+                $mapping->credit_key,
+                $purchasedQuantity
+            );
 
             // Update local state
-            $this->promotion_credits = $business->promotion_credits;
+            $this->promotion_credits = SubscriptionLimits::getRemainingCredits(
+                $business,
+                $mapping->credit_key
+            );
             $this->creditQuantity = 1;
 
             \Flux::modal('purchaseCredits')->close();

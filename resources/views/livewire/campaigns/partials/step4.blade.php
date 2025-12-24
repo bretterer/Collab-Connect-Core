@@ -1,6 +1,15 @@
 {{-- Step 4: Review & Publish --}}
 <div class="space-y-8">
-    <flux:heading size="lg">Review & Publish</flux:heading>
+    <flux:heading size="xl">Review & Publish</flux:heading>
+
+    {{-- Subscription Limit Info --}}
+    <livewire:components.subscription-limit-info
+        wire:key="limit-info-{{ $publishAction }}"
+        limit-key="{{ \App\Subscription\SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT }}"
+        action-text="Publishing this campaign"
+        credit-name="campaign publish credit"
+        :is-scheduled="$publishAction === 'schedule'"
+    />
 
     {{-- Campaign Overview --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

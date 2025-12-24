@@ -26,8 +26,8 @@ class CampaignApplicationTest extends TestCase
     {
         parent::setUp();
 
-        $this->businessUser = User::factory()->business()->withProfile()->create();
-        $this->influencerUser = User::factory()->influencer()->withProfile()->create();
+        $this->businessUser = User::factory()->business()->withProfile()->subscribed()->create();
+        $this->influencerUser = User::factory()->influencer()->withProfile()->subscribed()->create();
 
         $this->campaign = Campaign::factory()->published()->create([
             'business_id' => $this->businessUser->currentBusiness->id,
