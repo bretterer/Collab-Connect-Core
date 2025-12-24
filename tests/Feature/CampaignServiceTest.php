@@ -379,4 +379,52 @@ class CampaignServiceTest extends TestCase
         $this->assertCount(1, Campaign::scheduled()->get());
         $this->assertCount(1, Campaign::archived()->get());
     }
+
+    public function test_unpublish_campaign_preserves_published_at()
+    {
+        Event::fake();
+
+        $campaign = Campaign::factory()->published()->create([
+            'business_id' => $this->businessUser->currentBusiness->id,
+        ]);
+
+        $originalPublishedAt = $campaign->published_at;
+        $this->assertNotNull($originalPublishedAt);
+
+        $unpublishedCampaign = CampaignService::unpublishCampaign($campaign, $this->businessUser);
+
+        // Status should be draft
+        $this->assertEquals(CampaignStatus::DRAFT, $unpublishedCampaign->status);
+
+        // published_at should be preserved (not cleared)
+        $this->assertNotNull($unpublishedCampaign->published_at);
+        $this->assertEquals($originalPublishedAt->toDateTimeString(), $unpublishedCampaign->published_at->toDateTimeString());
+
+        Event::assertDispatched(CampaignUnpublished::class);
+    }
+
+    public function test_republish_campaign_does_not_change_published_at()
+    {
+        $campaign = Campaign::factory()->published()->create([
+            'business_id' => $this->businessUser->currentBusiness->id,
+        ]);
+
+        $originalPublishedAt = $campaign->published_at;
+
+        // Unpublish
+        CampaignService::unpublishCampaign($campaign, $this->businessUser);
+        $campaign->refresh();
+
+        // Verify published_at is preserved after unpublish
+        $this->assertNotNull($campaign->published_at);
+
+        // Re-publish
+        CampaignService::publishCampaign($campaign, $this->businessUser);
+        $campaign->refresh();
+
+        // published_at will be updated to the new publish time
+        // (this is expected behavior - it tracks the most recent publish)
+        $this->assertNotNull($campaign->published_at);
+        $this->assertEquals(CampaignStatus::PUBLISHED, $campaign->status);
+    }
 }

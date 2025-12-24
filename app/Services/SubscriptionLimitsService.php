@@ -45,7 +45,8 @@ class SubscriptionLimitsService
     }
 
     /**
-     * Get a specific limit value from the subscription's price metadata.
+     * Get the maximum limit value for a billable from the subscription's price metadata.
+     * This returns the plan's limit, not the remaining credits.
      * Returns 0 if not set, -1 means unlimited.
      */
     public function getLimit(Model $billable, string $key): int
@@ -81,6 +82,7 @@ class SubscriptionLimitsService
 
     /**
      * Get remaining credits for a specific key.
+     * If no credit entry exists, creates one from metadata first.
      * Returns -1 if unlimited, 0 if no credits or no subscription.
      */
     public function getRemainingCredits(Model $billable, string $key): int
@@ -92,11 +94,17 @@ class SubscriptionLimitsService
 
         $credit = $this->getCredit($billable, $key);
 
+        // If no credit entry exists, create one from metadata
+        if (! $credit) {
+            $credit = $this->createCreditFromMetadata($billable, $key);
+        }
+
         return $credit?->remaining() ?? 0;
     }
 
     /**
      * Deduct one credit for a specific key.
+     * If no credit entry exists, creates one from the subscription metadata limit first.
      *
      * @return bool True if credit was deducted, false if no credits remaining or unlimited
      */
@@ -109,11 +117,49 @@ class SubscriptionLimitsService
 
         $credit = $this->getCredit($billable, $key);
 
+        // If no credit entry exists, create one from metadata limit
         if (! $credit) {
-            return false;
+            $credit = $this->createCreditFromMetadata($billable, $key);
+
+            if (! $credit) {
+                return false;
+            }
         }
 
         return $credit->deduct($amount);
+    }
+
+    /**
+     * Create a SubscriptionCredit entry from the subscription's metadata limit.
+     */
+    private function createCreditFromMetadata(Model $billable, string $key): ?SubscriptionCredit
+    {
+        $subscription = $this->getActiveSubscription($billable);
+
+        if (! $subscription) {
+            return null;
+        }
+
+        // Get limit from metadata (raw, not from SubscriptionCredit)
+        $metadata = $this->getPriceMetadata($billable);
+        $limit = (int) ($metadata[$key] ?? 0);
+
+        // Can't create credit for zero or unlimited limits
+        if ($limit <= 0) {
+            return null;
+        }
+
+        // One-time grants don't have a reset date
+        $resetAt = SubscriptionMetadataSchema::isOneTimeGrant($key)
+            ? null
+            : ($this->getBillingCycleResetDate($billable) ?? now());
+
+        return SubscriptionCredit::create([
+            'subscription_id' => $subscription->id,
+            'key' => $key,
+            'value' => $limit,
+            'reset_at' => $resetAt,
+        ]);
     }
 
     /**
@@ -127,6 +173,11 @@ class SubscriptionLimitsService
             return;
         }
 
+        // One-time grants don't have a reset date
+        $resetAt = SubscriptionMetadataSchema::isOneTimeGrant($key)
+            ? null
+            : ($this->getBillingCycleResetDate($billable) ?? now());
+
         SubscriptionCredit::updateOrCreate(
             [
                 'subscription_id' => $subscription->id,
@@ -134,9 +185,51 @@ class SubscriptionLimitsService
             ],
             [
                 'value' => $value,
-                'reset_at' => now(),
+                'reset_at' => $resetAt,
             ]
         );
+    }
+
+    /**
+     * Add credits to a specific key.
+     * If no credit entry exists, creates one first.
+     *
+     * @return int The new credit balance
+     */
+    public function addCredits(Model $billable, string $key, int $amount): int
+    {
+        $subscription = $this->getActiveSubscription($billable);
+
+        if (! $subscription) {
+            return 0;
+        }
+
+        $credit = $this->getCredit($billable, $key);
+
+        if (! $credit) {
+            $credit = $this->createCreditFromMetadata($billable, $key);
+        }
+
+        if ($credit) {
+            $newValue = $credit->value + $amount;
+            $credit->update(['value' => $newValue]);
+
+            return $newValue;
+        }
+
+        // If still no credit exists, create one with just the amount
+        $resetAt = SubscriptionMetadataSchema::isOneTimeGrant($key)
+            ? null
+            : ($this->getBillingCycleResetDate($billable) ?? now());
+
+        $credit = SubscriptionCredit::create([
+            'subscription_id' => $subscription->id,
+            'key' => $key,
+            'value' => $amount,
+            'reset_at' => $resetAt,
+        ]);
+
+        return $credit->value;
     }
 
     /**
@@ -152,6 +245,7 @@ class SubscriptionLimitsService
         }
 
         $metadata = $this->getPriceMetadata($billable);
+        $resetAt = $this->getBillingCycleResetDate($billable) ?? now();
 
         foreach (SubscriptionMetadataSchema::getCreditKeys() as $key) {
             $limit = (int) ($metadata[$key] ?? 0);
@@ -176,7 +270,7 @@ class SubscriptionLimitsService
                 ],
                 [
                     'value' => $newValue,
-                    'reset_at' => now(),
+                    'reset_at' => $resetAt,
                 ]
             );
         }
@@ -184,10 +278,53 @@ class SubscriptionLimitsService
 
     /**
      * Initialize credits for a new subscription.
+     * This sets up both renewing credits and one-time grants.
      */
     public function initializeCredits(Model $billable): void
     {
+        // Initialize renewing credits
         $this->resetAllCredits($billable);
+
+        // Initialize one-time grants (only if they don't already exist)
+        $this->initializeOneTimeGrants($billable);
+    }
+
+    /**
+     * Initialize one-time grants for a new subscription.
+     * These are only granted once and never reset.
+     */
+    private function initializeOneTimeGrants(Model $billable): void
+    {
+        $subscription = $this->getActiveSubscription($billable);
+
+        if (! $subscription) {
+            return;
+        }
+
+        $metadata = $this->getPriceMetadata($billable);
+
+        foreach (SubscriptionMetadataSchema::getOneTimeGrantKeys() as $key) {
+            $limit = (int) ($metadata[$key] ?? 0);
+
+            // Skip zero limits
+            if ($limit <= 0) {
+                continue;
+            }
+
+            // Only create if it doesn't exist (one-time grant)
+            $existingCredit = SubscriptionCredit::forSubscription($subscription->id)
+                ->forKey($key)
+                ->first();
+
+            if (! $existingCredit) {
+                SubscriptionCredit::create([
+                    'subscription_id' => $subscription->id,
+                    'key' => $key,
+                    'value' => $limit,
+                    'reset_at' => null, // One-time grants don't reset
+                ]);
+            }
+        }
     }
 
     // =========================================================================
@@ -264,36 +401,20 @@ class SubscriptionLimitsService
      */
     public function canPublishCampaign(Business $business): bool
     {
-        logger()->info('canPublishCampaign() checking', ['business_id' => $business->id]);
-
         $limit = $this->getLimit($business, SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT);
-        logger()->info('canPublishCampaign() limit retrieved', [
-            'limit' => $limit,
-            'UNLIMITED_CONST' => SubscriptionMetadataSchema::UNLIMITED,
-        ]);
 
         // Not subscribed or no limit set
         if ($limit === 0) {
-            logger()->info('canPublishCampaign() returning false - limit is 0');
-
             return false;
         }
 
         // Unlimited
         if ($limit === SubscriptionMetadataSchema::UNLIMITED) {
-            logger()->info('canPublishCampaign() returning true - unlimited');
-
             return true;
         }
 
         // Check credits
-        $remainingCredits = $this->getRemainingCredits($business, SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT);
-        logger()->info('canPublishCampaign() checking credits', [
-            'remainingCredits' => $remainingCredits,
-            'result' => $remainingCredits > 0,
-        ]);
-
-        return $remainingCredits > 0;
+        return $this->getRemainingCredits($business, SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT) > 0;
     }
 
     /**
@@ -379,17 +500,23 @@ class SubscriptionLimitsService
     {
         $subscription = $this->getActiveSubscription($billable);
 
-        if (! $subscription) {
+        if (! $subscription || ! $subscription->stripe_id) {
             return null;
         }
 
         // In test environments or when Stripe is not configured, skip API call
-        if (app()->environment('testing') || ! config('services.stripe.secret')) {
+        if (app()->environment('testing') || ! config('cashier.secret')) {
+            return null;
+        }
+
+        // Check if billable has the stripe() method (Billable trait)
+        if (! method_exists($billable, 'stripe')) {
             return null;
         }
 
         try {
-            $stripeSubscription = $subscription->asStripeSubscription();
+            // Call Stripe directly from the billable model to avoid relationship issues
+            $stripeSubscription = $billable->stripe()->subscriptions->retrieve($subscription->stripe_id);
 
             if ($stripeSubscription && $stripeSubscription->current_period_end) {
                 return \Carbon\Carbon::createFromTimestamp($stripeSubscription->current_period_end);

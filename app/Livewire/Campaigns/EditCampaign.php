@@ -526,14 +526,19 @@ class EditCampaign extends BaseComponent
             logger()->info('Schedule date validation passed');
         }
 
-        // Check if business can publish a campaign (subscription limit)
+        // Check if this is a re-publish (campaign was previously published)
+        $existingCampaign = Campaign::find($this->campaignId);
+        $isRepublish = $existingCampaign?->published_at !== null;
+
+        // Check if business can publish a campaign (subscription limit) - only for first-time publishes
         $business = auth()->user()->currentBusiness;
         logger()->info('Business info', [
             'business_id' => $business?->id,
             'business_name' => $business?->name,
+            'isRepublish' => $isRepublish,
         ]);
 
-        $canPublish = SubscriptionLimits::canPublishCampaign($business);
+        $canPublish = $isRepublish || SubscriptionLimits::canPublishCampaign($business);
         logger()->info('canPublishCampaign check', [
             'canPublish' => $canPublish,
             'publishAction' => $this->publishAction,
@@ -561,9 +566,11 @@ class EditCampaign extends BaseComponent
             logger()->info('Publishing campaign now');
             CampaignService::publishCampaign($campaign);
 
-            // Deduct campaign publish credit
-            SubscriptionLimits::deductCredit($business, SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT);
-            logger()->info('Credit deducted');
+            // Only deduct credit for first-time publishes
+            if (! $isRepublish) {
+                SubscriptionLimits::deductCredit($business, SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT);
+                logger()->info('Credit deducted');
+            }
 
             session()->flash('message', 'Campaign published successfully!');
         } elseif ($this->publishAction === 'schedule') {
@@ -581,7 +588,12 @@ class EditCampaign extends BaseComponent
             // Invalid publishAction - default to publish
             logger()->warning('Invalid publishAction, defaulting to publish', ['publishAction' => $this->publishAction]);
             CampaignService::publishCampaign($campaign);
-            SubscriptionLimits::deductCredit($business, SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT);
+
+            // Only deduct credit for first-time publishes
+            if (! $isRepublish) {
+                SubscriptionLimits::deductCredit($business, SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT);
+            }
+
             session()->flash('message', 'Campaign published successfully!');
         }
 

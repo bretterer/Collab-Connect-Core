@@ -85,6 +85,17 @@ class SubscriptionMetadataSchema
         return [
             self::ACTIVE_APPLICATIONS_LIMIT,
             self::CAMPAIGNS_PUBLISHED_LIMIT,
+        ];
+    }
+
+    /**
+     * Get keys that represent one-time grants (given at signup, never reset).
+     *
+     * @return array<string>
+     */
+    public static function getOneTimeGrantKeys(): array
+    {
+        return [
             self::CAMPAIGN_BOOST_CREDITS,
             self::PROFILE_PROMOTION_CREDITS,
         ];
@@ -150,8 +161,8 @@ class SubscriptionMetadataSchema
             self::ACTIVE_APPLICATIONS_LIMIT => 'Application Credits per Billing Cycle',
             self::COLLABORATION_LIMIT => 'Max Concurrent Collaborations',
             self::CAMPAIGNS_PUBLISHED_LIMIT => 'Campaign Publish Credits per Billing Cycle',
-            self::CAMPAIGN_BOOST_CREDITS => 'Campaign Boost Credits per Billing Cycle',
-            self::PROFILE_PROMOTION_CREDITS => 'Profile Promotion Credits per Billing Cycle',
+            self::CAMPAIGN_BOOST_CREDITS => 'Campaign Boost Credits (One-Time Grant)',
+            self::PROFILE_PROMOTION_CREDITS => 'Profile Promotion Credits (One-Time Grant)',
             self::TEAM_MEMBER_LIMIT => 'Additional Team Members Allowed',
         ];
     }
@@ -165,8 +176,8 @@ class SubscriptionMetadataSchema
             self::ACTIVE_APPLICATIONS_LIMIT => 'Number of campaign applications an influencer can submit per billing cycle. Use -1 for unlimited.',
             self::COLLABORATION_LIMIT => 'Maximum number of active collaborations at any time. Use -1 for unlimited.',
             self::CAMPAIGNS_PUBLISHED_LIMIT => 'Number of campaigns a business can publish per billing cycle. Use -1 for unlimited.',
-            self::CAMPAIGN_BOOST_CREDITS => 'Number of campaign boosts available per billing cycle. Boosted campaigns get +5% match score.',
-            self::PROFILE_PROMOTION_CREDITS => 'Number of profile promotions available per billing cycle.',
+            self::CAMPAIGN_BOOST_CREDITS => 'One-time grant of campaign boosts at signup. Boosted campaigns get +5% match score. Does not reset.',
+            self::PROFILE_PROMOTION_CREDITS => 'One-time grant of profile promotions at signup. Does not reset.',
             self::TEAM_MEMBER_LIMIT => 'Number of additional team members that can be invited (excludes owner). Use -1 for unlimited.',
             default => '',
         };
@@ -182,9 +193,19 @@ class SubscriptionMetadataSchema
 
     /**
      * Check if a key represents a credit (consumable) vs a hard limit.
+     * Includes both renewing credits and one-time grants.
      */
     public static function isCredit(string $key): bool
     {
-        return in_array($key, self::getCreditKeys(), true);
+        return in_array($key, self::getCreditKeys(), true)
+            || in_array($key, self::getOneTimeGrantKeys(), true);
+    }
+
+    /**
+     * Check if a key represents a one-time grant (not renewing).
+     */
+    public static function isOneTimeGrant(string $key): bool
+    {
+        return in_array($key, self::getOneTimeGrantKeys(), true);
     }
 }

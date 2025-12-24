@@ -16,7 +16,7 @@
         </div>
     @else
         <!-- Apply Button -->
-        <flux:button wire:click="openModal" variant="{{ $buttonVariant }}" class="flex-1">
+        <flux:button wire:click="openModal" variant="{{ $buttonVariant }}" class="{{ $buttonClass }}">
             {{ $buttonText }}
         </flux:button>
     @endif

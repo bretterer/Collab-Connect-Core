@@ -41,16 +41,18 @@
         Custom Signup Pages
     </flux:navlist.item>
 
-    <flux:navlist.group heading="Marketing" expandable :expanded="request()->routeIs('admin.marketing.*')">
-        <flux:navlist.item href="{{ route('admin.marketing.landing-pages.index') }}" icon="document" :current="request()->routeIs('admin.marketing.landing-pages.*')">
-            Landing Pages
+    <flux:navlist.group heading="Pricing" expandable :expanded="request()->routeIs('admin.pricing.*')">
+        <flux:navlist.item href="{{ route('admin.pricing') }}" icon="document" :current="request()->routeIs('admin.pricing')">
+            Pricing
         </flux:navlist.item>
-        <flux:navlist.item href="{{ route('admin.marketing.forms.index') }}" icon="clipboard-document-list" :current="request()->routeIs('admin.marketing.forms.*')">
-            Forms
+
+    </flux:navlist.group>
+
+    <flux:navlist.group heading="Markets" expandable :expanded="request()->routeIs('admin.markets.*')">
+        <flux:navlist.item href="{{ route('admin.markets.index') }}" icon="document" :current="request()->routeIs('admin.markets.index')">
+            Markets
         </flux:navlist.item>
-        <flux:navlist.item href="{{ route('admin.marketing.email-sequences.index') }}" icon="envelope" :current="request()->routeIs('admin.marketing.email-sequences.*')">
-            Email Sequences
-        </flux:navlist.item>
+
     </flux:navlist.group>
 
     <flux:navlist.item href="{{ route('chat.index') }}" icon="chat-bubble-left-right" :current="request()->routeIs('chat.*')" badge="{{ auth()->user()->hasUnreadMessages() ? ' ' : null }}">

@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Admin\Users\Modals;
 
+use App\Facades\SubscriptionLimits;
 use App\Models\AuditLog;
 use App\Models\Business;
 use App\Models\Influencer;
 use App\Models\User;
+use App\Subscription\SubscriptionMetadataSchema;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -62,7 +64,15 @@ class GrantCreditsModal extends Component
     #[Computed]
     public function currentCredits(): int
     {
-        return $this->billable?->promotion_credits ?? 0;
+        $billable = $this->billable;
+        if (! $billable) {
+            return 0;
+        }
+
+        return SubscriptionLimits::getRemainingCredits(
+            $billable,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
     }
 
     public function grantCredits(): void
@@ -81,20 +91,25 @@ class GrantCreditsModal extends Component
                 throw new \Exception('No billable profile found.');
             }
 
-            $oldCredits = $billable->promotion_credits ?? 0;
-            $newCredits = $oldCredits + $this->credits;
+            $oldCredits = SubscriptionLimits::getRemainingCredits(
+                $billable,
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+            );
 
-            $billable->update([
-                'promotion_credits' => $newCredits,
-            ]);
+            $creditsToGrant = $this->credits;
+            $newCredits = SubscriptionLimits::addCredits(
+                $billable,
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS,
+                $creditsToGrant
+            );
 
             AuditLog::log(
                 action: 'credit.grant',
                 auditable: $billable,
-                oldValues: ['promotion_credits' => $oldCredits],
-                newValues: ['promotion_credits' => $newCredits],
+                oldValues: ['profile_promotion_credits' => $oldCredits],
+                newValues: ['profile_promotion_credits' => $newCredits],
                 metadata: [
-                    'credits_added' => $this->credits,
+                    'credits_added' => $creditsToGrant,
                     'reason' => $this->reason,
                     'user_id' => $this->userId,
                     'user_name' => $this->user?->name,
@@ -104,7 +119,7 @@ class GrantCreditsModal extends Component
             $this->credits = 1;
             $this->reason = '';
             Flux::modal('grant-credits-modal')->close();
-            Toaster::success("Successfully granted {$this->credits} promotion credits.");
+            Toaster::success("Successfully granted {$creditsToGrant} promotion credits.");
 
             $this->dispatch('credits-updated');
 

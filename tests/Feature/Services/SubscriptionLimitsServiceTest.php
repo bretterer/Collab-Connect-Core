@@ -561,4 +561,78 @@ class SubscriptionLimitsServiceTest extends TestCase
         $this->assertArrayHasKey(SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT, $summary);
         $this->assertEquals(3, $summary[SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT]['limit']);
     }
+
+    // =========================================================================
+    // Auto-Creation of Credit Entries Tests
+    // =========================================================================
+
+    #[Test]
+    public function deduct_credit_creates_entry_if_missing(): void
+    {
+        $business = $this->createSubscribedBusiness([
+            SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT => 3,
+        ]);
+
+        // Don't initialize credits - entry should be created automatically
+        $this->assertDatabaseMissing('subscription_credits', [
+            'subscription_id' => $business->subscription('default')->id,
+            'key' => SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT,
+        ]);
+
+        // Deduct should create entry and deduct
+        $result = SubscriptionLimits::deductCredit($business, SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT);
+
+        $this->assertTrue($result);
+        $this->assertDatabaseHas('subscription_credits', [
+            'subscription_id' => $business->subscription('default')->id,
+            'key' => SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT,
+            'value' => 2, // 3 - 1 = 2
+        ]);
+    }
+
+    #[Test]
+    public function get_remaining_credits_creates_entry_if_missing(): void
+    {
+        $business = $this->createSubscribedBusiness([
+            SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT => 5,
+        ]);
+
+        // Don't initialize credits - entry should be created automatically
+        $this->assertDatabaseMissing('subscription_credits', [
+            'subscription_id' => $business->subscription('default')->id,
+            'key' => SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT,
+        ]);
+
+        // Getting remaining credits should create the entry
+        $remaining = SubscriptionLimits::getRemainingCredits($business, SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT);
+
+        $this->assertEquals(5, $remaining);
+        $this->assertDatabaseHas('subscription_credits', [
+            'subscription_id' => $business->subscription('default')->id,
+            'key' => SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT,
+            'value' => 5,
+        ]);
+    }
+
+    #[Test]
+    public function get_limit_returns_metadata_limit_not_credit_value(): void
+    {
+        $business = $this->createSubscribedBusiness([
+            SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT => 5,
+        ]);
+
+        SubscriptionLimits::initializeCredits($business);
+
+        // Deduct some credits
+        SubscriptionLimits::deductCredit($business, SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT);
+        SubscriptionLimits::deductCredit($business, SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT);
+
+        // Remaining should be 3
+        $remaining = SubscriptionLimits::getRemainingCredits($business, SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT);
+        $this->assertEquals(3, $remaining);
+
+        // But limit should still be 5 (the plan max, not the current value)
+        $limit = SubscriptionLimits::getLimit($business, SubscriptionMetadataSchema::CAMPAIGNS_PUBLISHED_LIMIT);
+        $this->assertEquals(5, $limit);
+    }
 }

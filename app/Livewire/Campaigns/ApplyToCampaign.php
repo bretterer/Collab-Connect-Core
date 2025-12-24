@@ -26,12 +26,15 @@ class ApplyToCampaign extends BaseComponent
 
     public string $buttonVariant = 'primary';
 
+    public string $buttonClass = 'flex-1';
+
     public ?CampaignApplication $existingApplication = null;
 
     public function mount(
         Campaign $campaign,
         string $buttonText = 'Apply Now',
         string $buttonVariant = 'primary',
+        string $buttonClass = 'flex-1',
         mixed $existingApplication = null,
         bool $applicationPreloaded = false
     ) {
@@ -42,6 +45,7 @@ class ApplyToCampaign extends BaseComponent
 
         $this->buttonText = $buttonText;
         $this->buttonVariant = $buttonVariant;
+        $this->buttonClass = $buttonClass;
 
         // Handle the existing application - could be a model instance or null
         if ($existingApplication instanceof CampaignApplication) {

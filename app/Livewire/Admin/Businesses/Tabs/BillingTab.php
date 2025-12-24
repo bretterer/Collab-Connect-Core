@@ -516,7 +516,10 @@ class BillingTab extends Component
     #[Computed]
     public function promotionCredits(): int
     {
-        return $this->business->promotion_credits ?? 0;
+        return SubscriptionLimits::getRemainingCredits(
+            $this->business,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
     }
 
     #[Computed]
@@ -560,6 +563,7 @@ class BillingTab extends Component
                 'limit' => $limit,
                 'remaining' => $remaining,
                 'is_unlimited' => $isUnlimited,
+                'is_one_time_grant' => SubscriptionMetadataSchema::isOneTimeGrant($key),
             ];
         }
 

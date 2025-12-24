@@ -6,10 +6,13 @@ use App\Enums\BusinessIndustry;
 use App\Enums\BusinessType;
 use App\Enums\CampaignType;
 use App\Enums\CompensationType;
+use App\Facades\SubscriptionLimits;
 use App\Livewire\Influencer\InfluencerSettings;
+use App\Models\AddonPriceMapping;
 use App\Models\StripePrice;
 use App\Models\StripeProduct;
 use App\Models\User;
+use App\Subscription\SubscriptionMetadataSchema;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -324,33 +327,70 @@ class InfluencerSettingsTest extends TestCase
     public function influencer_can_promote_profile_with_credits(): void
     {
         $user = User::factory()->influencer()->withProfile()->create();
-        $user->influencer->update(['promotion_credits' => 3]);
+        $influencer = $user->influencer;
+
+        // Create subscription and credits using the new system
+        $price = StripePrice::factory()->create([
+            'metadata' => [
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS => 5,
+            ],
+        ]);
+        $influencer->subscriptions()->create([
+            'type' => 'default',
+            'stripe_id' => 'sub_test_'.uniqid(),
+            'stripe_status' => 'active',
+            'stripe_price' => $price->stripe_id,
+        ]);
+        SubscriptionLimits::initializeCredits($influencer);
+
+        // Verify initial credits
+        $initialCredits = SubscriptionLimits::getRemainingCredits(
+            $influencer,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
 
         $this->actingAs($user);
 
         Livewire::test(InfluencerSettings::class)
-            ->assertSet('promotion_credits', 3)
             ->assertSet('is_promoted', false)
             ->call('promoteProfile')
-            ->assertSet('is_promoted', true)
-            ->assertSet('promotion_credits', 2);
+            ->assertSet('is_promoted', true);
 
         $user->refresh();
         $this->assertTrue($user->influencer->is_promoted);
-        $this->assertEquals(2, $user->influencer->promotion_credits);
         $this->assertNotNull($user->influencer->promoted_until);
+
+        // Verify credit was deducted
+        $remainingCredits = SubscriptionLimits::getRemainingCredits(
+            $influencer,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
+        $this->assertEquals($initialCredits - 1, $remainingCredits);
     }
 
     #[Test]
     public function influencer_cannot_promote_profile_without_credits(): void
     {
         $user = User::factory()->influencer()->withProfile()->create();
-        $user->influencer->update(['promotion_credits' => 0]);
+        $influencer = $user->influencer;
+
+        // Create subscription with 0 credits
+        $price = StripePrice::factory()->create([
+            'metadata' => [
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS => 0,
+            ],
+        ]);
+        $influencer->subscriptions()->create([
+            'type' => 'default',
+            'stripe_id' => 'sub_test_'.uniqid(),
+            'stripe_status' => 'active',
+            'stripe_price' => $price->stripe_id,
+        ]);
+        SubscriptionLimits::initializeCredits($influencer);
 
         $this->actingAs($user);
 
         Livewire::test(InfluencerSettings::class)
-            ->assertSet('promotion_credits', 0)
             ->call('promoteProfile')
             ->assertSet('is_promoted', false);
 
@@ -362,7 +402,21 @@ class InfluencerSettingsTest extends TestCase
     public function influencer_promotion_lasts_seven_days(): void
     {
         $user = User::factory()->influencer()->withProfile()->create();
-        $user->influencer->update(['promotion_credits' => 1]);
+        $influencer = $user->influencer;
+
+        // Create subscription with credits
+        $price = StripePrice::factory()->create([
+            'metadata' => [
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS => 1,
+            ],
+        ]);
+        $influencer->subscriptions()->create([
+            'type' => 'default',
+            'stripe_id' => 'sub_test_'.uniqid(),
+            'stripe_status' => 'active',
+            'stripe_price' => $price->stripe_id,
+        ]);
+        SubscriptionLimits::initializeCredits($influencer);
 
         $this->actingAs($user);
 
@@ -380,7 +434,21 @@ class InfluencerSettingsTest extends TestCase
     public function influencer_sees_promotion_credits_count(): void
     {
         $user = User::factory()->influencer()->withProfile()->create();
-        $user->influencer->update(['promotion_credits' => 5]);
+        $influencer = $user->influencer;
+
+        // Create subscription with 5 credits
+        $price = StripePrice::factory()->create([
+            'metadata' => [
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS => 5,
+            ],
+        ]);
+        $influencer->subscriptions()->create([
+            'type' => 'default',
+            'stripe_id' => 'sub_test_'.uniqid(),
+            'stripe_status' => 'active',
+            'stripe_price' => $price->stripe_id,
+        ]);
+        SubscriptionLimits::initializeCredits($influencer);
 
         $this->actingAs($user);
 
@@ -393,7 +461,21 @@ class InfluencerSettingsTest extends TestCase
     public function influencer_sees_buy_credits_button_when_no_credits(): void
     {
         $user = User::factory()->influencer()->withProfile()->create();
-        $user->influencer->update(['promotion_credits' => 0]);
+        $influencer = $user->influencer;
+
+        // Create subscription with 0 credits
+        $price = StripePrice::factory()->create([
+            'metadata' => [
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS => 0,
+            ],
+        ]);
+        $influencer->subscriptions()->create([
+            'type' => 'default',
+            'stripe_id' => 'sub_test_'.uniqid(),
+            'stripe_status' => 'active',
+            'stripe_price' => $price->stripe_id,
+        ]);
+        SubscriptionLimits::initializeCredits($influencer);
 
         $this->actingAs($user);
 
@@ -418,34 +500,50 @@ class InfluencerSettingsTest extends TestCase
     }
 
     #[Test]
-    public function promo_credit_price_computed_property_returns_active_price(): void
+    public function promo_credit_price_computed_property_returns_active_mapping(): void
     {
         $user = User::factory()->influencer()->withProfile()->create();
 
         $product = StripeProduct::factory()->create();
         $price = StripePrice::factory()->oneTime()->forProduct($product)->create([
-            'lookup_key' => 'profile_promo_credit_current',
             'active' => true,
             'unit_amount' => 999,
+        ]);
+
+        // Create addon mapping
+        $mapping = AddonPriceMapping::create([
+            'stripe_price_id' => $price->id,
+            'credit_key' => SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS,
+            'credits_granted' => 1,
+            'account_type' => 'both',
+            'is_active' => true,
         ]);
 
         $this->actingAs($user);
 
         $component = Livewire::test(InfluencerSettings::class);
         $promoCreditPrice = $component->get('promoCreditPrice');
-        $this->assertEquals($price->id, $promoCreditPrice->id);
-        $this->assertEquals(999, $promoCreditPrice->unit_amount);
+        $this->assertEquals($mapping->id, $promoCreditPrice->id);
+        $this->assertEquals(999, $promoCreditPrice->stripePrice->unit_amount);
     }
 
     #[Test]
-    public function promo_credit_price_returns_null_when_no_active_price(): void
+    public function promo_credit_price_returns_null_when_no_active_mapping(): void
     {
         $user = User::factory()->influencer()->withProfile()->create();
 
         $product = StripeProduct::factory()->create();
-        StripePrice::factory()->oneTime()->forProduct($product)->create([
-            'lookup_key' => 'profile_promo_credit_current',
-            'active' => false,
+        $price = StripePrice::factory()->oneTime()->forProduct($product)->create([
+            'active' => true,
+        ]);
+
+        // Create inactive addon mapping
+        AddonPriceMapping::create([
+            'stripe_price_id' => $price->id,
+            'credit_key' => SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS,
+            'credits_granted' => 1,
+            'account_type' => 'both',
+            'is_active' => false,
         ]);
 
         $this->actingAs($user);
@@ -471,13 +569,36 @@ class InfluencerSettingsTest extends TestCase
     public function purchase_credits_fails_with_invalid_quantity(): void
     {
         $user = User::factory()->influencer()->withProfile()->create();
+        $influencer = $user->influencer;
 
         $product = StripeProduct::factory()->create();
-        StripePrice::factory()->oneTime()->forProduct($product)->create([
-            'lookup_key' => 'profile_promo_credit_current',
+        $price = StripePrice::factory()->oneTime()->forProduct($product)->create([
             'active' => true,
             'unit_amount' => 999,
         ]);
+
+        // Create addon mapping
+        AddonPriceMapping::create([
+            'stripe_price_id' => $price->id,
+            'credit_key' => SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS,
+            'credits_granted' => 1,
+            'account_type' => 'both',
+            'is_active' => true,
+        ]);
+
+        // Create subscription with 0 credits
+        $subscriptionPrice = StripePrice::factory()->create([
+            'metadata' => [
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS => 0,
+            ],
+        ]);
+        $influencer->subscriptions()->create([
+            'type' => 'default',
+            'stripe_id' => 'sub_test_'.uniqid(),
+            'stripe_status' => 'active',
+            'stripe_price' => $subscriptionPrice->stripe_id,
+        ]);
+        SubscriptionLimits::initializeCredits($influencer);
 
         $this->actingAs($user);
 
@@ -486,22 +607,43 @@ class InfluencerSettingsTest extends TestCase
             ->set('creditQuantity', 0)
             ->call('purchasePromotionCredits');
 
-        $user->refresh();
-        $this->assertEquals(0, $user->influencer->promotion_credits);
+        $remainingCredits = SubscriptionLimits::getRemainingCredits(
+            $influencer,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
+        $this->assertEquals(0, $remainingCredits);
 
         // Test quantity too high
         Livewire::test(InfluencerSettings::class)
             ->set('creditQuantity', 11)
             ->call('purchasePromotionCredits');
 
-        $user->refresh();
-        $this->assertEquals(0, $user->influencer->promotion_credits);
+        $remainingCredits = SubscriptionLimits::getRemainingCredits(
+            $influencer,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
+        $this->assertEquals(0, $remainingCredits);
     }
 
     #[Test]
-    public function purchase_credits_fails_when_price_not_available(): void
+    public function purchase_credits_fails_when_no_mapping_available(): void
     {
         $user = User::factory()->influencer()->withProfile()->create();
+        $influencer = $user->influencer;
+
+        // Create subscription with 0 credits
+        $subscriptionPrice = StripePrice::factory()->create([
+            'metadata' => [
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS => 0,
+            ],
+        ]);
+        $influencer->subscriptions()->create([
+            'type' => 'default',
+            'stripe_id' => 'sub_test_'.uniqid(),
+            'stripe_status' => 'active',
+            'stripe_price' => $subscriptionPrice->stripe_id,
+        ]);
+        SubscriptionLimits::initializeCredits($influencer);
 
         $this->actingAs($user);
 
@@ -509,7 +651,10 @@ class InfluencerSettingsTest extends TestCase
             ->set('creditQuantity', 1)
             ->call('purchasePromotionCredits');
 
-        $user->refresh();
-        $this->assertEquals(0, $user->influencer->promotion_credits);
+        $remainingCredits = SubscriptionLimits::getRemainingCredits(
+            $influencer,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
+        $this->assertEquals(0, $remainingCredits);
     }
 }

@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Admin\Users\Modals;
 
+use App\Facades\SubscriptionLimits;
 use App\Models\AuditLog;
 use App\Models\Business;
 use App\Models\Influencer;
 use App\Models\User;
+use App\Subscription\SubscriptionMetadataSchema;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -62,7 +64,15 @@ class RevokeCreditsModal extends Component
     #[Computed]
     public function currentCredits(): int
     {
-        return $this->billable?->promotion_credits ?? 0;
+        $billable = $this->billable;
+        if (! $billable) {
+            return 0;
+        }
+
+        return SubscriptionLimits::getRemainingCredits(
+            $billable,
+            SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+        );
     }
 
     #[Computed]
@@ -87,20 +97,30 @@ class RevokeCreditsModal extends Component
                 throw new \Exception('No billable profile found.');
             }
 
-            $oldCredits = $billable->promotion_credits ?? 0;
-            $newCredits = max(0, $oldCredits - $this->credits);
+            $oldCredits = SubscriptionLimits::getRemainingCredits(
+                $billable,
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+            );
 
-            $billable->update([
-                'promotion_credits' => $newCredits,
-            ]);
+            $creditsToRevoke = $this->credits;
+            SubscriptionLimits::deductCredit(
+                $billable,
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS,
+                $creditsToRevoke
+            );
+
+            $newCredits = SubscriptionLimits::getRemainingCredits(
+                $billable,
+                SubscriptionMetadataSchema::PROFILE_PROMOTION_CREDITS
+            );
 
             AuditLog::log(
                 action: 'credit.revoke',
                 auditable: $billable,
-                oldValues: ['promotion_credits' => $oldCredits],
-                newValues: ['promotion_credits' => $newCredits],
+                oldValues: ['profile_promotion_credits' => $oldCredits],
+                newValues: ['profile_promotion_credits' => $newCredits],
                 metadata: [
-                    'credits_removed' => $this->credits,
+                    'credits_removed' => $creditsToRevoke,
                     'reason' => $this->reason,
                     'user_id' => $this->userId,
                     'user_name' => $this->user?->name,
@@ -110,7 +130,7 @@ class RevokeCreditsModal extends Component
             $this->credits = 1;
             $this->reason = '';
             Flux::modal('revoke-credits-modal')->close();
-            Toaster::success("Successfully revoked {$this->credits} promotion credits.");
+            Toaster::success("Successfully revoked {$creditsToRevoke} promotion credits.");
 
             $this->dispatch('credits-updated');
 
