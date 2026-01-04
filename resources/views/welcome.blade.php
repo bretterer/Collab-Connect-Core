@@ -3,44 +3,6 @@
 @section('title', 'CollabConnect - Local Influencer Marketing Made Easy')
 @section('description', 'The first platform designed specifically for local businesses to collaborate with micro-influencers in their community.')
 
-@section('nav-cta')
-@if (Route::has('login'))
-    @auth
-        <a href="{{ url('/dashboard') }}" class="btn-secondary">
-            Dashboard
-        </a>
-    @else
-        <a href="{{ route('login') }}" class="nav-link">
-            Sign In
-        </a>
-        <a href="{{ route('register') }}" class="btn-primary">
-            Sign Up
-        </a>
-        @if(true === false)
-        <a href="#beta-signup" class="btn-primary" onclick="smoothScrollTo('beta-signup')">
-            Join the Beta Crew
-        </a>
-        @endif
-    @endauth
-@else
-    @if(true === false)
-    <a href="#beta-signup" class="btn-primary" onclick="smoothScrollTo('beta-signup')">
-        Join the Beta Crew
-    </a>
-    @endif
-@endif
-@endsection
-
-@section('header-nav')
-    <a href="#features" class="nav-link">Features</a>
-    <a href="#how-it-works" class="nav-link">How it Works</a>
-@endsection
-
-@section('mobile-header-nav')
-    <a href="#features" @click="mobileMenuOpen = false" class="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">Features</a>
-    <a href="#how-it-works" @click="mobileMenuOpen = false" class="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">How it Works</a>
-@endsection
-
 @section('content')
 
             <!-- Hero Section -->
