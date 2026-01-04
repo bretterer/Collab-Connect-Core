@@ -1,8 +1,18 @@
 <div>
     <div class="space-y-6">
-        <div>
-            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Pricing Management</h1>
-            <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">Manage Stripe prices and their metadata for pricing tables.</p>
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Pricing Management</h1>
+                <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">Manage Stripe prices and their metadata for pricing tables.</p>
+            </div>
+            <div class="flex gap-3">
+                <flux:button href="{{ route('admin.pricing.addon-mapping') }}" variant="ghost" icon="puzzle-piece">
+                    Addon Mapping
+                </flux:button>
+                <flux:button href="{{ route('admin.pricing.matrix') }}" variant="primary" icon="table-cells">
+                    Pricing Matrix
+                </flux:button>
+            </div>
         </div>
 
         @if (session()->has('message'))
@@ -264,6 +274,69 @@
                             </flux:button>
                         </div>
                     </flux:field>
+
+                    <!-- Pricing Matrix Features Section -->
+                    @if($this->priceAccountType && count($this->definedFeatures) > 0)
+                        <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                            <flux:heading size="base" class="mb-2">
+                                Pricing Matrix Features
+                            </flux:heading>
+                            <flux:text size="sm" class="mb-4">
+                                Configure feature values that will appear in the pricing comparison table. For boolean features, check the box if included. For numeric features, enter the value (-1 for unlimited).
+                            </flux:text>
+
+                            @php
+                                $featuresByCategory = collect($this->definedFeatures)->groupBy('category');
+                            @endphp
+
+                            <div class="space-y-4">
+                                @foreach($featuresByCategory as $category => $features)
+                                    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                                        <flux:heading size="sm" class="mb-3 text-gray-600 dark:text-gray-400">{{ $category }}</flux:heading>
+                                        <div class="space-y-3">
+                                            @foreach($features as $feature)
+                                                <div class="flex items-center gap-4">
+                                                    @if($feature['type'] === 'boolean')
+                                                        <flux:checkbox
+                                                            wire:model="featureValues.{{ $feature['key'] }}"
+                                                            value="1"
+                                                            label="{{ $feature['label'] }}" />
+                                                    @elseif($feature['type'] === 'number')
+                                                        <div class="flex-1">
+                                                            <flux:field>
+                                                                <flux:label>{{ $feature['label'] }}</flux:label>
+                                                                <flux:input
+                                                                    type="number"
+                                                                    wire:model="featureValues.{{ $feature['key'] }}"
+                                                                    placeholder="Enter value (-1 for unlimited)" />
+                                                            </flux:field>
+                                                        </div>
+                                                    @else
+                                                        <div class="flex-1">
+                                                            <flux:field>
+                                                                <flux:label>{{ $feature['label'] }}</flux:label>
+                                                                <flux:input
+                                                                    type="text"
+                                                                    wire:model="featureValues.{{ $feature['key'] }}"
+                                                                    placeholder="Enter text value" />
+                                                            </flux:field>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @elseif($this->priceAccountType && count($this->definedFeatures) === 0)
+                        <flux:callout variant="info" icon="information-circle">
+                            <flux:callout.heading>No Features Defined</flux:callout.heading>
+                            <flux:callout.text>
+                                <a href="{{ route('admin.pricing.matrix') }}" class="underline hover:no-underline">Configure the pricing matrix</a> to define features that appear in the comparison table.
+                            </flux:callout.text>
+                        </flux:callout>
+                    @endif
 
                     <!-- Subscription Limits Section -->
                     @if($this->priceAccountType)

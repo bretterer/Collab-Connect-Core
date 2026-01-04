@@ -232,12 +232,14 @@
             <div class="container-custom">
                 <nav class="flex items-center justify-between py-4">
                     <!-- Logo -->
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 gradient-primary rounded-lg flex items-center justify-center">
-                            <img src="{{ Vite::asset('resources/images/CollabConnectMark.png') }}" alt="CollabConnect" class="w-6 h-6">
-                        </div>
-                        <span class="text-xl font-bold text-gray-900 dark:text-white">Collab Connect</span>
-                    </div>
+                    <a href="/" class="flex items-center">
+                        <img class="block h-8 w-auto dark:hidden"
+                            src="{{ Vite::asset('resources/images/CollabConnect.png') }}"
+                            alt="CollabConnect" />
+                        <img class="hidden h-8 w-auto dark:block"
+                            src="{{ Vite::asset('resources/images/CollabConnectDark.png') }}"
+                            alt="CollabConnect" />
+                    </a>
 
                     <!-- Navigation Links -->
                     <div class="hidden md:flex items-center space-x-8">
@@ -245,27 +247,58 @@
                         @hasSection('header-nav')
                             @yield('header-nav')
                         @else
+                            <a href="/pricing" class="nav-link {{ request()->is('pricing') ? 'active' : '' }}">Pricing</a>
                             <a href="/about" class="nav-link {{ request()->is('about') ? 'active' : '' }}">About</a>
                             <a href="/contact" class="nav-link {{ request()->is('contact') ? 'active' : '' }}">Contact</a>
-                            <a href="/privacy" class="nav-link {{ request()->is('privacy') ? 'active' : '' }}">Privacy</a>
-                            <a href="/terms" class="nav-link {{ request()->is('terms') ? 'active' : '' }}">Terms</a>
                         @endif
                     </div>
 
                     <!-- CTA Buttons - Hidden on mobile -->
                     <div class="hidden md:flex items-center space-x-4">
-                        @yield('nav-cta', '<a href="/" class="btn-primary">Join the Beta Crew</a>')
+                        <!-- Theme Switcher -->
+                        <button
+                            @click="darkMode = !darkMode"
+                            class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                            :aria-label="darkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+                        >
+                            <!-- Sun icon (shown in dark mode) -->
+                            <svg x-show="darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                            </svg>
+                            <!-- Moon icon (shown in light mode) -->
+                            <svg x-show="!darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                            </svg>
+                        </button>
+                        <a href="{{ route('login') }}" class="nav-link">Sign In</a>
+                        <a href="{{ route('register') }}" class="btn-primary">Get Started</a>
                     </div>
 
-                    <!-- Mobile menu button -->
-                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" aria-label="Toggle mobile menu">
+                    <!-- Mobile: Theme toggle + menu button -->
+                    <div class="flex md:hidden items-center gap-2">
+                        <!-- Mobile Theme Switcher -->
+                        <button
+                            @click="darkMode = !darkMode"
+                            class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                            :aria-label="darkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+                        >
+                            <svg x-show="darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                            </svg>
+                            <svg x-show="!darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                            </svg>
+                        </button>
+                        <!-- Mobile menu button -->
+                        <button @click="mobileMenuOpen = !mobileMenuOpen" class="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" aria-label="Toggle mobile menu">
                         <svg x-show="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
                         <svg x-show="mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
-                    </button>
+                        </button>
+                    </div>
                 </nav>
             </div>
 
@@ -283,36 +316,25 @@
                                 @yield('header-nav')
                             </div>
                         @else
+                            <a href="/pricing" @click="mobileMenuOpen = false" class="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors {{ request()->is('pricing') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : '' }}">
+                                Pricing
+                            </a>
                             <a href="/about" @click="mobileMenuOpen = false" class="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors {{ request()->is('about') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : '' }}">
                                 About
                             </a>
                             <a href="/contact" @click="mobileMenuOpen = false" class="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors {{ request()->is('contact') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : '' }}">
                                 Contact
                             </a>
-                            <a href="/privacy" @click="mobileMenuOpen = false" class="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors {{ request()->is('privacy') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : '' }}">
-                                Privacy
-                            </a>
-                            <a href="/terms" @click="mobileMenuOpen = false" class="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors {{ request()->is('terms') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : '' }}">
-                                Terms
-                            </a>
                         @endif
 
-                        <!-- Divider -->
-                        <div class="border-t border-gray-200 dark:border-gray-700 mx-4 my-4"></div>
-
                         <!-- Mobile CTA Buttons -->
-                        <div class="px-4 space-y-3">
-                            @if(true === false)
-                            <a href="/#beta-signup" @click="mobileMenuOpen = false" class="block w-full text-center bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
-                                Join the Beta Crew
+                        <div class="px-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                            <a href="{{ route('register') }}" @click="mobileMenuOpen = false" class="block w-full text-center bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                                Get Started
                             </a>
-                            @endif
-                            @hasSection('mobile-nav-cta')
-                                @yield('mobile-nav-cta')
-                            @else
-                                <a href="{{ route('register') }}" @click="mobileMenuOpen = false" class="button-primary block w-full text-center border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-semibold">Sign up</a>
-                                <a href="/login" @click="mobileMenuOpen = false" class="block w-full text-center border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-semibold">Sign In</a>
-                            @endif
+                            <a href="{{ route('login') }}" @click="mobileMenuOpen = false" class="block w-full text-center border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-semibold">
+                                Sign In
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -321,6 +343,9 @@
 
         <!-- Main Content -->
         <main>
+            @isset($slot)
+                {{ $slot }}
+            @endisset
             @yield('content')
         </main>
 
@@ -331,12 +356,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                         <!-- Logo Section -->
                         <div class="col-span-1">
-                            <div class="flex items-center space-x-3 mb-6">
-                                <div class="w-10 h-10 gradient-primary rounded-lg flex items-center justify-center">
-                                    <img src="{{ Vite::asset('resources/images/CollabConnectMark.png') }}" alt="CollabConnect" class="w-6 h-6">
-                                </div>
-                                <span class="text-xl font-bold text-white">CollabConnect</span>
-                            </div>
+                            <a href="/" class="inline-block mb-6">
+                                <img class="h-8 w-auto"
+                                    src="{{ Vite::asset('resources/images/CollabConnectDark.png') }}"
+                                    alt="CollabConnect" />
+                            </a>
                             <p class="text-gray-400 leading-relaxed mb-6">
                                 Connecting local businesses with micro-influencers.
                             </p>
@@ -387,6 +411,7 @@
                             <h3 class="text-white font-semibold mb-6">Product</h3>
                             <ul class="space-y-4">
                                 <li><a href="/#features" class="hover:text-blue-400 transition-colors">Features</a></li>
+                                <li><a href="/pricing" class="hover:text-blue-400 transition-colors">Pricing</a></li>
                                 <li><a href="/#how-it-works" class="hover:text-blue-400 transition-colors">How it Works</a></li>
                                 <li><a href="{{ route('register') }}" class="hover:text-blue-400 transition-colors">Register</a></li>
                             </ul>

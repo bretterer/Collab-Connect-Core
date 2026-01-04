@@ -4,8 +4,10 @@ namespace App\Livewire\Admin;
 
 use App\Enums\AccountType;
 use App\Models\StripePrice;
+use App\Settings\PricingMatrixSettings;
 use App\Subscription\SubscriptionMetadataSchema;
 use Laravel\Cashier\Cashier;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -30,6 +32,9 @@ class Pricing extends Component
     // Price-specific fields (for features)
     public $priceFeatures = [];
 
+    // Feature values for pricing matrix (keyed by feature key)
+    public array $featureValues = [];
+
     // Subscription limit fields (for price editing)
     public ?int $activeApplicationsLimit = null;
 
@@ -48,8 +53,42 @@ class Pricing extends Component
         $this->priceMetadata = [];
         $this->productMetadata = [];
         $this->priceFeatures = [];
+        $this->featureValues = [];
         $this->selectedAccountType = null;
         $this->resetLimitFields();
+    }
+
+    #[Computed]
+    public function pricingMatrixSettings(): PricingMatrixSettings
+    {
+        return app(PricingMatrixSettings::class);
+    }
+
+    /**
+     * Get defined features for the current price's account type.
+     *
+     * @return array<int, array{key: string, label: string, type: string, category: string}>
+     */
+    #[Computed]
+    public function definedFeatures(): array
+    {
+        $accountType = $this->priceAccountType;
+
+        if (! $accountType) {
+            return [];
+        }
+
+        $accountTypeKey = match ($accountType) {
+            AccountType::BUSINESS => 'business',
+            AccountType::INFLUENCER => 'influencer',
+            default => null,
+        };
+
+        if (! $accountTypeKey) {
+            return [];
+        }
+
+        return $this->pricingMatrixSettings->getAllFeatures($accountTypeKey);
     }
 
     /**
@@ -167,6 +206,15 @@ class Pricing extends Component
             $this->priceFeatures = $features ?? [];
         }
 
+        // Load feature values from metadata
+        $this->featureValues = [];
+        if (isset($this->priceMetadata['feature_values'])) {
+            $values = is_string($this->priceMetadata['feature_values']) ?
+                json_decode($this->priceMetadata['feature_values'], true) :
+                $this->priceMetadata['feature_values'];
+            $this->featureValues = $values ?? [];
+        }
+
         // Load limit fields from metadata
         $this->loadLimitFields();
 
@@ -205,6 +253,7 @@ class Pricing extends Component
         if ($this->editType === 'price') {
             $this->validate([
                 'priceFeatures' => 'array',
+                'featureValues' => 'array',
                 'activeApplicationsLimit' => 'nullable|integer|min:-1',
                 'collaborationLimit' => 'nullable|integer|min:-1',
                 'campaignsPublishedLimit' => 'nullable|integer|min:-1',
@@ -219,6 +268,12 @@ class Pricing extends Component
                 // Prepare metadata with features
                 $metadata = $this->priceMetadata;
                 $metadata['features'] = json_encode($this->priceFeatures);
+
+                // Save feature values for pricing matrix (filter out empty values)
+                $filteredFeatureValues = array_filter($this->featureValues, function ($value) {
+                    return $value !== '' && $value !== null;
+                });
+                $metadata['feature_values'] = json_encode($filteredFeatureValues);
 
                 // Add subscription limit fields to metadata
                 if ($this->activeApplicationsLimit !== null) {
@@ -244,7 +299,10 @@ class Pricing extends Component
                     'metadata' => $metadata,
                 ]);
 
-                session()->flash('message', 'Price settings updated successfully. Changes will sync via webhook.');
+                // Also update local database immediately (don't rely solely on webhook)
+                $this->selectedPrice->update(['metadata' => $metadata]);
+
+                session()->flash('message', 'Price settings updated successfully.');
                 $this->closeModal();
             } catch (\Exception $e) {
                 session()->flash('error', 'Failed to update price settings: '.$e->getMessage());
@@ -268,7 +326,10 @@ class Pricing extends Component
                     'metadata' => $metadata,
                 ]);
 
-                session()->flash('message', 'Product account type updated successfully. Changes will sync via webhook.');
+                // Also update local database immediately (don't rely solely on webhook)
+                $this->selectedProduct->update(['metadata' => $metadata]);
+
+                session()->flash('message', 'Product account type updated successfully.');
                 $this->closeModal();
             } catch (\Exception $e) {
                 session()->flash('error', 'Failed to update product account type: '.$e->getMessage());
@@ -285,6 +346,7 @@ class Pricing extends Component
         $this->priceMetadata = [];
         $this->productMetadata = [];
         $this->priceFeatures = [];
+        $this->featureValues = [];
         $this->selectedAccountType = null;
         $this->resetLimitFields();
     }

@@ -40,6 +40,8 @@ Route::get('/about', function () {
     return view('about');
 })->name('about');
 
+Route::get('/pricing', App\Livewire\Marketing\Pricing::class)->name('pricing');
+
 Route::get('/landing', function () {
     return view('landing');
 })->name('landing');
