@@ -189,73 +189,99 @@
                 </div>
             @endif
 
-            <!-- Available Plans -->
-            @foreach($this->availablePlans as $product)
-                <div>
-                    <div class="mb-6">
-                        <flux:heading>{{ $product->name }}</flux:heading>
-                        @if($product->description)
-                            <flux:text class="text-zinc-500">{{ $product->description }}</flux:text>
-                        @endif
+            <!-- Pricing Comparison Table (if matrix features are defined) -->
+            @if($this->hasMatrixFeatures && $this->availablePricesFlat->count() > 0)
+                <div class="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+                    <div class="p-6 border-b border-zinc-200 dark:border-zinc-700">
+                        <flux:heading>Compare Plans</flux:heading>
+                        <flux:text class="text-zinc-500">Choose the plan that best fits your needs.</flux:text>
                     </div>
+                    <div class="p-6">
+                        @include('livewire.components.pricing-comparison-table', [
+                            'categories' => $this->pricingMatrixCategories,
+                            'prices' => $this->availablePricesFlat,
+                            'highlightedPriceId' => $this->highlightedPriceId,
+                            'currentPriceId' => $this->currentPlan?->stripe_id,
+                            'isSubscribed' => $this->isSubscribed,
+                            'showActions' => true,
+                        ])
+                    </div>
+                </div>
+            @else
+                <!-- Fallback: Available Plans as Cards -->
+                @foreach($this->availablePlans as $product)
+                    <div>
+                        <div class="mb-6">
+                            <flux:heading>{{ $product->name }}</flux:heading>
+                            @if($product->description)
+                                <flux:text class="text-zinc-500">{{ $product->description }}</flux:text>
+                            @endif
+                        </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        @foreach($product->prices->sortBy('unit_amount') as $price)
-                            @php
-                                $isCurrentPlan = $this->isSubscribed && $this->currentPlan?->stripe_id === $price->stripe_id;
-                                $recurring = $price->recurring;
-                                $interval = $recurring['interval'] ?? 'month';
-                                $intervalCount = $recurring['interval_count'] ?? 1;
-                                $intervalLabel = $intervalCount > 1 ? "$intervalCount {$interval}s" : $interval;
-                            @endphp
-                            <div class="relative flex flex-col rounded-xl border-2 transition-all {{ $isCurrentPlan ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-500/20' : 'border-zinc-200 dark:border-zinc-700 hover:border-blue-300 dark:hover:border-blue-700' }} bg-white dark:bg-zinc-800">
-                                @if($isCurrentPlan)
-                                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-white dark:bg-zinc-800 px-1 rounded">
-                                        <flux:badge color="blue">Current Plan</flux:badge>
-                                    </div>
-                                @endif
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            @foreach($product->prices->sortBy('unit_amount') as $price)
+                                @php
+                                    $isCurrentPlan = $this->isSubscribed && $this->currentPlan?->stripe_id === $price->stripe_id;
+                                    $isHighlighted = $this->highlightedPriceId === $price->stripe_id;
+                                    $recurring = $price->recurring;
+                                    $interval = $recurring['interval'] ?? 'month';
+                                    $intervalCount = $recurring['interval_count'] ?? 1;
+                                    $intervalLabel = $intervalCount > 1 ? "$intervalCount {$interval}s" : $interval;
+                                @endphp
+                                <div class="relative flex flex-col rounded-xl border-2 transition-all {{ $isCurrentPlan ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-500/20' : ($isHighlighted ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/10' : 'border-zinc-200 dark:border-zinc-700 hover:border-blue-300 dark:hover:border-blue-700') }} bg-white dark:bg-zinc-800">
+                                    @if($isHighlighted && !$isCurrentPlan)
+                                        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-white dark:bg-zinc-800 px-1 rounded">
+                                            <flux:badge color="yellow">Most Popular</flux:badge>
+                                        </div>
+                                    @endif
+                                    @if($isCurrentPlan)
+                                        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-white dark:bg-zinc-800 px-1 rounded">
+                                            <flux:badge color="blue">Current Plan</flux:badge>
+                                        </div>
+                                    @endif
 
-                                <div class="p-6 flex-1">
-                                    <div class="text-center mb-2">
-                                        <flux:heading class="text-lg">{{ $price->product_name ?? $product->name }}</flux:heading>
-                                    </div>
+                                    <div class="p-6 flex-1">
+                                        <div class="text-center mb-2">
+                                            <flux:heading class="text-lg">{{ $price->product_name ?? $product->name }}</flux:heading>
+                                        </div>
 
-                                    <div class="text-center mb-6">
-                                        <div class="flex items-baseline justify-center gap-1">
-                                            <span class="text-4xl font-bold text-zinc-900 dark:text-white">${{ number_format($price->unit_amount / 100, 0) }}</span>
-                                            @if(fmod($price->unit_amount / 100, 1) > 0)
-                                                <span class="text-xl font-bold text-zinc-900 dark:text-white">.{{ substr(number_format($price->unit_amount / 100, 2), -2) }}</span>
+                                        <div class="text-center mb-6">
+                                            <div class="flex items-baseline justify-center gap-1">
+                                                <span class="text-4xl font-bold text-zinc-900 dark:text-white">${{ number_format($price->unit_amount / 100, 0) }}</span>
+                                                @if(fmod($price->unit_amount / 100, 1) > 0)
+                                                    <span class="text-xl font-bold text-zinc-900 dark:text-white">.{{ substr(number_format($price->unit_amount / 100, 2), -2) }}</span>
+                                                @endif
+                                            </div>
+                                            <flux:text class="text-zinc-500 text-sm">per {{ $intervalLabel }}</flux:text>
+                                            @if($interval === 'year')
+                                                <flux:text class="text-xs text-green-600 dark:text-green-400 mt-1">
+                                                    Save with annual billing
+                                                </flux:text>
                                             @endif
                                         </div>
-                                        <flux:text class="text-zinc-500 text-sm">per {{ $intervalLabel }}</flux:text>
-                                        @if($interval === 'year')
-                                            <flux:text class="text-xs text-green-600 dark:text-green-400 mt-1">
-                                                Save with annual billing
-                                            </flux:text>
+                                    </div>
+
+                                    <div class="p-6 pt-0">
+                                        @if($isCurrentPlan)
+                                            <div class="w-full py-2.5 text-center text-sm font-medium text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-lg bg-blue-50 dark:bg-blue-900/30">
+                                                Current plan
+                                            </div>
+                                        @elseif($this->isSubscribed)
+                                            <flux:button type="button" wire:click="changePlan('{{ $price->stripe_id }}')" variant="filled" class="w-full">
+                                                Switch plan
+                                            </flux:button>
+                                        @else
+                                            <flux:button type="button" wire:click="subscribe('{{ $price->stripe_id }}')" variant="{{ $isHighlighted ? 'primary' : 'filled' }}" class="w-full">
+                                                Get started
+                                            </flux:button>
                                         @endif
                                     </div>
                                 </div>
-
-                                <div class="p-6 pt-0">
-                                    @if($isCurrentPlan)
-                                        <div class="w-full py-2.5 text-center text-sm font-medium text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-lg bg-blue-50 dark:bg-blue-900/30">
-                                            Current plan
-                                        </div>
-                                    @elseif($this->isSubscribed)
-                                        <flux:button type="button" wire:click="changePlan('{{ $price->stripe_id }}')" variant="filled" class="w-full">
-                                            Switch plan
-                                        </flux:button>
-                                    @else
-                                        <flux:button type="button" wire:click="subscribe('{{ $price->stripe_id }}')" variant="primary" class="w-full">
-                                            Get started
-                                        </flux:button>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
                     </div>
-                </div>
-            @endforeach
+                @endforeach
+            @endif
 
             @if($this->availablePlans->isEmpty())
                 <div class="text-center py-12 bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700">

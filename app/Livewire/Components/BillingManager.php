@@ -6,6 +6,7 @@ use App\Models\Business;
 use App\Models\Influencer;
 use App\Models\StripePrice;
 use App\Models\StripeProduct;
+use App\Settings\PricingMatrixSettings;
 use Flux;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Cashier\Subscription;
@@ -244,6 +245,59 @@ class BillingManager extends Component
                     ->orderBy('unit_amount');
             }])
             ->get();
+    }
+
+    #[Computed]
+    public function pricingMatrixSettings(): PricingMatrixSettings
+    {
+        return app(PricingMatrixSettings::class);
+    }
+
+    #[Computed]
+    public function pricingMatrixCategories(): array
+    {
+        $accountTypeKey = $this->billable instanceof Business ? 'business' : 'influencer';
+
+        return $accountTypeKey === 'business'
+            ? $this->pricingMatrixSettings->business_categories
+            : $this->pricingMatrixSettings->influencer_categories;
+    }
+
+    #[Computed]
+    public function highlightedPriceId(): ?string
+    {
+        $accountTypeKey = $this->billable instanceof Business ? 'business' : 'influencer';
+
+        return $accountTypeKey === 'business'
+            ? $this->pricingMatrixSettings->highlighted_business_price_id
+            : $this->pricingMatrixSettings->highlighted_influencer_price_id;
+    }
+
+    #[Computed]
+    public function availablePricesFlat(): \Illuminate\Support\Collection
+    {
+        return $this->availablePlans->flatMap(function ($product) {
+            return $product->prices;
+        })->sortBy('unit_amount');
+    }
+
+    #[Computed]
+    public function hasMatrixFeatures(): bool
+    {
+        $categories = $this->pricingMatrixCategories;
+
+        if (empty($categories)) {
+            return false;
+        }
+
+        // Check if any category has features
+        foreach ($categories as $category) {
+            if (! empty($category['features'])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     #[Computed]
