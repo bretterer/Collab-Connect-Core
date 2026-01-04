@@ -15,8 +15,8 @@ Schedule::job(new ProcessCampaignLifecycle)
 Schedule::command('reviews:expire-periods')->dailyAt('01:15');
 
 // Chat-related scheduled jobs
-// Schedule::job(new \App\Jobs\CheckUnreadChatMessages)->everyThirtyMinutes();
-// Schedule::job(new \App\Jobs\SendCampaignChatReminders)->dailyAt('08:00');
+Schedule::job(new \App\Jobs\CheckUnreadChatMessages)->everyThirtyMinutes();
+Schedule::job(new \App\Jobs\SendCampaignChatReminders)->dailyAt('08:00');
 
 Schedule::job(new \App\Jobs\CalculateReferralPayouts)->monthlyOn(1, '06:00');
 Schedule::job(new \App\Jobs\MonitorTemporaryReferralPayouts)->dailyAt('00:01');

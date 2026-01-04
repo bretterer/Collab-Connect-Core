@@ -15,9 +15,16 @@ class CheckUnreadChatMessages implements ShouldQueue
     use Queueable;
 
     /**
-     * The number of hours after which to remind users about unread messages.
+     * The minimum number of hours after which to remind users about unread messages.
      */
-    protected int $hoursThreshold = 4;
+    protected int $minHoursThreshold = 4;
+
+    /**
+     * The maximum number of days after which we stop sending reminders.
+     * Messages older than this are considered "stale" and users have likely
+     * intentionally ignored them.
+     */
+    protected int $maxDaysThreshold = 7;
 
     public function __construct()
     {
@@ -33,11 +40,13 @@ class CheckUnreadChatMessages implements ShouldQueue
      */
     public function handle(): void
     {
-        // Get all user messages older than threshold (not system messages)
+        // Get all user messages within the notification window (not system messages)
+        // Only messages between minHoursThreshold and maxDaysThreshold old
         // We load reads to check per-recipient read status, not just "any read"
         $staleMessages = Message::query()
             ->where('is_system_message', false)
-            ->where('created_at', '<', now()->subHours($this->hoursThreshold))
+            ->where('created_at', '<', now()->subHours($this->minHoursThreshold))
+            ->where('created_at', '>', now()->subDays($this->maxDaysThreshold))
             ->with([
                 'chat.business.users',
                 'chat.influencer.user',
